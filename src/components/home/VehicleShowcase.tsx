@@ -80,6 +80,12 @@ const VehicleShowcase: React.FC<VehicleShowcaseProps> = ({
             ))}
           </div>
         </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {vehicles.length} vehicles available - swipe to see more
+          </p>
+        </div>
       </div>
     </div>
   );

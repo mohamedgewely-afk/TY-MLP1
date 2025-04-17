@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Info, Heart, RotateCw, Check } from "lucide-react";
+import { Info, Heart, RotateCw, Check, Sparkles, Fuel, Shield } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 
 interface VehicleCardProps {
@@ -106,7 +106,10 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
                 variant={isCompared ? "default" : "secondary"}
                 size="sm"
                 className={`flex-1 ${isCompared ? "bg-toyota-red hover:bg-toyota-darkred" : ""}`}
-                onClick={() => onCompare(vehicle)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCompare(vehicle);
+                }}
               >
                 {isCompared ? (
                   <>
@@ -129,6 +132,30 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
 
             <div className="flex-1 mb-4">
               <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
+                    <Sparkles className="h-3 w-3" />
+                  </span>
+                  Engine: {vehicle.specifications?.engine || vehicle.features[0]}
+                </li>
+                <li className="flex items-start">
+                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
+                    <Fuel className="h-3 w-3" />
+                  </span>
+                  Fuel Economy: {vehicle.specifications?.fuelEconomy || "17.5 km/L"}
+                </li>
+                <li className="flex items-start">
+                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
+                    <Shield className="h-3 w-3" />
+                  </span>
+                  Safety: {vehicle.specifications?.safetyRating || vehicle.features[2]}
+                </li>
+                <li className="flex items-start">
+                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  Warranty: {vehicle.specifications?.warranty || "5 years / 100,000 km"}
+                </li>
                 {vehicle.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start">
                     <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
@@ -137,18 +164,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
                     {feature}
                   </li>
                 ))}
-                <li className="flex items-start">
-                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  Fuel Efficiency: 17.5 km/L
-                </li>
-                <li className="flex items-start">
-                  <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  Warranty: 5 years / 100,000 km
-                </li>
               </ul>
             </div>
 
@@ -165,7 +180,10 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
                 variant="default"
                 size="sm"
                 className="flex-1 bg-toyota-red hover:bg-toyota-darkred"
-                onClick={() => onQuickView(vehicle)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickView(vehicle);
+                }}
               >
                 Quick View
               </Button>

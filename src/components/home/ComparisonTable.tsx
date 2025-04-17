@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -30,8 +30,8 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     {
       name: "Performance",
       features: [
-        { name: "Engine", getValue: (v: VehicleModel) => v.features[0] || "N/A" },
-        { name: "Efficiency", getValue: () => "17.5 km/L" }, // Simulated for all vehicles
+        { name: "Engine", getValue: (v: VehicleModel) => v.specifications?.engine || v.features[0] || "N/A" },
+        { name: "Efficiency", getValue: (v: VehicleModel) => v.specifications?.fuelEconomy || "17.5 km/L" },
         { name: "Drivetrain", getValue: () => "FWD" }, // Simulated for all vehicles
       ],
     },
@@ -39,7 +39,8 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       name: "Features",
       features: [
         { name: "Infotainment", getValue: (v: VehicleModel) => v.features[1] || "N/A" },
-        { name: "Safety", getValue: (v: VehicleModel) => v.features[2] || "N/A" },
+        { name: "Safety", getValue: (v: VehicleModel) => v.specifications?.safetyRating || v.features[2] || "N/A" },
+        { name: "Warranty", getValue: (v: VehicleModel) => v.specifications?.warranty || "5 years / 100,000 km" },
       ],
     },
   ];
@@ -180,6 +181,15 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                   >
                     <a href={vehicle.mmeUrl} target="_blank" rel="noopener noreferrer">
                       Schedule Test Drive
+                    </a>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    <a href={vehicle.configureUrl} target="_blank" rel="noopener noreferrer">
+                      Configure <ArrowRight className="h-4 w-4 ml-1" />
                     </a>
                   </Button>
                 </td>

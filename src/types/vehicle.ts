@@ -7,6 +7,13 @@ export interface VehicleModel {
   price: number;
   category: string;
   features: string[];
+  specifications?: {
+    engine?: string;
+    transmission?: string;
+    fuelEconomy?: string;
+    safetyRating?: string;
+    warranty?: string;
+  };
 }
 
 export interface PreOwnedVehicle {
@@ -18,4 +25,11 @@ export interface PreOwnedVehicle {
   price: number;
   mileage: number;
   certified: boolean;
+  specifications?: {
+    engine?: string;
+    transmission?: string;
+    previousOwners?: number;
+    condition?: string;
+    warranty?: string;
+  };
 }

@@ -93,4 +93,17 @@
   .text-shadow-lg {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   }
+  
+  /* Card flip utilities */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotateY-180 {
+    transform: rotateY(180deg);
+  }
 }
