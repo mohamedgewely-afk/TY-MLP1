@@ -1,0 +1,195 @@
+
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { VehicleModel } from "@/types/vehicle";
+
+interface ComparisonTableProps {
+  vehicles: VehicleModel[];
+  onRemove: (name: string) => void;
+}
+
+const ComparisonTable: React.FC<ComparisonTableProps> = ({
+  vehicles,
+  onRemove,
+}) => {
+  const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
+
+  // Feature categories for the comparison
+  const featureCategories = [
+    {
+      name: "General",
+      features: [
+        { name: "Price", getValue: (v: VehicleModel) => `AED ${v.price.toLocaleString()}` },
+        { name: "Category", getValue: (v: VehicleModel) => v.category },
+      ],
+    },
+    {
+      name: "Performance",
+      features: [
+        { name: "Engine", getValue: (v: VehicleModel) => v.features[0] || "N/A" },
+        { name: "Efficiency", getValue: () => "17.5 km/L" }, // Simulated for all vehicles
+        { name: "Drivetrain", getValue: () => "FWD" }, // Simulated for all vehicles
+      ],
+    },
+    {
+      name: "Features",
+      features: [
+        { name: "Infotainment", getValue: (v: VehicleModel) => v.features[1] || "N/A" },
+        { name: "Safety", getValue: (v: VehicleModel) => v.features[2] || "N/A" },
+      ],
+    },
+  ];
+
+  // Check if there are differences in a particular feature
+  const hasDifferences = (feature: { name: string; getValue: (v: VehicleModel) => string }) => {
+    const values = vehicles.map(v => feature.getValue(v));
+    return new Set(values).size > 1;
+  };
+
+  // Determine if a row should be shown based on the "show only differences" filter
+  const shouldShowRow = (feature: { name: string; getValue: (v: VehicleModel) => string }) => {
+    if (!showOnlyDifferences) return true;
+    return hasDifferences(feature);
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compare Vehicles</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Compare specifications and features to find the perfect Toyota for you.
+        </p>
+        
+        <div className="flex items-center">
+          <Switch
+            id="showDifferences"
+            checked={showOnlyDifferences}
+            onCheckedChange={setShowOnlyDifferences}
+          />
+          <Label htmlFor="showDifferences" className="ml-2">
+            Show only differences
+          </Label>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800">
+              <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-300 min-w-[200px]">
+                Feature
+              </th>
+              {vehicles.map((vehicle, index) => (
+                <th key={vehicle.name} className="p-4 min-w-[250px]">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    className="relative bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+                  >
+                    <button
+                      onClick={() => onRemove(vehicle.name)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    
+                    <div className="aspect-video mb-3 bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden">
+                      <img
+                        src={vehicle.image}
+                        alt={vehicle.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate">
+                      {vehicle.name}
+                    </h3>
+                    
+                    <p className="text-toyota-red font-semibold">
+                      AED {vehicle.price.toLocaleString()}
+                    </p>
+                  </motion.div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          
+          <tbody>
+            {featureCategories.map((category) => (
+              <React.Fragment key={category.name}>
+                <tr className="bg-gray-100 dark:bg-gray-800">
+                  <td
+                    colSpan={vehicles.length + 1}
+                    className="p-2 font-semibold text-gray-700 dark:text-gray-200"
+                  >
+                    {category.name}
+                  </td>
+                </tr>
+                
+                {category.features.map((feature) => 
+                  shouldShowRow(feature) ? (
+                    <tr
+                      key={feature.name}
+                      className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                        {feature.name}
+                      </td>
+                      
+                      {vehicles.map((vehicle) => {
+                        const value = feature.getValue(vehicle);
+                        // Determine if this is a highlighted cell (unique value)
+                        const isHighlighted = hasDifferences(feature) && 
+                          vehicles.filter(v => feature.getValue(v) === value).length === 1;
+                        
+                        return (
+                          <td
+                            key={`${vehicle.name}-${feature.name}`}
+                            className={`p-4 text-sm ${
+                              isHighlighted 
+                                ? "text-toyota-red font-medium bg-toyota-red/5" 
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          >
+                            {value}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ) : null
+                )}
+              </React.Fragment>
+            ))}
+            
+            {/* Action row */}
+            <tr className="border-t border-gray-200 dark:border-gray-700">
+              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">
+                Actions
+              </td>
+              
+              {vehicles.map((vehicle) => (
+                <td key={`${vehicle.name}-actions`} className="p-4">
+                  <Button
+                    asChild
+                    className="w-full bg-toyota-red hover:bg-toyota-darkred"
+                  >
+                    <a href={vehicle.mmeUrl} target="_blank" rel="noopener noreferrer">
+                      Schedule Test Drive
+                    </a>
+                  </Button>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default ComparisonTable;
