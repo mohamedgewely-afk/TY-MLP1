@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { VehicleModel } from '@/types/vehicle';
 
@@ -14,6 +15,9 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ vehicle, onClose }) => 
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+
+  // Create URL-friendly version of the vehicle name
+  const vehicleSlug = vehicle.name.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <div 
@@ -81,12 +85,17 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ vehicle, onClose }) => 
             </ul>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button asChild className="bg-toyota-red hover:bg-toyota-darkred">
+              <Link to={`/vehicle/${vehicleSlug}`} onClick={onClose}>
+                View Full Details
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <a href={vehicle.configureUrl}>Configure Vehicle</a>
             </Button>
             <Button asChild variant="outline">
-              <a href={vehicle.mmeUrl}>View Full Details</a>
+              <a href={vehicle.mmeUrl}>Book Test Drive</a>
             </Button>
           </div>
         </div>

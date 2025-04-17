@@ -11,9 +11,12 @@ import CompareFloatingBox from "@/components/home/CompareFloatingBox";
 import LifestyleSection from "@/components/home/LifestyleSection";
 import PerformanceSection from "@/components/home/PerformanceSection";
 import PreOwnedSection from "@/components/home/PreOwnedSection";
+import FavoritesDrawer from "@/components/home/FavoritesDrawer";
 import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
+import { Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Available categories for filtering
 const categories = ["All", "Hybrid", "Sedan", "SUV", "GR Performance", "Commercial"];
@@ -25,7 +28,23 @@ const Index = () => {
   const [priceRange, setPriceRange] = useState<number[]>([0, 200000]);
   const [compareList, setCompareList] = useState<string[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleModel | null>(null);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const { toast } = useToast();
+
+  // Load favorite count from localStorage
+  useEffect(() => {
+    const handleFavoritesUpdated = () => {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setFavoriteCount(favorites.length);
+    };
+    
+    handleFavoritesUpdated();
+    window.addEventListener('favorites-updated', handleFavoritesUpdated);
+    
+    return () => {
+      window.removeEventListener('favorites-updated', handleFavoritesUpdated);
+    };
+  }, []);
 
   // Filter vehicles based on category and price
   const filteredVehicles = vehicles.filter(
@@ -84,6 +103,31 @@ const Index = () => {
     <ToyotaLayout>
       {/* Hero Carousel */}
       <HeroCarousel slides={heroSlides} />
+
+      {/* Top Actions Bar */}
+      <div className="bg-white dark:bg-gray-900 shadow-sm">
+        <div className="toyota-container py-3 flex justify-between items-center">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {filteredVehicles.length} vehicles
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <FavoritesDrawer 
+              triggerButton={
+                <Button variant="outline" size="sm" className="relative">
+                  <Heart className="h-4 w-4 mr-2" />
+                  <span>Favorites</span>
+                  {favoriteCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {favoriteCount}
+                    </span>
+                  )}
+                </Button>
+              }
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Category Filter */}
       <CategoryFilter
