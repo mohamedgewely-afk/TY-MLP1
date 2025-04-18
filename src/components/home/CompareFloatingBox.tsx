@@ -1,11 +1,12 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface CompareFloatingBoxProps {
   compareList: string[];
@@ -20,7 +21,7 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
   onRemove,
   onClearAll,
 }) => {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [showOnlyDifferences, setShowOnlyDifferences] = React.useState(false);
   const isMobile = useIsMobile();
 
   if (compareList.length === 0) return null;
@@ -33,126 +34,77 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[40] bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-4 w-[94%] max-w-lg"
+        className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[40] bg-gray-900 rounded-xl shadow-2xl border border-gray-800 p-4 w-[94%] max-w-lg text-white"
       >
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-bold text-gray-900 dark:text-white flex items-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 mr-2"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </Button>
-            Compare Vehicles ({compareList.length})
-          </h3>
-          <div className="flex space-x-2">
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-lg">
+              Compare ({compareList.length})
+            </h3>
             <button
               onClick={onClearAll}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-gray-400 hover:text-gray-200"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
-        </div>
 
-        {!isCollapsed && (
-          <div className="space-y-2 mb-3 pr-1">
-            <div className={`flex ${isMobile ? 'flex-row' : ''} gap-2 overflow-x-auto pb-2`}>
-              {comparedVehicles.map((vehicle) => (
-                <div
-                  key={vehicle.name}
-                  className={`flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${isMobile ? 'min-w-[110px] flex-shrink-0' : 'w-full'}`}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {comparedVehicles.map((vehicle) => (
+              <div
+                key={vehicle.name}
+                className="bg-gray-800 rounded-lg p-3 relative"
+              >
+                <button
+                  onClick={() => onRemove(vehicle.name)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-200"
                 >
-                  {isMobile ? (
-                    // Mobile version - simplified view with horizontal layout
-                    <div className="flex flex-col items-center w-full">
-                      <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 mb-1">
-                        <img
-                          src={vehicle.image}
-                          alt={vehicle.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[90px] text-center mb-1">
-                        {vehicle.name}
-                      </span>
-                      <button
-                        onClick={() => onRemove(vehicle.name)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    // Desktop version with hover card
-                    <>
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <div className="flex items-center gap-3 cursor-pointer">
-                            <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-                              <img
-                                src={vehicle.image}
-                                alt={vehicle.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
-                              {vehicle.name}
-                            </span>
-                          </div>
-                        </HoverCardTrigger>
-                        <HoverCardContent sideOffset={5} className="w-80 z-[50] bg-white dark:bg-gray-900">
-                          <div className="flex flex-col">
-                            <img
-                              src={vehicle.image}
-                              alt={vehicle.name}
-                              className="h-40 w-full object-cover rounded-md mb-3"
-                            />
-                            <h4 className="font-bold">{vehicle.name}</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                              AED {vehicle.price.toLocaleString()}
-                            </p>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                              {vehicle.features.slice(0, 4).map((feature, idx) => (
-                                <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-1 rounded">
-                                  {feature}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                      <button
-                        onClick={() => onRemove(vehicle.name)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </>
-                  )}
+                  <X className="h-4 w-4" />
+                </button>
+                
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="w-full h-32 rounded-md overflow-hidden bg-gray-700">
+                    <img
+                      src={vehicle.image}
+                      alt={vehicle.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h4 className="font-semibold mt-2">{vehicle.name}</h4>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2 text-sm"
+                    asChild
+                  >
+                    <a href={vehicle.configureUrl}>Configure</a>
+                  </Button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
 
-        {compareList.length >= 2 && (
-          <Button 
-            variant="default" 
-            className="w-full bg-toyota-red hover:bg-toyota-darkred" 
-            asChild
-          >
-            <a href="#compare-section">Compare Now</a>
-          </Button>
-        )}
-        
-        {compareList.length === 1 && (
-          <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-            Select at least one more vehicle to compare
-          </p>
-        )}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="differences"
+              checked={showOnlyDifferences}
+              onCheckedChange={setShowOnlyDifferences}
+            />
+            <Label htmlFor="differences">Show only differences</Label>
+          </div>
+
+          {compareList.length >= 2 ? (
+            <Button 
+              className="w-full bg-toyota-red hover:bg-toyota-darkred" 
+              asChild
+            >
+              <a href="#compare-section">Compare Now</a>
+            </Button>
+          ) : (
+            <p className="text-sm text-center text-gray-400">
+              Select at least one more vehicle to compare
+            </p>
+          )}
+        </div>
       </motion.div>
     </AnimatePresence>
   );
