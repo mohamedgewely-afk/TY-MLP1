@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
@@ -31,7 +30,7 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-40 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-4 w-[90%] max-w-lg"
+        className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[40] bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-4 w-[90%] max-w-lg"
       >
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-gray-900 dark:text-white flex items-center">
@@ -77,7 +76,7 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
                       </span>
                     </div>
                   </HoverCardTrigger>
-                  <HoverCardContent className="w-80">
+                  <HoverCardContent sideOffset={5} className="w-80 z-[50] bg-white dark:bg-gray-900">
                     <div className="flex flex-col">
                       <img
                         src={vehicle.image}

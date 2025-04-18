@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, X, ArrowRight } from "lucide-react";
@@ -18,7 +17,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
 }) => {
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
 
-  // Feature categories for the comparison
   const featureCategories = [
     {
       name: "General",
@@ -45,21 +43,19 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     },
   ];
 
-  // Check if there are differences in a particular feature
   const hasDifferences = (feature: { name: string; getValue: (v: VehicleModel) => string }) => {
     const values = vehicles.map(v => feature.getValue(v));
     return new Set(values).size > 1;
   };
 
-  // Determine if a row should be shown based on the "show only differences" filter
   const shouldShowRow = (feature: { name: string; getValue: (v: VehicleModel) => string }) => {
     if (!showOnlyDifferences) return true;
     return hasDifferences(feature);
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden relative z-[1]">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-[2]">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compare Vehicles</h2>
         <p className="text-gray-600 dark:text-gray-400 mb-4">
           Compare specifications and features to find the perfect Toyota for you.
@@ -80,7 +76,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 dark:bg-gray-800">
+            <tr className="bg-gray-50 dark:bg-gray-800 sticky top-[8.5rem] z-[2]">
               <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-300 min-w-[200px]">
                 Feature
               </th>
@@ -120,7 +116,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
             </tr>
           </thead>
           
-          <tbody>
+          <tbody className="relative z-[1]">
             {featureCategories.map((category) => (
               <React.Fragment key={category.name}>
                 <tr className="bg-gray-100 dark:bg-gray-800">
@@ -144,7 +140,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                       
                       {vehicles.map((vehicle) => {
                         const value = feature.getValue(vehicle);
-                        // Determine if this is a highlighted cell (unique value)
                         const isHighlighted = hasDifferences(feature) && 
                           vehicles.filter(v => feature.getValue(v) === value).length === 1;
                         
@@ -167,7 +162,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
               </React.Fragment>
             ))}
             
-            {/* Action row */}
             <tr className="border-t border-gray-200 dark:border-gray-700">
               <td className="p-4 font-medium text-gray-700 dark:text-gray-300">
                 Actions
