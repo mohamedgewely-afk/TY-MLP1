@@ -58,74 +58,83 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
         </div>
 
         {!isCollapsed && (
-          <div className={`space-y-2 ${isMobile ? 'max-h-48' : 'max-h-36'} overflow-y-auto mb-3 pr-1`}>
-            {comparedVehicles.map((vehicle) => (
-              <div
-                key={vehicle.name}
-                className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                {isMobile ? (
-                  // Mobile version - simplified view
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="w-8 h-8 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-                      <img
-                        src={vehicle.image}
-                        alt={vehicle.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[180px]">
-                      {vehicle.name}
-                    </span>
-                    <Check className="h-3 w-3 text-toyota-red" />
-                  </div>
-                ) : (
-                  // Desktop version with hover card
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <div className="flex items-center gap-3 cursor-pointer">
-                        <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-                          <img
-                            src={vehicle.image}
-                            alt={vehicle.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
-                          {vehicle.name}
-                        </span>
-                      </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent sideOffset={5} className="w-80 z-[50] bg-white dark:bg-gray-900">
-                      <div className="flex flex-col">
+          <div className="space-y-2 mb-3 pr-1">
+            <div className={`flex ${isMobile ? 'flex-row' : ''} gap-2 overflow-x-auto pb-2`}>
+              {comparedVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.name}
+                  className={`flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${isMobile ? 'min-w-[110px] flex-shrink-0' : 'w-full'}`}
+                >
+                  {isMobile ? (
+                    // Mobile version - simplified view with horizontal layout
+                    <div className="flex flex-col items-center w-full">
+                      <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 mb-1">
                         <img
                           src={vehicle.image}
                           alt={vehicle.name}
-                          className="h-40 w-full object-cover rounded-md mb-3"
+                          className="w-full h-full object-cover"
                         />
-                        <h4 className="font-bold">{vehicle.name}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                          AED {vehicle.price.toLocaleString()}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {vehicle.features.slice(0, 4).map((feature, idx) => (
-                            <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-1 rounded">
-                              {feature}
-                            </div>
-                          ))}
-                        </div>
                       </div>
-                    </HoverCardContent>
-                  </HoverCard>
-                )}
-                <button
-                  onClick={() => onRemove(vehicle.name)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                      <span className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[90px] text-center mb-1">
+                        {vehicle.name}
+                      </span>
+                      <button
+                        onClick={() => onRemove(vehicle.name)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    // Desktop version with hover card
+                    <>
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <div className="flex items-center gap-3 cursor-pointer">
+                            <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                              <img
+                                src={vehicle.image}
+                                alt={vehicle.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                              {vehicle.name}
+                            </span>
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent sideOffset={5} className="w-80 z-[50] bg-white dark:bg-gray-900">
+                          <div className="flex flex-col">
+                            <img
+                              src={vehicle.image}
+                              alt={vehicle.name}
+                              className="h-40 w-full object-cover rounded-md mb-3"
+                            />
+                            <h4 className="font-bold">{vehicle.name}</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                              AED {vehicle.price.toLocaleString()}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {vehicle.features.slice(0, 4).map((feature, idx) => (
+                                <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-1 rounded">
+                                  {feature}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                      <button
+                        onClick={() => onRemove(vehicle.name)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
