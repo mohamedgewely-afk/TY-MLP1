@@ -1,10 +1,10 @@
-
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PreOwnedVehicle {
   id: string;
@@ -23,6 +23,9 @@ interface PreOwnedSectionProps {
 
 const PreOwnedSection: React.FC<PreOwnedSectionProps> = ({ vehicles }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const isMobile = useIsMobile();
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -30,6 +33,35 @@ const PreOwnedSection: React.FC<PreOwnedSectionProps> = ({ vehicles }) => {
       const scrollAmount = direction === "left" ? -400 : 400;
       current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
+  };
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (autoScrollEnabled && !isInteracting) {
+      intervalId = setInterval(() => {
+        if (scrollContainerRef.current) {
+          const { current } = scrollContainerRef;
+          const isAtEnd = current.scrollLeft + current.clientWidth >= current.scrollWidth;
+          
+          if (isAtEnd) {
+            current.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            scroll('right');
+          }
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [autoScrollEnabled, isInteracting]);
+
+  const handleInteractionStart = () => {
+    setIsInteracting(true);
+    setAutoScrollEnabled(false);
+    setTimeout(() => setAutoScrollEnabled(true), 5000);
   };
 
   return (
@@ -68,6 +100,8 @@ const PreOwnedSection: React.FC<PreOwnedSectionProps> = ({ vehicles }) => {
           className="overflow-x-auto pb-4"
           style={{ scrollbarWidth: 'none' }}
           ref={scrollContainerRef}
+          onMouseEnter={!isMobile ? handleInteractionStart : undefined}
+          onTouchStart={handleInteractionStart}
         >
           <div className="flex space-x-6">
             {vehicles.map((vehicle, index) => (
