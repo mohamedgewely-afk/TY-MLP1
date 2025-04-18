@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Engine, Gauge, Fuel, Shield, Award, Clock } from "lucide-react";
+import { Car, Gauge, Fuel, Shield, Award, Clock } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 
 interface VehicleSpecsProps {
@@ -8,7 +7,6 @@ interface VehicleSpecsProps {
 }
 
 const VehicleSpecs: React.FC<VehicleSpecsProps> = ({ vehicle }) => {
-  // Add detailed specs for the vehicle (in a real app, these would come from the data)
   const detailedSpecs = {
     dimensions: {
       length: "4,630 mm",
@@ -52,7 +50,7 @@ const VehicleSpecs: React.FC<VehicleSpecsProps> = ({ vehicle }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="flex items-start space-x-4">
           <div className="bg-toyota-red/10 p-3 rounded-full">
-            <Engine className="h-6 w-6 text-toyota-red" />
+            <Car className="h-6 w-6 text-toyota-red" />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white">Engine</h3>
