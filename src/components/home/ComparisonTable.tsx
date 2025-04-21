@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,39 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
+// -- Animation utilities using Tailwind classes
+const useFlyInAnimation = () => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.classList.add("animate-flyin-comparison");
+    }
+  }, []);
+
+  return ref;
+};
+
+/*
+  Custom animation class for fly-in:
+  Add the following class to your global Tailwind config if needed:
+  .animate-flyin-comparison {
+    @apply transition-transform duration-500;
+    transform: translateX(100%);
+    animation: comparison-flyin 0.7s cubic-bezier(0.41,0.78,0.21,0.98) forwards;
+  }
+  @keyframes comparison-flyin {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+*/
+
+const flyInClasses =
+  "bg-white bg-opacity-95 shadow-2xl border border-gray-200 rounded-xl p-0 animate-flyin-comparison";
+
 interface ComparisonTableProps {
   vehicles: VehicleModel[];
   onRemove: (name: string) => void;
-  // (Optional) onClearAll for controller if parent provides
   onClearAll?: () => void;
 }
 
@@ -22,6 +51,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   const [activeVehicleIndex, setActiveVehicleIndex] = useState(0);
   const isMobile = useIsMobile();
+  const flyInRef = useFlyInAnimation();
 
   const sections = [
     {
@@ -73,15 +103,15 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     return new Set(values).size > 1;
   };
 
-  // Controller bar - always at top
-  const ControllerBar = () => (
-    <div className="w-full px-4 py-2 mb-4 rounded-xl bg-white border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 relative z-10">
+  // -- New: Compare Controller always shown at top --
+  const CompareControllerBar = () => (
+    <div className="w-full px-2 md:px-4 py-2 mb-4 rounded-xl bg-[#F1F0FB] border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 shadow-sm relative z-10">
       <div className="overflow-x-auto flex-1">
         <div className="flex gap-2">
           {vehicles.map((v) => (
             <div
               key={v.name}
-              className="flex items-center p-2 bg-gray-50 border rounded-lg min-w-[120px] gap-2 shadow-xs"
+              className="flex items-center px-3 py-2 bg-white border border-gray-100 rounded-lg min-w-[120px] gap-2 shadow-xs hover-scale"
             >
               <img
                 src={v.image}
@@ -100,42 +130,34 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-2 ml-1 md:ml-2">
+      <div className="flex flex-row flex-wrap items-center gap-2 mt-1 md:mt-0">
         <Switch
           id="show-differences"
           checked={showOnlyDifferences}
           onCheckedChange={setShowOnlyDifferences}
         />
         <Label htmlFor="show-differences" className="text-sm text-gray-600">Show only differences</Label>
+        {onClearAll && vehicles.length > 0 &&
+          <Button
+            variant="secondary"
+            size="sm"
+            className="ml-1"
+            onClick={onClearAll}
+          >
+            Clear All
+          </Button>
+        }
       </div>
-      {onClearAll && vehicles.length > 0 &&
-        <Button
-          variant="secondary"
-          size="sm"
-          className="ml-auto"
-          onClick={onClearAll}
-        >
-          Clear All
-        </Button>
-      }
-      {vehicles.length >= 2 &&
-        <Button
-          className="ml-2 bg-toyota-red hover:bg-toyota-darkred text-white text-sm"
-          asChild
-        >
-          <a href="#compare-section">Compare Now</a>
-        </Button>
-      }
       {vehicles.length < 2 &&
-        <span className="ml-2 text-xs text-gray-400">Add another vehicle to compare</span>
+        <span className="ml-1 text-xs text-gray-400">Add another vehicle to compare</span>
       }
+      {/* No "Compare Now" button any more; everything is visible here */}
     </div>
   );
 
   // Mobile navigation controls
   const MobileNavControls = () => {
     if (vehicles.length <= 1) return null;
-    
     return (
       <div className="flex justify-between items-center mb-4 px-2">
         <Button
@@ -147,11 +169,9 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
         <div className="text-sm font-medium text-gray-700">
           {activeVehicleIndex + 1} of {vehicles.length}
         </div>
-        
         <Button
           variant="outline"
           size="sm"
@@ -165,13 +185,12 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     );
   };
 
-  // --- Mobile view: controller bar + single column per car (no popup, all embedded)
   const renderMobileView = () => {
     const activeVehicle = vehicles[activeVehicleIndex];
-    
+
     return (
       <div>
-        <ControllerBar />
+        <CompareControllerBar />
         <div className="space-y-6 px-2 pb-4">
           {vehicles.length > 0 && (
             <>
@@ -217,10 +236,14 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     );
   };
 
-  // --- Desktop view: controller bar + table
+  // Desktop: fly-in full feature table
   const renderDesktopView = () => (
-    <div>
-      <ControllerBar />
+    <div
+      ref={flyInRef}
+      className={`${flyInClasses} w-full overflow-x-auto`}
+      style={{ animationDelay: "0s" }}
+    >
+      <CompareControllerBar />
       <div className="overflow-x-auto">
         <table className="w-full text-left bg-white border rounded-xl shadow-sm">
           <thead>
