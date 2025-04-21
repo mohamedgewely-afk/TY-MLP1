@@ -20,22 +20,9 @@ const useFlyInAnimation = () => {
   return ref;
 };
 
-/*
-  Custom animation class for fly-in:
-  Add the following class to your global Tailwind config if needed:
-  .animate-flyin-comparison {
-    @apply transition-transform duration-500;
-    transform: translateX(100%);
-    animation: comparison-flyin 0.7s cubic-bezier(0.41,0.78,0.21,0.98) forwards;
-  }
-  @keyframes comparison-flyin {
-    0% { transform: translateX(100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-  }
-*/
-
+// Custom animation class definition
 const flyInClasses =
-  "bg-white bg-opacity-95 shadow-2xl border border-gray-200 rounded-xl p-0 animate-flyin-comparison";
+  "fixed top-1/2 right-0 -translate-y-1/2 w-[95%] max-w-[1000px] h-[90vh] overflow-y-auto z-50 bg-white bg-opacity-95 shadow-2xl border border-gray-200 rounded-xl p-0 animate-flyin-comparison";
 
 interface ComparisonTableProps {
   vehicles: VehicleModel[];
@@ -103,7 +90,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     return new Set(values).size > 1;
   };
 
-  // -- New: Compare Controller always shown at top --
+  // -- Compare Controller always shown at top --
   const CompareControllerBar = () => (
     <div className="w-full px-2 md:px-4 py-2 mb-4 rounded-xl bg-[#F1F0FB] border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 shadow-sm relative z-10">
       <div className="overflow-x-auto flex-1">
@@ -151,7 +138,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       {vehicles.length < 2 &&
         <span className="ml-1 text-xs text-gray-400">Add another vehicle to compare</span>
       }
-      {/* No "Compare Now" button any more; everything is visible here */}
     </div>
   );
 
@@ -240,75 +226,97 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   const renderDesktopView = () => (
     <div
       ref={flyInRef}
-      className={`${flyInClasses} w-full overflow-x-auto`}
+      className={`${flyInClasses}`}
       style={{ animationDelay: "0s" }}
     >
-      <CompareControllerBar />
-      <div className="overflow-x-auto">
-        <table className="w-full text-left bg-white border rounded-xl shadow-sm">
-          <thead>
-            <tr>
-              <th className="p-4 border-b border-gray-200 bg-gray-50"></th>
-              {vehicles.map((vehicle) => (
-                <th key={vehicle.name} className="p-4 border-b border-gray-200 min-w-[250px] bg-gray-50">
-                  <div className="relative">
-                    <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 bg-gray-100">
-                      <img
-                        src={vehicle.image}
-                        alt={vehicle.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      asChild
-                    >
-                      <a href={vehicle.configureUrl}>Configure</a>
-                    </Button>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((section) => (
-              <React.Fragment key={section.title}>
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between bg-[#F1F0FB] p-3 border-b">
+          <h2 className="text-lg font-semibold text-gray-800">Vehicle Comparison</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-full p-2 h-8 w-8"
+            onClick={onClearAll}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-4">
+          <CompareControllerBar />
+          <div className="overflow-x-auto">
+            <table className="w-full text-left bg-white border rounded-xl shadow-sm">
+              <thead>
                 <tr>
-                  <td colSpan={vehicles.length + 1} className="p-4 bg-gray-100 font-semibold text-gray-700">
-                    {section.title}
-                  </td>
-                </tr>
-                {section.items.map((item) => (
-                  !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                    <tr key={item.label} className="border-b border-gray-100">
-                      <td className="p-4 text-gray-500">{item.label}</td>
-                      {vehicles.map((vehicle) => (
-                        <td
-                          key={`${vehicle.name}-${item.label}`}
-                          className={`p-4 text-gray-800 ${
-                            hasDifferences(item.getValue) ? "font-semibold" : ""
-                          }`}
+                  <th className="p-4 border-b border-gray-200 bg-gray-50"></th>
+                  {vehicles.map((vehicle) => (
+                    <th key={vehicle.name} className="p-4 border-b border-gray-200 min-w-[250px] bg-gray-50">
+                      <div className="relative">
+                        <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 bg-gray-100">
+                          <img
+                            src={vehicle.image}
+                            alt={vehicle.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          asChild
                         >
-                          {item.getValue(vehicle)}
-                        </td>
-                      ))}
+                          <a href={vehicle.configureUrl}>Configure</a>
+                        </Button>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sections.map((section) => (
+                  <React.Fragment key={section.title}>
+                    <tr>
+                      <td colSpan={vehicles.length + 1} className="p-4 bg-gray-100 font-semibold text-gray-700">
+                        {section.title}
+                      </td>
                     </tr>
-                  ) : null
+                    {section.items.map((item) => (
+                      !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                        <tr key={item.label} className="border-b border-gray-100">
+                          <td className="p-4 text-gray-500">{item.label}</td>
+                          {vehicles.map((vehicle) => (
+                            <td
+                              key={`${vehicle.name}-${item.label}`}
+                              className={`p-4 text-gray-800 ${
+                                hasDifferences(item.getValue) ? "font-semibold" : ""
+                              }`}
+                            >
+                              {item.getValue(vehicle)}
+                            </td>
+                          ))}
+                        </tr>
+                      ) : null
+                    ))}
+                  </React.Fragment>
                 ))}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-gray-50 rounded-xl overflow-hidden border p-0">
-      {isMobile ? renderMobileView() : renderDesktopView()}
-    </div>
+    <>
+      {isMobile ? (
+        <div className="bg-gray-50 rounded-xl overflow-hidden border p-0">
+          {renderMobileView()}
+        </div>
+      ) : (
+        renderDesktopView()
+      )}
+    </>
   );
 };
 

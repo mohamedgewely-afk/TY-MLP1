@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -159,13 +158,15 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* Compare Floating Box */}
-      <CompareFloatingBox
-        compareList={compareList}
-        vehicles={vehicles}
-        onRemove={handleRemoveFromCompare}
-        onClearAll={handleClearCompare}
-      />
+      {/* Compare Floating Box - Only show if not showing the full comparison table */}
+      {compareList.length > 0 && compareList.length < 2 && (
+        <CompareFloatingBox
+          compareList={compareList}
+          vehicles={vehicles}
+          onRemove={handleRemoveFromCompare}
+          onClearAll={handleClearCompare}
+        />
+      )}
 
       {/* Performance Section */}
       <PerformanceSection />
@@ -176,16 +177,13 @@ const Index = () => {
       {/* Pre-Owned Section */}
       <PreOwnedSection vehicles={preOwnedVehicles} />
 
-      {/* Comparison Table */}
+      {/* Comparison Table - Now shown as an overlay when at least 2 vehicles are selected */}
       {compareList.length >= 2 && (
-        <section className="py-16 bg-gray-50 dark:bg-gray-900" id="compare-section">
-          <div className="toyota-container">
-            <ComparisonTable
-              vehicles={comparedVehicles}
-              onRemove={handleRemoveFromCompare}
-            />
-          </div>
-        </section>
+        <ComparisonTable
+          vehicles={comparedVehicles}
+          onRemove={handleRemoveFromCompare}
+          onClearAll={handleClearCompare}
+        />
       )}
     </ToyotaLayout>
   );
