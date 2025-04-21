@@ -5,7 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ComparisonTableProps {
   vehicles: VehicleModel[];
@@ -20,6 +20,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   onClearAll,
 }) => {
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
+  const [activeVehicleIndex, setActiveVehicleIndex] = useState(0);
   const isMobile = useIsMobile();
 
   const sections = [
@@ -87,7 +88,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                 alt={v.name}
                 className="w-10 h-10 object-cover rounded"
               />
-              <span className="truncate text-sm font-medium">{v.name}</span>
+              <span className="truncate text-sm font-medium text-gray-700">{v.name}</span>
               <button
                 onClick={() => onRemove(v.name)}
                 className="ml-1 p-1 text-gray-500 hover:text-red-500"
@@ -131,52 +132,90 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     </div>
   );
 
+  // Mobile navigation controls
+  const MobileNavControls = () => {
+    if (vehicles.length <= 1) return null;
+    
+    return (
+      <div className="flex justify-between items-center mb-4 px-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="p-2 h-8 w-8"
+          onClick={() => setActiveVehicleIndex(prev => (prev > 0 ? prev - 1 : vehicles.length - 1))}
+          disabled={vehicles.length <= 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div className="text-sm font-medium text-gray-700">
+          {activeVehicleIndex + 1} of {vehicles.length}
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="p-2 h-8 w-8"
+          onClick={() => setActiveVehicleIndex(prev => (prev < vehicles.length - 1 ? prev + 1 : 0))}
+          disabled={vehicles.length <= 1}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  };
+
   // --- Mobile view: controller bar + single column per car (no popup, all embedded)
-  const renderMobileView = () => (
-    <div>
-      <ControllerBar />
-      <div className="space-y-6 px-2 pb-4">
-        <div className="grid grid-cols-1 gap-4">
-          {vehicles.map((vehicle) => (
-            <div key={vehicle.name} className="bg-white border rounded-xl p-4 relative shadow-sm">
-              <div className="mb-4">
-                <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
-                  <img
-                    src={vehicle.image}
-                    alt={vehicle.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{vehicle.name}</h3>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  asChild
-                >
-                  <a href={vehicle.configureUrl}>Configure</a>
-                </Button>
-              </div>
-              {sections.map((section) => (
-                <div key={section.title} className="mb-6">
-                  <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
-                  <div className="space-y-2">
-                    {section.items.map((item) => (
-                      !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                        <div key={item.label} className="flex justify-between items-center">
-                          <span className="text-gray-500 text-sm">{item.label}</span>
-                          <span className="text-gray-900 font-medium text-sm">{item.getValue(vehicle)}</span>
-                        </div>
-                      ) : null
-                    ))}
+  const renderMobileView = () => {
+    const activeVehicle = vehicles[activeVehicleIndex];
+    
+    return (
+      <div>
+        <ControllerBar />
+        <div className="space-y-6 px-2 pb-4">
+          {vehicles.length > 0 && (
+            <>
+              <MobileNavControls />
+              <div className="bg-white border rounded-xl p-4 relative shadow-sm">
+                <div className="mb-4">
+                  <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
+                    <img
+                      src={activeVehicle.image}
+                      alt={activeVehicle.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{activeVehicle.name}</h3>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    asChild
+                  >
+                    <a href={activeVehicle.configureUrl}>Configure</a>
+                  </Button>
                 </div>
-              ))}
-            </div>
-          ))}
+                {sections.map((section) => (
+                  <div key={section.title} className="mb-6">
+                    <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
+                    <div className="space-y-2">
+                      {section.items.map((item) => (
+                        !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                          <div key={item.label} className="flex justify-between items-center">
+                            <span className="text-gray-500 text-sm">{item.label}</span>
+                            <span className="text-gray-800 font-medium text-sm">{item.getValue(activeVehicle)}</span>
+                          </div>
+                        ) : null
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // --- Desktop view: controller bar + table
   const renderDesktopView = () => (
@@ -197,7 +236,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{vehicle.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
                     <Button
                       variant="outline"
                       className="w-full"
@@ -225,7 +264,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                       {vehicles.map((vehicle) => (
                         <td
                           key={`${vehicle.name}-${item.label}`}
-                          className={`p-4 text-gray-900 ${
+                          className={`p-4 text-gray-800 ${
                             hasDifferences(item.getValue) ? "font-semibold" : ""
                           }`}
                         >
