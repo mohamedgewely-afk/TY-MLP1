@@ -24,7 +24,8 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
   const [showOnlyDifferences, setShowOnlyDifferences] = React.useState(false);
   const isMobile = useIsMobile();
 
-  if (compareList.length === 0) return null;
+  // On mobile, don't render the floating box; all controls are in the compare screen now
+  if (isMobile || compareList.length === 0) return null;
 
   const comparedVehicles = vehicles.filter((v) => compareList.includes(v.name));
 
@@ -82,28 +83,6 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
               </div>
             ))}
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="differences"
-              checked={showOnlyDifferences}
-              onCheckedChange={setShowOnlyDifferences}
-            />
-            <Label htmlFor="differences">Show only differences</Label>
-          </div>
-
-          {compareList.length >= 2 ? (
-            <Button 
-              className="w-full bg-toyota-red hover:bg-toyota-darkred" 
-              asChild
-            >
-              <a href="#compare-section">Compare Now</a>
-            </Button>
-          ) : (
-            <p className="text-sm text-center text-gray-400">
-              Select at least one more vehicle to compare
-            </p>
-          )}
         </div>
       </motion.div>
     </AnimatePresence>

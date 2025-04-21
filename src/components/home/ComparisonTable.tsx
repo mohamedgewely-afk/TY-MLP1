@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,14 @@ import { X } from "lucide-react";
 interface ComparisonTableProps {
   vehicles: VehicleModel[];
   onRemove: (name: string) => void;
+  // (Optional) onClearAll for controller if parent provides
+  onClearAll?: () => void;
 }
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({
   vehicles,
   onRemove,
+  onClearAll,
 }) => {
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   const isMobile = useIsMobile();
@@ -32,9 +34,27 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       title: "Specifications",
       items: [
         { label: "Engine", getValue: (v: VehicleModel) => v.specifications?.engine || v.features[0] || "N/A" },
-        { label: "Power", getValue: (v: VehicleModel) => v.specifications?.power || "308 hp" },
-        { label: "Range", getValue: (v: VehicleModel) => v.specifications?.range || "482 km" },
-        { label: "Acceleration", getValue: (v: VehicleModel) => v.specifications?.acceleration || "0-100 km/h in 4.5s" },
+        {
+          label: "Power",
+          getValue: (v: VehicleModel) =>
+            (v.specifications && "power" in v.specifications && v.specifications.power)
+              ? (v.specifications as any).power
+              : "308 hp"
+        },
+        {
+          label: "Range",
+          getValue: (v: VehicleModel) =>
+            (v.specifications && "range" in v.specifications && v.specifications.range)
+              ? (v.specifications as any).range
+              : "482 km"
+        },
+        {
+          label: "Acceleration",
+          getValue: (v: VehicleModel) =>
+            (v.specifications && "acceleration" in v.specifications && v.specifications.acceleration)
+              ? (v.specifications as any).acceleration
+              : "0-100 km/h in 4.5s"
+        },
       ]
     },
     {
@@ -52,139 +72,179 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     return new Set(values).size > 1;
   };
 
-  const renderMobileView = () => (
-    <div className="space-y-6 p-4">
-      <div className="grid grid-cols-1 gap-4">
-        {vehicles.map((vehicle) => (
-          <div key={vehicle.name} className="bg-gray-900 rounded-xl p-4 relative">
-            <button
-              onClick={() => onRemove(vehicle.name)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+  // Controller bar - always at top
+  const ControllerBar = () => (
+    <div className="w-full px-4 py-2 mb-4 rounded-xl bg-white border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 relative z-10">
+      <div className="overflow-x-auto flex-1">
+        <div className="flex gap-2">
+          {vehicles.map((v) => (
+            <div
+              key={v.name}
+              className="flex items-center p-2 bg-gray-50 border rounded-lg min-w-[120px] gap-2 shadow-xs"
             >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="mb-4">
-              <div className="w-full h-48 rounded-lg overflow-hidden mb-4">
-                <img
-                  src={vehicle.image}
-                  alt={vehicle.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">{vehicle.name}</h3>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                asChild
+              <img
+                src={v.image}
+                alt={v.name}
+                className="w-10 h-10 object-cover rounded"
+              />
+              <span className="truncate text-sm font-medium">{v.name}</span>
+              <button
+                onClick={() => onRemove(v.name)}
+                className="ml-1 p-1 text-gray-500 hover:text-red-500"
+                title={`Remove ${v.name}`}
               >
-                <a href={vehicle.configureUrl}>Configure</a>
-              </Button>
+                <X className="w-4 h-4" />
+              </button>
             </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 ml-1 md:ml-2">
+        <Switch
+          id="show-differences"
+          checked={showOnlyDifferences}
+          onCheckedChange={setShowOnlyDifferences}
+        />
+        <Label htmlFor="show-differences" className="text-sm text-gray-600">Show only differences</Label>
+      </div>
+      {onClearAll && vehicles.length > 0 &&
+        <Button
+          variant="secondary"
+          size="sm"
+          className="ml-auto"
+          onClick={onClearAll}
+        >
+          Clear All
+        </Button>
+      }
+      {vehicles.length >= 2 &&
+        <Button
+          className="ml-2 bg-toyota-red hover:bg-toyota-darkred text-white text-sm"
+          asChild
+        >
+          <a href="#compare-section">Compare Now</a>
+        </Button>
+      }
+      {vehicles.length < 2 &&
+        <span className="ml-2 text-xs text-gray-400">Add another vehicle to compare</span>
+      }
+    </div>
+  );
 
-            {sections.map((section) => (
-              <div key={section.title} className="mb-6">
-                <h4 className="text-lg font-semibold text-white mb-3">{section.title}</h4>
-                <div className="space-y-3">
-                  {section.items.map((item) => (
-                    !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                      <div key={item.label} className="flex justify-between items-center">
-                        <span className="text-gray-400">{item.label}</span>
-                        <span className="text-white font-medium">{item.getValue(vehicle)}</span>
-                      </div>
-                    ) : null
-                  ))}
+  // --- Mobile view: controller bar + single column per car (no popup, all embedded)
+  const renderMobileView = () => (
+    <div>
+      <ControllerBar />
+      <div className="space-y-6 px-2 pb-4">
+        <div className="grid grid-cols-1 gap-4">
+          {vehicles.map((vehicle) => (
+            <div key={vehicle.name} className="bg-white border rounded-xl p-4 relative shadow-sm">
+              <div className="mb-4">
+                <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={vehicle.image}
+                    alt={vehicle.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{vehicle.name}</h3>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  asChild
+                >
+                  <a href={vehicle.configureUrl}>Configure</a>
+                </Button>
               </div>
-            ))}
-          </div>
-        ))}
+              {sections.map((section) => (
+                <div key={section.title} className="mb-6">
+                  <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
+                  <div className="space-y-2">
+                    {section.items.map((item) => (
+                      !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                        <div key={item.label} className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">{item.label}</span>
+                          <span className="text-gray-900 font-medium text-sm">{item.getValue(vehicle)}</span>
+                        </div>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 
+  // --- Desktop view: controller bar + table
   const renderDesktopView = () => (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left">
-        <thead>
-          <tr>
-            <th className="p-4 border-b border-gray-800"></th>
-            {vehicles.map((vehicle) => (
-              <th key={vehicle.name} className="p-4 border-b border-gray-800 min-w-[250px]">
-                <div className="relative">
-                  <button
-                    onClick={() => onRemove(vehicle.name)}
-                    className="absolute top-0 right-0 text-gray-400 hover:text-gray-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                  <div className="w-full aspect-video rounded-lg overflow-hidden mb-4">
-                    <img
-                      src={vehicle.image}
-                      alt={vehicle.name}
-                      className="w-full h-full object-cover"
-                    />
+    <div>
+      <ControllerBar />
+      <div className="overflow-x-auto">
+        <table className="w-full text-left bg-white border rounded-xl shadow-sm">
+          <thead>
+            <tr>
+              <th className="p-4 border-b border-gray-200 bg-gray-50"></th>
+              {vehicles.map((vehicle) => (
+                <th key={vehicle.name} className="p-4 border-b border-gray-200 min-w-[250px] bg-gray-50">
+                  <div className="relative">
+                    <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 bg-gray-100">
+                      <img
+                        src={vehicle.image}
+                        alt={vehicle.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{vehicle.name}</h3>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      asChild
+                    >
+                      <a href={vehicle.configureUrl}>Configure</a>
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{vehicle.name}</h3>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    asChild
-                  >
-                    <a href={vehicle.configureUrl}>Configure</a>
-                  </Button>
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sections.map((section) => (
-            <React.Fragment key={section.title}>
-              <tr>
-                <td colSpan={vehicles.length + 1} className="p-4 bg-gray-800 font-semibold text-white">
-                  {section.title}
-                </td>
-              </tr>
-              {section.items.map((item) => (
-                !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                  <tr key={item.label} className="border-b border-gray-800">
-                    <td className="p-4 text-gray-400">{item.label}</td>
-                    {vehicles.map((vehicle) => (
-                      <td 
-                        key={`${vehicle.name}-${item.label}`} 
-                        className={`p-4 text-white ${
-                          hasDifferences(item.getValue) ? "font-medium" : ""
-                        }`}
-                      >
-                        {item.getValue(vehicle)}
-                      </td>
-                    ))}
-                  </tr>
-                ) : null
+                </th>
               ))}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map((section) => (
+              <React.Fragment key={section.title}>
+                <tr>
+                  <td colSpan={vehicles.length + 1} className="p-4 bg-gray-100 font-semibold text-gray-700">
+                    {section.title}
+                  </td>
+                </tr>
+                {section.items.map((item) => (
+                  !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                    <tr key={item.label} className="border-b border-gray-100">
+                      <td className="p-4 text-gray-500">{item.label}</td>
+                      {vehicles.map((vehicle) => (
+                        <td
+                          key={`${vehicle.name}-${item.label}`}
+                          className={`p-4 text-gray-900 ${
+                            hasDifferences(item.getValue) ? "font-semibold" : ""
+                          }`}
+                        >
+                          {item.getValue(vehicle)}
+                        </td>
+                      ))}
+                    </tr>
+                  ) : null
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
   return (
-    <div className="bg-gray-900 rounded-xl overflow-hidden">
-      <div className="p-4 border-b border-gray-800">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-white">Compare Vehicles</h2>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="show-differences"
-              checked={showOnlyDifferences}
-              onCheckedChange={setShowOnlyDifferences}
-            />
-            <Label htmlFor="show-differences" className="text-white">Show only differences</Label>
-          </div>
-        </div>
-      </div>
+    <div className="bg-gray-50 rounded-xl overflow-hidden border p-0">
       {isMobile ? renderMobileView() : renderDesktopView()}
     </div>
   );
