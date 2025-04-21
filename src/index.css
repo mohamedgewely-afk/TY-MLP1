@@ -108,13 +108,12 @@
   }
 
   /* Comparison table fly-in animation */
-  .animate-flyin-comparison {
-    transform: translateX(100%);
-    animation: comparison-flyin 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  
   @keyframes comparison-flyin {
     0% { transform: translateX(100%); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
+  }
+  
+  .animate-flyin-comparison {
+    animation: comparison-flyin 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
