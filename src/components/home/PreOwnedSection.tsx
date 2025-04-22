@@ -1,177 +1,137 @@
-import React, { useRef, useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useIsMobile } from "@/hooks/use-mobile";
 
-interface PreOwnedVehicle {
-  id: string;
-  model: string;
-  image: string;
-  description: string;
-  year: number;
-  price: number;
-  mileage: number;
-  certified: boolean;
-}
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { PreOwnedVehicle } from "@/types/vehicle";
+import { Slider } from "@/components/ui/slider";
+import { ArrowRight, TestTube, Mail, Phone } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PreOwnedSectionProps {
   vehicles: PreOwnedVehicle[];
 }
 
 const PreOwnedSection: React.FC<PreOwnedSectionProps> = ({ vehicles }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isInteracting, setIsInteracting] = useState(false);
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-  const isMobile = useIsMobile();
-
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const { current } = scrollContainerRef;
-      const scrollAmount = direction === "left" ? -400 : 400;
-      current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    
-    if (autoScrollEnabled && !isInteracting) {
-      intervalId = setInterval(() => {
-        if (scrollContainerRef.current) {
-          const { current } = scrollContainerRef;
-          const isAtEnd = current.scrollLeft + current.clientWidth >= current.scrollWidth;
-          
-          if (isAtEnd) {
-            current.scrollTo({ left: 0, behavior: 'smooth' });
-          } else {
-            scroll('right');
-          }
-        }
-      }, 3000);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [autoScrollEnabled, isInteracting]);
-
-  const handleInteractionStart = () => {
-    setIsInteracting(true);
-    setAutoScrollEnabled(false);
-    setTimeout(() => setAutoScrollEnabled(true), 5000);
-  };
+  const [priceRange, setPriceRange] = useState<number[]>([50000, 200000]);
+  
+  // Find min and max prices for the slider
+  const minPrice = Math.min(...vehicles.map(v => v.price));
+  const maxPrice = Math.max(...vehicles.map(v => v.price));
+  
+  // Filter vehicles by price range
+  const filteredVehicles = vehicles.filter(
+    vehicle => vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1]
+  );
 
   return (
-    <section className="py-16 bg-white dark:bg-gray-950">
+    <section className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="toyota-container">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Certified Pre-Owned
+              Toyota Certified Pre-Owned
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Quality pre-owned Toyota vehicles, rigorously inspected and ready for the road.
+              Quality pre-owned vehicles with Toyota certification and warranty.
             </p>
           </div>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full hidden md:flex"
-              onClick={() => scroll("left")}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full hidden md:flex"
-              onClick={() => scroll("right")}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+          <Button variant="outline" className="mt-4 md:mt-0" asChild>
+            <a href="/pre-owned">
+              View All Pre-Owned <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+
+        {/* Price Range Filter */}
+        <div className="mb-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+          <h3 className="text-lg font-medium mb-4">Filter by Price Range</h3>
+          <div className="px-4">
+            <Slider
+              defaultValue={priceRange}
+              min={minPrice}
+              max={maxPrice}
+              step={5000}
+              value={priceRange}
+              onValueChange={setPriceRange}
+              className="mb-2"
+            />
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>AED {priceRange[0].toLocaleString()}</span>
+              <span>AED {priceRange[1].toLocaleString()}</span>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Showing {filteredVehicles.length} of {vehicles.length} vehicles
+            </p>
           </div>
         </div>
 
-        <div 
-          className="overflow-x-auto pb-4"
-          style={{ scrollbarWidth: 'none' }}
-          ref={scrollContainerRef}
-          onMouseEnter={!isMobile ? handleInteractionStart : undefined}
-          onTouchStart={handleInteractionStart}
-        >
-          <div className="flex space-x-6">
-            {vehicles.map((vehicle, index) => (
-              <motion.div
-                key={vehicle.id}
-                className="flex-shrink-0 w-[300px]"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full">
-                  <div className="relative h-44 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredVehicles.map((vehicle) => (
+            <motion.div
+              key={vehicle.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              viewport={{ once: true }}
+            >
+              <Card className="h-full flex flex-col">
+                <div className="relative">
+                  {vehicle.certified && (
+                    <div className="absolute top-2 right-2 bg-toyota-red text-white text-xs py-1 px-2 rounded-full">
+                      Certified
+                    </div>
+                  )}
+                  <div className="w-full aspect-[4/3] bg-gray-100">
                     <img
                       src={vehicle.image}
                       alt={vehicle.model}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="w-full h-full object-cover"
                     />
-                    {vehicle.certified && (
-                      <Badge 
-                        className="absolute top-3 left-3 bg-toyota-red text-white border-none"
-                        variant="default"
-                      >
-                        Toyota Certified
-                      </Badge>
-                    )}
                   </div>
-                  <CardContent className="p-5">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
-                      {vehicle.year} {vehicle.model}
-                    </h3>
-                    <p className="text-toyota-red font-semibold mb-3">
+                </div>
+                
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl">{vehicle.model}</CardTitle>
+                  <CardDescription className="flex justify-between items-center">
+                    <span>{vehicle.year}</span>
+                    <span className="text-toyota-red font-bold">
                       AED {vehicle.price.toLocaleString()}
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-2 mb-4 text-xs text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {vehicle.mileage.toLocaleString()} km
-                      </div>
-                      <div className="flex items-center">
-                        <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        Warranty
-                      </div>
+                    </span>
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="py-2 flex-grow">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Mileage:</span>
+                      <span>{vehicle.mileage.toLocaleString()} km</span>
                     </div>
-                    
-                    <Button
-                      className="w-full bg-toyota-red hover:bg-toyota-darkred"
-                      asChild
-                    >
-                      <a href={`/pre-owned/details/${vehicle.id}`}>View Details</a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-center mt-8">
-          <Button
-            variant="outline"
-            size="lg"
-            asChild
-          >
-            <a href="/pre-owned">View All Pre-Owned Vehicles</a>
-          </Button>
+                    <p className="text-sm text-gray-600 mt-2">{vehicle.description}</p>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-2 grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <a href={`/test-drive?model=${encodeURIComponent(vehicle.model)}&preowned=true&id=${vehicle.id}`}>
+                      <TestTube className="mr-1 h-4 w-4" /> Test Drive
+                    </a>
+                  </Button>
+                  <Button size="sm" className="w-full" asChild>
+                    <a href={`/enquire?model=${encodeURIComponent(vehicle.model)}&preowned=true&id=${vehicle.id}`}>
+                      <Mail className="mr-1 h-4 w-4" /> Enquire
+                    </a>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

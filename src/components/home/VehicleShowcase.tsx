@@ -1,11 +1,10 @@
 
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import VehicleCard from "./VehicleCard";
+import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { TestTube, Mail, Phone } from "lucide-react";
 
 interface VehicleShowcaseProps {
   title: string;
@@ -22,108 +21,53 @@ const VehicleShowcase: React.FC<VehicleShowcaseProps> = ({
   onCompare,
   onQuickView,
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isInteracting, setIsInteracting] = useState(false);
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-  const isMobile = useIsMobile();
-
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const { current } = scrollContainerRef;
-      const scrollAmount = direction === "left" ? -400 : 400;
-      current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    
-    if (autoScrollEnabled && !isInteracting) {
-      intervalId = setInterval(() => {
-        if (scrollContainerRef.current) {
-          const { current } = scrollContainerRef;
-          const isAtEnd = current.scrollLeft + current.clientWidth >= current.scrollWidth;
-          
-          if (isAtEnd) {
-            current.scrollTo({ left: 0, behavior: 'smooth' });
-          } else {
-            scroll('right');
-          }
-        }
-      }, 3000);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [autoScrollEnabled, isInteracting]);
-
-  const handleInteractionStart = () => {
-    setIsInteracting(true);
-    // Disable auto-scroll for a longer period after interaction
-    setAutoScrollEnabled(false);
-    setTimeout(() => setAutoScrollEnabled(true), 5000);
-  };
-
   return (
-    <div className="py-12 bg-gray-50 dark:bg-gray-900">
+    <section className="py-12 bg-white dark:bg-gray-900">
       <div className="toyota-container">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h2>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full"
-              onClick={() => scroll("left")}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full"
-              onClick={() => scroll("right")}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
-        <div 
-          className="relative overflow-x-auto pb-4"
-          style={{ scrollbarWidth: 'none' }}
-          ref={scrollContainerRef}
-          onMouseEnter={!isMobile ? handleInteractionStart : undefined}
-          onTouchStart={handleInteractionStart}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white"
         >
-          <div className="flex space-x-6">
-            {vehicles.map((vehicle, index) => (
-              <motion.div
-                key={vehicle.name}
-                className="flex-shrink-0 w-[300px]"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <VehicleCard
-                  vehicle={vehicle}
-                  onCompare={onCompare}
-                  isCompared={compareList.includes(vehicle.name)}
-                  onQuickView={onQuickView}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
+          {title}
+        </motion.h2>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {vehicles.length} vehicles available - swipe to see more
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {vehicles.map((vehicle, index) => (
+            <motion.div
+              key={vehicle.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <VehicleCard
+                vehicle={vehicle}
+                isCompared={compareList.includes(vehicle.name)}
+                onCompare={() => onCompare(vehicle)}
+                onQuickView={() => onQuickView(vehicle)}
+                actionButtons={
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
+                        <TestTube className="mr-1 h-4 w-4" /> Test Drive
+                      </a>
+                    </Button>
+                    <Button size="sm" className="w-full" asChild>
+                      <a href={`/enquire?model=${encodeURIComponent(vehicle.name)}`}>
+                        <Mail className="mr-1 h-4 w-4" /> Enquire
+                      </a>
+                    </Button>
+                  </div>
+                }
+              />
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

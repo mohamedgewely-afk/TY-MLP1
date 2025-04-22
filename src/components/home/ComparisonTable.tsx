@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -156,45 +157,64 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <div className="p-3">
         <CompareControllerBar />
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {/* Vehicle Images and Names */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
           {vehicles.map((vehicle) => (
-            <div 
-              key={vehicle.name} 
-              className="bg-white border rounded-xl p-4 relative shadow-sm"
-            >
-              <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 bg-gray-100">
+            <div key={vehicle.name} className="bg-white border rounded-lg overflow-hidden shadow-sm">
+              <div className="w-full aspect-video bg-gray-100">
                 <img
                   src={vehicle.image}
                   alt={vehicle.name}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
-              <Button
-                variant="outline"
-                className="w-full mb-4"
-                asChild
-              >
-                <a href={vehicle.configureUrl}>Configure</a>
-              </Button>
+              <div className="p-3">
+                <h3 className="text-sm font-bold text-gray-800 mb-2">{vehicle.name}</h3>
+                <div className="flex gap-1">
+                  <Button variant="secondary" size="sm" className="text-xs flex-1 h-8" asChild>
+                    <a href={vehicle.configureUrl}>Configure</a>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs flex-1 h-8" asChild>
+                    <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>Test Drive</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-              {sections.map((section) => (
-                <div key={section.title} className="mb-6">
-                  <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
-                  <div className="space-y-2">
-                    {section.items.map((item) => (
-                      !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                        <div key={item.label} className="flex justify-between items-center">
-                          <span className="text-gray-500 text-sm">{item.label}</span>
-                          <span className="text-gray-800 font-medium text-sm">{item.getValue(vehicle)}</span>
-                        </div>
-                      ) : null
+        {/* Comparison Data by Section */}
+        {sections.map((section) => (
+          <div key={section.title} className="mb-6">
+            <h3 className="font-semibold text-base bg-gray-50 p-2 border-y">{section.title}</h3>
+            
+            {section.items.map((item) => (
+              !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                <div key={item.label} className="border-b">
+                  <div className="font-medium text-sm text-gray-700 p-2 bg-gray-50">{item.label}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
+                    {vehicles.map((vehicle) => (
+                      <div 
+                        key={`${vehicle.name}-${item.label}`}
+                        className={`p-2 rounded-md ${hasDifferences(item.getValue) ? "bg-gray-50 font-medium" : ""}`}
+                      >
+                        <span className="block text-sm truncate">{item.getValue(vehicle)}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          ))}
+              ) : null
+            ))}
+          </div>
+        ))}
+        
+        <div className="flex justify-end mt-6 mb-8">
+          <Button variant="outline" className="mr-2" onClick={onClearAll}>
+            Close Comparison
+          </Button>
+          <Button asChild>
+            <a href="/enquire">Enquire Now</a>
+          </Button>
         </div>
       </div>
     </div>
@@ -236,12 +256,28 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         />
                       </div>
                       <h3 className="text-lg font-bold text-gray-800 mb-2">{vehicle.name}</h3>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <Button
+                          variant="outline"
+                          className="w-full text-sm"
+                          asChild
+                        >
+                          <a href={vehicle.configureUrl}>Configure</a>
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="w-full text-sm"
+                          asChild
+                        >
+                          <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>Test Drive</a>
+                        </Button>
+                      </div>
                       <Button
-                        variant="outline"
-                        className="w-full"
+                        variant="default"
+                        className="w-full text-sm"
                         asChild
                       >
-                        <a href={vehicle.configureUrl}>Configure</a>
+                        <a href="/enquire">Enquire Now</a>
                       </Button>
                     </div>
                   </TableHead>
