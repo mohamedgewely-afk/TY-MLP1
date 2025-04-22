@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -13,6 +12,7 @@ interface VehicleCardProps {
   onCompare: (vehicle: VehicleModel) => void;
   isCompared: boolean;
   onQuickView: (vehicle: VehicleModel) => void;
+  actionButtons?: React.ReactNode;
 }
 
 const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -20,16 +20,15 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
   onCompare,
   isCompared,
   onQuickView,
+  actionButtons,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Check if this vehicle is in favorites
   useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     setIsFavorite(favorites.includes(vehicle.name));
     
-    // Listen for updates from other components
     const handleFavoritesUpdated = () => {
       const updatedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       setIsFavorite(updatedFavorites.includes(vehicle.name));
@@ -52,18 +51,15 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     
     if (isFavorite) {
-      // Remove from favorites
       const newFavorites = favorites.filter((name: string) => name !== vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
     } else {
-      // Add to favorites
       favorites.push(vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(favorites));
     }
     
     setIsFavorite(!isFavorite);
     
-    // Dispatch event to notify other components
     window.dispatchEvent(new Event('favorites-updated'));
   };
 
@@ -76,7 +72,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
     },
   };
 
-  // Create URL-friendly version of the vehicle name
   const vehicleSlug = vehicle.name.toLowerCase().replace(/\s+/g, '-');
 
   return (
@@ -89,7 +84,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
         transition={{ duration: 0.6, type: "spring", stiffness: 300, damping: 20 }}
         style={{ perspective: 1000 }}
       >
-        {/* Front of card */}
         <Card className={`h-full backface-hidden rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 ${isFlipped ? "opacity-0" : "opacity-100"}`}>
           <div className="relative h-48 overflow-hidden rounded-t-xl">
             <img
@@ -160,10 +154,11 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
                 )}
               </Button>
             </div>
+
+            {actionButtons}
           </CardContent>
         </Card>
 
-        {/* Back of card */}
         <Card className={`h-full absolute inset-0 backface-hidden rotateY-180 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 ${isFlipped ? "opacity-100" : "opacity-0"}`}>
           <CardContent className="p-6 flex flex-col h-full">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
