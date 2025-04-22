@@ -11,6 +11,7 @@ import CompareFloatingBox from "@/components/home/CompareFloatingBox";
 import LifestyleSection from "@/components/home/LifestyleSection";
 import PerformanceSection from "@/components/home/PerformanceSection";
 import PreOwnedSection from "@/components/home/PreOwnedSection";
+import OffersSection from "@/components/home/OffersSection";
 import FavoritesDrawer from "@/components/home/FavoritesDrawer";
 import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
@@ -139,6 +140,9 @@ const Index = () => {
         setPriceRange={setPriceRange}
         categories={categories}
       />
+
+      {/* Special Offers Section */}
+      <OffersSection />
 
       {/* Vehicle Showcase */}
       <VehicleShowcase

@@ -3,9 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { ChevronLeft, Calendar, Fuel, Shield, Heart, Share2, Download } from "lucide-react";
+import { ChevronLeft, Calendar, Fuel, Shield, Heart, Share2, Download, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -16,12 +17,15 @@ import VehicleReviews from "@/components/vehicle-details/VehicleReviews";
 import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
 import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
 import RelatedVehicles from "@/components/vehicle-details/RelatedVehicles";
+import TechnologyShowcase from "@/components/vehicle-details/TechnologyShowcase";
+import ConfigureVehicle from "@/components/vehicle-details/ConfigureVehicle";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
+  const [isConfigureOpen, setIsConfigureOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const { toast } = useToast();
   
@@ -136,7 +140,7 @@ const VehicleDetails = () => {
         
         {/* Quick Actions */}
         <div className="toyota-container my-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button 
               size="lg" 
               className="bg-toyota-red hover:bg-toyota-darkred"
@@ -151,6 +155,14 @@ const VehicleDetails = () => {
             >
               Calculate Finance
             </Button>
+            <Button 
+              size="lg"
+              onClick={() => setIsConfigureOpen(true)}
+              className="bg-toyota-blue hover:bg-toyota-darkblue"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configure Vehicle
+            </Button>
           </div>
         </div>
         
@@ -160,8 +172,8 @@ const VehicleDetails = () => {
             <TabsList className="grid grid-cols-4 mb-8">
               <TabsTrigger value="specifications">Specifications</TabsTrigger>
               <TabsTrigger value="features">Features</TabsTrigger>
+              <TabsTrigger value="technology">Technology</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="compare">Compare</TabsTrigger>
             </TabsList>
             
             <TabsContent value="specifications">
@@ -172,18 +184,12 @@ const VehicleDetails = () => {
               <VehicleFeatures vehicle={vehicle} />
             </TabsContent>
             
-            <TabsContent value="reviews">
-              <VehicleReviews vehicle={vehicle} />
+            <TabsContent value="technology">
+              <TechnologyShowcase vehicle={vehicle} />
             </TabsContent>
             
-            <TabsContent value="compare">
-              <div className="p-8 bg-white dark:bg-gray-800 rounded-lg text-center">
-                <h3 className="text-xl font-semibold mb-4">Compare with Other Models</h3>
-                <p className="mb-6">Select up to 3 vehicles to compare with the {vehicle.name}.</p>
-                <Link to="/#compare-section">
-                  <Button>Go to Comparison Tool</Button>
-                </Link>
-              </div>
+            <TabsContent value="reviews">
+              <VehicleReviews vehicle={vehicle} />
             </TabsContent>
           </Tabs>
         </div>
@@ -205,6 +211,16 @@ const VehicleDetails = () => {
         onClose={() => setIsFinanceOpen(false)} 
         vehicle={vehicle} 
       />
+      
+      {/* Configure Vehicle Modal */}
+      <Dialog open={isConfigureOpen} onOpenChange={setIsConfigureOpen}>
+        <DialogContent className="max-w-4xl p-0">
+          <ConfigureVehicle 
+            vehicle={vehicle}
+            onClose={() => setIsConfigureOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </ToyotaLayout>
   );
 };
