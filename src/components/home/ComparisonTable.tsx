@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const useFlyInAnimation = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -38,7 +39,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   onClearAll,
 }) => {
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
-  const [activeVehicleIndex, setActiveVehicleIndex] = useState(0);
   const isMobile = useIsMobile();
   const flyInRef = useFlyInAnimation();
 
@@ -136,14 +136,11 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </Button>
         }
       </div>
-      {vehicles.length < 2 &&
-        <span className="ml-1 text-xs text-gray-400">Add another vehicle to compare</span>
-      }
     </div>
   );
 
   const renderMobileView = () => (
-    <div className="fixed inset-0 z-50 bg-white overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
       <div className="sticky top-0 bg-white border-b flex items-center justify-between p-3 z-10">
         <h2 className="text-lg font-semibold text-gray-800">Vehicle Comparison</h2>
         <Button 
@@ -159,47 +156,45 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <div className="p-3">
         <CompareControllerBar />
         
-        <div className="overflow-x-auto">
-          <div className="inline-flex gap-4 min-w-full p-2">
-            {vehicles.map((vehicle) => (
-              <div 
-                key={vehicle.name} 
-                className="w-[80vw] max-w-[300px] flex-none bg-white border rounded-xl p-4 relative shadow-sm"
-              >
-                <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100">
-                  <img
-                    src={vehicle.image}
-                    alt={vehicle.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
-                <Button
-                  variant="outline"
-                  className="w-full mb-4"
-                  asChild
-                >
-                  <a href={vehicle.configureUrl}>Configure</a>
-                </Button>
-
-                {sections.map((section) => (
-                  <div key={section.title} className="mb-6">
-                    <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
-                    <div className="space-y-2">
-                      {section.items.map((item) => (
-                        !showOnlyDifferences || hasDifferences(item.getValue) ? (
-                          <div key={item.label} className="flex justify-between items-center">
-                            <span className="text-gray-500 text-sm">{item.label}</span>
-                            <span className="text-gray-800 font-medium text-sm">{item.getValue(vehicle)}</span>
-                          </div>
-                        ) : null
-                      ))}
-                    </div>
-                  </div>
-                ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {vehicles.map((vehicle) => (
+            <div 
+              key={vehicle.name} 
+              className="bg-white border rounded-xl p-4 relative shadow-sm"
+            >
+              <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 bg-gray-100">
+                <img
+                  src={vehicle.image}
+                  alt={vehicle.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            ))}
-          </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
+              <Button
+                variant="outline"
+                className="w-full mb-4"
+                asChild
+              >
+                <a href={vehicle.configureUrl}>Configure</a>
+              </Button>
+
+              {sections.map((section) => (
+                <div key={section.title} className="mb-6">
+                  <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
+                  <div className="space-y-2">
+                    {section.items.map((item) => (
+                      !showOnlyDifferences || hasDifferences(item.getValue) ? (
+                        <div key={item.label} className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">{item.label}</span>
+                          <span className="text-gray-800 font-medium text-sm">{item.getValue(vehicle)}</span>
+                        </div>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </div>
