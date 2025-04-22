@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,7 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Animation hook for fly-in effect
 const useFlyInAnimation = () => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -94,7 +92,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     return new Set(values).size > 1;
   };
 
-  // Compare Controller Bar
   const CompareControllerBar = () => (
     <div className="w-full px-2 md:px-4 py-2 mb-4 rounded-xl bg-[#F1F0FB] border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 shadow-sm">
       <div className="overflow-x-auto flex-1">
@@ -145,78 +142,46 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     </div>
   );
 
-  // Mobile navigation controls
-  const MobileNavControls = () => {
-    if (vehicles.length <= 1) return null;
-    return (
-      <div className="flex justify-between items-center mb-4 px-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="p-2 h-8 w-8"
-          onClick={() => setActiveVehicleIndex(prev => (prev > 0 ? prev - 1 : vehicles.length - 1))}
-          disabled={vehicles.length <= 1}
+  const renderMobileView = () => (
+    <div className="fixed inset-0 z-50 bg-white overflow-hidden">
+      <div className="sticky top-0 bg-white border-b flex items-center justify-between p-3 z-10">
+        <h2 className="text-lg font-semibold text-gray-800">Vehicle Comparison</h2>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="rounded-full p-2 h-8 w-8"
+          onClick={onClearAll}
         >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="text-sm font-medium text-gray-700">
-          {activeVehicleIndex + 1} of {vehicles.length}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="p-2 h-8 w-8"
-          onClick={() => setActiveVehicleIndex(prev => (prev < vehicles.length - 1 ? prev + 1 : 0))}
-          disabled={vehicles.length <= 1}
-        >
-          <ChevronRight className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
-    );
-  };
-
-  // Mobile view
-  const renderMobileView = () => {
-    const activeVehicle = vehicles[activeVehicleIndex];
-
-    return (
-      <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b flex items-center justify-between p-3 z-10">
-          <h2 className="text-lg font-semibold text-gray-800">Vehicle Comparison</h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="rounded-full p-2 h-8 w-8"
-            onClick={onClearAll}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+      
+      <div className="p-3">
+        <CompareControllerBar />
         
-        <div className="p-3">
-          <CompareControllerBar />
-          
-          {vehicles.length > 0 && (
-            <>
-              <MobileNavControls />
-              <div className="bg-white border rounded-xl p-4 relative shadow-sm">
-                <div className="mb-4">
-                  <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
-                    <img
-                      src={activeVehicle.image}
-                      alt={activeVehicle.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{activeVehicle.name}</h3>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    asChild
-                  >
-                    <a href={activeVehicle.configureUrl}>Configure</a>
-                  </Button>
+        <div className="overflow-x-auto">
+          <div className="inline-flex gap-4 min-w-full p-2">
+            {vehicles.map((vehicle) => (
+              <div 
+                key={vehicle.name} 
+                className="w-[80vw] max-w-[300px] flex-none bg-white border rounded-xl p-4 relative shadow-sm"
+              >
+                <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-gray-100">
+                  <img
+                    src={vehicle.image}
+                    alt={vehicle.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{vehicle.name}</h3>
+                <Button
+                  variant="outline"
+                  className="w-full mb-4"
+                  asChild
+                >
+                  <a href={vehicle.configureUrl}>Configure</a>
+                </Button>
+
                 {sections.map((section) => (
                   <div key={section.title} className="mb-6">
                     <h4 className="text-base font-semibold text-gray-700 mb-3">{section.title}</h4>
@@ -225,7 +190,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         !showOnlyDifferences || hasDifferences(item.getValue) ? (
                           <div key={item.label} className="flex justify-between items-center">
                             <span className="text-gray-500 text-sm">{item.label}</span>
-                            <span className="text-gray-800 font-medium text-sm">{item.getValue(activeVehicle)}</span>
+                            <span className="text-gray-800 font-medium text-sm">{item.getValue(vehicle)}</span>
                           </div>
                         ) : null
                       ))}
@@ -233,14 +198,13 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                   </div>
                 ))}
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
-  // Desktop view - fly-in overlay
   const renderDesktopView = () => (
     <div
       ref={flyInRef}
