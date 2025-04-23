@@ -1,4 +1,3 @@
-
 import React from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { 
@@ -7,19 +6,28 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Carousel from "@/components/ui/carousel";
+import CarouselContent from "@/components/ui/carousel-content";
+import CarouselItem from "@/components/ui/carousel-item";
+import CarouselPrevious from "@/components/ui/carousel-previous";
+import CarouselNext from "@/components/ui/carousel-next";
 
 interface VehicleFeaturesProps {
   vehicle: VehicleModel;
 }
 
 const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
-  // Enhanced feature categories with images
+  // Enhanced feature categories with media
   const featureCategories = [
     {
       title: "Performance",
       description: "Experience power and efficiency in perfect harmony",
       icon: <Settings className="h-6 w-6" />,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_23/performance/performance_01_800x447.jpg",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/1149137/pexels-photo-1149137.jpeg" },
+        { type: "image", url: "https://global.toyota/pages/models/images/gallery/new_camry_23/performance/performance_01_800x447.jpg" },
+        { type: "video", url: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "https://images.pexels.com/photos/1707828/pexels-photo-1707828.jpeg" }
+      ],
       features: [
         "Dynamic Force Engine with enhanced performance",
         "Sport-tuned suspension for responsive handling",
@@ -32,7 +40,10 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
       title: "Safety",
       description: "Toyota Safety Sense™ 2.5+ advanced safety suite",
       icon: <Shield className="h-6 w-6" />,
-      image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_15_s.jpg",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/97079/pexels-photo-97079.jpeg" },
+        { type: "image", url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_15_s.jpg" }
+      ],
       features: [
         "Pre-Collision System with Pedestrian Detection",
         "Full-Speed Range Dynamic Radar Cruise Control",
@@ -45,7 +56,10 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
       title: "Comfort",
       description: "Premium features for a first-class driving experience",
       icon: <GalleryVertical className="h-6 w-6" />,
-      image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_11_s.jpg",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg" },
+        { type: "image", url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_11_s.jpg" }
+      ],
       features: [
         "Leather-trimmed heated and ventilated front seats",
         "Panoramic glass roof with power sunshade",
@@ -58,7 +72,10 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
       title: "Technology",
       description: "Connected features for the modern driver",
       icon: <Eye className="h-6 w-6" />,
-      image: "https://www.toyota.com/imgix/content/dam/toyota/jellies/max/2023/camry/xse/2532/2pt/33/61.png?fm=png&w=930&q=90",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/193993/pexels-photo-193993.jpeg" },
+        { type: "video", url: "https://www.w3schools.com/html/movie.mp4", thumbnail: "https://www.toyota.com/imgix/content/dam/toyota/jellies/max/2023/camry/xse/2532/2pt/33/61.png?fm=png&w=930&q=90" }
+      ],
       features: [
         "9-inch touchscreen infotainment system",
         "Apple CarPlay® and Android Auto™ compatibility",
@@ -71,7 +88,10 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
       title: "Fuel Economy",
       description: "Efficient performance that saves you money",
       icon: <Fuel className="h-6 w-6" />,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_hybrid_23/design/design_03_800x447.jpg",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/355948/pexels-photo-355948.jpeg" },
+        { type: "image", url: "https://global.toyota/pages/models/images/gallery/new_camry_hybrid_23/design/design_03_800x447.jpg" }
+      ],
       features: [
         "Up to 51 MPG city / 53 MPG highway (Hybrid LE)",
         "28 MPG city / 39 MPG highway (2.5L engine)",
@@ -84,7 +104,10 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
       title: "Warranty",
       description: "Comprehensive coverage for your peace of mind",
       icon: <BookOpen className="h-6 w-6" />,
-      image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_05_s.jpg",
+      media: [
+        { type: "image", url: "https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg" },
+        { type: "image", url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_05_s.jpg" }
+      ],
       features: [
         "3-year/36,000-mile basic coverage",
         "5-year/60,000-mile powertrain coverage",
@@ -95,77 +118,68 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
     }
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
       <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
         Features & Highlights
       </h2>
-
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 gap-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {featureCategories.map((category, index) => (
-          <motion.div key={index} variants={itemVariants}>
-            <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={category.image} 
-                  alt={category.title} 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                  <div className="p-4 text-white">
-                    <div className="flex items-center mb-1">
-                      <div className="bg-toyota-red p-2 rounded-full mr-3">
-                        {category.icon}
-                      </div>
-                      <h3 className="text-xl font-bold">{category.title}</h3>
-                    </div>
-                    <p className="text-sm text-white/80">{category.description}</p>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {featureCategories.map((category, idx) => (
+          <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300" key={idx}>
+            {/* Media carousel for each feature */}
+            <Carousel opts={{ align: "start", loop: true }}>
+              <CarouselContent>
+                {category.media.map((m, i) => (
+                  <CarouselItem key={i} className="h-48">
+                    {m.type === "image" ? (
+                      <img src={m.url} alt={category.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <video
+                        src={m.url}
+                        controls
+                        poster={m.thumbnail}
+                        className="w-full h-full object-cover rounded"
+                      />
+                    )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex justify-center gap-2 mt-2">
+                <CarouselPrevious className="relative inset-auto" />
+                <CarouselNext className="relative inset-auto" />
               </div>
-              
-              <CardContent className="p-4">
-                <ul className="space-y-2">
-                  {category.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </motion.div>
+            </Carousel>
+
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end pointer-events-none"></div>
+              <div className="p-4 text-white/90">
+                <div className="flex items-center mb-2">
+                  <div className="bg-toyota-red p-2 rounded-full mr-3">
+                    {category.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-white">{category.title}</h3>
+                </div>
+                <p className="text-white/80 mb-2">{category.description}</p>
+              </div>
+            </div>
+            
+            <CardContent className="p-4 bg-white dark:bg-gray-900">
+              <ul className="space-y-2">
+                {category.features.map((feature, i) => (
+                  <li key={i} className="flex items-start">
+                    <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

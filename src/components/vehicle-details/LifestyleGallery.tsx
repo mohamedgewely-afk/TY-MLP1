@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -11,36 +10,51 @@ interface LifestyleGalleryProps {
   vehicle: VehicleModel;
 }
 
+const realLifestyleImages = [
+  "https://images.pexels.com/photos/1707828/pexels-photo-1707828.jpeg",
+  "https://images.pexels.com/photos/464439/pexels-photo-464439.jpeg",
+  "https://images.pexels.com/photos/2179217/pexels-photo-2179217.jpeg",
+  "https://images.pexels.com/photos/1619311/pexels-photo-1619311.jpeg",
+  "https://images.pexels.com/photos/1394882/pexels-photo-1394882.jpeg",
+  "https://images.pexels.com/photos/543726/pexels-photo-543726.jpeg"
+];
+
 const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
   const lifestyleCards = [
     {
       title: "Family Adventures",
-      description: "Spacious, comfortable, and built for the whole family - perfect for road trips and daily adventures.",
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-comfort-thumb.jpg",
+      description: "Spacious, comfortable, and built for the whole family - perfect for road trips, city outings and activities.",
+      image: realLifestyleImages[0],
       link: `/lifestyle/family/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
     },
     {
       title: "Urban Exploration",
-      description: "Navigate city streets with style and efficiency, finding new favorite spots in your Toyota.",
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/rav4/rav4-convenience-thumb.jpg",
+      description: "Navigate city streets and hotspots with style and efficiency.",
+      image: realLifestyleImages[1],
       link: `/lifestyle/urban/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
     },
     {
+      title: "Desert Escapes",
+      description: "See the real UAE: Sand dunes, adventure, and unforgettable journeys with Toyota.",
+      image: realLifestyleImages[2],
+      link: `/lifestyle/desert/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
+    },
+    {
       title: "Weekend Getaways",
-      description: "Your reliable companion for spontaneous trips, designed to make every journey memorable.",
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/camry/camry-convenience-thumb.jpg",
+      description: "Your reliable companion for spontaneous trips, beach escapes, and mountain drives.",
+      image: realLifestyleImages[3],
       link: `/lifestyle/weekend/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
     },
     {
       title: "Adventure Destinations",
-      description: "Explore the great outdoors with confidence, knowing your Toyota can handle any terrain.",
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/land-cruiser/lc300-convenience-thumb.jpg",
+      description: "Explore the outdoors with confidence, with every Toyota road trip.",
+      image: realLifestyleImages[4],
       link: `/lifestyle/adventure/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
     },
     {
       title: "Business Travel",
-      description: "Make a statement with sophistication and reliability on your business commutes and travels.",
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/gr-supra/supra-convenience-thumb.jpg",
+      description: "Presence, prestige, and tech—all you need for those business commutes and more.",
+      image: realLifestyleImages[5],
       link: `/lifestyle/business/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`,
     },
   ];
@@ -58,8 +72,7 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
             Your {vehicle.name} Lifestyle
           </h2>
           <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Discover how the {vehicle.name} adapts perfectly to your lifestyle needs.
-            From daily commutes to weekend adventures, it's designed to enhance every journey.
+            Discover how the {vehicle.name} adapts perfectly to your lifestyle—across all adventures, family and work.
           </p>
         </motion.div>
 
@@ -76,15 +89,18 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
                 >
-                  <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full">
-                    <div className="h-60 overflow-hidden">
+                  <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full group">
+                    <div className="h-60 overflow-hidden relative">
                       <img
                         src={card.image}
                         alt={card.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-lg font-semibold">
+                        {card.title}
+                      </div>
                     </div>
                     <CardContent className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{card.title}</h3>

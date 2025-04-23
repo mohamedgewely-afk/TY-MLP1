@@ -132,90 +132,101 @@ const VehicleSpecs: React.FC<VehicleSpecsProps> = ({ vehicle }) => {
           </div>
         </div>
 
-        {/* Grades Section as Carousel */}
+        {/* Grades Section as Carousel (Swipeable) */}
         <Carousel
           opts={{
             align: "start",
-            loop: false,
+            loop: false
           }}
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {gradeSpecs.map((grade, index) => (
-              <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/3">
-                <div 
-                  className={`border rounded-xl overflow-hidden transition-all duration-300 ${
-                    !compareMode && selectedGrade === index ? 'ring-2 ring-toyota-red' : ''
-                  } ${
-                    compareMode && selectedGrades.includes(index) ? 'ring-2 ring-toyota-red' : ''
-                  } hover:shadow-md h-full`}
+              <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={grade.image} 
-                      alt={`${vehicle.name} ${grade.grade}`} 
-                      className="w-full h-full object-cover"
-                    />
-                    {grade.highlighted && (
-                      <div className="absolute top-3 right-3 bg-toyota-red text-white text-xs font-bold px-3 py-1 rounded-full">
-                        Most Popular
-                      </div>
-                    )}
-                    {compareMode && (
-                      <div 
-                        className="absolute top-3 left-3 h-6 w-6 rounded-full border-2 flex items-center justify-center cursor-pointer bg-white"
-                        onClick={() => toggleGradeCompare(index)}
-                      >
-                        {selectedGrades.includes(index) && (
-                          <div className="h-3 w-3 bg-toyota-red rounded-full"></div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-lg font-bold">{grade.grade}</h3>
-                      <span className="text-toyota-red font-semibold">
-                        ${grade.price.toLocaleString()}
-                      </span>
+                  <div 
+                    className={`border rounded-xl overflow-hidden transition-all duration-300 ${
+                      !compareMode && selectedGrade === index ? 'ring-2 ring-toyota-red' : ''
+                    } ${
+                      compareMode && selectedGrades.includes(index) ? 'ring-2 ring-toyota-red' : ''
+                    } hover:shadow-lg h-full`}
+                  >
+                    <div className="relative h-56 overflow-hidden">
+                      <img 
+                        src={grade.image} 
+                        alt={`${vehicle.name} ${grade.grade}`} 
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                      {grade.highlighted && (
+                        <div className="absolute top-3 right-3 bg-toyota-red text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                          Most Popular
+                        </div>
+                      )}
+                      {compareMode && (
+                        <div 
+                          className="absolute top-3 left-3 h-6 w-6 rounded-full border-2 flex items-center justify-center cursor-pointer bg-white"
+                          onClick={() => toggleGradeCompare(index)}
+                        >
+                          {selectedGrades.includes(index) && (
+                            <div className="h-3 w-3 bg-toyota-red rounded-full"></div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                        <Fuel className="h-4 w-4 mr-1" />
-                        {grade.performance.find(p => p.label === "Fuel Economy")?.value}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                        <Settings className="h-4 w-4 mr-1" />
-                        {grade.performance.find(p => p.label === "Power")?.value}
-                      </p>
-                      
+                    <div className="p-4 space-y-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-lg font-bold">{grade.grade}</h3>
+                        <span className="text-toyota-red font-semibold">
+                          ${grade.price.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-3 text-xs mb-2">
+                        {grade.performance.map((perf, i) => (
+                          <div key={i} className="text-gray-500">
+                            <span className="block font-medium text-gray-800 dark:text-gray-100">{perf.label}</span>
+                            <span>{perf.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <ul className="mb-2">
+                        {grade.features.slice(0, 3).map((f, i) => (
+                          <li key={i} className="text-gray-600 dark:text-gray-300 flex items-center text-xs">
+                            <span className="inline-flex items-center w-3 h-3 mr-1 bg-toyota-red/10 rounded-full text-toyota-red">
+                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
                       {!compareMode && (
-                        <>
+                        <div className="flex flex-col gap-2 mt-2">
                           <Button
                             variant="ghost"
+                            className="w-full flex justify-between"
                             size="sm"
-                            className="w-full justify-between"
                             onClick={() => setSelectedGrade(index)}
                           >
                             View Details
-                            <CircleChevronRight className="h-4 w-4 ml-1" />
+                            <span className="ml-2">&rarr;</span>
                           </Button>
-                          
                           <Button
                             variant="default"
-                            size="sm"
                             className="w-full bg-toyota-red hover:bg-toyota-darkred"
+                            size="sm"
                             onClick={() => handleConfigureGrade(index)}
                           >
                             Configure This Grade
                           </Button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -436,5 +447,4 @@ const VehicleSpecs: React.FC<VehicleSpecsProps> = ({ vehicle }) => {
     </div>
   );
 };
-
 export default VehicleSpecs;
