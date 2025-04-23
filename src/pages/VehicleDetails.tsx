@@ -12,13 +12,14 @@ import ToyotaLayout from "@/components/ToyotaLayout";
 import VehicleSpecs from "@/components/vehicle-details/VehicleSpecs";
 import VehicleGallery from "@/components/vehicle-details/VehicleGallery";
 import VehicleFeatures from "@/components/vehicle-details/VehicleFeatures";
-import VehicleReviews from "@/components/vehicle-details/VehicleReviews";
 import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
 import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
 import RelatedVehicles from "@/components/vehicle-details/RelatedVehicles";
 import TechnologyShowcase from "@/components/vehicle-details/TechnologyShowcase";
 import ConfigureVehicle from "@/components/vehicle-details/ConfigureVehicle";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
+import LifestyleGallery from "@/components/vehicle-details/LifestyleGallery";
+import OwnerTestimonials from "@/components/vehicle-details/OwnerTestimonials";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -160,54 +161,16 @@ const VehicleDetails = () => {
         </div>
 
         <div className="toyota-container mb-8">
-          <div className="rounded-xl bg-white dark:bg-gray-800 shadow p-6 md:p-10">
-            <h2 className="text-2xl font-bold mb-6">Available Grades</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[1,2,3].map((g, idx) => (
-                <div key={g} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
-                  <img src={vehicle.image} alt={`Grade ${g} - ${vehicle.name}`} className="w-full h-36 object-cover rounded mb-2" />
-                  <div className="font-bold mb-2">Grade {g} - {vehicle.name}</div>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                    <li>Special Feature {g}</li>
-                    <li>More premium features</li>
-                  </ul>
-                  <div className="text-toyota-red font-semibold">AED {(vehicle.price + g*5000).toLocaleString()}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="toyota-container mb-8">
-          <div className="rounded-xl bg-white dark:bg-gray-800 shadow p-6 md:p-10">
-            <h2 className="text-2xl font-bold mb-6">Technology & Innovation</h2>
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=640&q=80" alt="Tech" className="w-full h-60 object-cover rounded-xl" />
-              <div>
-                <h3 className="font-semibold mb-2">Next-Gen Infotainment</h3>
-                <p className="text-gray-700 dark:text-gray-300">Enjoy a suite of smart connectivity, wireless Apple CarPlay/Android Auto, and a high-fidelity JBL sound system for immersive journeys.</p>
-                <ul className="mt-3 text-gray-600 dark:text-gray-400 list-disc pl-6">
-                  <li>12.3” Digital Cluster and Heads-Up Display</li>
-                  <li>Qi Wireless Charging</li>
-                  <li>360° Camera & Intelligent Park Assist</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <VehicleSpecs vehicle={vehicle} />
         </div>
 
         <div className="toyota-container">
-          <Tabs defaultValue="specifications">
-            <TabsList className="grid grid-cols-4 mb-8">
-              <TabsTrigger value="specifications">Specifications</TabsTrigger>
+          <Tabs defaultValue="features">
+            <TabsList className="grid grid-cols-3 mb-8">
               <TabsTrigger value="features">Features</TabsTrigger>
               <TabsTrigger value="technology">Technology</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              <TabsTrigger value="gallery">Gallery</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="specifications">
-              <VehicleSpecs vehicle={vehicle} />
-            </TabsContent>
 
             <TabsContent value="features">
               <VehicleFeatures vehicle={vehicle} />
@@ -217,11 +180,15 @@ const VehicleDetails = () => {
               <TechnologyShowcase vehicle={vehicle} />
             </TabsContent>
 
-            <TabsContent value="reviews">
-              <VehicleReviews vehicle={vehicle} />
+            <TabsContent value="gallery">
+              <VehicleGallery vehicle={vehicle} />
             </TabsContent>
           </Tabs>
         </div>
+
+        <OwnerTestimonials vehicle={vehicle} />
+
+        <LifestyleGallery vehicle={vehicle} />
 
         <RelatedVehicles currentVehicle={vehicle} />
       </div>
