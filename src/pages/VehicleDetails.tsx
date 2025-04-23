@@ -19,7 +19,6 @@ import TechnologyShowcase from "@/components/vehicle-details/TechnologyShowcase"
 import ConfigureVehicle from "@/components/vehicle-details/ConfigureVehicle";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import LifestyleGallery from "@/components/vehicle-details/LifestyleGallery";
-import OwnerTestimonials from "@/components/vehicle-details/OwnerTestimonials";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -185,8 +184,6 @@ const VehicleDetails = () => {
             </TabsContent>
           </Tabs>
         </div>
-
-        <OwnerTestimonials vehicle={vehicle} />
 
         <LifestyleGallery vehicle={vehicle} />
 
