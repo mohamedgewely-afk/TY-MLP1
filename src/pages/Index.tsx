@@ -141,9 +141,6 @@ const Index = () => {
         categories={categories}
       />
 
-      {/* Special Offers Section */}
-      <OffersSection />
-
       {/* Vehicle Showcase */}
       <VehicleShowcase
         title="Explore Our Vehicles"
@@ -175,6 +172,9 @@ const Index = () => {
 
       {/* Performance Section */}
       <PerformanceSection />
+
+      {/* Special Offers Section - Moved below Performance Section */}
+      <OffersSection />
 
       {/* Lifestyle Section */}
       <LifestyleSection />

@@ -7,6 +7,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 interface ConfigureVehicleProps {
   vehicle: VehicleModel;
@@ -46,6 +47,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
   const [selectedTrim, setSelectedTrim] = useState<string>(trims[0].id);
   const [selectedColor, setSelectedColor] = useState<string>(colors[0].id);
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
+  const { toast } = useToast();
   
   const totalSteps = 4;
   const basePrice = vehicle.price;
@@ -93,8 +95,11 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
       totalPrice: total
     });
     
-    // Show success and close
-    alert("Your configuration has been saved. A Toyota representative will contact you shortly.");
+    // Show success toast and close
+    toast({
+      title: "Configuration Saved",
+      description: "Your configuration has been saved. A Toyota representative will contact you shortly."
+    });
     onClose();
   };
   
