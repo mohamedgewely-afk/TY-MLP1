@@ -1,7 +1,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
