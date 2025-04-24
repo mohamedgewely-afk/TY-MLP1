@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,31 @@ export interface ConfigureVehicleProps {
 }
 
 const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose }) => {
+  // Define the missing trims, colors, and packages data
+  const trims = [
+    { id: "base", name: "Base", price: vehicle.price },
+    { id: "sx", name: "SX", price: vehicle.price + 8000 },
+    { id: "limited", name: "Limited", price: vehicle.price + 15000 },
+    { id: "platinum", name: "Platinum", price: vehicle.price + 25000 }
+  ];
+  
+  const colors = [
+    { id: "white", name: "Pearl White", price: 0, image: "https://global.toyota/pages/news/images/2023/11/28/2000/20231128_01_03_s.jpg" },
+    { id: "silver", name: "Silver Metallic", price: 0, image: "https://global.toyota/pages/news/images/2023/11/28/2000/20231128_01_01_s.jpg" },
+    { id: "gray", name: "Lunar Gray", price: 500, image: "https://global.toyota/pages/news/images/2023/08/02/2000/landcruiser250_20230802_01_01_s.jpg" },
+    { id: "black", name: "Midnight Black", price: 500, image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_08_s.jpg" },
+    { id: "red", name: "Supersonic Red", price: 1200, image: "https://global.toyota/pages/news/images/2021/06/10/1330/20210610_01_03_s.jpg" },
+    { id: "blue", name: "Blueprint", price: 1200, image: "https://global.toyota/pages/news/images/2023/04/25/001/20230425_01_kv_full_w1920.jpg" }
+  ];
+  
+  const packages = [
+    { id: "convenience", name: "Convenience Package", price: 1800 },
+    { id: "technology", name: "Technology Package", price: 3500 },
+    { id: "premium-audio", name: "Premium Audio", price: 1200 },
+    { id: "cold-weather", name: "Cold Weather Package", price: 900 },
+    { id: "advanced-safety", name: "Advanced Safety Package", price: 1500 }
+  ];
+
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTrim, setSelectedTrim] = useState<string>(trims[0].id);
   const [selectedColor, setSelectedColor] = useState<string>(colors[0].id);
