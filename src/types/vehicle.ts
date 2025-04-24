@@ -1,35 +1,24 @@
 
+// Add `mpg` and `horsepower` to specifications
 export interface VehicleModel {
+  id?: string;
   name: string;
-  image: string;
-  mmeUrl: string;
-  configureUrl: string;
-  price: number;
   category: string;
-  features: string[];
-  specifications?: {
-    engine?: string;
-    transmission?: string;
-    fuelEconomy?: string;
-    safetyRating?: string;
-    warranty?: string;
-  };
-}
-
-export interface PreOwnedVehicle {
-  id: string;
-  model: string;
   image: string;
-  description: string;
-  year: number;
+  heroImage?: string;
   price: number;
-  mileage: number;
-  certified: boolean;
+  features: string[];
+  configureUrl?: string;
+  galleryImages?: string[];
+  isNew?: boolean;
+  isHybrid?: boolean;
   specifications?: {
     engine?: string;
     transmission?: string;
-    previousOwners?: number;
-    condition?: string;
-    warranty?: string;
+    drivetrain?: string;
+    mpg?: string;
+    horsepower?: string;
+    [key: string]: any;
   };
+  tagline?: string;
 }
