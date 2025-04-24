@@ -1,758 +1,450 @@
 
 import React, { useState } from "react";
 import { VehicleModel } from "@/types/vehicle";
-import { motion } from "framer-motion";
-import {
-  Fuel,
-  Calendar,
-  LifeBuoy,
-  BookOpen,
-  ChevronRight,
-  ChevronDown,
-  Settings
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CarFront, Fuel, ArrowRight, Eye, Settings, CircleChevronRight, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 
 interface VehicleSpecsProps {
   vehicle: VehicleModel;
 }
 
-interface GradeOption {
-  name: string;
-  price: number;
-  features: string[];
-  image: string;
-  specs: {
-    engine: string;
-    power: string;
-    torque: string;
-    transmission: string;
-    acceleration: string;
-  };
-}
+// Enhanced specifications with real data
+const gradeSpecs = [
+  {
+    grade: "SE",
+    price: 26320,
+    image: "https://toyotaassets.scene7.com/is/image/toyota/CAM_MY23_0021_V001-1?fmt=jpg&crop=3,86,2500,1563&anchor=1252,867&wid=1250&hei=781",
+    highlighted: false,
+    performance: [
+      { label: "Engine", value: "2.5L Dynamic Force Engine" },
+      { label: "Power", value: "203 hp" },
+      { label: "Torque", value: "184 lb-ft" },
+      { label: "Fuel Economy", value: "28/39/32 (city/hwy/combined)" },
+    ],
+    features: [
+      "Bi-LED combination headlights with auto on/off feature",
+      "17-in. alloy wheels",
+      "Dual-zone automatic climate control",
+      "7-in. digital instrument cluster",
+      "Android Auto™ & Apple CarPlay® compatibility",
+    ]
+  },
+  {
+    grade: "XSE",
+    price: 30910,
+    image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_08_s.jpg",
+    highlighted: true,
+    performance: [
+      { label: "Engine", value: "2.5L Dynamic Force Engine" },
+      { label: "Power", value: "206 hp" },
+      { label: "Torque", value: "186 lb-ft" },
+      { label: "Fuel Economy", value: "25/34/29 (city/hwy/combined)" },
+    ],
+    features: [
+      "19-in. gloss-black alloy wheels",
+      "Gloss-black front grille with sport mesh insert",
+      "Leather-trimmed heated front seats",
+      "9-in. touchscreen with premium audio",
+      "Panoramic glass roof with front power tilt/slide"
+    ]
+  },
+  {
+    grade: "Hybrid XLE",
+    price: 32920,
+    image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg",
+    highlighted: false,
+    performance: [
+      { label: "Engine", value: "2.5L Hybrid System" },
+      { label: "Power", value: "208 hp (combined)" },
+      { label: "Torque", value: "163 lb-ft (engine only)" },
+      { label: "Fuel Economy", value: "44/47/46 (city/hwy/combined)" },
+    ],
+    features: [
+      "18-in. silver machine-finished alloy wheels",
+      "LED headlights with fully integrated LED DRLs",
+      "Qi-compatible wireless smartphone charging",
+      "Heated front seats with 8-way power-adjustable driver's seat",
+      "Blind Spot Monitor with Rear Cross-Traffic Alert"
+    ]
+  }
+];
 
 const VehicleSpecs: React.FC<VehicleSpecsProps> = ({ vehicle }) => {
-  const [selectedCategory, setSelectedCategory] = useState("highlights");
-  const [selectedGrade, setSelectedGrade] = useState<GradeOption | null>(null);
-  const [compareGrade, setCompareGrade] = useState<GradeOption | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState(1); // Default to XSE (highlighted)
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedGrades, setSelectedGrades] = useState<number[]>([1]); // Default XSE selected
   const [showComparison, setShowComparison] = useState(false);
+  const [highlightDifferences, setHighlightDifferences] = useState(true);
 
-  // Sample grade options
-  const gradeOptions: GradeOption[] = [
-    {
-      name: "SE",
-      price: vehicle.price,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_01_800x447.jpg",
-      features: [
-        "17-inch alloy wheels",
-        "Sport-tuned suspension",
-        "Single-zone automatic climate control",
-        "7-inch touchscreen",
-        "Fabric-trimmed seats"
-      ],
-      specs: {
-        engine: "2.5L 4-cylinder",
-        power: "203 hp",
-        torque: "184 lb-ft",
-        transmission: "8-speed automatic",
-        acceleration: "8.2 seconds (0-60)"
+  const toggleGradeCompare = (index: number) => {
+    if (selectedGrades.includes(index)) {
+      if (selectedGrades.length > 1) {
+        setSelectedGrades(selectedGrades.filter(i => i !== index));
       }
-    },
-    {
-      name: "XSE",
-      price: vehicle.price + 3000,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_03_800x447.jpg",
-      features: [
-        "19-inch machined alloy wheels",
-        "Dual exhaust with quad chrome tips",
-        "Leather-trimmed seats",
-        "9-inch touchscreen",
-        "Dual-zone automatic climate control"
-      ],
-      specs: {
-        engine: "2.5L 4-cylinder",
-        power: "206 hp",
-        torque: "186 lb-ft",
-        transmission: "8-speed automatic",
-        acceleration: "7.9 seconds (0-60)"
-      }
-    },
-    {
-      name: "XLE",
-      price: vehicle.price + 2000,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_02_800x447.jpg",
-      features: [
-        "18-inch machined alloy wheels",
-        "LED headlights with integrated LED DRL",
-        "Leather-trimmed seats",
-        "Heated front seats",
-        "7-inch Multi-Information Display"
-      ],
-      specs: {
-        engine: "2.5L 4-cylinder",
-        power: "203 hp",
-        torque: "184 lb-ft",
-        transmission: "8-speed automatic",
-        acceleration: "8.1 seconds (0-60)"
-      }
-    },
-    {
-      name: "Hybrid SE",
-      price: vehicle.price + 2500,
-      image: "https://global.toyota/pages/models/images/gallery/new_camry_hybrid_23/design/design_01_800x447.jpg",
-      features: [
-        "18-inch black machined-finish alloy wheels",
-        "Sport mesh front grille",
-        "Normal, Eco, EV and Sport drive modes",
-        "SofTex®-trimmed heated front seats",
-        "8-inch touchscreen"
-      ],
-      specs: {
-        engine: "2.5L 4-cylinder Hybrid",
-        power: "208 hp (combined)",
-        torque: "163 lb-ft",
-        transmission: "ECVT",
-        acceleration: "7.4 seconds (0-60)"
+    } else {
+      if (selectedGrades.length < 3) {
+        setSelectedGrades([...selectedGrades, index]);
       }
     }
-  ];
-
-  // Select a default grade
-  React.useEffect(() => {
-    if (!selectedGrade && gradeOptions.length > 0) {
-      setSelectedGrade(gradeOptions[0]);
-    }
-  }, []);
-
-  const handleSelectGrade = (grade: GradeOption) => {
-    setSelectedGrade(grade);
   };
 
-  const handleCompareGrade = (grade: GradeOption) => {
-    if (selectedGrade?.name === grade.name) return;
-    
-    setCompareGrade(grade);
-    setShowComparison(true);
+  // Redirect to configure with pre-selected grade
+  const handleConfigureGrade = (gradeIndex: number) => {
+    // In a real app, this would navigate to the configure page with the grade pre-selected
+    console.log(`Configuring grade: ${gradeSpecs[gradeIndex].grade}`);
+    // This would typically be a navigation action
   };
 
-  const clearComparison = () => {
-    setCompareGrade(null);
-    setShowComparison(false);
-  };
-
-  const handleSwapGrades = () => {
-    if (compareGrade) {
-      const temp = selectedGrade;
-      setSelectedGrade(compareGrade);
-      setCompareGrade(temp);
-    }
+  // Helper function to check if values are different
+  const hasDifferences = (values: string[]) => {
+    return new Set(values).size > 1;
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Settings className="mr-2 h-5 w-5 text-toyota-red" />
-            Specifications & Grades
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Explore the technical specifications and available grades for the {vehicle.name}
-          </p>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === "highlights" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory("highlights")}
-          >
-            Highlights
-          </Button>
-          <Button
-            variant={selectedCategory === "specs" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory("specs")}
-          >
-            Full Specs
-          </Button>
-          <Button
-            variant={selectedCategory === "grades" ? "default" : "outline"} 
-            size="sm"
-            onClick={() => setSelectedCategory("grades")}
-          >
-            Available Grades
-          </Button>
-        </div>
-      </div>
-      
-      {selectedCategory === "highlights" && (
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center">
-                    <span className="p-2 rounded-full bg-toyota-red/10 text-toyota-red mr-3">
-                      <Fuel className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">Engine</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Power & Torque</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Engine Type</span>
-                    <span className="font-medium">{selectedGrade?.specs.engine || "2.5L 4-cylinder"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Horsepower</span>
-                    <span className="font-medium">{selectedGrade?.specs.power || "203 hp"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Torque</span>
-                    <span className="font-medium">{selectedGrade?.specs.torque || "184 lb-ft"}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center">
-                    <span className="p-2 rounded-full bg-toyota-red/10 text-toyota-red mr-3">
-                      <Calendar className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">Performance</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Speed & Efficiency</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>0-60 mph</span>
-                    <span className="font-medium">{selectedGrade?.specs.acceleration || "8.2 seconds"}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Fuel Economy (City)</span>
-                    <span className="font-medium">28 mpg</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Fuel Economy (Hwy)</span>
-                    <span className="font-medium">39 mpg</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center">
-                    <span className="p-2 rounded-full bg-toyota-red/10 text-toyota-red mr-3">
-                      <BookOpen className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">Dimensions</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Size & Capacity</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Length</span>
-                    <span className="font-medium">192.1 in</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Width</span>
-                    <span className="font-medium">72.4 in</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Height</span>
-                    <span className="font-medium">56.9 in</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center">
-                    <span className="p-2 rounded-full bg-toyota-red/10 text-toyota-red mr-3">
-                      <LifeBuoy className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">Safety</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Protection & Assistance</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>NHTSA Overall Rating</span>
-                    <span className="font-medium">5 Stars</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Airbags</span>
-                    <span className="font-medium">10</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Safety Systems</span>
-                    <span className="font-medium">Toyota Safety Sense 2.5+</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-      
-      {selectedCategory === "specs" && (
-        <div className="p-6">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="engine">
-              <AccordionTrigger>Engine Specifications</AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Engine Type</span>
-                      <span>{selectedGrade?.specs.engine || "2.5-liter Dynamic Force 4-Cylinder DOHC"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Horsepower</span>
-                      <span>{selectedGrade?.specs.power || "203 hp @ 6,600 rpm"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Torque</span>
-                      <span>{selectedGrade?.specs.torque || "184 lb.-ft. @ 5,000 rpm"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Compression Ratio</span>
-                      <span>13.0:1</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Valve Train</span>
-                      <span>16-Valve DOHC, VVT-iE & VVT-i</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Bore x Stroke</span>
-                      <span>3.44 in. x 4.07 in.</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Fuel System</span>
-                      <span>D-4S Injection</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Induction System</span>
-                      <span>Naturally Aspirated</span>
-                    </div>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="drivetrain">
-              <AccordionTrigger>Drivetrain</AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Transmission</span>
-                      <span>{selectedGrade?.specs.transmission || "8-speed Electronically Controlled automatic"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Drive Type</span>
-                      <span>Front-Wheel Drive</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Drive Modes</span>
-                      <span>ECO, Normal, Sport</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Shift Paddles</span>
-                      <span>Available</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Final Drive Ratio</span>
-                      <span>2.937</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">AWD System</span>
-                      <span>Available (Dynamic Torque Control)</span>
-                    </div>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="body">
-              <AccordionTrigger>Body & Chassis</AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Construction</span>
-                      <span>Unitized body with front and rear anti-vibration sub-frames</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Front Suspension</span>
-                      <span>MacPherson strut</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Rear Suspension</span>
-                      <span>Multi-link</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Front Stabilizer Bar</span>
-                      <span>24.2 mm</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Rear Stabilizer Bar</span>
-                      <span>25.0 mm</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Power Steering</span>
-                      <span>Electric Power Steering (EPS)</span>
-                    </div>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      )}
-      
-      {selectedCategory === "grades" && (
-        <div className="p-6">
-          <h3 className="text-lg font-medium mb-4">Available Grades</h3>
-          
-          {/* Grade Selection Carousel */}
-          <div className="mb-8">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-12">
+      <div className="p-6 border-b dark:border-gray-700">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Available Grades</h2>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setCompareMode(!compareMode);
+                if (!compareMode) {
+                  setSelectedGrades([1]); // Reset to XSE when entering compare mode
+                }
               }}
             >
-              <CarouselContent>
-                {gradeOptions.map((grade) => (
-                  <CarouselItem key={grade.name} className="md:basis-1/3 lg:basis-1/4">
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      className={`rounded-lg overflow-hidden border-2 cursor-pointer ${
-                        selectedGrade?.name === grade.name ? "border-toyota-red" : "border-transparent"
-                      }`}
-                      onClick={() => handleSelectGrade(grade)}
-                    >
-                      <div className="relative h-36">
-                        <img
-                          src={grade.image}
-                          alt={`${vehicle.name} ${grade.name}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                        <div className="absolute bottom-0 left-0 p-3">
-                          <h4 className="text-white font-bold text-lg">{grade.name}</h4>
-                          <p className="text-white/90 text-sm">
-                            ${grade.price.toLocaleString()}
-                          </p>
-                        </div>
-                        {selectedGrade?.name === grade.name && (
-                          <div className="absolute top-2 right-2 bg-toyota-red text-white p-1 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex justify-center mt-4 gap-2">
-                <CarouselPrevious className="relative inset-auto" />
-                <CarouselNext className="relative inset-auto" />
-              </div>
-            </Carousel>
+              {compareMode ? "Exit Compare" : "Compare Grades"}
+            </Button>
+            {compareMode && selectedGrades.length > 1 && (
+              <Button 
+                className="bg-toyota-red hover:bg-toyota-darkred"
+                onClick={() => setShowComparison(true)}
+              >
+                View Comparison
+              </Button>
+            )}
           </div>
-          
-          {selectedGrade && (
-            <>
-              <div className={`grid ${showComparison ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-8`}>
-                {/* Selected Grade Details */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold">{selectedGrade.name} Grade</h3>
-                      <p className="text-gray-500 dark:text-gray-400">Starting at ${selectedGrade.price.toLocaleString()}</p>
+        </div>
+
+        {/* Grades Section as Carousel (Swipeable) */}
+        <Carousel
+          opts={{
+            align: "start",
+            loop: false
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {gradeSpecs.map((grade, index) => (
+              <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                >
+                  <div 
+                    className={`border rounded-xl overflow-hidden transition-all duration-300 ${
+                      !compareMode && selectedGrade === index ? 'ring-2 ring-toyota-red' : ''
+                    } ${
+                      compareMode && selectedGrades.includes(index) ? 'ring-2 ring-toyota-red' : ''
+                    } hover:shadow-lg h-full`}
+                  >
+                    <div className="relative h-56 overflow-hidden">
+                      <img 
+                        src={grade.image} 
+                        alt={`${vehicle.name} ${grade.grade}`} 
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                      {grade.highlighted && (
+                        <div className="absolute top-3 right-3 bg-toyota-red text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                          Most Popular
+                        </div>
+                      )}
+                      {compareMode && (
+                        <div 
+                          className="absolute top-3 left-3 h-6 w-6 rounded-full border-2 flex items-center justify-center cursor-pointer bg-white"
+                          onClick={() => toggleGradeCompare(index)}
+                        >
+                          {selectedGrades.includes(index) && (
+                            <div className="h-3 w-3 bg-toyota-red rounded-full"></div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
-                    {!showComparison && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setShowComparison(true)}
-                      >
-                        Compare Grades
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="rounded-lg overflow-hidden mb-4">
-                    <img 
-                      src={selectedGrade.image} 
-                      alt={`${vehicle.name} ${selectedGrade.name}`}
-                      className="w-full h-48 object-cover"
-                    />
-                  </div>
-                  
-                  <Tabs defaultValue="features">
-                    <TabsList className="grid grid-cols-2">
-                      <TabsTrigger value="features">Key Features</TabsTrigger>
-                      <TabsTrigger value="specs">Specifications</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="features" className="pt-4">
-                      <ul className="space-y-2">
-                        {selectedGrade.features.map((feature, index) => (
-                          <motion.li 
-                            key={index}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-start"
-                          >
-                            <span className="flex-shrink-0 mt-1 mr-3 p-1 bg-toyota-red/10 rounded-full text-toyota-red">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
+                    <div className="p-4 space-y-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-lg font-bold">{grade.grade}</h3>
+                        <span className="text-toyota-red font-semibold">
+                          ${grade.price.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-3 text-xs mb-2">
+                        {grade.performance.map((perf, i) => (
+                          <div key={i} className="text-gray-500">
+                            <span className="block font-medium text-gray-800 dark:text-gray-100">{perf.label}</span>
+                            <span>{perf.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <ul className="mb-2">
+                        {grade.features.slice(0, 3).map((f, i) => (
+                          <li key={i} className="text-gray-600 dark:text-gray-300 flex items-center text-xs">
+                            <span className="inline-flex items-center w-3 h-3 mr-1 bg-toyota-red/10 rounded-full text-toyota-red">
+                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             </span>
-                            <span>{feature}</span>
-                          </motion.li>
+                            {f}
+                          </li>
                         ))}
                       </ul>
-                    </TabsContent>
-                    <TabsContent value="specs" className="pt-4">
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Engine</span>
-                            <span className="font-medium">{selectedGrade.specs.engine}</span>
-                          </div>
-                          <Progress value={80} className="h-1" />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Horsepower</span>
-                            <span className="font-medium">{selectedGrade.specs.power}</span>
-                          </div>
-                          <Progress value={70} className="h-1" />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Torque</span>
-                            <span className="font-medium">{selectedGrade.specs.torque}</span>
-                          </div>
-                          <Progress value={65} className="h-1" />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Transmission</span>
-                            <span className="font-medium">{selectedGrade.specs.transmission}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">0-60 mph</span>
-                            <span className="font-medium">{selectedGrade.specs.acceleration}</span>
-                          </div>
-                          <Progress value={75} className="h-1" />
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-                
-                {/* Grade Comparison */}
-                {showComparison && (
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        {compareGrade ? (
-                          <>
-                            <h3 className="text-xl font-bold">{compareGrade.name} Grade</h3>
-                            <p className="text-gray-500 dark:text-gray-400">Starting at ${compareGrade.price.toLocaleString()}</p>
-                          </>
-                        ) : (
-                          <h3 className="text-xl font-bold">Select a grade to compare</h3>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        {compareGrade && (
-                          <Button 
-                            variant="outline" 
+                      {!compareMode && (
+                        <div className="flex flex-col gap-2 mt-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full flex justify-between"
                             size="sm"
-                            onClick={handleSwapGrades}
+                            onClick={() => setSelectedGrade(index)}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 1l4 4-4 4"></path>
-                              <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-                              <path d="M7 23l-4-4 4-4"></path>
-                              <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-                            </svg>
-                            <span className="sr-only">Swap</span>
+                            View Details
+                            <span className="ml-2">&rarr;</span>
                           </Button>
-                        )}
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={clearComparison}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          Close
-                        </Button>
+                          <Button
+                            variant="default"
+                            className="w-full bg-toyota-red hover:bg-toyota-darkred"
+                            size="sm"
+                            onClick={() => handleConfigureGrade(index)}
+                          >
+                            Configure This Grade
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="flex justify-center mt-8 gap-2">
+            <CarouselPrevious className="relative inset-auto" />
+            <CarouselNext className="relative inset-auto" />
+          </div>
+        </Carousel>
+      </div>
+
+      {/* Grade Details / Comparison Dialog */}
+      {!compareMode ? (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold">{gradeSpecs[selectedGrade].grade} Details</h3>
+            <span className="text-2xl font-bold text-toyota-red">
+              ${gradeSpecs[selectedGrade].price.toLocaleString()}
+            </span>
+          </div>
+          
+          <Tabs defaultValue="performance">
+            <TabsList className="mb-6">
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="features">Key Features</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="performance">
+              <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                {gradeSpecs[selectedGrade].performance.map((spec, i) => (
+                  <div key={i} className="border-b pb-3 dark:border-gray-700">
+                    <span className="block text-sm text-gray-500 dark:text-gray-400">{spec.label}</span>
+                    <span className="text-lg font-medium">{spec.value}</span>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="features">
+              <ul className="space-y-2">
+                {gradeSpecs[selectedGrade].features.map((feature, i) => (
+                  <li key={i} className="flex items-start">
+                    <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="mt-8 flex justify-end">
+            <Button 
+              onClick={() => handleConfigureGrade(selectedGrade)}
+              className="bg-toyota-red hover:bg-toyota-darkred"
+            >
+              Configure This Grade
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        showComparison ? (
+          <div className="p-6">
+            <div className="flex justify-between mb-6">
+              <h3 className="text-xl font-bold">Grade Comparison</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center">
+                  <label className="inline-flex items-center cursor-pointer mr-2">
+                    <span className="text-sm text-gray-600 mr-2">Highlight Differences</span>
+                    <input 
+                      type="checkbox" 
+                      checked={highlightDifferences}
+                      onChange={() => setHighlightDifferences(!highlightDifferences)} 
+                      className="sr-only peer"
+                    />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-toyota-red"></div>
+                  </label>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowComparison(false)}
+                >
+                  Back to Grades
+                </Button>
+              </div>
+            </div>
+            
+            <ScrollArea className="h-[500px] w-full rounded-md">
+              <div className="w-full min-w-max">
+                <div className="grid grid-cols-[200px_repeat(auto-fill,minmax(200px,1fr))]">
+                  {/* Header */}
+                  <div className="p-4 font-bold"></div>
+                  {selectedGrades.map(index => (
+                    <div key={index} className="p-4 border-l">
+                      <div className="flex flex-col items-center">
+                        <img 
+                          src={gradeSpecs[index].image} 
+                          alt={gradeSpecs[index].grade} 
+                          className="w-32 h-20 object-cover rounded-md mb-2" 
+                        />
+                        <h4 className="font-bold">{gradeSpecs[index].grade}</h4>
+                        <p className="text-toyota-red font-semibold">
+                          ${gradeSpecs[index].price.toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                    
-                    {compareGrade ? (
-                      <>
-                        <div className="rounded-lg overflow-hidden mb-4">
-                          <img 
-                            src={compareGrade.image} 
-                            alt={`${vehicle.name} ${compareGrade.name}`}
-                            className="w-full h-48 object-cover"
-                          />
-                        </div>
-                        
-                        <Tabs defaultValue="features">
-                          <TabsList className="grid grid-cols-2">
-                            <TabsTrigger value="features">Key Features</TabsTrigger>
-                            <TabsTrigger value="specs">Specifications</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="features" className="pt-4">
-                            <ul className="space-y-2">
-                              {compareGrade.features.map((feature, index) => (
-                                <motion.li 
-                                  key={index}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                  className="flex items-start"
-                                >
-                                  <span className="flex-shrink-0 mt-1 mr-3 p-1 bg-toyota-red/10 rounded-full text-toyota-red">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                  </span>
-                                  <span>{feature}</span>
-                                </motion.li>
-                              ))}
-                            </ul>
-                          </TabsContent>
-                          <TabsContent value="specs" className="pt-4">
-                            <div className="space-y-3">
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600 dark:text-gray-400">Engine</span>
-                                  <span className="font-medium">{compareGrade.specs.engine}</span>
-                                </div>
-                                <Progress value={80} className="h-1" />
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600 dark:text-gray-400">Horsepower</span>
-                                  <span className="font-medium">{compareGrade.specs.power}</span>
-                                </div>
-                                <Progress value={70} className="h-1" />
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600 dark:text-gray-400">Torque</span>
-                                  <span className="font-medium">{compareGrade.specs.torque}</span>
-                                </div>
-                                <Progress value={65} className="h-1" />
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600 dark:text-gray-400">Transmission</span>
-                                  <span className="font-medium">{compareGrade.specs.transmission}</span>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600 dark:text-gray-400">0-60 mph</span>
-                                  <span className="font-medium">{compareGrade.specs.acceleration}</span>
-                                </div>
-                                <Progress value={75} className="h-1" />
-                              </div>
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                      </>
-                    ) : (
-                      <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 h-[400px] flex flex-col items-center justify-center">
-                        <p className="text-gray-500 dark:text-gray-400 mb-4 text-center">
-                          Select another grade from the carousel to compare with {selectedGrade.name}.
-                        </p>
-                        
-                        <div className="grid grid-cols-2 gap-2 w-full max-w-md">
-                          {gradeOptions
-                            .filter(grade => grade.name !== selectedGrade.name)
-                            .map((grade) => (
-                              <Button
-                                key={grade.name}
-                                variant="outline"
-                                onClick={() => handleCompareGrade(grade)}
-                              >
-                                {grade.name}
-                              </Button>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                  ))}
+                  
+                  {/* Performance Specs Section */}
+                  <div className="p-4 font-bold bg-gray-100 dark:bg-gray-800 col-span-full">
+                    Performance Specifications
                   </div>
-                )}
+                  
+                  {gradeSpecs[0].performance.map((item, i) => {
+                    const values = selectedGrades.map(index => gradeSpecs[index].performance[i].value);
+                    const isDifferent = hasDifferences(values);
+                    
+                    return (
+                      <React.Fragment key={`perf-${i}`}>
+                        <div className="p-4 border-t text-gray-600">
+                          {item.label}
+                        </div>
+                        {selectedGrades.map((gradeIndex, idx) => (
+                          <div 
+                            key={`perf-${i}-${idx}`} 
+                            className={`p-4 border-t border-l ${
+                              highlightDifferences && isDifferent 
+                                ? 'font-semibold bg-yellow-50 dark:bg-yellow-900/20' 
+                                : ''
+                            }`}
+                          >
+                            {gradeSpecs[gradeIndex].performance[i].value}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                  
+                  {/* Features Section */}
+                  <div className="p-4 font-bold bg-gray-100 dark:bg-gray-800 col-span-full">
+                    Key Features
+                  </div>
+                  
+                  {gradeSpecs[0].features.map((_, i) => {
+                    const featureLabels = selectedGrades.map(index => 
+                      gradeSpecs[index].features[i] || "Not available"
+                    );
+                    const isDifferent = hasDifferences(featureLabels);
+                    
+                    return (
+                      <React.Fragment key={`feature-${i}`}>
+                        <div className="p-4 border-t text-gray-600">
+                          Feature {i + 1}
+                        </div>
+                        {selectedGrades.map((gradeIndex, idx) => (
+                          <div 
+                            key={`feature-${i}-${idx}`} 
+                            className={`p-4 border-t border-l ${
+                              highlightDifferences && isDifferent 
+                                ? 'font-semibold bg-yellow-50 dark:bg-yellow-900/20' 
+                                : ''
+                            }`}
+                          >
+                            {gradeSpecs[gradeIndex].features[i] || "Not available"}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
               </div>
-            </>
-          )}
-        </div>
+            </ScrollArea>
+            
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {selectedGrades.map(index => (
+                <Button
+                  key={index}
+                  className="bg-toyota-red hover:bg-toyota-darkred"
+                  onClick={() => handleConfigureGrade(index)}
+                >
+                  Configure {gradeSpecs[index].grade}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="p-6">
+            {selectedGrades.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Please select at least one grade to compare
+                </p>
+              </div>
+            ) : selectedGrades.length === 1 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Please select at least one more grade to compare
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <Button
+                  className="bg-toyota-red hover:bg-toyota-darkred"
+                  onClick={() => setShowComparison(true)}
+                >
+                  View Detailed Comparison
+                </Button>
+              </div>
+            )}
+          </div>
+        )
       )}
     </div>
   );
 };
-
 export default VehicleSpecs;

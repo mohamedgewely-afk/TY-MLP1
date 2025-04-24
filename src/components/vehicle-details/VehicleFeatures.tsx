@@ -1,4 +1,3 @@
-
 import React from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { 
@@ -7,13 +6,11 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselPrevious, 
-  CarouselNext 
-} from "@/components/ui/carousel";
+import Carousel from "@/components/ui/carousel";
+import CarouselContent from "@/components/ui/carousel-content";
+import CarouselItem from "@/components/ui/carousel-item";
+import CarouselPrevious from "@/components/ui/carousel-previous";
+import CarouselNext from "@/components/ui/carousel-next";
 
 interface VehicleFeaturesProps {
   vehicle: VehicleModel;
