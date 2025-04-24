@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar as CalendarIcon, Clock, MapPin, X, Check } from "lucide-react";
@@ -22,7 +21,7 @@ import { format } from "date-fns";
 import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
 
-interface BookTestDriveProps {
+export interface BookTestDriveProps {
   isOpen: boolean;
   onClose: () => void;
   vehicle: VehicleModel;

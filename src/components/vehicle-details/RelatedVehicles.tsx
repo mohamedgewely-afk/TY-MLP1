@@ -3,14 +3,14 @@ import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { vehicles } from "@/data/vehicles";
 import { Link } from "react-router-dom";
 
 interface RelatedVehiclesProps {
   currentVehicle: VehicleModel;
+  vehicles?: VehicleModel[]; // Make vehicles optional to match the type
 }
 
-const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => {
+const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle, vehicles = [] }) => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   
   // Get vehicles in the same category or similar price range

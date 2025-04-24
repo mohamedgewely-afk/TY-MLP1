@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CompareIcon } from 'lucide-react';
+import { GitCompare } from 'lucide-react';
 
 export interface CompareFloatingBoxProps {
   count: number;
@@ -15,7 +15,7 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({ count, onClick 
         onClick={onClick}
         className="bg-toyota-red hover:bg-toyota-darkred shadow-lg rounded-full px-6 py-6 flex items-center"
       >
-        <CompareIcon className="mr-2 h-5 w-5" />
+        <GitCompare className="mr-2 h-5 w-5" />
         Compare {count} {count === 1 ? 'Vehicle' : 'Vehicles'}
       </Button>
     </div>

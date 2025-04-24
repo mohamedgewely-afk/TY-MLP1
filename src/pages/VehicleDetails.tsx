@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +32,6 @@ const VehicleDetails = () => {
   const [showFinanceCalculator, setShowFinanceCalculator] = useState(false);
   const [showVehicleConfigurator, setShowVehicleConfigurator] = useState(false);
 
-  // Find the vehicle based on the URL parameter
   const vehicle = vehicles.find(v => v.name.toLowerCase() === vehicleName?.toLowerCase());
 
   if (!vehicle) {
@@ -49,7 +47,6 @@ const VehicleDetails = () => {
   }
 
   const toggleFavorite = () => {
-    // Get current favorites from localStorage
     const storedFavorites = localStorage.getItem('favorites');
     let favorites: string[] = [];
     
@@ -59,11 +56,9 @@ const VehicleDetails = () => {
 
     const vehicleId = vehicle.id || vehicle.name;
     
-    // Check if this vehicle is already in favorites
     const isFavorite = favorites.includes(vehicleId);
     
     if (isFavorite) {
-      // Remove from favorites
       const newFavorites = favorites.filter(id => id !== vehicleId);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
       toast({
@@ -71,7 +66,6 @@ const VehicleDetails = () => {
         description: `${vehicle.name} has been removed from your favorites.`,
       });
     } else {
-      // Add to favorites
       favorites.push(vehicleId);
       localStorage.setItem('favorites', JSON.stringify(favorites));
       toast({
@@ -102,19 +96,29 @@ const VehicleDetails = () => {
     setActiveSection('configure');
   };
 
+  const handleCloseTestDrive = () => {
+    setShowTestDriveForm(false);
+  };
+
+  const handleCloseFinance = () => {
+    setShowFinanceCalculator(false);
+  };
+
+  const handleCloseConfigurator = () => {
+    setShowVehicleConfigurator(false);
+  };
+
   return (
     <ToyotaLayout>
       <VehicleDetailsHero vehicle={vehicle} />
       
       <div className="toyota-container">
         <div className="py-6 flex items-center justify-between">
-          {/* Back button */}
           <Button variant="ghost" onClick={() => navigate('/')}>
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to All Vehicles
           </Button>
           
-          {/* Add to favorites */}
           <Button 
             variant="outline" 
             onClick={toggleFavorite} 
@@ -133,7 +137,6 @@ const VehicleDetails = () => {
         onConfigureClick={handleConfigureClick}
       />
       
-      {/* Conditional rendering of action forms */}
       {showTestDriveForm && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -141,7 +144,11 @@ const VehicleDetails = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <BookTestDrive vehicle={vehicle} />
+          <BookTestDrive 
+            vehicle={vehicle} 
+            isOpen={showTestDriveForm} 
+            onClose={handleCloseTestDrive} 
+          />
         </motion.div>
       )}
       
@@ -152,7 +159,11 @@ const VehicleDetails = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <FinanceCalculator vehicle={vehicle} />
+          <FinanceCalculator 
+            vehicle={vehicle} 
+            isOpen={showFinanceCalculator} 
+            onClose={handleCloseFinance} 
+          />
         </motion.div>
       )}
       
@@ -163,14 +174,15 @@ const VehicleDetails = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <ConfigureVehicle vehicle={vehicle} />
+          <ConfigureVehicle 
+            vehicle={vehicle} 
+            onClose={handleCloseConfigurator} 
+          />
         </motion.div>
       )}
 
-      {/* Vehicle Sections */}
       <div className="bg-white dark:bg-gray-900">
         <div className="toyota-container py-12 space-y-16">
-          {/* Features Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,7 +192,6 @@ const VehicleDetails = () => {
             <VehicleFeatures vehicle={vehicle} />
           </motion.section>
           
-          {/* Media Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -190,7 +201,6 @@ const VehicleDetails = () => {
             <VehicleMediaShowcase vehicle={vehicle} />
           </motion.section>
 
-          {/* Specs Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -200,7 +210,6 @@ const VehicleDetails = () => {
             <VehicleSpecs vehicle={vehicle} />
           </motion.section>
           
-          {/* Grades Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -210,7 +219,6 @@ const VehicleDetails = () => {
             <VehicleGradesShowcase vehicle={vehicle} />
           </motion.section>
           
-          {/* Gallery Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -220,16 +228,12 @@ const VehicleDetails = () => {
             <VehicleGallery vehicle={vehicle} />
           </motion.section>
           
-          {/* Technology Section */}
           <TechnologyShowcase vehicle={vehicle} />
           
-          {/* Lifestyle Gallery */}
           <LifestyleGallery vehicle={vehicle} />
           
-          {/* Reviews Section */}
           <VehicleReviews vehicle={vehicle} />
           
-          {/* Related Vehicles Section */}
           <RelatedVehicles currentVehicle={vehicle} vehicles={vehicles} />
         </div>
       </div>

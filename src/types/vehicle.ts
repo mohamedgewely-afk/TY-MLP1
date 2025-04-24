@@ -21,4 +21,16 @@ export interface VehicleModel {
     [key: string]: any;
   };
   tagline?: string;
+  mmeUrl?: string; // Adding the missing mmeUrl property
+}
+
+export interface PreOwnedVehicle {
+  id: string;
+  model: string;
+  image: string;
+  description: string;
+  year: number;
+  price: number;
+  mileage: number;
+  certified: boolean;
 }
