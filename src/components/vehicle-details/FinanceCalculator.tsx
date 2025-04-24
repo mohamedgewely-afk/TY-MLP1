@@ -1,256 +1,284 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, DollarSign, Car, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VehicleModel } from "@/types/vehicle";
-import { X, Info, DollarSign, Calendar, Percent } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 
-export interface FinanceCalculatorProps {
-  vehicle: VehicleModel;
+interface FinanceCalculatorProps {
   isOpen: boolean;
   onClose: () => void;
+  vehicle: VehicleModel;
 }
 
-const FinanceCalculator: React.FC<FinanceCalculatorProps> = ({ vehicle, isOpen, onClose }) => {
-  const [downPayment, setDownPayment] = useState(Math.round(vehicle.price * 0.2));
-  const [loanTerm, setLoanTerm] = useState(60); // 5 years in months
-  const [interestRate, setInterestRate] = useState(3.99);
-  const [monthlyPayment, setMonthlyPayment] = useState(0);
-  const [totalInterest, setTotalInterest] = useState(0);
-  const [totalCost, setTotalCost] = useState(0);
-  const { toast } = useToast();
+const FinanceCalculator: React.FC<FinanceCalculatorProps> = ({ 
+  isOpen, 
+  onClose, 
+  vehicle 
+}) => {
+  const [vehiclePrice, setVehiclePrice] = useState<number>(vehicle.price);
+  const [downPayment, setDownPayment] = useState<number>(vehicle.price * 0.2);
+  const [downPaymentPercentage, setDownPaymentPercentage] = useState<number>(20);
+  const [interestRate, setInterestRate] = useState<number>(4.5);
+  const [loanTerm, setLoanTerm] = useState<number>(60);
+  const [monthlyPayment, setMonthlyPayment] = useState<number>(0);
+  const [totalPayment, setTotalPayment] = useState<number>(0);
+  const [totalInterest, setTotalInterest] = useState<number>(0);
 
-  // Calculate loan details
-  React.useEffect(() => {
-    const principal = vehicle.price - downPayment;
+  // Calculate monthly payment and totals
+  useEffect(() => {
+    // Calculate loan amount
+    const loanAmount = vehiclePrice - downPayment;
+    
+    if (loanAmount <= 0) {
+      setMonthlyPayment(0);
+      setTotalPayment(downPayment);
+      setTotalInterest(0);
+      return;
+    }
+    
+    // Convert annual interest rate to monthly rate
     const monthlyRate = interestRate / 100 / 12;
-    const monthlyPaymentValue = 
-      (principal * monthlyRate * Math.pow(1 + monthlyRate, loanTerm)) / 
+    
+    // Calculate monthly payment using the formula: 
+    // P = A * i * (1 + i)^n / ((1 + i)^n - 1)
+    // where A is the loan amount, i is the monthly interest rate, and n is the number of months
+    const payment = loanAmount * 
+      (monthlyRate * Math.pow(1 + monthlyRate, loanTerm)) / 
       (Math.pow(1 + monthlyRate, loanTerm) - 1);
     
-    const totalPayments = monthlyPaymentValue * loanTerm;
-    const totalInterestValue = totalPayments - principal;
+    // Handle edge cases
+    const calculatedPayment = isNaN(payment) || !isFinite(payment) ? 0 : payment;
     
-    setMonthlyPayment(monthlyPaymentValue);
-    setTotalInterest(totalInterestValue);
-    setTotalCost(totalPayments + downPayment);
-  }, [vehicle.price, downPayment, loanTerm, interestRate]);
+    setMonthlyPayment(calculatedPayment);
+    setTotalPayment(calculatedPayment * loanTerm + downPayment);
+    setTotalInterest(calculatedPayment * loanTerm - loanAmount);
+  }, [vehiclePrice, downPayment, interestRate, loanTerm]);
 
-  const handleDownPaymentChange = (value: number[]) => {
-    setDownPayment(value[0]);
+  // Handle down payment changes
+  const handleDownPaymentChange = (value: number) => {
+    setDownPayment(value);
+    setDownPaymentPercentage((value / vehiclePrice) * 100);
   };
 
+  // Handle down payment percentage changes
+  const handleDownPaymentPercentageChange = (value: number[]) => {
+    const percentage = value[0];
+    setDownPaymentPercentage(percentage);
+    setDownPayment((percentage / 100) * vehiclePrice);
+  };
+
+  // Handle loan term changes
   const handleLoanTermChange = (value: number[]) => {
     setLoanTerm(value[0]);
   };
 
+  // Handle interest rate changes
   const handleInterestRateChange = (value: number[]) => {
     setInterestRate(value[0]);
-  };
-
-  const handleDownPaymentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value.replace(/,/g, ''), 10);
-    if (!isNaN(value) && value >= 0 && value <= vehicle.price) {
-      setDownPayment(value);
-    }
-  };
-
-  const handleSubmit = () => {
-    toast({
-      title: "Finance Calculation Saved",
-      description: "Your finance calculation has been saved. A Toyota representative will contact you shortly.",
-    });
-    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Finance Calculator</DialogTitle>
-          <DialogDescription>
-            Estimate your monthly payments for the {vehicle.name}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Vehicle Information */}
-            <div className="space-y-4">
-              <div className="aspect-video overflow-hidden rounded-md">
-                <img 
-                  src={vehicle.image} 
-                  alt={vehicle.name} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">{vehicle.name}</h3>
-                <p className="text-gray-500 dark:text-gray-400">{vehicle.category}</p>
-                <p className="text-xl font-bold mt-2">AED {vehicle.price.toLocaleString()}</p>
-              </div>
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm p-4">
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+        >
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Finance Calculator - {vehicle.name}
+              </h2>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-
-            {/* Calculator Results */}
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-4">
-              <h3 className="font-semibold text-lg">Estimated Payment</h3>
+            
+            <Tabs defaultValue="standard">
+              <TabsList className="grid grid-cols-2 mb-6">
+                <TabsTrigger value="standard">Standard Loan</TabsTrigger>
+                <TabsTrigger value="balloon">Balloon Payment</TabsTrigger>
+              </TabsList>
               
-              <div className="flex justify-between items-center border-b pb-2">
-                <span className="text-gray-600 dark:text-gray-400">Monthly Payment:</span>
-                <span className="text-xl font-bold">
-                  AED {Math.round(monthlyPayment).toLocaleString()}
-                </span>
-              </div>
+              <TabsContent value="standard">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Calculator Inputs */}
+                  <div className="space-y-6">
+                    <div>
+                      <Label htmlFor="vehiclePrice" className="flex justify-between mb-2">
+                        <span>Vehicle Price</span>
+                        <span>AED {vehiclePrice.toLocaleString()}</span>
+                      </Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="vehiclePrice"
+                          type="number"
+                          value={vehiclePrice}
+                          onChange={(e) => setVehiclePrice(Number(e.target.value))}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="downPayment" className="flex justify-between mb-2">
+                        <span>Down Payment ({downPaymentPercentage.toFixed(0)}%)</span>
+                        <span>AED {downPayment.toLocaleString()}</span>
+                      </Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="downPayment"
+                          type="number"
+                          value={downPayment}
+                          onChange={(e) => handleDownPaymentChange(Number(e.target.value))}
+                          className="pl-10 mb-3"
+                        />
+                      </div>
+                      <Slider
+                        value={[downPaymentPercentage]}
+                        min={0}
+                        max={50}
+                        step={1}
+                        onValueChange={handleDownPaymentPercentageChange}
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span>50%</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="interestRate" className="flex justify-between mb-2">
+                        <span>Interest Rate</span>
+                        <span>{interestRate.toFixed(2)}%</span>
+                      </Label>
+                      <Slider
+                        id="interestRate"
+                        value={[interestRate]}
+                        min={1}
+                        max={10}
+                        step={0.1}
+                        onValueChange={handleInterestRateChange}
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>1.00%</span>
+                        <span>10.00%</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="loanTerm" className="flex justify-between mb-2">
+                        <span>Loan Term</span>
+                        <span>{loanTerm} months ({Math.floor(loanTerm / 12)} years)</span>
+                      </Label>
+                      <Slider
+                        id="loanTerm"
+                        value={[loanTerm]}
+                        min={12}
+                        max={84}
+                        step={12}
+                        onValueChange={handleLoanTermChange}
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>1 year</span>
+                        <span>7 years</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Results */}
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">
+                      Estimated Payments
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                          Monthly Payment
+                        </h4>
+                        <div className="text-3xl font-bold text-toyota-red">
+                          AED {monthlyPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">Loan Amount:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            AED {(vehiclePrice - downPayment).toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">Down Payment:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            AED {downPayment.toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">Total Interest:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            AED {totalInterest.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between border-t pt-4">
+                          <span className="text-gray-600 dark:text-gray-300">Total Cost:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            AED {totalPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-100 dark:bg-gray-600 p-4 rounded text-sm">
+                        <p className="text-gray-600 dark:text-gray-300">
+                          * This is only an estimate. Contact our finance team for a personalized offer.
+                        </p>
+                      </div>
+                      
+                      <Button className="w-full bg-toyota-red hover:bg-toyota-darkred">
+                        Apply for Financing
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
               
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Down Payment:</span>
-                  <span>AED {downPayment.toLocaleString()}</span>
+              <TabsContent value="balloon">
+                <div className="p-6 text-center bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    Balloon Payment Financing
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    A balloon payment option allows you to defer a portion of your vehicle's cost until the end of the loan term, 
+                    resulting in lower monthly payments.
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    Please contact our finance specialists for a personalized balloon payment plan.
+                  </p>
+                  <Button className="bg-toyota-red hover:bg-toyota-darkred">
+                    Contact Finance Team
+                  </Button>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Loan Amount:</span>
-                  <span>AED {(vehicle.price - downPayment).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Loan Term:</span>
-                  <span>{Math.floor(loanTerm / 12)} years ({loanTerm} months)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Interest Rate:</span>
-                  <span>{interestRate.toFixed(2)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Total Interest:</span>
-                  <span>AED {Math.round(totalInterest).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between font-semibold pt-2 border-t">
-                  <span>Total Cost:</span>
-                  <span>AED {Math.round(totalCost).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
-
-          {/* Calculator Controls */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="downPayment" className="flex items-center">
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  Down Payment
-                </Label>
-                <div className="relative">
-                  <DollarSign className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                  <Input
-                    id="downPaymentInput"
-                    value={downPayment.toLocaleString()}
-                    onChange={handleDownPaymentInput}
-                    className="pl-8 w-32 text-right"
-                  />
-                </div>
-              </div>
-              <Slider
-                id="downPayment"
-                min={0}
-                max={vehicle.price}
-                step={1000}
-                value={[downPayment]}
-                onValueChange={handleDownPaymentChange}
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>AED 0</span>
-                <span>AED {vehicle.price.toLocaleString()}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="loanTerm" className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Loan Term
-                </Label>
-                <span className="text-sm font-medium">
-                  {Math.floor(loanTerm / 12)} years ({loanTerm} months)
-                </span>
-              </div>
-              <Slider
-                id="loanTerm"
-                min={12}
-                max={84}
-                step={12}
-                value={[loanTerm]}
-                onValueChange={handleLoanTermChange}
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>1 year</span>
-                <span>7 years</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="interestRate" className="flex items-center">
-                  <Percent className="h-4 w-4 mr-1" />
-                  Interest Rate
-                </Label>
-                <span className="text-sm font-medium">{interestRate.toFixed(2)}%</span>
-              </div>
-              <Slider
-                id="interestRate"
-                min={1}
-                max={10}
-                step={0.25}
-                value={[interestRate]}
-                onValueChange={handleInterestRateChange}
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>1%</span>
-                <span>10%</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-xs text-gray-500 flex items-start">
-            <Info className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
-            <p>
-              This calculator provides an estimate only. Actual terms may vary based on credit approval, 
-              down payment, and other factors. Contact your Toyota dealer for personalized financing options.
-            </p>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>
-            Save & Contact Me
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 

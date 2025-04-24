@@ -9,37 +9,40 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 
-export interface ConfigureVehicleProps {
+interface ConfigureVehicleProps {
   vehicle: VehicleModel;
   onClose: () => void;
 }
 
-const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose }) => {
-  // Define the missing trims, colors, and packages data
-  const trims = [
-    { id: "base", name: "Base", price: vehicle.price },
-    { id: "sx", name: "SX", price: vehicle.price + 8000 },
-    { id: "limited", name: "Limited", price: vehicle.price + 15000 },
-    { id: "platinum", name: "Platinum", price: vehicle.price + 25000 }
-  ];
-  
-  const colors = [
-    { id: "white", name: "Pearl White", price: 0, image: "https://global.toyota/pages/news/images/2023/11/28/2000/20231128_01_03_s.jpg" },
-    { id: "silver", name: "Silver Metallic", price: 0, image: "https://global.toyota/pages/news/images/2023/11/28/2000/20231128_01_01_s.jpg" },
-    { id: "gray", name: "Lunar Gray", price: 500, image: "https://global.toyota/pages/news/images/2023/08/02/2000/landcruiser250_20230802_01_01_s.jpg" },
-    { id: "black", name: "Midnight Black", price: 500, image: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_08_s.jpg" },
-    { id: "red", name: "Supersonic Red", price: 1200, image: "https://global.toyota/pages/news/images/2021/06/10/1330/20210610_01_03_s.jpg" },
-    { id: "blue", name: "Blueprint", price: 1200, image: "https://global.toyota/pages/news/images/2023/04/25/001/20230425_01_kv_full_w1920.jpg" }
-  ];
-  
-  const packages = [
-    { id: "convenience", name: "Convenience Package", price: 1800 },
-    { id: "technology", name: "Technology Package", price: 3500 },
-    { id: "premium-audio", name: "Premium Audio", price: 1200 },
-    { id: "cold-weather", name: "Cold Weather Package", price: 900 },
-    { id: "advanced-safety", name: "Advanced Safety Package", price: 1500 }
-  ];
+interface ConfigOption {
+  id: string;
+  name: string;
+  image?: string;
+  price: number;
+}
 
+// These would come from the vehicle data in a real implementation
+const trims: ConfigOption[] = [
+  { id: "le", name: "LE", price: 95000 },
+  { id: "se", name: "SE", price: 105000 },
+  { id: "xle", name: "XLE", price: 120000 },
+  { id: "hybrid", name: "Hybrid XLE", price: 135000 },
+];
+
+const colors: ConfigOption[] = [
+  { id: "white", name: "Pearl White", price: 0, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-hero-full.jpg" },
+  { id: "silver", name: "Silver Metallic", price: 0, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-style-full-width-1.jpg" },
+  { id: "red", name: "Emotional Red", price: 1500, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-safety-full-width.jpg" },
+  { id: "blue", name: "Celestial Blue", price: 1500, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-interior-full-width.jpg" },
+];
+
+const packages: ConfigOption[] = [
+  { id: "sport", name: "Sport Package", price: 8000 },
+  { id: "tech", name: "Tech Package", price: 12000 },
+  { id: "premium", name: "Premium Package", price: 18000 },
+];
+
+const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTrim, setSelectedTrim] = useState<string>(trims[0].id);
   const [selectedColor, setSelectedColor] = useState<string>(colors[0].id);
@@ -49,6 +52,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
   const totalSteps = 4;
   const basePrice = vehicle.price;
   
+  // Calculate the total price based on selections
   const calculateTotal = () => {
     const trimPrice = trims.find(t => t.id === selectedTrim)?.price || 0;
     const colorPrice = colors.find(c => c.id === selectedColor)?.price || 0;
@@ -82,6 +86,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
   };
   
   const handleSubmit = () => {
+    // In a real app, this would send the configuration to a backend
     console.log("Configuration submitted:", {
       vehicle: vehicle.name,
       trim: selectedTrim,
@@ -90,6 +95,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
       totalPrice: total
     });
     
+    // Show success toast and close
     toast({
       title: "Configuration Saved",
       description: "Your configuration has been saved. A Toyota representative will contact you shortly."
@@ -102,6 +108,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl mx-auto overflow-hidden">
+      {/* Header with progress indicator */}
       <div className="bg-gray-50 dark:bg-gray-700 p-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           Configure Your {vehicle.name}
@@ -118,6 +125,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
       </div>
       
       <div className="p-6">
+        {/* Step 1: Select Trim */}
         {currentStep === 1 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -141,6 +149,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
           </motion.div>
         )}
         
+        {/* Step 2: Select Color */}
         {currentStep === 2 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -175,6 +184,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
           </motion.div>
         )}
         
+        {/* Step 3: Select Packages */}
         {currentStep === 3 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -208,6 +218,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
           </motion.div>
         )}
         
+        {/* Step 4: Review & Submit */}
         {currentStep === 4 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -272,6 +283,7 @@ const ConfigureVehicle: React.FC<ConfigureVehicleProps> = ({ vehicle, onClose })
         )}
       </div>
       
+      {/* Footer with navigation buttons */}
       <div className="bg-gray-50 dark:bg-gray-700 p-6 flex justify-between items-center">
         <Button 
           variant="outline" 

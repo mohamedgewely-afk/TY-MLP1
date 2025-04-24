@@ -1,27 +1,19 @@
 
-// Add `mpg` and `horsepower` to specifications
 export interface VehicleModel {
-  id?: string;
   name: string;
-  category: string;
   image: string;
-  heroImage?: string;
+  mmeUrl: string;
+  configureUrl: string;
   price: number;
+  category: string;
   features: string[];
-  configureUrl?: string;
-  galleryImages?: string[];
-  isNew?: boolean;
-  isHybrid?: boolean;
   specifications?: {
     engine?: string;
     transmission?: string;
-    drivetrain?: string;
-    mpg?: string;
-    horsepower?: string;
-    [key: string]: any;
+    fuelEconomy?: string;
+    safetyRating?: string;
+    warranty?: string;
   };
-  tagline?: string;
-  mmeUrl?: string; // Adding the missing mmeUrl property
 }
 
 export interface PreOwnedVehicle {
@@ -33,4 +25,11 @@ export interface PreOwnedVehicle {
   price: number;
   mileage: number;
   certified: boolean;
+  specifications?: {
+    engine?: string;
+    transmission?: string;
+    previousOwners?: number;
+    condition?: string;
+    warranty?: string;
+  };
 }

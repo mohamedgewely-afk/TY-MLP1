@@ -1,24 +1,88 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { GitCompare } from 'lucide-react';
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { VehicleModel } from "@/types/vehicle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-export interface CompareFloatingBoxProps {
-  count: number;
-  onClick: () => void;
+interface CompareFloatingBoxProps {
+  compareList: string[];
+  vehicles: VehicleModel[];
+  onRemove: (name: string) => void;
+  onClearAll: () => void;
 }
 
-const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({ count, onClick }) => {
+const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
+  compareList,
+  vehicles,
+  onRemove,
+  onClearAll,
+}) => {
+  const isMobile = useIsMobile();
+
+  // On mobile, don't render the floating box; all controls are in the compare screen now
+  if (isMobile || compareList.length === 0) return null;
+
+  const comparedVehicles = vehicles.filter((v) => compareList.includes(v.name));
+
   return (
-    <div className="fixed bottom-24 md:bottom-10 right-6 z-40">
-      <Button 
-        onClick={onClick}
-        className="bg-toyota-red hover:bg-toyota-darkred shadow-lg rounded-full px-6 py-6 flex items-center"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 50 }}
+        className="fixed bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[40] bg-white rounded-xl shadow-lg border border-gray-200 p-4 w-[94%] max-w-lg"
       >
-        <GitCompare className="mr-2 h-5 w-5" />
-        Compare {count} {count === 1 ? 'Vehicle' : 'Vehicles'}
-      </Button>
-    </div>
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-lg text-gray-800">
+              Compare ({compareList.length})
+            </h3>
+            <button
+              onClick={onClearAll}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {comparedVehicles.map((vehicle) => (
+              <div
+                key={vehicle.name}
+                className="bg-gray-50 rounded-lg p-3 relative border border-gray-100"
+              >
+                <button
+                  onClick={() => onRemove(vehicle.name)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="w-full h-32 rounded-md overflow-hidden bg-gray-100">
+                    <img
+                      src={vehicle.image}
+                      alt={vehicle.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h4 className="font-semibold mt-2 text-gray-700">{vehicle.name}</h4>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2 text-sm"
+                    asChild
+                  >
+                    <a href={vehicle.configureUrl}>Configure</a>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

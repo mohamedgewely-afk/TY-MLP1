@@ -9,20 +9,16 @@ interface VehicleKeyFeaturesProps {
 }
 
 const VehicleKeyFeatures = ({ vehicle }: VehicleKeyFeaturesProps) => {
-  // Extract useful data from the vehicle object
-  const mpg = vehicle.specifications?.mpg || '32';
-  const horsepower = vehicle.specifications?.horsepower || '203';
-  
   // These would come from vehicle data in a real implementation
   const keyFeatures = [
     {
       icon: <Fuel className="h-6 w-6" />,
-      value: `${mpg}`,
+      value: `${vehicle.mpg}`,
       label: 'MPG Combined',
     },
     {
       icon: <Zap className="h-6 w-6" />,
-      value: `${horsepower}HP`,
+      value: `${vehicle.horsepower}HP`,
       label: 'Horsepower',
     },
     {
