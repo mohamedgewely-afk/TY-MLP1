@@ -1,12 +1,14 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   Fuel, Shield, Settings, Eye, 
-  BookOpen, GalleryVertical 
+  BookOpen, GalleryVertical, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   Carousel, 
   CarouselContent, 
@@ -20,6 +22,12 @@ interface VehicleFeaturesProps {
 }
 
 const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
+  const [selectedCategory, setSelectedCategory] = useState(0);
+  const [openMediaDialog, setOpenMediaDialog] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<{url: string, type: string, thumbnail?: string}>({
+    url: "", type: "image"
+  });
+
   // Enhanced feature categories with media
   const featureCategories = [
     {
@@ -121,69 +129,185 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
     }
   ];
 
+  const handleOpenMedia = (media: {url: string, type: string, thumbnail?: string}) => {
+    setSelectedMedia(media);
+    setOpenMediaDialog(true);
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-      <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
-        Features & Highlights
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {featureCategories.map((category, idx) => (
-          <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300" key={idx}>
-            {/* Media carousel for each feature */}
-            <Carousel opts={{ align: "start", loop: true }}>
-              <CarouselContent>
-                {category.media.map((m, i) => (
-                  <CarouselItem key={i} className="h-48">
-                    {m.type === "image" ? (
-                      <img src={m.url} alt={category.title} className="w-full h-full object-cover" />
+    <>
+      {/* Featured Media Carousel - Large Format */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+          Features & Highlights
+        </h2>
+        
+        <div className="bg-black rounded-xl overflow-hidden">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {featureCategories[selectedCategory].media.map((media, idx) => (
+                <CarouselItem key={idx} className="relative">
+                  <div className="aspect-[16/9] md:aspect-[21/9] overflow-hidden">
+                    {media.type === "image" ? (
+                      <img 
+                        src={media.url} 
+                        alt={featureCategories[selectedCategory].title} 
+                        className="w-full h-full object-cover"
+                        onClick={() => handleOpenMedia(media)}
+                      />
                     ) : (
                       <video
-                        src={m.url}
+                        src={media.url}
+                        poster={media.thumbnail}
                         controls
-                        poster={m.thumbnail}
-                        className="w-full h-full object-cover rounded"
+                        className="w-full h-full object-cover"
                       />
                     )}
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex justify-center gap-2 mt-2">
-                <CarouselPrevious className="relative inset-auto" />
-                <CarouselNext className="relative inset-auto" />
-              </div>
-            </Carousel>
-
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end pointer-events-none"></div>
-              <div className="p-4 text-white/90">
-                <div className="flex items-center mb-2">
-                  <div className="bg-toyota-red p-2 rounded-full mr-3">
-                    {category.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-white">{category.title}</h3>
-                </div>
-                <p className="text-white/80 mb-2">{category.description}</p>
-              </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-8">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <h3 className="text-xl md:text-3xl font-bold text-white mb-2">
+                        {featureCategories[selectedCategory].title}
+                      </h3>
+                      <p className="text-white/80 mb-4 max-w-2xl">
+                        {featureCategories[selectedCategory].description}
+                      </p>
+                    </motion.div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="absolute z-10 inset-y-0 left-0 flex items-center">
+              <CarouselPrevious className="ml-4 bg-black/30 hover:bg-black/60 border-none text-white" />
             </div>
-            
-            <CardContent className="p-4 bg-white dark:bg-gray-900">
-              <ul className="space-y-2">
-                {category.features.map((feature, i) => (
-                  <li key={i} className="flex items-start">
-                    <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ))}
+            <div className="absolute z-10 inset-y-0 right-0 flex items-center">
+              <CarouselNext className="mr-4 bg-black/30 hover:bg-black/60 border-none text-white" />
+            </div>
+          </Carousel>
+          
+          {/* Category Selector */}
+          <div className="bg-gray-900 p-4">
+            <div className="flex overflow-x-auto space-x-2 pb-2">
+              {featureCategories.map((category, idx) => (
+                <Button
+                  key={idx}
+                  variant={selectedCategory === idx ? "default" : "outline"}
+                  className={`rounded-full whitespace-nowrap transition-all ${selectedCategory === idx ? 'bg-toyota-red hover:bg-toyota-darkred' : 'bg-transparent text-white hover:text-white'}`}
+                  onClick={() => setSelectedCategory(idx)}
+                >
+                  <span className="flex items-center">
+                    <span className="mr-2">{category.icon}</span>
+                    {category.title}
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Features Grid */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
+          Detailed Features
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {featureCategories.map((category, idx) => (
+            <Card key={idx} className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="h-40 relative overflow-hidden cursor-pointer" onClick={() => setSelectedCategory(idx)}>
+                <Carousel opts={{ align: "start", loop: true }}>
+                  <CarouselContent>
+                    {category.media.map((m, i) => (
+                      <CarouselItem key={i}>
+                        {m.type === "image" ? (
+                          <img src={m.url} alt={category.title} className="w-full h-40 object-cover" />
+                        ) : (
+                          <div className="relative w-full h-40 bg-gray-200">
+                            <img 
+                              src={m.thumbnail || ''} 
+                              alt={category.title} 
+                              className="w-full h-full object-cover opacity-60"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-toyota-red rounded-full p-3 bg-opacity-80">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M8 5V19L19 12L8 5Z" fill="white" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="flex items-center">
+                      <div className="bg-toyota-red p-2 rounded-full mr-3">
+                        {category.icon}
+                      </div>
+                      <h3 className="text-lg font-bold text-white">{category.title}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <CardContent className="p-4 bg-white dark:bg-gray-900">
+                <ul className="space-y-2">
+                  {category.features.map((feature, i) => (
+                    <li key={i} className="flex items-start">
+                      <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      
+      {/* Media Dialog */}
+      <Dialog open={openMediaDialog} onOpenChange={setOpenMediaDialog}>
+        <DialogContent className="max-w-5xl p-0 bg-black border-none">
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white border-none hover:bg-black/70"
+              onClick={() => setOpenMediaDialog(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            {selectedMedia.type === "image" ? (
+              <img 
+                src={selectedMedia.url}
+                alt="Feature showcase"
+                className="w-full max-h-[80vh] object-contain"
+              />
+            ) : (
+              <video 
+                src={selectedMedia.url}
+                poster={selectedMedia.thumbnail}
+                controls
+                autoPlay
+                className="w-full max-h-[80vh] object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
