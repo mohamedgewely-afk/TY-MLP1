@@ -4,3 +4,27 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Mobile sticky nav styles */
+.swipeable-card {
+  transition: transform 0.3s ease;
+}
+
+.swipeable-card:active {
+  transform: scale(0.98);
+}
+
+.card-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ddd;
+  transition: all 0.3s ease;
+}
+
+.card-indicator.active {
+  width: 18px;
+  border-radius: 3px;
+  background-color: #E50000;
+}
+

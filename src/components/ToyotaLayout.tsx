@@ -211,8 +211,8 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children }) => {
         onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
 
-      {/* Chat Widget - Adjust position to account for sticky nav */}
-      <div className="fixed bottom-24 md:bottom-8 right-8 z-50">
+      {/* Chat Widget - Adjust position to account for expanded sticky nav */}
+      <div className="fixed bottom-32 md:bottom-8 right-8 z-50">
         <Button 
           className="rounded-full shadow-lg bg-toyota-red hover:bg-toyota-darkred flex items-center gap-2 px-4"
         >
