@@ -120,10 +120,15 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             onClick={handleToggleExpanded}
             className="rounded-full bg-gray-200 dark:bg-gray-800 p-1 flex items-center justify-center"
           >
-            {expanded ? 
-              <ChevronDown className="h-4 w-4 text-gray-500" /> : 
-              <ChevronUp className="h-4 w-4 text-gray-500" />
-            }
+            {expanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-gray-500">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-gray-500">
+                <path d="m18 15-6-6-6 6"/>
+              </svg>
+            )}
           </button>
         </div>
 
@@ -227,18 +232,5 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
     </Link>
   );
 };
-
-// Components for the expanded drawer toggle
-const ChevronUp = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m18 15-6-6-6 6"/>
-  </svg>
-);
-
-const ChevronDown = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6"/>
-  </svg>
-);
 
 export default MobileStickyNav;
