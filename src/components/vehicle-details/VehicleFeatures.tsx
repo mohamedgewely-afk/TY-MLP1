@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   Fuel, Shield, Settings, Eye, 
-  BookOpen, GalleryVertical, ChevronLeft, ChevronRight
+  BookOpen, GalleryVertical, ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
