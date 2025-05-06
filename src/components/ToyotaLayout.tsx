@@ -206,7 +206,7 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children }) => {
         </div>
       </footer>
 
-      {/* New Sticky Nav */}
+      {/* Mobile Sticky Nav */}
       <MobileStickyNav 
         onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
