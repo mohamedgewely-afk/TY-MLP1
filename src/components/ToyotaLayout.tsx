@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, Globe, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import MobileStickyNav from "./MobileStickyNav";
 
 interface ToyotaLayoutProps {
   children: React.ReactNode;
@@ -205,37 +206,13 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children }) => {
         </div>
       </footer>
 
-      {/* Mobile Sticky Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg z-50">
-        <div className="grid grid-cols-4 py-2">
-          <MobileNavButton href="/new-cars" label="Cars">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </MobileNavButton>
-          
-          <MobileNavButton href="/offers" label="Offers">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </MobileNavButton>
-          
-          <MobileNavButton href="/test-drive" label="Test Drive">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </MobileNavButton>
-          
-          <MobileNavButton href="#" label="More" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </MobileNavButton>
-        </div>
-      </div>
+      {/* New Sticky Nav */}
+      <MobileStickyNav 
+        onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+      />
 
-      {/* Chat Widget */}
-      <div className="fixed bottom-20 md:bottom-8 right-8 z-50">
+      {/* Chat Widget - Adjust position to account for sticky nav */}
+      <div className="fixed bottom-24 md:bottom-8 right-8 z-50">
         <Button 
           className="rounded-full shadow-lg bg-toyota-red hover:bg-toyota-darkred flex items-center gap-2 px-4"
         >
@@ -265,27 +242,6 @@ const MobileNavLink = ({ href, children }: { href: string; children: React.React
     className="block py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
   >
     {children}
-  </Link>
-);
-
-const MobileNavButton = ({ 
-  href, 
-  label, 
-  onClick, 
-  children 
-}: { 
-  href: string; 
-  label: string; 
-  onClick?: () => void;
-  children: React.ReactNode 
-}) => (
-  <Link 
-    to={href} 
-    className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-toyota-red"
-    onClick={onClick}
-  >
-    <div className="icon">{children}</div>
-    <span className="text-xs mt-1">{label}</span>
   </Link>
 );
 

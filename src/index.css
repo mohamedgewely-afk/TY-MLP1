@@ -118,3 +118,26 @@
 .text-toyota-red {
   @apply text-[hsl(var(--toyota-red))];
 }
+
+/* Safe area insets for mobile */
+.pb-safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mt-safe-area-inset-top {
+  margin-top: env(safe-area-inset-top);
+}
+
+/* Sticky navigation animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
