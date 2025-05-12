@@ -4,13 +4,15 @@ import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { VehicleModel } from '@/types/vehicle';
+import { Persona } from '@/types/persona';
 
 interface QuickViewModalProps {
   vehicle: VehicleModel;
   onClose: () => void;
+  personaData?: Persona | null;
 }
 
-const QuickViewModal: React.FC<QuickViewModalProps> = ({ vehicle, onClose }) => {
+const QuickViewModal: React.FC<QuickViewModalProps> = ({ vehicle, onClose, personaData }) => {
   // Prevent clicks inside the modal from closing it
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();

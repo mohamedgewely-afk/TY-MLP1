@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -362,22 +361,22 @@ const Index = () => {
 
       {/* Performance Section - Show based on persona */}
       {visibleSections.performance && (
-        <PerformanceSection personaData={personaData} />
+        <PerformanceSection />
       )}
 
       {/* Special Offers Section */}
       {visibleSections.offers && (
-        <OffersSection personaData={personaData} />
+        <OffersSection />
       )}
 
       {/* Lifestyle Section */}
       {visibleSections.lifestyle && (
-        <LifestyleSection personaData={personaData} />
+        <LifestyleSection />
       )}
 
       {/* Pre-Owned Section */}
       {visibleSections.preOwned && (
-        <PreOwnedSection vehicles={preOwnedVehicles} personaData={personaData} />
+        <PreOwnedSection vehicles={preOwnedVehicles} />
       )}
 
       {/* Comparison Table - Show as overlay when at least 2 vehicles are selected */}

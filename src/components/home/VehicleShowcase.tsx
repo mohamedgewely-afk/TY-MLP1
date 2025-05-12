@@ -5,6 +5,7 @@ import VehicleCard from "./VehicleCard";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { TestTube, Mail, Phone } from "lucide-react";
+import { Persona } from "@/types/persona";
 import {
   Carousel,
   CarouselContent,
@@ -19,6 +20,7 @@ interface VehicleShowcaseProps {
   compareList: string[];
   onCompare: (vehicle: VehicleModel) => void;
   onQuickView: (vehicle: VehicleModel) => void;
+  personaData?: Persona | null;
 }
 
 const VehicleShowcase: React.FC<VehicleShowcaseProps> = ({
@@ -27,6 +29,7 @@ const VehicleShowcase: React.FC<VehicleShowcaseProps> = ({
   compareList,
   onCompare,
   onQuickView,
+  personaData,
 }) => {
   return (
     <section className="py-12 bg-white dark:bg-gray-900">

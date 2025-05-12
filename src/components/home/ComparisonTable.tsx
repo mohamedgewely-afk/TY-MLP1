@@ -4,6 +4,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileComparisonView from "../comparison/MobileComparisonView";
 import DesktopComparisonView from "../comparison/DesktopComparisonView";
+import { Persona } from "@/types/persona";
 
 const useFlyInAnimation = () => {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -21,12 +22,14 @@ interface ComparisonTableProps {
   vehicles: VehicleModel[];
   onRemove: (name: string) => void;
   onClearAll?: () => void;
+  personaData?: Persona | null;
 }
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({
   vehicles,
   onRemove,
   onClearAll,
+  personaData,
 }) => {
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   const isMobile = useIsMobile();

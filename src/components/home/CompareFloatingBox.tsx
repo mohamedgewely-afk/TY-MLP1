@@ -5,12 +5,14 @@ import { X, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Persona } from "@/types/persona";
 
 interface CompareFloatingBoxProps {
   compareList: string[];
   vehicles: VehicleModel[];
   onRemove: (name: string) => void;
   onClearAll: () => void;
+  personaData?: Persona | null;
 }
 
 const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
@@ -18,6 +20,7 @@ const CompareFloatingBox: React.FC<CompareFloatingBoxProps> = ({
   vehicles,
   onRemove,
   onClearAll,
+  personaData,
 }) => {
   const isMobile = useIsMobile();
 
