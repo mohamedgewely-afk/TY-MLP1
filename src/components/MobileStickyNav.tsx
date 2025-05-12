@@ -188,7 +188,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   >
                     <CarouselContent>
                       {filteredVehicles.map((vehicle) => (
-                        <CarouselItem key={vehicle.id} className="basis-2/3 pl-4">
+                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4"> {/* Use vehicle.name as key instead of id */}
                           <Link to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase())}`}>
                             <Card className="overflow-hidden">
                               <div className="aspect-[16/9] w-full bg-gray-100 dark:bg-gray-800">

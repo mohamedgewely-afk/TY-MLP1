@@ -77,7 +77,7 @@ const DesktopCategoryMenu: React.FC<DesktopCategoryMenuProps> = ({ isOpen, onClo
               </h3>
               <ul className="space-y-2">
                 {vehiclesByCategory[category.id]?.map((vehicle) => (
-                  <li key={vehicle.id}>
+                  <li key={vehicle.name}> {/* Use vehicle.name as the key instead of id */}
                     <Link
                       to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase())}`}
                       className="flex items-center space-x-3 group p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

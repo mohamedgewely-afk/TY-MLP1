@@ -13,6 +13,7 @@ export interface Vehicle {
 }
 
 export interface VehicleModel {
+  id?: string; // Add optional id property
   name: string;
   image: string;
   mmeUrl: string;

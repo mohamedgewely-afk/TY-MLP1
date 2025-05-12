@@ -1,8 +1,8 @@
-
 import { VehicleModel, PreOwnedVehicle } from "@/types/vehicle";
 
 export const vehicles: VehicleModel[] = [
   {
+    id: "camry-hybrid",
     name: "Toyota Camry Hybrid",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Camry/2023/Hybrid/Camry-Hybrid-Exterior-1.jpg",
     mmeUrl: "https://www.toyota.ae/en/new-cars/camry",
