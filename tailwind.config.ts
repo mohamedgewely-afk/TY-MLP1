@@ -70,6 +70,39 @@ export default {
 					lightgray: '#F1F2F2',
 					black: '#000000',
 					white: '#FFFFFF',
+				},
+				// Persona-specific colors
+				persona: {
+					family: {
+						primary: '#4A6DA7',
+						secondary: '#8FB0EA',
+						accent: '#F2C94C',
+					},
+					tech: {
+						primary: '#6B38FB',
+						secondary: '#9F7AFF',
+						accent: '#00D4FF',
+					},
+					eco: {
+						primary: '#2E7D32',
+						secondary: '#81C784',
+						accent: '#CDDC39',
+					},
+					urban: {
+						primary: '#455A64',
+						secondary: '#78909C',
+						accent: '#FF5722',
+					},
+					business: {
+						primary: '#263238',
+						secondary: '#546E7A',
+						accent: '#90A4AE',
+					},
+					adventure: {
+						primary: '#BF360C',
+						secondary: '#FF8A65',
+						accent: '#FFD54F',
+					}
 				}
 			},
 			borderRadius: {
@@ -111,15 +144,94 @@ export default {
 					'50%': { 
 						opacity: '0.8'
 					},
+				},
+				'float': {
+					'0%, 100%': {
+						transform: 'translateY(0)'
+					},
+					'50%': {
+						transform: 'translateY(-10px)'
+					}
+				},
+				'shimmer': {
+					'0%': {
+						backgroundPosition: '-200% 0'
+					},
+					'100%': {
+						backgroundPosition: '200% 0'
+					}
+				},
+				'rotate-slow': {
+					'0%': {
+						transform: 'rotate(0deg)'
+					},
+					'100%': {
+						transform: 'rotate(360deg)'
+					}
+				},
+				'bounce-gentle': {
+					'0%, 100%': {
+						transform: 'translateY(0)'
+					},
+					'50%': {
+						transform: 'translateY(-5px)'
+					}
+				},
+				'scale-pulse': {
+					'0%, 100%': {
+						transform: 'scale(1)'
+					},
+					'50%': {
+						transform: 'scale(1.05)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out forwards',
-				'pulse-soft': 'pulse-soft 3s ease-in-out infinite'
-			}
+				'pulse-soft': 'pulse-soft 3s ease-in-out infinite',
+				'float': 'float 5s ease-in-out infinite',
+				'shimmer': 'shimmer 2s infinite',
+				'rotate-slow': 'rotate-slow 8s linear infinite',
+				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
+				'scale-pulse': 'scale-pulse 3s ease-in-out infinite'
+			},
+			boxShadow: {
+				'persona': '0 10px 25px -5px rgba(var(--persona-primary-rgb), 0.3)',
+				'persona-hover': '0 20px 35px -10px rgba(var(--persona-primary-rgb), 0.4)',
+				'inner-persona': 'inset 0 2px 4px 0 rgba(var(--persona-primary-rgb), 0.1)'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+			},
+			textShadow: {
+				sm: '0 1px 2px rgba(0, 0, 0, 0.2)',
+				md: '0 2px 4px rgba(0, 0, 0, 0.3)',
+				lg: '0 8px 16px rgba(0, 0, 0, 0.4)',
+			},
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		// Add a custom plugin for text shadow
+		function({ addUtilities }) {
+			const newUtilities = {
+				'.text-shadow-sm': {
+					textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+				},
+				'.text-shadow': {
+					textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+				},
+				'.text-shadow-lg': {
+					textShadow: '0 8px 16px rgba(0, 0, 0, 0.4)',
+				},
+				'.text-shadow-none': {
+					textShadow: 'none',
+				},
+			};
+			addUtilities(newUtilities);
+		}
+	],
 } satisfies Config;

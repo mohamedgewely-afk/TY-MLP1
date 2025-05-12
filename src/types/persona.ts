@@ -29,6 +29,20 @@ export interface Persona {
   }>;
   highlightedSections: string[];
   buttonTextStyle: string;
+  // New properties for enhanced personalization
+  fontFamily?: string;
+  animationStyle: "fade" | "slide" | "zoom" | "bounce" | "flip";
+  borderStyle: string;
+  iconSet: Array<{
+    name: string;
+    color: string;
+  }>;
+  soundEffect?: string;
+  cursorStyle?: string;
+  backgroundPattern?: string;
+  headerStyle: "minimal" | "bold" | "sophisticated" | "playful" | "technical" | "natural";
+  mobileNavStyle: "compact" | "expanded" | "floating" | "tabbed" | "drawer";
+  cardStyle: "rounded" | "sharp" | "floating" | "bordered" | "minimal" | "glass";
 }
 
 export interface PersonaContextType {
@@ -36,4 +50,5 @@ export interface PersonaContextType {
   personaData: Persona | null;
   setSelectedPersona: (persona: PersonaType) => void;
   resetPersona: () => void;
+  isTransitioning: boolean;
 }

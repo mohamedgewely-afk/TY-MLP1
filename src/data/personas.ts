@@ -24,6 +24,17 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["safety", "comfort", "space"],
     buttonTextStyle: "Build Your Family Toyota",
+    animationStyle: "fade",
+    borderStyle: "rounded-xl border-2 border-blue-300",
+    iconSet: [
+      { name: "shield", color: "#4A6DA7" },
+      { name: "users", color: "#4A6DA7" },
+      { name: "home", color: "#4A6DA7" }
+    ],
+    backgroundPattern: "radial-gradient(circle at 50% 50%, rgba(143, 176, 234, 0.1) 0%, transparent 80%)",
+    headerStyle: "bold",
+    mobileNavStyle: "expanded",
+    cardStyle: "rounded",
   },
   "tech-enthusiast": {
     id: "tech-enthusiast",
@@ -47,6 +58,18 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["technology", "connectivity", "innovation"],
     buttonTextStyle: "Build Your Tech Ride",
+    animationStyle: "zoom",
+    borderStyle: "rounded-md border-l-4 border-purple-500 shadow-lg",
+    iconSet: [
+      { name: "zap", color: "#6B38FB" },
+      { name: "wifi", color: "#6B38FB" },
+      { name: "settings", color: "#6B38FB" }
+    ],
+    cursorStyle: "cursor-tech",
+    backgroundPattern: "linear-gradient(135deg, rgba(107, 56, 251, 0.05) 25%, transparent 25%, transparent 50%, rgba(107, 56, 251, 0.05) 50%, rgba(107, 56, 251, 0.05) 75%, transparent 75%, transparent);",
+    headerStyle: "technical",
+    mobileNavStyle: "tabbed",
+    cardStyle: "glass",
   },
   "eco-warrior": {
     id: "eco-warrior",
@@ -70,6 +93,17 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["efficiency", "sustainability", "hybrid-technology"],
     buttonTextStyle: "Choose Sustainable Driving",
+    animationStyle: "slide",
+    borderStyle: "rounded-full border-2 border-green-300",
+    iconSet: [
+      { name: "leaf", color: "#2E7D32" },
+      { name: "sun", color: "#2E7D32" },
+      { name: "wind", color: "#2E7D32" }
+    ],
+    backgroundPattern: "linear-gradient(to right, rgba(46, 125, 50, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(46, 125, 50, 0.03) 1px, transparent 1px)",
+    headerStyle: "natural",
+    mobileNavStyle: "floating",
+    cardStyle: "bordered",
   },
   "urban-explorer": {
     id: "urban-explorer",
@@ -93,6 +127,17 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["compact", "urban", "efficiency"],
     buttonTextStyle: "Find Your City Companion",
+    animationStyle: "bounce",
+    borderStyle: "border-none shadow-lg rounded-lg",
+    iconSet: [
+      { name: "map-pin", color: "#455A64" },
+      { name: "compass", color: "#455A64" },
+      { name: "coffee", color: "#455A64" }
+    ],
+    backgroundPattern: "radial-gradient(circle at 100% 100%, rgba(69, 90, 100, 0.08) 0, rgba(69, 90, 100, 0.08) 3px, transparent 0)",
+    headerStyle: "sophisticated",
+    mobileNavStyle: "compact",
+    cardStyle: "sharp",
   },
   "business-commuter": {
     id: "business-commuter",
@@ -116,6 +161,17 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["comfort", "luxury", "efficiency"],
     buttonTextStyle: "Configure Your Business Toyota",
+    animationStyle: "slide",
+    borderStyle: "border-b-2 border-gray-500 rounded-none",
+    iconSet: [
+      { name: "briefcase", color: "#263238" },
+      { name: "clock", color: "#263238" },
+      { name: "phone", color: "#263238" }
+    ],
+    backgroundPattern: "linear-gradient(to right, rgba(144, 164, 174, 0.05) 1px, transparent 1px)",
+    headerStyle: "minimal",
+    mobileNavStyle: "drawer",
+    cardStyle: "minimal",
   },
   "weekend-adventurer": {
     id: "weekend-adventurer",
@@ -139,5 +195,16 @@ export const personas: Record<PersonaType & string, Persona> = {
     ],
     highlightedSections: ["adventure", "capability", "durability"],
     buttonTextStyle: "Build Your Adventure Vehicle",
+    animationStyle: "flip",
+    borderStyle: "border-2 border-dashed border-orange-400 rounded-lg",
+    iconSet: [
+      { name: "compass", color: "#BF360C" },
+      { name: "mountain", color: "#BF360C" },
+      { name: "tent", color: "#BF360C" }
+    ],
+    backgroundPattern: "repeating-linear-gradient(45deg, rgba(255, 138, 101, 0.05), rgba(255, 138, 101, 0.05) 10px, transparent 10px, transparent 20px)",
+    headerStyle: "playful",
+    mobileNavStyle: "expanded",
+    cardStyle: "floating",
   }
 };
