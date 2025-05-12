@@ -1,3 +1,4 @@
+
 export interface Vehicle {
   id: string;
   model: string;
@@ -9,6 +10,23 @@ export interface Vehicle {
   acceleration: string;
   topSpeed: string;
   fuelConsumption: string;
+}
+
+export interface VehicleModel {
+  name: string;
+  image: string;
+  mmeUrl: string;
+  configureUrl: string;
+  price: number;
+  category: string;
+  features: string[];
+  specifications?: {
+    engine?: string;
+    transmission?: string;
+    fuelEconomy?: string;
+    safetyRating?: string;
+    warranty?: string;
+  };
 }
 
 export interface PreOwnedVehicle {

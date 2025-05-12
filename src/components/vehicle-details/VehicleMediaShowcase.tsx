@@ -5,8 +5,15 @@ import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
+// Define media item types for better type safety
+interface MediaItem {
+  type: "image" | "video";
+  url: string;
+  thumbnail?: string;
+}
+
 // Enhanced media gallery with better real-world visuals
-const defaultMedia = [
+const defaultMedia: MediaItem[] = [
   { type: "image", url: "https://di-uploads-pod34.dealerinspire.com/toyotaofnorthcharlotte/uploads/2023/11/2024-toyota-camry-hybrid-xse-platinum-white-pearl-front-three-quarter-view.jpg" },
   { type: "image", url: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg" },
   { type: "image", url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg" },
@@ -20,7 +27,7 @@ interface VehicleMediaShowcaseProps {
 }
 
 const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
-  const media = [
+  const media: MediaItem[] = [
     { type: "image", url: vehicle.image },
     ...defaultMedia,
   ];

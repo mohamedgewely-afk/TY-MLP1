@@ -152,82 +152,122 @@ export const preOwnedVehicles: PreOwnedVehicle[] = [
   {
     id: "po-001",
     model: "Toyota Land Cruiser",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Land-Cruiser.jpg",
     description: "Well-maintained Toyota Land Cruiser with full service history",
     year: 2021,
     price: 198000,
     mileage: 35000,
-    certified: true
+    certified: true,
+    bodyType: "SUV",
+    color: "White",
+    transmission: "Automatic",
+    features: ["Leather Seats", "Navigation System", "Parking Sensors", "Bluetooth", "Sunroof"]
   },
   {
     id: "po-002",
     model: "Toyota Camry",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Camry.jpg",
     description: "Low mileage Toyota Camry in excellent condition",
     year: 2022,
     price: 89000,
     mileage: 22000,
-    certified: true
+    certified: true,
+    bodyType: "Sedan",
+    color: "Silver",
+    transmission: "Automatic",
+    features: ["Backup Camera", "Bluetooth", "Keyless Entry", "Cruise Control"]
   },
   {
     id: "po-003",
     model: "Toyota Prado",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Prado.jpg",
     description: "Toyota Prado with premium package and additional features",
     year: 2020,
     price: 145000,
     mileage: 48000,
-    certified: true
+    certified: true,
+    bodyType: "SUV",
+    color: "Black",
+    transmission: "Automatic",
+    features: ["Leather Seats", "Navigation System", "Parking Sensors", "Sunroof", "Third Row Seating"]
   },
   {
     id: "po-004",
     model: "Toyota Corolla",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Corolla.jpg",
     description: "Fuel-efficient Toyota Corolla with original paint",
     year: 2022,
     price: 72000,
     mileage: 18000,
-    certified: true
+    certified: true,
+    bodyType: "Sedan",
+    color: "Blue",
+    transmission: "Automatic",
+    features: ["Bluetooth", "Backup Camera", "USB Ports", "Apple CarPlay"]
   },
   {
     id: "po-005",
     model: "Toyota RAV4",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/RAV4.jpg",
     description: "One-owner Toyota RAV4 with warranty remaining",
     year: 2021,
     price: 95000,
     mileage: 30000,
-    certified: false
+    certified: false,
+    bodyType: "Crossover",
+    color: "Red",
+    transmission: "Automatic",
+    features: ["All-Wheel Drive", "Parking Sensors", "Heated Seats", "Lane Departure Warning"]
   },
   {
     id: "po-006",
     model: "Toyota Fortuner",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Fortuner.jpg",
     description: "Toyota Fortuner with dealer service history and extras",
     year: 2020,
     price: 112000,
     mileage: 42000,
-    certified: true
+    certified: true,
+    bodyType: "SUV",
+    color: "White",
+    transmission: "Automatic",
+    features: ["7-Seater", "Parking Sensors", "Roof Rails", "Alloy Wheels"]
   },
   {
     id: "po-007",
     model: "Toyota Highlander",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Highlander.jpg",
     description: "Toyota Highlander with premium features and third-row seating",
     year: 2019,
     price: 105000,
     mileage: 55000,
-    certified: false
+    certified: false,
+    bodyType: "SUV",
+    color: "Gray",
+    transmission: "Automatic",
+    features: ["Third Row Seating", "Leather Interior", "Panoramic Roof", "Premium Sound System"]
   },
   {
     id: "po-008",
     model: "Toyota Yaris",
+    make: "Toyota",
     image: "https://www.toyota.ae/-/media/Images/Toyota/Used-Cars/Yaris.jpg",
     description: "Economical Toyota Yaris in great condition",
     year: 2021,
     price: 58000,
     mileage: 25000,
-    certified: true
+    certified: true,
+    bodyType: "Hatchback",
+    color: "White",
+    transmission: "Automatic",
+    features: ["Bluetooth", "USB Ports", "Keyless Entry", "Fuel Efficient"]
   }
 ];
 
