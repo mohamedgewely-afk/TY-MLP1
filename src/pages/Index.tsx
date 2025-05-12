@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
 import HeroCarousel from "@/components/home/HeroCarousel";
@@ -21,8 +21,9 @@ import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useToast } from "@/hooks/use-toast";
-import { Heart } from "lucide-react";
+import { Heart, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // Available categories for filtering
 const categories = ["All", "Hybrid", "Sedan", "SUV", "GR Performance", "Commercial"];
@@ -37,6 +38,9 @@ const Index = () => {
   const [favoriteCount, setFavoriteCount] = useState(0);
   const { toast } = useToast();
   const { personaData, selectedPersona: activePersona } = usePersona();
+  const [personaFilteredVehicles, setPersonaFilteredVehicles] = useState<VehicleModel[] | null>(null);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const initialLoadRef = useRef(false);
 
   // Custom section visibility states based on persona
   const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({
@@ -47,9 +51,29 @@ const Index = () => {
     preOwned: true
   });
   
+  // Listen for persona vehicle filtering events
+  useEffect(() => {
+    const handleFilteredVehicles = (event: any) => {
+      if (event.detail && event.detail.vehicles) {
+        setPersonaFilteredVehicles(event.detail.vehicles);
+      } else {
+        setPersonaFilteredVehicles(null);
+      }
+    };
+    
+    window.addEventListener('persona-vehicles-filtered', handleFilteredVehicles);
+    return () => window.removeEventListener('persona-vehicles-filtered', handleFilteredVehicles);
+  }, []);
+  
   // Update section visibility based on selected persona
   useEffect(() => {
     if (personaData) {
+      // If we've just selected a persona, scroll to top to see full personalization
+      if (!initialLoadRef.current) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        initialLoadRef.current = true;
+      }
+      
       const newVisibility: Record<string, boolean> = {
         showcase: true,
         performance: personaData.highlightedSections.includes("performance"),
@@ -69,6 +93,10 @@ const Index = () => {
         setSelectedCategory("SUV");
       } else if (personaData.id === "tech-enthusiast") {
         setSelectedCategory("GR Performance");
+      } else if (personaData.id === "urban-explorer" || personaData.id === "business-commuter") {
+        setSelectedCategory("Sedan");
+      } else if (personaData.id === "weekend-adventurer") {
+        setSelectedCategory("SUV");
       }
     } else {
       // Reset to all sections visible
@@ -79,6 +107,7 @@ const Index = () => {
         lifestyle: true,
         preOwned: true
       });
+      setSelectedCategory("All");
     }
   }, [personaData]);
 
@@ -97,13 +126,19 @@ const Index = () => {
     };
   }, []);
 
-  // Filter vehicles based on category and price
-  const filteredVehicles = vehicles.filter(
-    (vehicle) =>
-      (selectedCategory === "All" || vehicle.category === selectedCategory) &&
-      vehicle.price >= priceRange[0] &&
-      vehicle.price <= priceRange[1]
-  );
+  // Filter vehicles based on category, price, and persona recommendations
+  const filteredVehicles = React.useMemo(() => {
+    // If we have persona-filtered vehicles, use those as the base
+    const baseVehicles = personaFilteredVehicles || vehicles;
+    
+    // Then apply additional user filters
+    return baseVehicles.filter(
+      (vehicle) =>
+        (selectedCategory === "All" || vehicle.category === selectedCategory) &&
+        vehicle.price >= priceRange[0] &&
+        vehicle.price <= priceRange[1]
+    );
+  }, [personaFilteredVehicles, selectedCategory, priceRange]);
 
   // Handler for compare toggle
   const handleCompareToggle = (vehicle: VehicleModel) => {
@@ -173,21 +208,80 @@ const Index = () => {
         </>
       )}
 
-      {/* Top Actions Bar */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm">
-        <div className="toyota-container py-3 flex justify-between items-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredVehicles.length} vehicles
+      {/* Top Actions Bar with Persona-specific styling */}
+      <div 
+        className={cn(
+          "shadow-sm z-20 relative",
+          personaData ? "bg-opacity-95 backdrop-blur-sm" : "",
+        )}
+        style={personaData ? { 
+          backgroundColor: `${personaData.colorScheme.primary}10`,
+          borderBottom: `1px solid ${personaData.colorScheme.primary}20`
+        } : {}}
+      >
+        <div className="toyota-container py-4 flex justify-between items-center">
+          <div className="text-sm flex items-center">
+            <span 
+              className={cn(
+                "font-medium",
+                personaData && "text-opacity-90"
+              )}
+              style={personaData ? { color: personaData.colorScheme.primary } : {}}
+            >
+              Showing {filteredVehicles.length} vehicles
+            </span>
+            
+            {personaData && (
+              <span className="ml-2 text-xs bg-opacity-20 px-2 py-0.5 rounded-full"
+                style={{ 
+                  backgroundColor: personaData.colorScheme.primary,
+                  color: personaData.colorScheme.primary 
+                }}
+              >
+                Personalized for you
+              </span>
+            )}
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button 
+              variant={showFilterPanel ? "default" : "outline"} 
+              size="sm" 
+              className={cn(
+                "relative",
+                personaData && "border-opacity-50"
+              )}
+              style={personaData && showFilterPanel ? {
+                backgroundColor: personaData.colorScheme.primary,
+                color: "#FFF"
+              } : personaData ? {
+                borderColor: personaData.colorScheme.primary  
+              } : {}}
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              <span>Filter</span>
+            </Button>
+            
             <FavoritesDrawer 
               triggerButton={
-                <Button variant="outline" size="sm" className="relative">
-                  <Heart className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="relative"
+                  style={personaData ? {
+                    borderColor: personaData.colorScheme.primary  
+                  } : {}}
+                >
+                  <Heart className="h-4 w-4 mr-2" style={personaData ? {
+                    color: personaData.colorScheme.primary
+                  } : {}} />
                   <span>Favorites</span>
                   {favoriteCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span 
+                      className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                      style={{ backgroundColor: personaData ? personaData.colorScheme.accent : 'var(--toyota-red)' }}
+                    >
                       {favoriteCount}
                     </span>
                   )}
@@ -199,19 +293,38 @@ const Index = () => {
       </div>
 
       {/* Category Filter */}
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedPersona={selectedPersona}
-        setSelectedPersona={setSelectedPersona}
-        priceRange={priceRange}
-        setPriceRange={setPriceRange}
-        categories={categories}
-      />
+      <AnimatePresence>
+        {showFilterPanel && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <CategoryFilter
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedPersona={selectedPersona}
+              setSelectedPersona={setSelectedPersona}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
+              categories={categories}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Vehicle Showcase */}
+      {/* Vehicle Showcase with Persona-specific styling */}
       {visibleSections.showcase && (
-        <section id="vehicle-showcase">
+        <section 
+          id="vehicle-showcase" 
+          className="py-10 md:py-16"
+          style={personaData ? {
+            backgroundColor: `${personaData.colorScheme.background}`,
+            backgroundImage: personaData.backgroundPattern || "",
+          } : {}}
+        >
           <VehicleShowcase
             title={personaData ? 
               `${personaData.title} Recommended Models` : 
@@ -220,6 +333,7 @@ const Index = () => {
             compareList={compareList}
             onCompare={handleCompareToggle}
             onQuickView={setSelectedVehicle}
+            personaData={personaData}
           />
         </section>
       )}
@@ -230,6 +344,7 @@ const Index = () => {
           <QuickViewModal
             vehicle={selectedVehicle}
             onClose={() => setSelectedVehicle(null)}
+            personaData={personaData}
           />
         )}
       </AnimatePresence>
@@ -241,20 +356,29 @@ const Index = () => {
           vehicles={vehicles}
           onRemove={handleRemoveFromCompare}
           onClearAll={handleClearCompare}
+          personaData={personaData}
         />
       )}
 
       {/* Performance Section - Show based on persona */}
-      {visibleSections.performance && <PerformanceSection />}
+      {visibleSections.performance && (
+        <PerformanceSection personaData={personaData} />
+      )}
 
       {/* Special Offers Section */}
-      {visibleSections.offers && <OffersSection />}
+      {visibleSections.offers && (
+        <OffersSection personaData={personaData} />
+      )}
 
       {/* Lifestyle Section */}
-      {visibleSections.lifestyle && <LifestyleSection />}
+      {visibleSections.lifestyle && (
+        <LifestyleSection personaData={personaData} />
+      )}
 
       {/* Pre-Owned Section */}
-      {visibleSections.preOwned && <PreOwnedSection vehicles={preOwnedVehicles} />}
+      {visibleSections.preOwned && (
+        <PreOwnedSection vehicles={preOwnedVehicles} personaData={personaData} />
+      )}
 
       {/* Comparison Table - Show as overlay when at least 2 vehicles are selected */}
       {compareList.length >= 2 && (
@@ -262,6 +386,7 @@ const Index = () => {
           vehicles={comparedVehicles}
           onRemove={handleRemoveFromCompare}
           onClearAll={handleClearCompare}
+          personaData={personaData}
         />
       )}
 

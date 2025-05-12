@@ -29,7 +29,7 @@ export interface Persona {
   }>;
   highlightedSections: string[];
   buttonTextStyle: string;
-  // New properties for enhanced personalization
+  // Enhanced properties for superior personalization
   fontFamily?: string;
   animationStyle: "fade" | "slide" | "zoom" | "bounce" | "flip";
   borderStyle: string;
@@ -43,6 +43,24 @@ export interface Persona {
   headerStyle: "minimal" | "bold" | "sophisticated" | "playful" | "technical" | "natural";
   mobileNavStyle: "compact" | "expanded" | "floating" | "tabbed" | "drawer";
   cardStyle: "rounded" | "sharp" | "floating" | "bordered" | "minimal" | "glass";
+  
+  // New properties for deep personalization and filtering
+  recommendedVehicleTypes: string[];
+  recommendedFeatures: string[];
+  valuePropositions: string[];
+  personalityTraits: string[];
+  interactionStyle: "playful" | "efficient" | "detailed" | "minimalist" | "supportive" | "technical";
+  contentDensity: "sparse" | "balanced" | "dense";
+  preferredColors: string[];
+  terminology: {
+    vehicle: string;
+    features: string;
+    power: string;
+    efficiency: string;
+    technology: string;
+    design: string;
+    comfort: string;
+  };
 }
 
 export interface PersonaContextType {
