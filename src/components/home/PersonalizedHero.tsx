@@ -6,12 +6,15 @@ import { ArrowRight, ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const PersonalizedHero: React.FC = () => {
   const { personaData, isTransitioning } = usePersona();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
+  const [hasInteracted, setHasInteracted] = useState(false);
   
   useEffect(() => {
     if (personaData) {
@@ -42,6 +45,21 @@ const PersonalizedHero: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [personaData]);
+  
+  // Track user interaction
+  useEffect(() => {
+    const handleInteraction = () => {
+      setHasInteracted(true);
+    };
+    
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('scroll', handleInteraction);
+    
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('scroll', handleInteraction);
+    };
+  }, []);
   
   if (!personaData) return null;
 
@@ -158,7 +176,7 @@ const PersonalizedHero: React.FC = () => {
       <motion.div 
         key={personaData.id}
         className={cn(
-          "relative h-[80vh] md:h-[70vh] overflow-hidden",
+          "relative h-[90vh] sm:h-[85vh] md:h-[75vh] overflow-hidden",
           personaData.id === "tech-enthusiast" && "tech-grid-bg",
           personaData.id === "eco-warrior" && "nature-pattern"
         )}
@@ -202,8 +220,37 @@ const PersonalizedHero: React.FC = () => {
           )}
         </motion.div>
         
+        {/* Mobile scroll indicator */}
+        {isMobile && !hasInteracted && (
+          <motion.div 
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 flex flex-col items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 3, duration: 1 }}
+          >
+            <motion.div 
+              className="w-1.5 h-8 rounded-full border-2 border-white flex items-start justify-center p-1"
+              animate={{ y: [0, 5, 0], opacity: [0.7, 1, 0.7] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              <motion.div 
+                className="w-1 h-1.5 bg-white rounded-full"
+                animate={{ y: [0, 12, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              />
+            </motion.div>
+            <motion.p 
+              className="text-white text-xs mt-2 opacity-80"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              Scroll to explore
+            </motion.p>
+          </motion.div>
+        )}
+        
         {/* Persona-specific decorative elements */}
-        <div className="absolute inset-0 z-[11] pointer-events-none">
+        <div className="absolute inset-0 z-[11] pointer-events-none overflow-hidden">
           {personaData.id === "tech-enthusiast" && (
             <div className="absolute inset-0 opacity-20">
               <div className="grid grid-cols-10 h-full">
@@ -353,6 +400,35 @@ const PersonalizedHero: React.FC = () => {
               </svg>
             </motion.div>
           )}
+
+          {/* Mobile floating particles */}
+          {isMobile && (
+            <div className="absolute inset-0">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute bg-white/20 rounded-full"
+                  style={{ 
+                    width: `${3 + Math.random() * 6}px`, 
+                    height: `${3 + Math.random() * 6}px`,
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`
+                  }}
+                  animate={{
+                    x: [0, Math.random() * 20 - 10, 0],
+                    y: [0, Math.random() * 20 - 10, 0],
+                    opacity: [0.3, 0.7, 0.3],
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{
+                    duration: 3 + Math.random() * 5,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
         
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-6">
@@ -429,6 +505,25 @@ const PersonalizedHero: React.FC = () => {
                   <Star className="h-3 w-3 mr-1" />
                   <span>Personalized for {personaData.title}</span>
                 </span>
+              </motion.div>
+            )}
+
+            {/* Scroll hint for mobile */}
+            {isMobile && (
+              <motion.div
+                className="absolute bottom-16 left-0 right-0 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              >
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  <ChevronRight 
+                    className="h-8 w-8 transform rotate-90 opacity-70"
+                  />
+                </motion.div>
               </motion.div>
             )}
           </div>
