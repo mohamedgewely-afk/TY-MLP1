@@ -10,6 +10,7 @@ import VehicleDetails from "./pages/VehicleDetails";
 import TestDrive from "./pages/TestDrive";
 import Enquire from "./pages/Enquire";
 import NotFound from "./pages/NotFound";
+import PreOwned from "./pages/PreOwned";
 
 const queryClient = new QueryClient();
 
@@ -25,8 +26,14 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
               <Route path="/test-drive" element={<TestDrive />} />
+              <Route path="/pre-owned" element={<PreOwned />} />
+              <Route path="/new-cars" element={<Index />} /> {/* Redirects to home for now */}
+              <Route path="/hybrid" element={<Index />} /> {/* Redirects to home for now */}
+              <Route path="/offers" element={<Index />} /> {/* Redirects to home for now */}
+              <Route path="/service" element={<Index />} /> {/* Redirects to home for now */}
+              <Route path="/configure" element={<Index />} /> {/* Redirects to home for now */}
               <Route path="/enquire" element={<Enquire />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/contact" element={<Index />} /> {/* Redirects to home for now */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

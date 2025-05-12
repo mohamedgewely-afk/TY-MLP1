@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { vehicles } from "@/data/vehicles";
 import { 
   Carousel, 
   CarouselContent, 
   CarouselItem, 
-  CarouselPrevious, 
-  CarouselNext 
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -18,50 +18,88 @@ interface MobileStickyNavProps {
   onMenuToggle?: () => void;
 }
 
+// Categories for vehicle filtering
+const vehicleCategories = [
+  { id: "all", name: "All", icon: <Car className="h-6 w-6" /> },
+  { id: "sedan", name: "Sedan", icon: <Car className="h-6 w-6" /> },
+  { id: "suv", name: "SUV", icon: <Truck className="h-6 w-6" /> },
+  { id: "hybrid", name: "Hybrid", icon: <Battery className="h-6 w-6" /> },
+  { id: "performance", name: "GR Performance", icon: <Star className="h-6 w-6" /> },
+  { id: "commercial", name: "Commercial", icon: <ShoppingBag className="h-6 w-6" /> },
+];
+
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ 
   activeItem = "home", 
   onMenuToggle 
 }) => {
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
-  const [activeCard, setActiveCard] = useState(0);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   
-  // Quick action cards data
+  // Quick action cards data - Updated with more context-aware actions
   const quickActionCards = [
     {
-      id: 1,
+      id: "test-drive",
       title: "Book Test Drive",
       icon: <Car className="h-8 w-8" />,
       color: "bg-toyota-red text-white",
       link: "/test-drive"
     },
     {
-      id: 2,
+      id: "offers",
       title: "Latest Offers",
-      icon: <span className="text-lg font-bold">%</span>,
+      icon: <ShoppingBag className="h-8 w-8" />,
       color: "bg-blue-500 text-white",
       link: "/offers"
     },
     {
-      id: 3,
+      id: "configure",
       title: "Build & Price",
-      icon: <span className="text-lg font-bold">$</span>,
+      icon: <Settings className="h-8 w-8" />,
       color: "bg-green-500 text-white",
       link: "/configure"
     },
     {
-      id: 4,
+      id: "service",
       title: "Service Booking",
-      icon: <span className="text-lg font-bold">🔧</span>,
+      icon: <Phone className="h-8 w-8" />,
       color: "bg-amber-500 text-white",
       link: "/service"
     },
   ];
+
+  // Filter vehicles based on selected category
+  const filteredVehicles = vehicles.filter(vehicle => 
+    selectedCategory === "all" || vehicle.category.toLowerCase() === selectedCategory
+  ).slice(0, 8); // Limit to 8 vehicles for performance
+  
+  // Handle sections for expanded nav
+  const handleSectionToggle = (section: string) => {
+    if (activeSection === section) {
+      setActiveSection(null);
+    } else {
+      setActiveSection(section);
+      setExpanded(true);
+    }
+  };
+
+  // Close expanded section when clicking a category
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
   
   if (!isMobile) return null;
 
   const handleToggleExpanded = () => {
-    setExpanded(!expanded);
+    if (!expanded) {
+      setExpanded(true);
+      setActiveSection("quick-actions");
+    } else if (!activeSection) {
+      setExpanded(false);
+    } else {
+      setActiveSection(null);
+    }
   };
 
   return (
@@ -81,35 +119,117 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="overflow-hidden px-4 pb-3"
+              className="overflow-hidden"
             >
-              <Carousel
-                opts={{ align: "start", loop: true }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {quickActionCards.map((card) => (
-                    <CarouselItem key={card.id} className="basis-2/3">
-                      <Link to={card.link}>
-                        <Card className={cn("h-24", card.color)}>
-                          <CardContent className="flex items-center justify-center h-full p-4">
-                            <div className="text-center">
-                              <div className="flex justify-center mb-2">
-                                {card.icon}
-                              </div>
-                              <h3 className="font-medium">{card.title}</h3>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <div className="flex justify-center mt-2">
-                  <CarouselPrevious className="relative static h-7 w-7 translate-y-0 mr-2" />
-                  <CarouselNext className="relative static h-7 w-7 translate-y-0" />
+              {/* Quick Actions Section */}
+              {activeSection === "quick-actions" && (
+                <div className="px-4 pb-4">
+                  <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h3>
+                  <Carousel
+                    opts={{ align: "start" }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {quickActionCards.map((card) => (
+                        <CarouselItem key={card.id} className="basis-1/2 md:basis-1/3 pl-4">
+                          <Link to={card.link}>
+                            <Card className={cn("h-24", card.color)}>
+                              <CardContent className="flex items-center justify-center h-full p-4">
+                                <div className="text-center">
+                                  <div className="flex justify-center mb-2">
+                                    {card.icon}
+                                  </div>
+                                  <h3 className="font-medium">{card.title}</h3>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
                 </div>
-              </Carousel>
+              )}
+
+              {/* Models Section - Shows when "Models" is clicked */}
+              {activeSection === "models" && (
+                <div className="px-4 pb-4">
+                  {/* Categories Filter */}
+                  <div className="mb-4">
+                    <Carousel
+                      opts={{ align: "start" }}
+                      className="w-full"
+                    >
+                      <CarouselContent>
+                        {vehicleCategories.map((category) => (
+                          <CarouselItem key={category.id} className="basis-auto pl-4 first:pl-4">
+                            <button
+                              onClick={() => handleCategoryClick(category.id)}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-2 rounded-lg transition-colors",
+                                selectedCategory === category.id 
+                                  ? "bg-toyota-red text-white" 
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                              )}
+                            >
+                              <span className="mb-1">{category.icon}</span>
+                              <span className="text-xs whitespace-nowrap">{category.name}</span>
+                            </button>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+
+                  {/* Vehicle Cards */}
+                  <Carousel
+                    opts={{ align: "start" }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {filteredVehicles.map((vehicle) => (
+                        <CarouselItem key={vehicle.id} className="basis-2/3 pl-4">
+                          <Link to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase())}`}>
+                            <Card className="overflow-hidden">
+                              <div className="aspect-[16/9] w-full bg-gray-100 dark:bg-gray-800">
+                                {vehicle.image && (
+                                  <img 
+                                    src={vehicle.image} 
+                                    alt={vehicle.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <CardContent className="p-3">
+                                <h3 className="font-medium text-sm">{vehicle.name}</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  From AED {vehicle.price.toLocaleString()}
+                                </p>
+                                <div className="flex justify-between items-center mt-2">
+                                  <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                    {vehicle.category}
+                                  </span>
+                                  <button className="text-toyota-red text-xs font-medium">View</button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+
+                  <div className="mt-3 flex justify-center">
+                    <Link 
+                      to={`/new-cars${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+                      className="text-sm text-toyota-red font-medium flex items-center"
+                    >
+                      View All {selectedCategory !== 'all' ? vehicleCategories.find(c => c.id === selectedCategory)?.name : ''} Models
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -149,8 +269,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           <NavItem 
             icon={<Car className="h-6 w-6" />}
             label="Models"
-            to="/new-cars"
-            isActive={activeItem === "models"}
+            to="#"
+            onClick={() => handleSectionToggle("models")}
+            isActive={activeItem === "models" || activeSection === "models"}
           />
           <NavItem 
             icon={<Heart className="h-6 w-6" />}
