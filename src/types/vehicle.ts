@@ -1,35 +1,28 @@
-
-export interface VehicleModel {
-  name: string;
+export interface Vehicle {
+  id: string;
+  model: string;
   image: string;
-  mmeUrl: string;
-  configureUrl: string;
+  description: string;
   price: number;
-  category: string;
-  features: string[];
-  specifications?: {
-    engine?: string;
-    transmission?: string;
-    fuelEconomy?: string;
-    safetyRating?: string;
-    warranty?: string;
-  };
+  engine: string;
+  power: string;
+  acceleration: string;
+  topSpeed: string;
+  fuelConsumption: string;
 }
 
 export interface PreOwnedVehicle {
   id: string;
   model: string;
-  image: string;
-  description: string;
+  make: string;
   year: number;
   price: number;
   mileage: number;
+  description: string;
+  image: string;
   certified: boolean;
-  specifications?: {
-    engine?: string;
-    transmission?: string;
-    previousOwners?: number;
-    condition?: string;
-    warranty?: string;
-  };
+  bodyType: string;
+  color: string;
+  transmission?: string;
+  features?: string[];
 }

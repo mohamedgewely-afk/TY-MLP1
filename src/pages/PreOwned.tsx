@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -26,6 +25,7 @@ import {
 import { PreOwnedVehicle } from "@/types/vehicle";
 import { Search, Filter, X, CarFront, Calendar, ArrowRight, RotateCw, Mail, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const PreOwned = () => {
   const { toast } = useToast();
