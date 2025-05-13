@@ -1,397 +1,363 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import ToyotaLayout from "@/components/ToyotaLayout";
-import HeroCarousel from "@/components/home/HeroCarousel";
+import React from "react";
+import { usePersona } from "@/contexts/PersonaContext";
 import PersonaSelector from "@/components/home/PersonaSelector";
-import PersonalizedHero from "@/components/home/PersonalizedHero";
+import { PersonalizedHero } from "@/components/home/PersonalizedHero";
 import QuickLinks from "@/components/home/QuickLinks";
 import PersonaBadge from "@/components/home/PersonaBadge";
-import CategoryFilter from "@/components/home/CategoryFilter";
-import VehicleShowcase from "@/components/home/VehicleShowcase";
-import ComparisonTable from "@/components/home/ComparisonTable";
-import QuickViewModal from "@/components/home/QuickViewModal";
-import CompareFloatingBox from "@/components/home/CompareFloatingBox";
-import LifestyleSection from "@/components/home/LifestyleSection";
-import PerformanceSection from "@/components/home/PerformanceSection";
-import PreOwnedSection from "@/components/home/PreOwnedSection";
-import OffersSection from "@/components/home/OffersSection";
-import FavoritesDrawer from "@/components/home/FavoritesDrawer";
-import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
-import { VehicleModel } from "@/types/vehicle";
-import { usePersona } from "@/contexts/PersonaContext";
-import { useToast } from "@/hooks/use-toast";
-import { Heart, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import PersonaHomePage from "@/components/home/PersonaHomePage";
 
-// Available categories for filtering
-const categories = ["All", "Hybrid", "Sedan", "SUV", "GR Performance", "Commercial"];
+const Index: React.FC = () => {
+  const { personaData, selectedPersona } = usePersona();
+  const [showSelector, setShowSelector] = React.useState(true);
 
-const Index = () => {
-  // State management
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 200000]);
-  const [compareList, setCompareList] = useState<string[]>([]);
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleModel | null>(null);
-  const [favoriteCount, setFavoriteCount] = useState(0);
-  const { toast } = useToast();
-  const { personaData, selectedPersona: activePersona } = usePersona();
-  const [personaFilteredVehicles, setPersonaFilteredVehicles] = useState<VehicleModel[] | null>(null);
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const initialLoadRef = useRef(false);
+  const handlePersonaSelect = () => {
+    setShowSelector(false);
+  };
 
-  // Custom section visibility states based on persona
-  const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({
-    showcase: true,
-    performance: true,
-    offers: true,
-    lifestyle: true,
-    preOwned: true
-  });
-  
-  // Listen for persona vehicle filtering events
-  useEffect(() => {
-    const handleFilteredVehicles = (event: any) => {
-      if (event.detail && event.detail.vehicles) {
-        setPersonaFilteredVehicles(event.detail.vehicles);
-      } else {
-        setPersonaFilteredVehicles(null);
-      }
-    };
-    
-    window.addEventListener('persona-vehicles-filtered', handleFilteredVehicles);
-    return () => window.removeEventListener('persona-vehicles-filtered', handleFilteredVehicles);
-  }, []);
-  
-  // Update section visibility based on selected persona
-  useEffect(() => {
-    if (personaData) {
-      // If we've just selected a persona, scroll to top to see full personalization
-      if (!initialLoadRef.current) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        initialLoadRef.current = true;
-      }
-      
-      const newVisibility: Record<string, boolean> = {
-        showcase: true,
-        performance: personaData.highlightedSections.includes("performance"),
-        offers: true,
-        lifestyle: personaData.highlightedSections.includes("lifestyle") || 
-                  personaData.id === "family-first" || 
-                  personaData.id === "weekend-adventurer",
-        preOwned: personaData.id !== "tech-enthusiast" // Hide pre-owned for tech enthusiasts who prefer new models
-      };
-      
-      setVisibleSections(newVisibility);
-      
-      // Set appropriate category based on persona
-      if (personaData.id === "eco-warrior") {
-        setSelectedCategory("Hybrid");
-      } else if (personaData.id === "family-first") {
-        setSelectedCategory("SUV");
-      } else if (personaData.id === "tech-enthusiast") {
-        setSelectedCategory("GR Performance");
-      } else if (personaData.id === "urban-explorer" || personaData.id === "business-commuter") {
-        setSelectedCategory("Sedan");
-      } else if (personaData.id === "weekend-adventurer") {
-        setSelectedCategory("SUV");
-      }
-    } else {
-      // Reset to all sections visible
-      setVisibleSections({
-        showcase: true,
-        performance: true,
-        offers: true,
-        lifestyle: true,
-        preOwned: true
-      });
-      setSelectedCategory("All");
-    }
-  }, [personaData]);
-
-  // Load favorite count from localStorage
-  useEffect(() => {
-    const handleFavoritesUpdated = () => {
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setFavoriteCount(favorites.length);
-    };
-    
-    handleFavoritesUpdated();
-    window.addEventListener('favorites-updated', handleFavoritesUpdated);
-    
-    return () => {
-      window.removeEventListener('favorites-updated', handleFavoritesUpdated);
-    };
-  }, []);
-
-  // Filter vehicles based on category, price, and persona recommendations
-  const filteredVehicles = React.useMemo(() => {
-    // If we have persona-filtered vehicles, use those as the base
-    const baseVehicles = personaFilteredVehicles || vehicles;
-    
-    // Then apply additional user filters
-    return baseVehicles.filter(
-      (vehicle) =>
-        (selectedCategory === "All" || vehicle.category === selectedCategory) &&
-        vehicle.price >= priceRange[0] &&
-        vehicle.price <= priceRange[1]
+  // When a persona is selected and selector is hidden, show the persona-specific homepage
+  if (personaData && !showSelector) {
+    return (
+      <div className="min-h-screen">
+        <PersonaHomePage />
+        <PersonaBadge />
+      </div>
     );
-  }, [personaFilteredVehicles, selectedCategory, priceRange]);
+  }
 
-  // Handler for compare toggle
-  const handleCompareToggle = (vehicle: VehicleModel) => {
-    if (compareList.includes(vehicle.name)) {
-      // Remove from compare list
-      setCompareList(compareList.filter((name) => name !== vehicle.name));
-      toast({
-        title: "Removed from comparison",
-        description: `${vehicle.name} has been removed from your comparison list.`,
-        variant: "default",
-      });
-    } else {
-      // Add to compare list (max 3)
-      if (compareList.length >= 3) {
-        toast({
-          title: "Comparison limit reached",
-          description: "You can compare up to 3 vehicles at a time. Please remove a vehicle first.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setCompareList([...compareList, vehicle.name]);
-      toast({
-        title: "Added to comparison",
-        description: `${vehicle.name} has been added to your comparison list.`,
-        variant: "default",
-      });
-    }
-  };
+  // Show persona selector if no persona selected or if selector is explicitly shown
+  if (!personaData || showSelector) {
+    return (
+      <div className="min-h-screen">
+        <PersonaSelector onSelect={handlePersonaSelect} />
+      </div>
+    );
+  }
 
-  // Handler for removing vehicle from compare list
-  const handleRemoveFromCompare = (name: string) => {
-    setCompareList(compareList.filter((item) => item !== name));
-  };
-
-  // Handler for clearing all vehicles from compare list
-  const handleClearCompare = () => {
-    setCompareList([]);
-  };
-
-  // Handle persona selection completion
-  const handlePersonaSelection = () => {
-    // Scroll to vehicle showcase after persona selection
-    setTimeout(() => {
-      document.getElementById('vehicle-showcase')?.scrollIntoView({ behavior: 'smooth' });
-    }, 300);
-  };
-
-  // Vehicle comparison data
-  const comparedVehicles = vehicles.filter((vehicle) =>
-    compareList.includes(vehicle.name)
-  );
-
+  // Fallback to personalized content (original implementation)
   return (
-    <ToyotaLayout>
-      {/* Show either default hero or personalized hero based on persona selection */}
-      {!activePersona ? (
-        <>
-          <HeroCarousel slides={heroSlides} />
-          <PersonaSelector onSelect={handlePersonaSelection} />
-        </>
-      ) : (
-        <>
-          <PersonalizedHero />
-          <QuickLinks />
-        </>
-      )}
+    <div className="min-h-screen">
+      <PersonalizedHero />
+      <QuickLinks />
+      <PersonaBadge />
 
-      {/* Top Actions Bar with Persona-specific styling */}
-      <div 
-        className={cn(
-          "shadow-sm z-20 relative",
-          personaData ? "bg-opacity-95 backdrop-blur-sm" : "",
-        )}
-        style={personaData ? { 
-          backgroundColor: `${personaData.colorScheme.primary}10`,
-          borderBottom: `1px solid ${personaData.colorScheme.primary}20`
-        } : {}}
-      >
-        <div className="toyota-container py-4 flex justify-between items-center">
-          <div className="text-sm flex items-center">
-            <span 
-              className={cn(
-                "font-medium",
-                personaData && "text-opacity-90"
-              )}
-              style={personaData ? { color: personaData.colorScheme.primary } : {}}
-            >
-              Showing {filteredVehicles.length} vehicles
-            </span>
+      {/* Featured Vehicles Section */}
+      <section className="py-16 bg-white">
+        <div className="toyota-container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Featured <span className="text-toyota-red">Vehicles</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Vehicle Cards */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img 
+                  src="/images/vehicles/camry.jpg" 
+                  alt="Toyota Camry" 
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-0 right-0 bg-toyota-red text-white px-3 py-1 text-sm font-bold">
+                  New
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Toyota Camry</h3>
+                <p className="text-gray-600 mb-4">The sophisticated sedan with advanced features and elegant design.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-toyota-red font-bold">Starting at $25,945</span>
+                  <button className="bg-toyota-red hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Explore
+                  </button>
+                </div>
+              </div>
+            </div>
             
-            {personaData && (
-              <span className="ml-2 text-xs bg-opacity-20 px-2 py-0.5 rounded-full"
-                style={{ 
-                  backgroundColor: personaData.colorScheme.primary,
-                  color: personaData.colorScheme.primary 
-                }}
-              >
-                Personalized for you
-              </span>
-            )}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img 
+                  src="/images/vehicles/rav4.jpg" 
+                  alt="Toyota RAV4" 
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-0 right-0 bg-green-600 text-white px-3 py-1 text-sm font-bold">
+                  Hybrid
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Toyota RAV4</h3>
+                <p className="text-gray-600 mb-4">The versatile SUV that's ready for your next adventure.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-toyota-red font-bold">Starting at $26,975</span>
+                  <button className="bg-toyota-red hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Explore
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img 
+                  src="/images/vehicles/tacoma.jpg" 
+                  alt="Toyota Tacoma" 
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm font-bold">
+                  Popular
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Toyota Tacoma</h3>
+                <p className="text-gray-600 mb-4">The rugged pickup built for work and play.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-toyota-red font-bold">Starting at $27,250</span>
+                  <button className="bg-toyota-red hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Explore
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant={showFilterPanel ? "default" : "outline"} 
-              size="sm" 
-              className={cn(
-                "relative",
-                personaData && "border-opacity-50"
-              )}
-              style={personaData && showFilterPanel ? {
-                backgroundColor: personaData.colorScheme.primary,
-                color: "#FFF"
-              } : personaData ? {
-                borderColor: personaData.colorScheme.primary  
-              } : {}}
-              onClick={() => setShowFilterPanel(!showFilterPanel)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              <span>Filter</span>
-            </Button>
-            
-            <FavoritesDrawer 
-              triggerButton={
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="relative"
-                  style={personaData ? {
-                    borderColor: personaData.colorScheme.primary  
-                  } : {}}
-                >
-                  <Heart className="h-4 w-4 mr-2" style={personaData ? {
-                    color: personaData.colorScheme.primary
-                  } : {}} />
-                  <span>Favorites</span>
-                  {favoriteCount > 0 && (
-                    <span 
-                      className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                      style={{ backgroundColor: personaData ? personaData.colorScheme.accent : 'var(--toyota-red)' }}
-                    >
-                      {favoriteCount}
-                    </span>
-                  )}
-                </Button>
-              }
-            />
+          <div className="text-center mt-12">
+            <button className="bg-toyota-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold inline-flex items-center">
+              View All Vehicles
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Category Filter */}
-      <AnimatePresence>
-        {showFilterPanel && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <CategoryFilter
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              selectedPersona={selectedPersona}
-              setSelectedPersona={setSelectedPersona}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
-              categories={categories}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Vehicle Showcase with Persona-specific styling */}
-      {visibleSections.showcase && (
-        <section 
-          id="vehicle-showcase" 
-          className="py-10 md:py-16"
-          style={personaData ? {
-            backgroundColor: `${personaData.colorScheme.background}`,
-            backgroundImage: personaData.backgroundPattern || "",
-          } : {}}
-        >
-          <VehicleShowcase
-            title={personaData ? 
-              `${personaData.title} Recommended Models` : 
-              "Explore Our Vehicles"}
-            vehicles={filteredVehicles}
-            compareList={compareList}
-            onCompare={handleCompareToggle}
-            onQuickView={setSelectedVehicle}
-            personaData={personaData}
-          />
-        </section>
-      )}
-
-      {/* Quick View Modal */}
-      <AnimatePresence>
-        {selectedVehicle && (
-          <QuickViewModal
-            vehicle={selectedVehicle}
-            onClose={() => setSelectedVehicle(null)}
-            personaData={personaData}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Compare Floating Box - Only show if comparing 1 vehicle */}
-      {compareList.length === 1 && (
-        <CompareFloatingBox
-          compareList={compareList}
-          vehicles={vehicles}
-          onRemove={handleRemoveFromCompare}
-          onClearAll={handleClearCompare}
-          personaData={personaData}
-        />
-      )}
-
-      {/* Performance Section - Show based on persona */}
-      {visibleSections.performance && (
-        <PerformanceSection />
-      )}
-
+      </section>
+      
       {/* Special Offers Section */}
-      {visibleSections.offers && (
-        <OffersSection />
-      )}
-
-      {/* Lifestyle Section */}
-      {visibleSections.lifestyle && (
-        <LifestyleSection />
-      )}
-
+      <section className="py-16 bg-gray-100">
+        <div className="toyota-container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Special <span className="text-toyota-red">Offers</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img 
+                  src="/images/offers/financing.jpg" 
+                  alt="Financing Offer" 
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                <div className="absolute bottom-0 left-0 p-6 text-white">
+                  <h3 className="text-2xl font-bold mb-2">0% APR Financing</h3>
+                  <p className="mb-4">Available on select models for qualified buyers.</p>
+                  <button className="bg-toyota-red hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img 
+                  src="/images/offers/lease.jpg" 
+                  alt="Lease Offer" 
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                <div className="absolute bottom-0 left-0 p-6 text-white">
+                  <h3 className="text-2xl font-bold mb-2">$199/month Lease</h3>
+                  <p className="mb-4">On new Corolla models with $2,999 due at signing.</p>
+                  <button className="bg-toyota-red hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <button className="bg-toyota-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold inline-flex items-center">
+              View All Offers
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Performance Section */}
+      <section className="py-16 bg-black text-white">
+        <div className="toyota-container">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Experience <span className="text-toyota-red">Performance</span>
+              </h2>
+              <p className="text-lg mb-8">
+                Toyota's performance lineup delivers exhilaration on the road and track. 
+                From the nimble GR86 to the legendary Supra, discover vehicles engineered 
+                for pure driving pleasure.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <button className="bg-toyota-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold">
+                  Explore GR Models
+                </button>
+                <button className="border border-white hover:bg-white hover:text-black text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300">
+                  Performance Specs
+                </button>
+              </div>
+            </div>
+            <div>
+              <img 
+                src="/images/performance/gr-supra.jpg" 
+                alt="Toyota GR Supra" 
+                className="rounded-lg shadow-2xl"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Pre-Owned Section */}
-      {visibleSections.preOwned && (
-        <PreOwnedSection vehicles={preOwnedVehicles} />
-      )}
-
-      {/* Comparison Table - Show as overlay when at least 2 vehicles are selected */}
-      {compareList.length >= 2 && (
-        <ComparisonTable
-          vehicles={comparedVehicles}
-          onRemove={handleRemoveFromCompare}
-          onClearAll={handleClearCompare}
-          personaData={personaData}
-        />
-      )}
-
-      {/* Persona Badge - Show when a persona is selected */}
-      {activePersona && <PersonaBadge />}
-    </ToyotaLayout>
+      <section className="py-16 bg-white">
+        <div className="toyota-container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">
+            Toyota <span className="text-toyota-red">Certified Pre-Owned</span>
+          </h2>
+          <p className="text-lg text-center mb-12 max-w-3xl mx-auto">
+            Quality, value, and peace of mind come standard with every Toyota Certified Pre-Owned vehicle.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="bg-gray-100 rounded-full p-6 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">12-Month/12,000-Mile Warranty</h3>
+              <p className="text-gray-600">
+                Comprehensive coverage that gives you confidence in your certified pre-owned Toyota.
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="bg-gray-100 rounded-full p-6 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">160-Point Quality Assurance</h3>
+              <p className="text-gray-600">
+                Each vehicle undergoes a comprehensive inspection to ensure quality and reliability.
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center text-center p-6">
+              <div className="bg-gray-100 rounded-full p-6 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">7-Day/1,000-Mile Exchange</h3>
+              <p className="text-gray-600">
+                If you're not satisfied, exchange your vehicle within 7 days or 1,000 miles.
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <button className="bg-toyota-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold inline-flex items-center">
+              Browse Certified Pre-Owned
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Owner Benefits Section */}
+      <section className="py-16 bg-gray-100">
+        <div className="toyota-container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Toyota <span className="text-toyota-red">Owner Benefits</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-toyota-red/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">ToyotaCare</h3>
+              <p className="text-gray-600">
+                No-cost maintenance plan and 24-hour roadside assistance for 2 years or 25,000 miles.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-toyota-red/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Toyota App</h3>
+              <p className="text-gray-600">
+                Manage your vehicle, schedule service, and access remote features from your smartphone.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-toyota-red/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Financing Options</h3>
+              <p className="text-gray-600">
+                Flexible financing and lease options tailored to your needs and budget.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-toyota-red/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-toyota-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Genuine Parts</h3>
+              <p className="text-gray-600">
+                Toyota Genuine Parts are designed specifically for your vehicle to ensure optimal performance.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Call to Action Section */}
+      <section className="py-20 bg-toyota-red text-white">
+        <div className="toyota-container text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Find Your Toyota?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Discover the perfect Toyota for your lifestyle. Build your vehicle, schedule a test drive, or find a dealer near you.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button className="bg-white text-toyota-red hover:bg-gray-100 px-6 py-3 rounded-lg font-bold">
+              Build & Price
+            </button>
+            <button className="bg-transparent hover:bg-white/10 border-2 border-white text-white px-6 py-3 rounded-lg font-bold">
+              Schedule Test Drive
+            </button>
+            <button className="bg-transparent hover:bg-white/10 border-2 border-white text-white px-6 py-3 rounded-lg font-bold">
+              Find a Dealer
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };
 
