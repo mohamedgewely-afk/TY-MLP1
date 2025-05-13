@@ -13,7 +13,6 @@ import Enquire from "./pages/Enquire";
 import NotFound from "./pages/NotFound";
 import PreOwned from "./pages/PreOwned";
 import "./styles/persona-patterns.css";
-import "./styles/persona-backgrounds.css";
 
 // Create a ScrollToTop component to reset scroll position on route change
 const ScrollToTop = () => {
