@@ -1,430 +1,616 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
 import { Button } from "@/components/ui/button";
-import { vehicles } from "@/data/vehicles";
-import { VehicleModel } from "@/types/vehicle";
-import { Link } from "react-router-dom";
-import { Users, Shield, Car, Heart, CalendarCheck, CircleHelp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { vehicles } from "@/data/vehicles";
+import { Link } from "react-router-dom";
+import PersonalizedHero from "@/components/home/PersonalizedHero";
+import {
+  Car,
+  Bookmark,
+  Shield,
+  Users,
+  ChevronRight,
+  CheckCircle,
+  ThumbsUp,
+  Heart,
+  Star,
+  ArrowRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { VehicleModel } from "@/types/vehicle";
+import { useToast } from "@/hooks/use-toast";
 
 const FamilyFirstHomepage: React.FC = () => {
   const { personaData } = usePersona();
   const { toast } = useToast();
-  const [favoriteVehicles, setFavoriteVehicles] = useState<string[]>([]);
+  const [savedVehicles, setSavedVehicles] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("suv");
 
-  // Filter vehicles for family-friendly options
-  const familyVehicles = vehicles.filter(v => 
-    v.category === "SUV" || 
-    v.features.some(f => f.includes("Seating") || f.includes("Safety"))
-  ).slice(0, 6);
+  // Filter vehicles that are good for families
+  const familyVehicles = vehicles.filter(
+    (v) =>
+      v.category === "SUV" ||
+      v.category === "Minivan" ||
+      v.features.some((f) => f.includes("Family") || f.includes("Safety"))
+  );
 
-  const handleAddToFavorites = (vehicle: VehicleModel) => {
-    if (favoriteVehicles.includes(vehicle.name)) {
-      setFavoriteVehicles(favoriteVehicles.filter(v => v !== vehicle.name));
+  // Group vehicles by category for tabs
+  const vehicleCategories = Array.from(
+    new Set(familyVehicles.map((v) => v.category))
+  );
+
+  // Family priorities animation
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+  };
+
+  const handleSaveVehicle = (vehicle: VehicleModel) => {
+    if (savedVehicles.includes(vehicle.name)) {
+      setSavedVehicles(savedVehicles.filter((v) => v !== vehicle.name));
       toast({
-        title: "Removed from favorites",
-        description: `${vehicle.name} has been removed from your favorites.`,
+        title: "Vehicle removed",
+        description: `${vehicle.name} has been removed from your saved vehicles.`,
         variant: "default",
-        style: { backgroundColor: personaData?.colorScheme.primary, color: "#FFF" },
       });
     } else {
-      setFavoriteVehicles([...favoriteVehicles, vehicle.name]);
+      setSavedVehicles([...savedVehicles, vehicle.name]);
       toast({
-        title: "Added to favorites",
-        description: `${vehicle.name} has been added to your favorites.`,
+        title: "Vehicle saved",
+        description: `${vehicle.name} has been added to your saved vehicles.`,
         variant: "default",
-        style: { backgroundColor: personaData?.colorScheme.primary, color: "#FFF" },
       });
     }
   };
 
   return (
-    <div className="family-friendly-bg min-h-screen">
-      {/* Enhanced Hero Section with graphic elements */}
-      <section className="relative h-[80vh] overflow-hidden">
-        {/* Background image */}
-        <motion.div
-          className="absolute inset-0 z-0"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 2 }}
-        >
-          <img
-            src="https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/section-05-family-suv-desktop.jpg"
-            alt="Family SUV"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/20"></div>
-        </motion.div>
+    <div className="min-h-screen bg-white">
+      {/* Personalized Hero Section */}
+      <PersonalizedHero />
 
-        {/* Decorative graphic elements */}
-        <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Circular patterns representing family */}
-          <motion.div 
-            className="absolute top-[10%] right-[5%] w-[300px] h-[300px] border-4 border-dashed border-white/20 rounded-full"
-            initial={{ scale: 0, opacity: 0, rotate: -90 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
-          />
-          
-          <motion.div 
-            className="absolute bottom-[15%] left-[8%] w-[200px] h-[200px] border-2 border-white/15 rounded-full"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
-          />
-          
-          <motion.div 
-            className="absolute top-[30%] left-[15%] w-[150px] h-[150px] border-3 border-white/10 rounded-full"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, delay: 1.1 }}
-          />
-          
-          {/* Animated lines */}
-          <svg className="absolute inset-0 w-full h-full">
-            <motion.path
-              d="M0,250 Q400,150 800,350 T1600,250"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 1.5, delay: 0.5 }}
-            />
-            <motion.path
-              d="M0,350 Q400,500 800,300 T1600,400"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 1.5, delay: 0.8 }}
-            />
-          </svg>
-        </div>
-
-        {/* Hero content with enhanced design */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-20">
+      {/* Family Priorities Section */}
+      <section className="py-16 bg-white">
+        <div className="toyota-container">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-5xl mx-auto"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="mb-6"
-            >
-              <Badge className="bg-toyota-red text-white text-sm py-1 px-4 rounded-full">
-                Family-First Experience
-              </Badge>
-            </motion.div>
-            
-            <h1 className="text-4xl md:text-6xl font-serif text-white font-bold mb-4 text-shadow-lg">
-              Room for Everyone, Safety for All
-            </h1>
-            <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto">
-              Discover Toyota vehicles built with your family's comfort and security in mind
-            </p>
-            <Button
-              asChild
-              size="lg"
-              className="rounded-xl bg-[#4A6DA7] hover:bg-[#3A5D97] text-white shadow-lg transform transition-all duration-300 hover:scale-105"
-            >
-              <Link to="/vehicle/highlander" className="flex items-center gap-2 px-8 py-6 text-lg">
-                Explore Family Vehicles
-              </Link>
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Animated bottom wave */}
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[50px]">
-            <motion.path 
-              d="M0,0 C150,90 350,0 500,50 C650,100 700,10 900,50 C1050,80 1150,20 1200,0 L1200,120 L0,120 Z" 
-              fill="white"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 1 }}
-            />
-          </svg>
-        </div>
-      </section>
-
-      {/* Family-focused priorities section with enhanced design */}
-      <section className="py-16 bg-white rounded-3xl mx-4 md:mx-8 -mt-10 relative z-10 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="text-3xl font-serif text-center font-bold mb-12 text-[#4A6DA7]"
+            className="text-center mb-12"
           >
-            What Matters Most to Your Family
-          </motion.h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              Your Family's Priorities
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Toyota understands what matters most to families. Explore vehicles and
+              features designed with your loved ones in mind.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+          >
             {[
-              { 
-                icon: <Shield className="h-12 w-12 text-toyota-red" />, 
-                title: "Safety First", 
-                description: "Advanced safety features protect your loved ones on every journey",
-                bgColor: "bg-red-50",
-                animation: { y: [0, -10, 0], transition: { repeat: Infinity, duration: 3 } }
+              {
+                title: "Safety First",
+                description:
+                  "Toyota Safety Sense™ comes standard on new Toyota models, providing peace of mind for your family journeys.",
+                icon: <Shield className="h-10 w-10 text-white" />,
+                color: "bg-persona-family-primary",
+                iconBg: "bg-persona-family-accent",
               },
-              { 
-                icon: <Users className="h-12 w-12 text-[#4A6DA7]" />, 
-                title: "Space for Everyone", 
-                description: "Flexible seating configurations and ample room for the whole family",
-                bgColor: "bg-blue-50",
-                animation: { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 3 } }
+              {
+                title: "Spacious Comfort",
+                description:
+                  "Ample room for everyone and everything, with thoughtfully designed interiors for maximum comfort.",
+                icon: <Users className="h-10 w-10 text-white" />,
+                color: "bg-white",
+                iconBg: "bg-persona-family-primary",
+                border: "border border-gray-200",
               },
-              { 
-                icon: <Car className="h-12 w-12 text-toyota-gray" />, 
-                title: "Built to Last", 
-                description: "Reliability you can depend on for years of family adventures",
-                bgColor: "bg-gray-50",
-                animation: { rotate: [-3, 3, -3], transition: { repeat: Infinity, duration: 3 } }
-              }
-            ].map((item, index) => (
+              {
+                title: "Entertainment",
+                description:
+                  "Keep everyone entertained with the latest connectivity and entertainment options for all ages.",
+                icon: <ThumbsUp className="h-10 w-10 text-white" />,
+                color: "bg-white",
+                iconBg: "bg-persona-family-accent",
+                border: "border border-gray-200",
+              },
+              {
+                title: "Long-Term Value",
+                description:
+                  "Toyota's legendary reliability means your family vehicle will be dependable for years to come.",
+                icon: <CheckCircle className="h-10 w-10 text-white" />,
+                color: "bg-persona-family-primary",
+                iconBg: "bg-persona-family-accent",
+              },
+            ].map((priority, index) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={`${item.bgColor} p-8 rounded-2xl text-center shadow-md hover:shadow-lg transition-all duration-300`}
+                key={priority.title}
+                variants={itemVariants}
+                className={cn(
+                  "rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow",
+                  priority.color,
+                  priority.border
+                )}
               >
-                <motion.div 
-                  animate={item.animation}
-                  className="mx-auto bg-white rounded-full p-4 mb-4 w-20 h-20 flex items-center justify-center shadow-md"
-                >
-                  {item.icon}
-                </motion.div>
-                <h3 className="text-xl font-serif font-bold mb-2 text-[#4A6DA7]">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                <div className="p-8">
+                  <div
+                    className={cn(
+                      "w-20 h-20 rounded-full flex items-center justify-center mb-6",
+                      priority.iconBg
+                    )}
+                  >
+                    {priority.icon}
+                  </div>
+                  <h3
+                    className={cn(
+                      "text-xl font-bold mb-3",
+                      priority.color === "bg-white"
+                        ? "text-gray-900"
+                        : "text-white"
+                    )}
+                  >
+                    {priority.title}
+                  </h3>
+                  <p
+                    className={cn(
+                      "text-sm",
+                      priority.color === "bg-white"
+                        ? "text-gray-600"
+                        : "text-white/80"
+                    )}
+                  >
+                    {priority.description}
+                  </p>
+                </div>
+
+                {/* Visual enhancement with curved shape */}
+                <div className="relative h-4 overflow-hidden">
+                  <div
+                    className={cn(
+                      "absolute bottom-0 left-0 right-0 h-8 -mb-4 rounded-[50%]",
+                      priority.color === "bg-white"
+                        ? "bg-white"
+                        : "bg-persona-family-primary"
+                    )}
+                  ></div>
+                </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Family vehicles carousel with enhanced visuals */}
-      <section className="py-16 relative overflow-hidden">
-        {/* Background pattern */}
+      {/* Recommended Vehicles Section */}
+      <section className="py-16 bg-gray-50 relative overflow-hidden">
+        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
-          <svg viewBox="0 0 100 100" className="absolute w-full h-full">
-            <pattern id="pattern-circles" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
-              <circle id="pattern-circle" cx="10" cy="10" r="2" fill="#4A6DA7"></circle>
-            </pattern>
-            <rect x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)"></rect>
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern
+                id="familyPattern"
+                patternUnits="userSpaceOnUse"
+                width="60"
+                height="60"
+                patternTransform="rotate(45)"
+              >
+                <path
+                  d="M10 10C15 10 15 5 20 5C25 5 25 10 30 10C35 10 35 5 40 5C45 5 45 10 50 10"
+                  fill="none"
+                  stroke="#4A6DA7"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#familyPattern)" />
           </svg>
         </div>
 
         <div className="toyota-container relative z-10">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="text-3xl font-serif text-center font-bold mb-8 text-[#4A6DA7]"
+            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10"
           >
-            Perfect Vehicles for Your Family
-          </motion.h2>
-          
-          <Carousel
-            opts={{ align: "start", loop: true }}
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Perfect for Your Family
+              </h2>
+              <p className="text-gray-600">
+                Vehicles selected to match your family's needs
+              </p>
+            </div>
+
+            <div className="mt-4 md:mt-0">
+              <Button
+                asChild
+                variant="outline"
+                className="border-persona-family-primary text-persona-family-primary hover:bg-persona-family-primary hover:text-white"
+              >
+                <Link to="/new-cars" className="flex items-center">
+                  View All Family Vehicles
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </motion.div>
+
+          <Tabs
+            defaultValue="suv"
+            value={activeTab}
+            onValueChange={setActiveTab}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
-              {familyVehicles.map((vehicle, index) => (
-                <CarouselItem key={vehicle.name} className="pl-4 md:basis-1/2 lg:basis-1/3">
+            <TabsList className="bg-white rounded-full p-1 border border-gray-200 w-fit mb-8">
+              {vehicleCategories.map((category) => (
+                <TabsTrigger
+                  key={category}
+                  value={category.toLowerCase()}
+                  className="rounded-full data-[state=active]:bg-persona-family-primary data-[state=active]:text-white"
+                >
+                  {category}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {vehicleCategories.map((category) => (
+              <TabsContent
+                key={category}
+                value={category.toLowerCase()}
+                className="mt-0"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {familyVehicles
+                    .filter((v) => v.category === category)
+                    .map((vehicle, index) => (
+                      <FamilyVehicleCard
+                        key={vehicle.name}
+                        vehicle={vehicle}
+                        index={index}
+                        isSaved={savedVehicles.includes(vehicle.name)}
+                        onSave={() => handleSaveVehicle(vehicle)}
+                      />
+                    ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Family Features Guide */}
+      <section className="py-16 bg-white">
+        <div className="toyota-container">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Toyota Family Features Guide
+              </h2>
+              <p className="text-gray-600 mb-8">
+                Discover thoughtfully designed features that make family life easier,
+                safer, and more enjoyable - from child-friendly technology to clever
+                storage solutions.
+              </p>
+
+              <div className="space-y-6">
+                {[
+                  {
+                    title: "Child Safety",
+                    description:
+                      "LATCH child seat anchors, rear door child locks, and advanced safety systems to protect your most precious cargo.",
+                    icon: <Shield className="h-6 w-6 text-persona-family-primary" />,
+                  },
+                  {
+                    title: "Flexible Space",
+                    description:
+                      "Configurable seating and cargo arrangements adapt to your family's changing needs and adventures.",
+                    icon: <Car className="h-6 w-6 text-persona-family-primary" />,
+                  },
+                  {
+                    title: "Convenience Features",
+                    description:
+                      "Hands-free power liftgates, easy-clean surfaces, and abundant cup holders make family life on the go simpler.",
+                    icon: <ThumbsUp className="h-6 w-6 text-persona-family-primary" />,
+                  },
+                ].map((feature, index) => (
                   <motion.div
+                    key={feature.title}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    whileHover={{ y: -5 }}
+                    className="flex items-start"
                   >
-                    <Card className="overflow-hidden rounded-2xl border-2 border-gray-100 shadow-md hover:shadow-lg transition-all duration-300">
-                      <div className="relative">
-                        <img 
-                          src={vehicle.image} 
-                          alt={vehicle.name}
-                          className="w-full h-48 object-cover" 
-                        />
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <button
-                            onClick={() => handleAddToFavorites(vehicle)}
-                            className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
-                          >
-                            <Heart 
-                              className="h-5 w-5" 
-                              fill={favoriteVehicles.includes(vehicle.name) ? "#E50000" : "none"} 
-                              stroke={favoriteVehicles.includes(vehicle.name) ? "#E50000" : "currentColor"} 
-                            />
-                          </button>
-                        </motion.div>
-                        
-                        {/* Safety badge */}
-                        {vehicle.features.some(f => f.includes("Safety")) && (
-                          <Badge className="absolute bottom-3 left-3 bg-toyota-red text-white">
-                            Top Safety Pick
-                          </Badge>
-                        )}
-                      </div>
-                      <CardContent className="p-5">
-                        <h3 className="text-xl font-serif font-bold mb-2">{vehicle.name}</h3>
-                        <div className="flex items-center mb-3">
-                          <Badge variant="outline" className="text-sm border-[#4A6DA7] text-[#4A6DA7] mr-2">
-                            {vehicle.category}
-                          </Badge>
-                          {vehicle.features.some(f => f.includes("Seating")) && (
-                            <Badge variant="outline" className="text-sm border-green-700 text-green-700">
-                              7+ Seats
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-toyota-red">
-                            ${vehicle.price.toLocaleString()}
-                          </span>
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            className="rounded-xl border-[#4A6DA7] text-[#4A6DA7] hover:bg-[#4A6DA7] hover:text-white"
-                          >
-                            <Link to={`/vehicle/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                              Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div className="bg-persona-family-primary/10 p-3 rounded-full mr-4">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm">{feature.description}</p>
+                    </div>
                   </motion.div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-1" />
-            <CarouselNext className="right-1" />
-          </Carousel>
-          
-          {/* View all button */}
-          <motion.div 
-            className="mt-10 text-center"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-xl border-2 border-[#4A6DA7] text-[#4A6DA7] hover:bg-[#4A6DA7] hover:text-white px-8"
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <Button
+                  asChild
+                  className="bg-persona-family-primary hover:bg-persona-family-primary/90"
+                >
+                  <Link to="/family-features" className="flex items-center">
+                    Download Family Guide <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="relative"
             >
-              <Link to="/new-cars">
-                View All Family Vehicles
-              </Link>
-            </Button>
-          </motion.div>
+              <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-[4/3]">
+                <img
+                  src="https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/family-hero.jpg"
+                  alt="Toyota Family Features"
+                  className="object-cover w-full h-full"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge className="bg-persona-family-accent text-white border-none">
+                      Family Guide
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Smart Features for Modern Families
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    See how Toyota's thoughtful design makes a difference in your
+                    daily family routine.
+                  </p>
+                </div>
+              </div>
+
+              {/* Decorative elements */}
+              <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-persona-family-accent/20 rounded-full z-[-1]" />
+              <div className="absolute -top-6 -left-6 w-16 h-16 bg-persona-family-primary/20 rounded-full z-[-1]" />
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Family help section with enhanced design */}
-      <section className="py-16 bg-white">
+      {/* Family Adventure Planning */}
+      <section className="py-16 bg-persona-family-primary/10 relative overflow-hidden">
         <div className="toyota-container">
-          <div className="bg-[#F2C94C10] p-8 md:p-12 rounded-3xl border-2 border-[#F2C94C20] shadow-lg relative overflow-hidden">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 -mt-16 -mr-16 bg-[#F2C94C10] rounded-full"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 -mb-12 -ml-12 bg-[#4A6DA710] rounded-full"></div>
-            
-            <div className="flex flex-col md:flex-row items-center relative z-10">
-              <div className="md:w-2/3 mb-6 md:mb-0 md:pr-8">
-                <motion.h2
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true }}
-                  className="text-3xl font-serif font-bold mb-4 text-[#4A6DA7]"
-                >
-                  Need Help Finding Your Perfect Family Vehicle?
-                </motion.h2>
-                
-                <motion.p
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  viewport={{ once: true }}
-                  className="text-lg text-gray-600 mb-6"
-                >
-                  Our family vehicle specialists can help you find the perfect Toyota for your family's needs and budget.
-                </motion.p>
-                
-                <div className="flex flex-wrap gap-4">
-                  <Button asChild className="rounded-xl bg-toyota-red hover:bg-toyota-darkred text-white">
-                    <Link to="/test-drive" className="flex items-center">
-                      <CalendarCheck className="mr-2 h-5 w-5" />
-                      Schedule Test Drive
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="rounded-xl border-[#4A6DA7] text-[#4A6DA7] hover:bg-[#4A6DA7] hover:text-white">
-                    <Link to="/enquire" className="flex items-center">
-                      <CircleHelp className="mr-2 h-5 w-5" />
-                      Ask a Question
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-block bg-persona-family-accent/20 rounded-full px-4 py-1 mb-4">
+              <span className="text-persona-family-primary font-medium text-sm">
+                Plan Your Next Adventure
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Family Road Trips Made Easy
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Create memories that will last a lifetime with these family-friendly
+              destinations and road trip tips.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Beach Getaways",
+                description: "Perfect coastal destinations for family fun and relaxation",
+                image: "https://images.unsplash.com/photo-1471922694854-ff1b63b20054",
+                link: "/family-trips/beach",
+              },
+              {
+                title: "National Parks",
+                description: "Explore nature's wonders with kid-friendly hiking trails",
+                image: "https://images.unsplash.com/photo-1519395612667-3b754d7b9086",
+                link: "/family-trips/parks",
+              },
+              {
+                title: "City Adventures",
+                description: "Urban explorations with museums and family attractions",
+                image: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd",
+                link: "/family-trips/city",
+              },
+            ].map((destination, index) => (
+              <motion.div
+                key={destination.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all group"
+              >
+                <div className="h-48 overflow-hidden">
+                  <img
+                    src={`${destination.image}?auto=format&fit=crop&w=600&q=80`}
+                    alt={destination.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-persona-family-primary transition-colors">
+                    {destination.title}
+                  </h3>
+                  <p className="text-gray-600 mb-6">{destination.description}</p>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full border-persona-family-primary text-persona-family-primary hover:bg-persona-family-primary hover:text-white"
+                  >
+                    <Link to={destination.link}>
+                      Explore <ChevronRight className="ml-1 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
-              </div>
-              <div className="md:w-1/3">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  whileInView={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                  className="relative"
-                >
-                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 200">
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#4A6DA7" stopOpacity="0.2" />
-                        <stop offset="100%" stopColor="#F2C94C" stopOpacity="0.2" />
-                      </linearGradient>
-                    </defs>
-                    <motion.path
-                      d="M25,-34.6C33.9,-30.4,43.5,-26.5,49.3,-19C55.1,-11.5,57.1,-0.5,54.8,9.4C52.5,19.3,45.9,28.1,37.4,33.8C29,39.5,18.7,42.1,8,44.7C-2.8,47.4,-13.9,50.1,-23,47.4C-32.1,44.7,-39.1,36.5,-42.8,27.1C-46.5,17.8,-47,7.1,-46.2,-3.5C-45.5,-14.2,-43.5,-24.7,-37.8,-30.9C-32,-37.1,-22.5,-39,-14,-37.3C-5.6,-35.6,2,-39.4,8.8,-38.9C15.7,-38.4,22.8,-33.6,25,-34.6Z"
-                      transform="translate(100 100)"
-                      fill="url(#gradient)"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                    />
-                  </svg>
-                  
-                  <img 
-                    src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80" 
-                    alt="Family specialist" 
-                    className="w-full h-auto rounded-full border-4 border-white shadow-lg relative z-10"
-                  />
-                </motion.div>
-              </div>
-            </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              to="/trip-planner"
+              className="inline-flex items-center text-persona-family-primary hover:text-persona-family-primary/80 font-medium"
+            >
+              Use our Family Trip Planner Tool <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
     </div>
+  );
+};
+
+interface FamilyVehicleCardProps {
+  vehicle: VehicleModel;
+  index: number;
+  isSaved: boolean;
+  onSave: () => void;
+}
+
+const FamilyVehicleCard: React.FC<FamilyVehicleCardProps> = ({
+  vehicle,
+  index,
+  isSaved,
+  onSave,
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      viewport={{ once: true }}
+    >
+      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow group">
+        <div className="relative h-48">
+          <img
+            src={vehicle.image}
+            alt={vehicle.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onSave();
+            }}
+            className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors hover:bg-white"
+            aria-label={isSaved ? "Remove from saved" : "Save vehicle"}
+          >
+            <Heart
+              className={cn(
+                "h-4 w-4 transition-colors",
+                isSaved
+                  ? "fill-persona-family-primary text-persona-family-primary"
+                  : "text-gray-600"
+              )}
+            />
+          </button>
+
+          {/* Family recommendation badge */}
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-persona-family-primary text-white border-none px-3 py-1 flex items-center gap-1">
+              <Star className="h-3 w-3" fill="white" />
+              Family Pick
+            </Badge>
+          </div>
+
+          {/* Price label */}
+          <div className="absolute bottom-3 left-3 bg-white/80 backdrop-blur-sm rounded-md px-3 py-1">
+            <span className="text-sm font-medium text-gray-900">
+              From AED {vehicle.price.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <CardContent className="p-5">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h3 className="font-bold text-lg text-gray-900 group-hover:text-persona-family-primary transition-colors">
+                {vehicle.name}
+              </h3>
+              <p className="text-sm text-gray-500">{vehicle.category}</p>
+            </div>
+            <Badge
+              variant="outline"
+              className="text-xs border-persona-family-accent text-persona-family-accent"
+            >
+              {vehicle.features[0]}
+            </Badge>
+          </div>
+
+          <div className="mb-4">
+            {vehicle.features.slice(0, 3).map((feature, idx) => (
+              <div key={idx} className="flex items-center text-sm text-gray-600 mb-1">
+                <CheckCircle className="h-3 w-3 text-persona-family-primary mr-2 flex-shrink-0" />
+                {feature}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              asChild
+              className="flex-1 bg-persona-family-primary hover:bg-persona-family-primary/90"
+            >
+              <Link to={`/vehicle/${vehicle.name.toLowerCase().replace(/\s+/g, "-")}`}>
+                Details
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="flex-1 border-persona-family-primary text-persona-family-primary hover:bg-persona-family-primary hover:text-white"
+            >
+              <Link to="/test-drive">Test Drive</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

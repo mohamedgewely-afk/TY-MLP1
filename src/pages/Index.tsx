@@ -5,6 +5,10 @@ import { usePersona } from "@/contexts/PersonaContext";
 import PersonaSelector from "@/components/home/PersonaSelector";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import { heroSlides } from "@/data/vehicles";
+import PerformanceSection from "@/components/home/PerformanceSection";
+import OffersSection from "@/components/home/OffersSection";
+import FeaturedVehicles from "@/components/home/FeaturedVehicles";
+import PreOwnedSection from "@/components/home/PreOwnedSection";
 
 // Persona-specific homepage experiences
 import FamilyFirstHomepage from "@/components/personas/FamilyFirstHomepage";
@@ -50,6 +54,10 @@ const Index = () => {
       {!selectedPersona ? (
         <>
           <HeroCarousel slides={heroSlides} />
+          <FeaturedVehicles />
+          <PerformanceSection />
+          <OffersSection />
+          <PreOwnedSection />
           <PersonaSelector onSelect={handlePersonaSelection} />
         </>
       ) : (

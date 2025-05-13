@@ -1,240 +1,165 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PreOwnedVehicle } from "@/types/vehicle";
-import { Slider } from "@/components/ui/slider";
-import { ArrowRight, RotateCw, TestTube, Mail, Phone, ShieldCheck, CalendarClock, CarFront } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { ArrowRight, Shield, Check, Award } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface PreOwnedSectionProps {
-  vehicles: PreOwnedVehicle[];
-}
+// Sample pre-owned vehicles
+const preOwnedVehicles = [
+  {
+    id: 1,
+    name: "Toyota Camry",
+    year: 2022,
+    mileage: 15000,
+    price: 24500,
+    image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/camry/camry-hero-full.jpg",
+    features: ["Leather Seats", "Navigation System", "Reverse Camera"]
+  },
+  {
+    id: 2,
+    name: "Toyota Land Cruiser",
+    year: 2021,
+    mileage: 22000,
+    price: 65000,
+    image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/land-cruiser/lc-300-hero-full.jpg",
+    features: ["Premium Audio", "7 Seater", "Parking Sensors"]
+  },
+  {
+    id: 3,
+    name: "Toyota RAV4",
+    year: 2022,
+    mileage: 18000,
+    price: 28900,
+    image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/rav4/rav4-hero-full.jpg",
+    features: ["Hybrid Engine", "Panoramic Roof", "Lane Assist"]
+  }
+];
 
-const PreOwnedSection: React.FC<PreOwnedSectionProps> = ({ vehicles }) => {
-  const [priceRange, setPriceRange] = useState<number[]>([50000, 200000]);
-  const [flippedCards, setFlippedCards] = useState<string[]>([]);
-  
-  // Find min and max prices for the slider
-  const minPrice = Math.min(...vehicles.map(v => v.price));
-  const maxPrice = Math.max(...vehicles.map(v => v.price));
-  
-  // Filter vehicles by price range
-  const filteredVehicles = vehicles.filter(
-    vehicle => vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1]
-  );
-
-  // Toggle card flip state
-  const toggleFlip = (id: string) => {
-    setFlippedCards(prev => 
-      prev.includes(id) 
-        ? prev.filter(cardId => cardId !== id) 
-        : [...prev, id]
-    );
-  };
-
-  const cardVariants = {
-    front: {
-      rotateY: 0,
-    },
-    back: {
-      rotateY: 180,
-    },
-  };
-
+const PreOwnedSection: React.FC = () => {
   return (
-    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-gray-50">
       <div className="toyota-container">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Toyota Certified Pre-Owned
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Quality pre-owned vehicles with Toyota certification and warranty.
-            </p>
-          </div>
-          <Button variant="outline" className="mt-4 md:mt-0" asChild>
-            <a href="/pre-owned">
-              View All Pre-Owned <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <h2 className="text-3xl font-bold mb-4 text-gray-900">
+            Toyota Certified Pre-Owned
+          </h2>
+          <p className="text-gray-600 max-w-3xl">
+            Discover premium quality pre-owned Toyota vehicles with comprehensive inspections and warranty coverage. Experience Toyota reliability at an exceptional value.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {preOwnedVehicles.map((vehicle, index) => (
+            <motion.div
+              key={vehicle.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={vehicle.image}
+                  alt={vehicle.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-0 right-0 bg-toyota-red text-white px-3 py-1 text-sm font-semibold">
+                  {vehicle.year}
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {vehicle.name}
+                </h3>
+                <div className="flex justify-between mb-4 text-gray-600">
+                  <span>{vehicle.mileage.toLocaleString()} km</span>
+                  <span className="font-semibold text-toyota-red">
+                    AED {vehicle.price.toLocaleString()}
+                  </span>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {vehicle.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-center text-gray-700 text-sm">
+                      <Check className="h-4 w-4 mr-2 text-toyota-red" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  asChild
+                  className="w-full mt-2 bg-toyota-red hover:bg-toyota-darkred"
+                >
+                  <Link to={`/pre-owned/${vehicle.id}`}>
+                    View Details
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {[
+            {
+              icon: <Shield className="h-12 w-12 text-toyota-red" />,
+              title: "Toyota Certified",
+              description:
+                "Each certified pre-owned vehicle undergoes a rigorous 160-point quality assurance inspection"
+            },
+            {
+              icon: <Award className="h-12 w-12 text-toyota-red" />,
+              title: "Extended Warranty",
+              description:
+                "Enjoy peace of mind with our comprehensive warranty on all certified pre-owned vehicles"
+            },
+            {
+              icon: <Check className="h-12 w-12 text-toyota-red" />,
+              title: "Service History",
+              description:
+                "Complete service history and documentation provided with every certified pre-owned vehicle"
+            }
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className={cn(
+                "p-6 rounded-lg",
+                index === 0 ? "bg-gray-900 text-white" : "bg-white"
+              )}
+            >
+              <div className="mb-4">{item.icon}</div>
+              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+              <p className={index === 0 ? "text-gray-300" : "text-gray-600"}>
+                {item.description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Button
+            asChild
+            className="bg-toyota-red hover:bg-toyota-darkred"
+            size="lg"
+          >
+            <Link to="/pre-owned" className="flex items-center">
+              Browse All Pre-Owned Vehicles
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
           </Button>
         </div>
-
-        {/* Price Range Filter */}
-        <div className="mb-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium mb-4">Filter by Price Range</h3>
-          <div className="px-4">
-            <Slider
-              defaultValue={priceRange}
-              min={minPrice}
-              max={maxPrice}
-              step={5000}
-              value={priceRange}
-              onValueChange={setPriceRange}
-              className="mb-2"
-            />
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>AED {priceRange[0].toLocaleString()}</span>
-              <span>AED {priceRange[1].toLocaleString()}</span>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Showing {filteredVehicles.length} of {vehicles.length} vehicles
-            </p>
-          </div>
-        </div>
-
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-4">
-            {filteredVehicles.map((vehicle) => (
-              <CarouselItem key={vehicle.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  viewport={{ once: true }}
-                  className="h-full relative"
-                >
-                  <motion.div
-                    className="h-full preserve-3d cursor-pointer"
-                    initial="front"
-                    animate={flippedCards.includes(vehicle.id) ? "back" : "front"}
-                    variants={cardVariants}
-                    transition={{ duration: 0.6, type: "spring", stiffness: 300, damping: 20 }}
-                    style={{ perspective: 1000 }}
-                  >
-                    {/* Front of card */}
-                    <Card className={`h-full backface-hidden ${flippedCards.includes(vehicle.id) ? "opacity-0" : "opacity-100"}`}>
-                      <div className="relative">
-                        {vehicle.certified && (
-                          <div className="absolute top-2 right-2 bg-toyota-red text-white text-xs py-1 px-2 rounded-full">
-                            Certified
-                          </div>
-                        )}
-                        <div className="w-full aspect-[4/3] bg-gray-100">
-                          <img
-                            src={vehicle.image}
-                            alt={vehicle.model}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                      
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-xl">{vehicle.model}</CardTitle>
-                        <CardDescription className="flex justify-between items-center">
-                          <span>{vehicle.year}</span>
-                          <span className="text-toyota-red font-bold">
-                            AED {vehicle.price.toLocaleString()}
-                          </span>
-                        </CardDescription>
-                      </CardHeader>
-                      
-                      <CardContent className="py-2 flex-grow">
-                        <div className="flex flex-col space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Mileage:</span>
-                            <span>{vehicle.mileage.toLocaleString()} km</span>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-2">{vehicle.description}</p>
-                        </div>
-                      </CardContent>
-                      
-                      <CardFooter className="pt-2 grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="w-full" onClick={() => toggleFlip(vehicle.id)}>
-                          <RotateCw className="mr-1 h-4 w-4" /> View Details
-                        </Button>
-                        <Button size="sm" className="w-full bg-toyota-red hover:bg-toyota-darkred" asChild>
-                          <a href={`/test-drive?model=${encodeURIComponent(vehicle.model)}&preowned=true&id=${vehicle.id}`}>
-                            <TestTube className="mr-1 h-4 w-4" /> Test Drive
-                          </a>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-
-                    {/* Back of card */}
-                    <Card className={`h-full absolute inset-0 backface-hidden rotateY-180 ${flippedCards.includes(vehicle.id) ? "opacity-100" : "opacity-0"}`}>
-                      <CardHeader>
-                        <CardTitle className="text-xl">{vehicle.model} - {vehicle.year}</CardTitle>
-                        <CardDescription className="text-toyota-red font-bold">
-                          AED {vehicle.price.toLocaleString()}
-                        </CardDescription>
-                      </CardHeader>
-
-                      <CardContent className="flex-grow">
-                        <ul className="space-y-3 mb-4">
-                          <li className="flex items-start">
-                            <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
-                              <CarFront className="h-3 w-3" />
-                            </span>
-                            <span>VIN: {vehicle.id.substring(0, 8).toUpperCase()}...</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
-                              <CalendarClock className="h-3 w-3" />
-                            </span>
-                            <span>Model Year: {vehicle.year}</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="inline-block bg-toyota-red/10 text-toyota-red rounded-full p-1 mr-2">
-                              <ShieldCheck className="h-3 w-3" />
-                            </span>
-                            <span>Warranty: {vehicle.certified ? "Toyota Certified" : "Limited"}</span>
-                          </li>
-                        </ul>
-                        
-                        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                          <h4 className="font-medium text-sm mb-2">Reserve this vehicle today</h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
-                            Secure this vehicle with a fully-refundable AED 5,000 deposit.
-                          </p>
-                          <Button className="w-full bg-toyota-red hover:bg-toyota-darkred" asChild>
-                            <a href={`/reserve?id=${vehicle.id}`}>
-                              Reserve Now
-                            </a>
-                          </Button>
-                        </div>
-                      </CardContent>
-
-                      <CardFooter className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="w-full" onClick={() => toggleFlip(vehicle.id)}>
-                          <RotateCw className="mr-1 h-4 w-4" /> Back
-                        </Button>
-                        <Button variant="secondary" size="sm" className="w-full" asChild>
-                          <a href={`/enquire?model=${encodeURIComponent(vehicle.model)}&preowned=true&id=${vehicle.id}`}>
-                            <Mail className="mr-1 h-4 w-4" /> Enquire
-                          </a>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                </motion.div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-1" />
-          <CarouselNext className="right-1" />
-        </Carousel>
       </div>
     </section>
   );

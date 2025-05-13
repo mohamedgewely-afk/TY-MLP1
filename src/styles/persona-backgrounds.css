@@ -1,128 +1,108 @@
 
-/* Persona-specific background patterns and animations */
+/* Background styles for personalized components */
 
-/* Family First - Friendly, warm patterns */
-.family-friendly-bg {
-  background-color: #4A6DA710;
-  background-image: radial-gradient(circle at 50% 50%, rgba(143, 176, 234, 0.1) 0%, transparent 80%);
+/* Gradients for persona backgrounds */
+.bg-gradient-family {
+  background: linear-gradient(135deg, #4A6DA7 0%, #8FB0EA 100%);
 }
 
-.family-circle-pattern {
+.bg-gradient-tech {
+  background: linear-gradient(135deg, #6B38FB 0%, #00D4FF 100%);
+}
+
+.bg-gradient-eco {
+  background: linear-gradient(135deg, #2E7D32 0%, #CDDC39 100%);
+}
+
+.bg-gradient-urban {
+  background: linear-gradient(135deg, #455A64 0%, #FF5722 100%);
+}
+
+.bg-gradient-business {
+  background: linear-gradient(135deg, #263238 0%, #90A4AE 100%);
+}
+
+.bg-gradient-adventure {
+  background: linear-gradient(135deg, #BF360C 0%, #FFD54F 100%);
+}
+
+/* Toyota brand gradient */
+.bg-gradient-toyota {
+  background: linear-gradient(135deg, #E50000 0%, #BF0000 100%);
+}
+
+/* Overlay gradients */
+.overlay-dark-gradient {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.overlay-light-gradient {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.7) 100%);
+}
+
+/* Card hover effects */
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Button glow effects */
+.btn-glow {
   position: relative;
+  z-index: 1;
 }
 
-.family-circle-pattern::before {
-  content: "";
+.btn-glow::before {
+  content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80vw;
-  height: 80vw;
-  border-radius: 50%;
-  border: 20px dashed rgba(255, 255, 255, 0.2);
-  z-index: 0;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  border-radius: inherit;
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Tech Enthusiast - Grid, cyberpunk patterns */
-.tech-pattern-bg {
-  background-color: #6B38FB10;
-  background-image: linear-gradient(135deg, rgba(107, 56, 251, 0.05) 25%, transparent 25%, transparent 50%, rgba(107, 56, 251, 0.05) 50%, rgba(107, 56, 251, 0.05) 75%, transparent 75%, transparent);
-  background-size: 20px 20px;
+.btn-glow:hover::before {
+  opacity: 0.7;
 }
 
-.grid-tech-overlay {
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: center;
+/* Toyota specific backgrounds */
+.bg-toyota-pattern {
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cellipse cx='30' cy='30' rx='15' ry='8' fill='%23E50000' opacity='0.05'/%3E%3Cellipse cx='30' cy='30' rx='8' ry='15' fill='%23E50000' opacity='0.05'/%3E%3C/svg%3E");
+  background-size: 60px 60px;
 }
 
-.tech-text-glow {
-  text-shadow: 0 0 5px rgba(0, 212, 255, 0.5), 0 0 15px rgba(0, 212, 255, 0.3);
+/* Dynamic text shadow classes for each persona */
+.text-shadow-family {
+  text-shadow: 0 2px 10px rgba(74, 109, 167, 0.3);
 }
 
-/* Eco Warrior - Natural, organic patterns */
-.eco-pattern-bg {
-  background-color: #2E7D3210;
-  background-image: 
-    linear-gradient(to right, rgba(46, 125, 50, 0.03) 1px, transparent 1px), 
-    linear-gradient(to bottom, rgba(46, 125, 50, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
+.text-shadow-tech {
+  text-shadow: 0 2px 10px rgba(107, 56, 251, 0.3);
 }
 
-.eco-wave-pattern {
-  height: 100%;
-  width: 100%;
-  background-image: 
-    repeating-radial-gradient(circle at 50% 100%,
-      rgba(255,255,255,0.1) 0px,
-      rgba(255,255,255,0.2) 10px,
-      rgba(255,255,255,0.1) 20px);
-  animation: wave 8s infinite linear;
+.text-shadow-eco {
+  text-shadow: 0 2px 10px rgba(46, 125, 50, 0.3);
 }
 
-@keyframes wave {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 50px 0%;
-  }
+.text-shadow-urban {
+  text-shadow: 0 2px 10px rgba(69, 90, 100, 0.3);
 }
 
-/* Urban Explorer - City grid patterns */
-.urban-pattern-bg {
-  background-color: #455A6410;
-  background-image: radial-gradient(circle at 100% 100%, rgba(69, 90, 100, 0.08) 0, rgba(69, 90, 100, 0.08) 3px, transparent 0);
-  background-size: 20px 20px;
+.text-shadow-business {
+  text-shadow: 0 2px 10px rgba(38, 50, 56, 0.3);
 }
 
-/* Business Commuter - Minimal, professional patterns */
-.business-pattern-bg {
-  background-color: #26323810;
-  background-image: linear-gradient(to right, rgba(144, 164, 174, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Weekend Adventurer - Rugged, terrain patterns */
-.adventure-pattern-bg {
-  background-color: #BF360C10;
-  background-image: repeating-linear-gradient(45deg, rgba(255, 138, 101, 0.05), rgba(255, 138, 101, 0.05) 10px, transparent 10px, transparent 20px);
-}
-
-.adventure-terrain-pattern {
-  height: 100%;
-  width: 100%;
-  background-image: 
-    linear-gradient(0deg, rgba(255,255,255,0.1) 0%, transparent 20%),
-    linear-gradient(90deg, rgba(255,213,79,0.1) 0%, transparent 100%),
-    linear-gradient(135deg, rgba(255,138,101,0.05) 0%, transparent 100%);
-  background-size: 100% 100%, 50% 50%, 100% 100%;
-}
-
-/* Animation utilities */
-.animate-pulse-soft {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-/* Text shadow utilities */
-.text-shadow {
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.text-shadow-lg {
-  text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+.text-shadow-adventure {
+  text-shadow: 0 2px 10px rgba(191, 54, 12, 0.3);
 }

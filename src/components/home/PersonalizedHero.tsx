@@ -220,6 +220,33 @@ const PersonalizedHero: React.FC = () => {
           )}
         </motion.div>
         
+        {/* Toyota brand pattern overlay */}
+        <div className="absolute inset-0 z-[5] pointer-events-none">
+          <svg 
+            className="w-full h-full opacity-20"
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="none"
+          >
+            <pattern
+              id="toyotaPattern"
+              patternUnits="userSpaceOnUse"
+              width="30"
+              height="30"
+              patternTransform="rotate(45)"
+            >
+              <rect width="30" height="30" fill="none" />
+              <circle cx="15" cy="15" r="7" fill="rgba(255,255,255,0.5)" />
+              <path 
+                d="M15,0 A15,15 0 0,1 30,15 A15,15 0 0,1 15,30 A15,15 0 0,1 0,15 A15,15 0 0,1 15,0 z" 
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="0.5"
+                fill="none"
+              />
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#toyotaPattern)" />
+          </svg>
+        </div>
+        
         {/* Mobile scroll indicator */}
         {isMobile && !hasInteracted && (
           <motion.div 
@@ -433,6 +460,63 @@ const PersonalizedHero: React.FC = () => {
         
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-6">
           <div className="max-w-4xl mx-auto">
+            {/* Toyota logo branding */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1 }}
+              className="mb-6"
+            >
+              <div className="mx-auto w-20 h-20 relative">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="white"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray="0 6"
+                    strokeDashoffset="0"
+                    className="animate-spin-slow"
+                    style={{ animationDuration: '20s' }}
+                  />
+                </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 100 100"
+                  className="w-full h-full"
+                >
+                  <ellipse
+                    cx="50"
+                    cy="50"
+                    rx="22"
+                    ry="12"
+                    fill="white"
+                  />
+                  <ellipse
+                    cx="50"
+                    cy="50"
+                    rx="12"
+                    ry="22"
+                    fill="white"
+                  />
+                  <ellipse
+                    cx="50"
+                    cy="50"
+                    rx="30"
+                    ry="18"
+                    stroke="white"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            </motion.div>
+            
             {/* Main heading with persona-specific animation */}
             <motion.div {...animationProps}>
               <motion.h1 
@@ -470,11 +554,16 @@ const PersonalizedHero: React.FC = () => {
               transition={{ ...animationProps.transition, delay: 0.4 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="relative"
             >
+              <div className="absolute -inset-1 bg-white/30 blur-md rounded-full" />
               <Button
                 asChild
                 size="lg"
-                className={styles.button}
+                className={cn(
+                  styles.button,
+                  "relative z-10"
+                )}
                 style={{ 
                   backgroundColor: personaData.colorScheme.accent,
                   boxShadow: `0 10px 25px -5px ${personaData.colorScheme.accent}80` 
@@ -500,11 +589,37 @@ const PersonalizedHero: React.FC = () => {
                 className="mt-8"
               >
                 <span 
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-white/20 backdrop-blur-sm"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-white/20 backdrop-blur-sm border border-white/40"
                 >
                   <Star className="h-3 w-3 mr-1" />
                   <span>Personalized for {personaData.title}</span>
                 </span>
+              </motion.div>
+            )}
+
+            {/* Quick links ribbon */}
+            {animationComplete && personaData.quickLinks && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+                className="absolute bottom-8 left-0 right-0 flex justify-center"
+              >
+                <div className="px-4 py-3 bg-black/40 backdrop-blur-sm rounded-lg flex gap-4 overflow-x-auto max-w-xl">
+                  {personaData.quickLinks.slice(0, 4).map((link, index) => (
+                    <Button
+                      key={index}
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/20"
+                    >
+                      <Link to={link.href}>
+                        {link.title}
+                      </Link>
+                    </Button>
+                  ))}
+                </div>
               </motion.div>
             )}
 
