@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -146,7 +145,7 @@ const FamilyFirstHomepage: React.FC = () => {
                   <Card className="overflow-hidden rounded-2xl border-2 border-gray-100 shadow-md hover:shadow-lg transition-all duration-300">
                     <div className="relative">
                       <img 
-                        src={vehicle.images[0]} 
+                        src={vehicle.image} 
                         alt={vehicle.name}
                         className="w-full h-48 object-cover" 
                       />

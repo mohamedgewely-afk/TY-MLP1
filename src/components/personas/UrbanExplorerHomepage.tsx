@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -597,7 +596,7 @@ const UrbanVehicleCard: React.FC<UrbanVehicleCardProps> = ({ vehicle, index, isF
     >
       <div className="relative overflow-hidden">
         <img 
-          src={vehicle.images[0]} 
+          src={vehicle.image} 
           alt={vehicle.name}
           className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110" 
         />

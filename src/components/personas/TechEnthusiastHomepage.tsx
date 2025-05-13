@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -221,7 +220,7 @@ const TechEnthusiastHomepage: React.FC = () => {
           
           {loadingProgress < 100 ? (
             <div className="py-16 flex flex-col items-center">
-              <Progress value={loadingProgress} className="w-64 h-2 bg-gray-800" indicatorClassName="bg-[#6B38FB]" />
+              <Progress value={loadingProgress} className="w-64 h-2 bg-gray-800" />
               <p className="mt-4 font-mono text-gray-400">Loading vehicles... {loadingProgress}%</p>
             </div>
           ) : (
@@ -245,7 +244,7 @@ const TechEnthusiastHomepage: React.FC = () => {
                     <>
                       <div className="relative">
                         <img 
-                          src={vehicle.images[0]} 
+                          src={vehicle.image} 
                           alt={vehicle.name}
                           className="w-full h-48 object-cover"
                         />
@@ -340,7 +339,7 @@ const TechEnthusiastHomepage: React.FC = () => {
                     <>
                       <div className="relative w-36">
                         <img 
-                          src={vehicle.images[0]} 
+                          src={vehicle.image} 
                           alt={vehicle.name}
                           className="w-full h-full object-cover"
                         />
@@ -456,7 +455,7 @@ const TechEnthusiastHomepage: React.FC = () => {
                       return vehicle ? (
                         <div key={name} className="h-8 w-8 rounded-full overflow-hidden border-2 border-gray-950">
                           <img 
-                            src={vehicle.images[0]} 
+                            src={vehicle.image} 
                             alt={vehicle.name}
                             className="w-full h-full object-cover"
                           />

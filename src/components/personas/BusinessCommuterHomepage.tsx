@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -613,7 +612,7 @@ const BusinessVehicleCard: React.FC<BusinessVehicleCardProps> = ({ vehicle, inde
     >
       <div className="relative">
         <img 
-          src={vehicle.images[0]} 
+          src={vehicle.image} 
           alt={vehicle.name}
           className="w-full h-48 object-cover" 
         />
@@ -637,7 +636,7 @@ const BusinessVehicleCard: React.FC<BusinessVehicleCardProps> = ({ vehicle, inde
       <CardContent className="p-5">
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
           <h3 className="text-lg font-medium text-[#263238]">{vehicle.name}</h3>
-          <span className="text-sm bg-gray-50 border border-gray-200 px-2 py-1">{vehicle.year}</span>
+          <span className="text-xs text-gray-500">Latest Model</span>
         </div>
         
         <div className="mb-4">
