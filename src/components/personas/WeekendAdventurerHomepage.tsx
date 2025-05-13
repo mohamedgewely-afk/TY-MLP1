@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -699,7 +698,7 @@ const AdventureVehicleCard: React.FC<AdventureVehicleCardProps> = ({ vehicle, in
     >
       <div className="relative">
         <img 
-          src={vehicle.images[0]} 
+          src={vehicle.image} 
           alt={vehicle.name}
           className="w-full h-48 object-cover" 
         />
