@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { personas } from "@/data/personas";
 import { cn } from "@/lib/utils";
 import {
-  Family,
+  Users,
   Laptop,
   Leaf,
   Building,
@@ -29,7 +29,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
   const getPersonaIcon = (id: string) => {
     switch (id) {
       case "family-first":
-        return <Family className="h-6 w-6" />;
+        return <Users className="h-6 w-6" />; // Using Users icon instead of Family
       case "tech-enthusiast":
         return <Laptop className="h-6 w-6" />;
       case "eco-warrior":
@@ -45,7 +45,15 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
     }
   };
 
-  const cardColors = {
+  // Define card colors as a properly typed object
+  type PersonaId = "family-first" | "tech-enthusiast" | "eco-warrior" | "urban-explorer" | "business-commuter" | "weekend-adventurer";
+  
+  const cardColors: Record<PersonaId, {
+    bg: string;
+    hover: string;
+    light: string;
+    accent: string;
+  }> = {
     "family-first": {
       bg: "bg-persona-family-primary",
       hover: "bg-persona-family-primary/90",
@@ -85,7 +93,8 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
   };
 
   const handleSelectPersona = (personaId: string) => {
-    setSelectedPersona(personaId);
+    // Convert string to PersonaType before passing to setSelectedPersona
+    setSelectedPersona(personaId as PersonaId);
     onSelect();
   };
 
@@ -144,7 +153,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {personas.map((persona, index) => (
+          {Object.values(personas).map((persona, index) => (
             <motion.div
               key={persona.id}
               initial={{ opacity: 0, y: 20 }}
@@ -159,7 +168,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
                 <div 
                   className={cn(
                     "relative h-40 overflow-hidden",
-                    cardColors[persona.id]?.light
+                    cardColors[persona.id as PersonaId]?.light
                   )}
                 >
                   {/* Background pattern based on persona */}
@@ -263,7 +272,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
                     <div 
                       className={cn(
                         "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110",
-                        cardColors[persona.id]?.bg,
+                        cardColors[persona.id as PersonaId]?.bg,
                         "text-white",
                       )}
                     >
@@ -275,13 +284,13 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
                   <div 
                     className={cn(
                       "absolute -bottom-2 -left-2 w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-150",
-                      cardColors[persona.id]?.accent
+                      cardColors[persona.id as PersonaId]?.accent
                     )}
                   />
                   <div 
                     className={cn(
                       "absolute -top-2 -right-2 w-4 h-4 rounded-full transition-all duration-300 group-hover:scale-150",
-                      cardColors[persona.id]?.accent
+                      cardColors[persona.id as PersonaId]?.accent
                     )}
                   />
                 </div>
@@ -296,8 +305,8 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect }) => {
                     onClick={() => handleSelectPersona(persona.id)}
                     className={cn(
                       "w-full flex items-center justify-between transition-all",
-                      cardColors[persona.id]?.bg,
-                      cardColors[persona.id]?.hover
+                      cardColors[persona.id as PersonaId]?.bg,
+                      cardColors[persona.id as PersonaId]?.hover
                     )}
                   >
                     <span>Personalize For Me</span>
