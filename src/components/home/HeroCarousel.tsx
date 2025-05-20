@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,8 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [progressBar, setProgressBar] = useState(0);
   const isMobile = useIsMobile();
-  const progressInterval = useRef<number | null>(null);
+  // Fix: Change the type from number to NodeJS.Timeout
+  const progressInterval = useRef<NodeJS.Timeout | null>(null);
   
   // Handle swipe on mobile
   const handleTouchStart = (e: React.TouchEvent) => {
