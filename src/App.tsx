@@ -12,7 +12,6 @@ import TestDrive from "./pages/TestDrive";
 import Enquire from "./pages/Enquire";
 import NotFound from "./pages/NotFound";
 import PreOwned from "./pages/PreOwned";
-import "./styles/persona-patterns.css";
 
 // Create a ScrollToTop component to reset scroll position on route change
 const ScrollToTop = () => {
