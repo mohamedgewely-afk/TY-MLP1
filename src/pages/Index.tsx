@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -16,6 +17,7 @@ import PerformanceSection from "@/components/home/PerformanceSection";
 import PreOwnedSection from "@/components/home/PreOwnedSection";
 import OffersSection from "@/components/home/OffersSection";
 import FavoritesDrawer from "@/components/home/FavoritesDrawer";
+import VehicleRecommendations from "@/components/home/VehicleRecommendations";
 import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -25,13 +27,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Available categories for filtering
-const categories = ["All", "Hybrid", "Sedan", "SUV", "GR Performance", "Commercial"];
+const categories = ["All", "Hybrid", "Electric", "Hydrogen", "Sedan", "SUV", "GR Performance", "Commercial"];
 
 const Index = () => {
   // State management
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 200000]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 300000]);
   const [compareList, setCompareList] = useState<string[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleModel | null>(null);
   const [favoriteCount, setFavoriteCount] = useState(0);
@@ -40,10 +42,12 @@ const Index = () => {
   const [personaFilteredVehicles, setPersonaFilteredVehicles] = useState<VehicleModel[] | null>(null);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const initialLoadRef = useRef(false);
+  const [animateVehicles, setAnimateVehicles] = useState(false);
 
   // Custom section visibility states based on persona
   const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({
     showcase: true,
+    recommendations: false,
     performance: true,
     offers: true,
     lifestyle: true,
@@ -75,6 +79,7 @@ const Index = () => {
       
       const newVisibility: Record<string, boolean> = {
         showcase: true,
+        recommendations: true, // Show recommendations when a persona is selected
         performance: personaData.highlightedSections.includes("performance"),
         offers: true,
         lifestyle: personaData.highlightedSections.includes("lifestyle") || 
@@ -97,16 +102,24 @@ const Index = () => {
       } else if (personaData.id === "weekend-adventurer") {
         setSelectedCategory("SUV");
       }
+
+      // Start vehicle animation sequence after persona selection
+      setTimeout(() => {
+        setAnimateVehicles(true);
+      }, 500);
+      
     } else {
       // Reset to all sections visible
       setVisibleSections({
         showcase: true,
+        recommendations: false,
         performance: true,
         offers: true,
         lifestyle: true,
         preOwned: true
       });
       setSelectedCategory("All");
+      setAnimateVehicles(false);
     }
   }, [personaData]);
 
@@ -208,15 +221,18 @@ const Index = () => {
       )}
 
       {/* Top Actions Bar with Persona-specific styling */}
-      <div 
+      <motion.div 
         className={cn(
-          "shadow-sm z-20 relative",
+          "shadow-sm z-20 sticky top-0",
           personaData ? "bg-opacity-95 backdrop-blur-sm" : "",
         )}
         style={personaData ? { 
           backgroundColor: `${personaData.colorScheme.primary}10`,
           borderBottom: `1px solid ${personaData.colorScheme.primary}20`
         } : {}}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
       >
         <div className="toyota-container py-4 flex justify-between items-center">
           <div className="text-sm flex items-center">
@@ -231,14 +247,18 @@ const Index = () => {
             </span>
             
             {personaData && (
-              <span className="ml-2 text-xs bg-opacity-20 px-2 py-0.5 rounded-full"
+              <motion.span 
+                className="ml-2 text-xs bg-opacity-20 px-2 py-0.5 rounded-full"
                 style={{ 
                   backgroundColor: personaData.colorScheme.primary,
                   color: personaData.colorScheme.primary 
                 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
               >
                 Personalized for you
-              </span>
+              </motion.span>
             )}
           </div>
           
@@ -277,19 +297,22 @@ const Index = () => {
                   } : {}} />
                   <span>Favorites</span>
                   {favoriteCount > 0 && (
-                    <span 
+                    <motion.span 
                       className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
                       style={{ backgroundColor: personaData ? personaData.colorScheme.accent : 'var(--toyota-red)' }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
                       {favoriteCount}
-                    </span>
+                    </motion.span>
                   )}
                 </Button>
               }
             />
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Category Filter */}
       <AnimatePresence>
@@ -313,6 +336,14 @@ const Index = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Personalized Recommendations */}
+      {visibleSections.recommendations && personaData && (
+        <VehicleRecommendations 
+          personaData={personaData} 
+          vehicles={vehicles} 
+        />
+      )}
 
       {/* Vehicle Showcase with Persona-specific styling */}
       {visibleSections.showcase && (

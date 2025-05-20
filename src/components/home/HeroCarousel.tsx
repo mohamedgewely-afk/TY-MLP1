@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Play, Pause } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -24,7 +24,10 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progressBar, setProgressBar] = useState(0);
   const isMobile = useIsMobile();
+  const progressInterval = useRef<number | null>(null);
   
   // Handle swipe on mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -38,22 +41,42 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
   const handleTouchEnd = () => {
     if (touchStart - touchEnd > 75) {
       // Swipe left
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+      nextSlide();
     }
     
     if (touchStart - touchEnd < -75) {
       // Swipe right
-      setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+      prevSlide();
     }
   };
 
-  // Auto-advance slides
+  // Reset progress bar when slide changes or when paused/resumed
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [slides.length]);
+    setProgressBar(0);
+    if (progressInterval.current) {
+      clearInterval(progressInterval.current);
+      progressInterval.current = null;
+    }
+    
+    if (!isPaused) {
+      const interval = setInterval(() => {
+        setProgressBar((prev) => {
+          if (prev >= 100) {
+            nextSlide();
+            return 0;
+          }
+          return prev + 0.4; // 100% over 6 seconds (approximately)
+        });
+      }, 25);
+      progressInterval.current = interval;
+    }
+    
+    return () => {
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+      }
+    };
+  }, [currentSlide, isPaused]);
 
   // Navigate to next slide
   const nextSlide = () => {
@@ -63,6 +86,10 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
   // Navigate to previous slide
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  };
+
+  const togglePause = () => {
+    setIsPaused(!isPaused);
   };
 
   return (
@@ -134,11 +161,13 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Button
                   asChild
                   size="lg"
-                  className="bg-toyota-red hover:bg-toyota-darkred text-white rounded-full shadow-lg transform transition-all duration-300 hover:scale-105"
+                  className="bg-toyota-red hover:bg-toyota-darkred text-white rounded-full shadow-lg transform transition-all"
                 >
                   <Link to={slides[currentSlide].ctaLink} className="flex items-center gap-2 px-6 py-6 text-base sm:text-lg">
                     {slides[currentSlide].ctaText}
@@ -170,25 +199,59 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
             ))}
           </motion.div>
 
+          {/* Progress bar */}
+          <div className="absolute bottom-20 left-0 right-0 z-30 flex justify-center">
+            <div className="w-[200px] h-1 bg-white/30 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-toyota-red"
+                style={{ width: `${progressBar}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Control buttons */}
+          <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center space-x-3">
+            <button
+              onClick={togglePause}
+              className="bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
+              aria-label={isPaused ? "Resume slideshow" : "Pause slideshow"}
+            >
+              {isPaused ? (
+                <Play className="h-4 w-4 fill-white" />
+              ) : (
+                <Pause className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+
           {/* Navigation arrows - hidden on mobile, visible on larger screens */}
           {!isMobile && (
             <>
-              <button 
+              <motion.button 
                 onClick={prevSlide}
                 className="absolute left-4 top-1/2 z-30 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
                 aria-label="Previous slide"
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronLeft className="h-6 w-6" />
-              </button>
-              <button 
+              </motion.button>
+              <motion.button 
                 onClick={nextSlide}
                 className="absolute right-4 top-1/2 z-30 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
                 aria-label="Next slide"
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronRight className="h-6 w-6" />
-              </button>
+              </motion.button>
             </>
           )}
+
+          {/* Slide counter */}
+          <div className="absolute top-4 right-4 z-30 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm">
+            {currentSlide + 1} / {slides.length}
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>

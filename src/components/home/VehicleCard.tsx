@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Info, Heart, RotateCw, Check, Sparkles, Fuel, Shield } from "lucide-react";
+import { Info, Heart, RotateCw, Check, Sparkles, Fuel, Shield, Award } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
+import { useToast } from "@/hooks/use-toast";
 
 interface VehicleCardProps {
   vehicle: VehicleModel;
@@ -13,6 +15,7 @@ interface VehicleCardProps {
   isCompared: boolean;
   onQuickView: (vehicle: VehicleModel) => void;
   actionButtons?: React.ReactNode;
+  delay?: number;
 }
 
 const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -21,9 +24,12 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
   isCompared,
   onQuickView,
   actionButtons,
+  delay = 0
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -53,9 +59,17 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
     if (isFavorite) {
       const newFavorites = favorites.filter((name: string) => name !== vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      toast({
+        title: "Removed from favorites",
+        description: `${vehicle.name} has been removed from your favorites.`,
+      });
     } else {
       favorites.push(vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(favorites));
+      toast({
+        title: "Added to favorites",
+        description: `${vehicle.name} has been added to your favorites.`,
+      });
     }
     
     setIsFavorite(!isFavorite);
@@ -72,10 +86,23 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
     },
   };
 
-  const vehicleSlug = vehicle.name.toLowerCase().replace(/\s+/g, '-');
+  const vehicleSlug = vehicle.id || vehicle.name.toLowerCase().replace(/\s+/g, '-');
+
+  const isBestSeller = 
+    vehicle.name === "Toyota Camry" || 
+    vehicle.name === "Toyota Corolla Hybrid" || 
+    vehicle.name === "Toyota Land Cruiser" || 
+    vehicle.name === "Toyota RAV4 Hybrid";
 
   return (
-    <div className="relative h-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: delay * 0.1 }}
+      className="relative h-full"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       <motion.div
         className="h-full preserve-3d cursor-pointer"
         initial="front"
@@ -84,26 +111,45 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
         transition={{ duration: 0.6, type: "spring", stiffness: 300, damping: 20 }}
         style={{ perspective: 1000 }}
       >
-        <Card className={`h-full backface-hidden rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 ${isFlipped ? "opacity-0" : "opacity-100"}`}>
+        <Card className={`h-full backface-hidden rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 ${isFlipped ? "opacity-0" : "opacity-100"} overflow-hidden`}>
           <div className="relative h-48 overflow-hidden rounded-t-xl">
-            <img
+            <motion.img
               src={vehicle.image}
               alt={vehicle.name}
-              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover"
+              animate={{ 
+                scale: isHovering ? 1.05 : 1
+              }}
+              transition={{ duration: 0.5 }}
             />
             <Badge
-              className="absolute top-3 left-3 bg-toyota-red text-white border-none"
+              className={`absolute top-3 left-3 border-none ${
+                vehicle.category === "Hybrid" ? "bg-green-600" :
+                vehicle.category === "Electric" ? "bg-blue-600" :
+                vehicle.category === "GR Performance" ? "bg-red-600" :
+                "bg-toyota-red"
+              }`}
               variant="default"
             >
               {vehicle.category}
             </Badge>
-            <button
+            
+            {isBestSeller && (
+              <div className="absolute top-3 right-12 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                <Award className="h-3 w-3 mr-1" />
+                Best Seller
+              </div>
+            )}
+
+            <motion.button
               onClick={handleFavoriteToggle}
               className={`absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm
                 ${isFavorite ? "text-red-500" : "text-gray-500"}`}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
               <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
-            </button>
+            </motion.button>
           </div>
 
           <CardContent className="p-5">
@@ -128,31 +174,35 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={handleFlip}
-              >
-                <Info className="h-4 w-4 mr-1" /> Details
-              </Button>
-              <Button
-                variant={isCompared ? "default" : "secondary"}
-                size="sm"
-                className={`flex-1 ${isCompared ? "bg-toyota-red hover:bg-toyota-darkred" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCompare(vehicle);
-                }}
-              >
-                {isCompared ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1" /> Compared
-                  </>
-                ) : (
-                  "Compare"
-                )}
-              </Button>
+              <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleFlip}
+                >
+                  <Info className="h-4 w-4 mr-1" /> Details
+                </Button>
+              </motion.div>
+              <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  variant={isCompared ? "default" : "secondary"}
+                  size="sm"
+                  className={`w-full ${isCompared ? "bg-toyota-red hover:bg-toyota-darkred" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCompare(vehicle);
+                  }}
+                >
+                  {isCompared ? (
+                    <>
+                      <Check className="h-4 w-4 mr-1" /> Compared
+                    </>
+                  ) : (
+                    "Compare"
+                  )}
+                </Button>
+              </motion.div>
             </div>
 
             {actionButtons}
@@ -203,28 +253,32 @@ const VehicleCard: React.FC<VehicleCardProps> = ({
             </div>
 
             <div className="mt-auto flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={handleFlip}
-              >
-                <RotateCw className="h-4 w-4 mr-1" /> Back
-              </Button>
-              <Link to={`/vehicle/${vehicleSlug}`} className="flex-1">
+              <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Button
-                  variant="default"
+                  variant="outline"
                   size="sm"
-                  className="w-full bg-toyota-red hover:bg-toyota-darkred"
+                  className="w-full"
+                  onClick={handleFlip}
                 >
-                  View Details
+                  <RotateCw className="h-4 w-4 mr-1" /> Back
                 </Button>
-              </Link>
+              </motion.div>
+              <motion.div className="flex-1" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link to={`/vehicle/${vehicleSlug}`} className="w-full">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full bg-toyota-red hover:bg-toyota-darkred"
+                  >
+                    View Details
+                  </Button>
+                </Link>
+              </motion.div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
