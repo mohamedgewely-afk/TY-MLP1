@@ -1,7 +1,8 @@
+
 import React from "react";
 import { usePersona } from "@/contexts/PersonaContext";
 import PersonaSelector from "@/components/home/PersonaSelector";
-import { PersonalizedHero } from "@/components/home/PersonalizedHero";
+import PersonalizedHero from "@/components/home/PersonalizedHero";
 import QuickLinks from "@/components/home/QuickLinks";
 import PersonaBadge from "@/components/home/PersonaBadge";
 import PersonaHomePage from "@/components/home/PersonaHomePage";
