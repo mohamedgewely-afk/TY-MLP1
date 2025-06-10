@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
-import { ChevronLeft, Calendar, Fuel, Shield, Heart, Share2, Download, Settings, ChevronRight, Car, PencilRuler, Tag, MapPin, Play, Pause, Volume2, VolumeX, Zap, Leaf, Award, Users, Star, ArrowRight, Check, Clock, Globe, Smartphone } from "lucide-react";
+import { ChevronLeft, Calendar, Fuel, Shield, Heart, Share2, Download, Settings, ChevronRight, Car, PencilRuler, Tag, MapPin, Play, Pause, Volume2, VolumeX, Zap, Leaf, Award, Users, Star, ArrowRight, Check, Clock, Globe, Smartphone, Sparkles, Layers, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,9 +18,9 @@ import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
 import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
 import RelatedVehicles from "@/components/vehicle-details/RelatedVehicles";
 import TechnologyShowcase from "@/components/vehicle-details/TechnologyShowcase";
-import ConfigureVehicle from "@/components/vehicle-details/ConfigureVehicle";
-import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import LifestyleGallery from "@/components/vehicle-details/LifestyleGallery";
+import CarBuilder from "@/components/vehicle-details/CarBuilder";
+import OffersSection from "@/components/home/OffersSection";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -28,10 +29,11 @@ const VehicleDetails = () => {
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
-  const [isConfigureOpen, setIsConfigureOpen] = useState(false);
+  const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [activeSection, setActiveSection] = useState("hero");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const { toast } = useToast();
   const { personaData } = usePersona();
   const navigate = useNavigate();
@@ -63,13 +65,14 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Mock gallery images for demonstration
+  // Futuristic gallery images
   const galleryImages = [
     vehicle?.image || "/placeholder.svg",
-    "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800",
-    "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800",
-    "https://images.unsplash.com/photo-1493238792000-8113da705763?w=800",
-    "https://images.unsplash.com/photo-1502161254066-6c74afbf07aa?w=800"
+    "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800", // Futuristic robot
+    "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800", // Matrix-like tech
+    "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=800", // Code visualization
+    "https://images.unsplash.com/photo-1439337153520-7082a56a81f4?w=800", // Glass architecture
+    "https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=800"  // Modern architecture
   ];
 
   // Auto-rotate gallery images
@@ -82,6 +85,30 @@ const VehicleDetails = () => {
     
     return () => clearInterval(interval);
   }, [isHeroInView, galleryImages.length]);
+
+  // Touch handlers for swipe functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    }
+    if (isRightSwipe) {
+      setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    }
+  };
 
   const toggleFavorite = () => {
     if (!vehicle) return;
@@ -145,105 +172,139 @@ const VehicleDetails = () => {
   return (
     <ToyotaLayout>
       <div className="relative overflow-hidden">
-        {/* Hero Section with Split Layout */}
-        <section className="relative min-h-screen bg-gradient-to-br from-gray-50 to-white overflow-hidden">
-          {/* Floating particles animation */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(15)].map((_, i) => (
+        {/* Futuristic Hero Section */}
+        <section className="relative min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-black overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0">
+            {/* Grid pattern */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="grid grid-cols-20 grid-rows-20 h-full w-full">
+                {Array.from({ length: 400 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="border-blue-400 border-r border-b border-opacity-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 0.3, 0] }}
+                    transition={{
+                      duration: 3,
+                      delay: Math.random() * 2,
+                      repeat: Infinity
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* Floating particles */}
+            {[...Array(30)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 bg-toyota-red/20 rounded-full"
+                className="absolute w-1 h-1 bg-blue-400 rounded-full"
                 initial={{ 
                   x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
                   y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
                   opacity: 0
                 }}
                 animate={{ 
-                  y: [null, -50],
-                  opacity: [0, 0.6, 0]
+                  y: [null, -100],
+                  opacity: [0, 1, 0],
+                  scale: [1, 1.5, 1]
                 }}
                 transition={{
-                  duration: 4 + Math.random() * 2,
+                  duration: 6 + Math.random() * 4,
                   repeat: Infinity,
-                  delay: Math.random() * 3
+                  delay: Math.random() * 5
                 }}
               />
             ))}
+            
+            {/* Scanning lines */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-10"
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
           </div>
 
-          <div className="toyota-container h-screen flex flex-col justify-center">
+          <div className="toyota-container h-screen flex flex-col justify-center relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
-                className="space-y-8"
+                className="space-y-8 text-white"
               >
                 {/* Breadcrumb */}
                 <motion.div 
-                  className="flex items-center space-x-2 text-sm text-gray-500"
+                  className="flex items-center space-x-2 text-sm text-blue-300"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Link to="/" className="hover:text-toyota-red transition-colors">Home</Link>
+                  <Link to="/" className="hover:text-blue-100 transition-colors">Home</Link>
                   <ChevronRight className="h-4 w-4" />
-                  <Link to="/" className="hover:text-toyota-red transition-colors">Vehicles</Link>
+                  <Link to="/" className="hover:text-blue-100 transition-colors">Vehicles</Link>
                   <ChevronRight className="h-4 w-4" />
-                  <span className="text-gray-900">{vehicle.name}</span>
+                  <span className="text-white">{vehicle.name}</span>
                 </motion.div>
 
-                {/* Badges */}
+                {/* Futuristic badges */}
                 <motion.div 
                   className="flex flex-wrap gap-3"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Badge className="bg-toyota-red hover:bg-toyota-red text-white px-4 py-2">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 border border-blue-400">
+                    <Sparkles className="h-4 w-4 mr-1" />
                     {vehicle.category}
                   </Badge>
                   {isBestSeller && (
-                    <Badge className="bg-amber-500 hover:bg-amber-500 text-white px-4 py-2">
+                    <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 border border-yellow-400">
                       <Award className="h-4 w-4 mr-1" />
                       Best Seller
                     </Badge>
                   )}
-                  <Badge className="bg-green-600 hover:bg-green-600 text-white px-4 py-2">
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 border border-green-400">
                     <Leaf className="h-4 w-4 mr-1" />
-                    Hybrid
+                    Hybrid Tech
                   </Badge>
                 </motion.div>
 
-                {/* Title */}
+                {/* Title with futuristic styling */}
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 leading-tight">
+                  <h1 className="text-5xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 leading-tight">
                     {vehicle.name}
                   </h1>
-                  <p className="text-xl text-gray-600 mt-4 leading-relaxed">
-                    Experience the future of sustainable driving with cutting-edge hybrid technology and innovative design.
+                  <p className="text-xl text-blue-100 mt-4 leading-relaxed">
+                    Experience the future of sustainable driving with cutting-edge hybrid technology and revolutionary design.
                   </p>
                 </motion.div>
 
-                {/* Price */}
+                {/* Price with holographic effect */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.5 }}
                   className="flex items-baseline space-x-4"
                 >
-                  <span className="text-4xl font-bold text-toyota-red">
+                  <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200">
                     AED {vehicle.price.toLocaleString()}
                   </span>
-                  <span className="text-gray-500 line-through text-xl">
+                  <span className="text-blue-300 line-through text-xl">
                     AED {Math.round(vehicle.price * 1.15).toLocaleString()}
                   </span>
-                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-400 text-white border border-green-400">
                     Save 15%
                   </Badge>
                 </motion.div>
@@ -258,7 +319,7 @@ const VehicleDetails = () => {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button 
                       size="lg" 
-                      className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4 text-lg rounded-xl shadow-lg w-full sm:w-auto"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg rounded-xl shadow-lg border border-blue-500 w-full sm:w-auto"
                       onClick={() => setIsBookingOpen(true)}
                     >
                       <Car className="h-5 w-5 mr-2" />
@@ -270,10 +331,10 @@ const VehicleDetails = () => {
                     <Button 
                       variant="outline" 
                       size="lg"
-                      className="border-2 border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4 text-lg rounded-xl w-full sm:w-auto"
-                      onClick={() => setIsConfigureOpen(true)}
+                      className="border-2 border-blue-400 text-blue-300 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg rounded-xl w-full sm:w-auto bg-transparent"
+                      onClick={() => setIsCarBuilderOpen(true)}
                     >
-                      <PencilRuler className="h-5 w-5 mr-2" />
+                      <Settings className="h-5 w-5 mr-2" />
                       Configure & Price
                     </Button>
                   </motion.div>
@@ -283,56 +344,37 @@ const VehicleDetails = () => {
                       variant="outline" 
                       size="lg"
                       onClick={toggleFavorite}
-                      className={`p-4 rounded-xl border-2 ${isFavorite ? "border-toyota-red text-toyota-red bg-red-50" : "border-gray-300"}`}
+                      className={`p-4 rounded-xl border-2 bg-transparent ${isFavorite ? "border-blue-400 text-blue-400 bg-blue-900/20" : "border-blue-400 text-blue-300"}`}
                     >
                       <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
                     </Button>
                   </motion.div>
                 </motion.div>
-
-                {/* Quick Stats */}
-                <motion.div 
-                  className="grid grid-cols-2 gap-4 pt-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Fuel className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">25+</p>
-                      <p className="text-sm text-gray-600">km/L</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Shield className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">5</p>
-                      <p className="text-sm text-gray-600">Star Safety</p>
-                    </div>
-                  </div>
-                </motion.div>
               </motion.div>
 
-              {/* Right Image Gallery */}
+              {/* Right Futuristic Image Gallery */}
               <motion.div
                 ref={heroImageRef}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="relative"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               >
-                <div className="relative h-96 lg:h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 shadow-2xl">
+                <div className="relative h-96 lg:h-[600px] rounded-3xl overflow-hidden border border-blue-400 shadow-2xl shadow-blue-500/20">
+                  {/* Holographic border effect */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 via-transparent to-blue-400 p-[2px]">
+                    <div className="h-full w-full rounded-3xl bg-black" />
+                  </div>
+                  
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentImageIndex}
                       src={galleryImages[currentImageIndex]}
                       alt={vehicle.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-3xl"
                       initial={{ opacity: 0, scale: 1.1 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
@@ -340,29 +382,41 @@ const VehicleDetails = () => {
                     />
                   </AnimatePresence>
                   
+                  {/* Scanning overlay */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-b from-blue-400/20 via-transparent to-blue-400/20"
+                    initial={{ y: "-100%" }}
+                    animate={{ y: "100%" }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                  />
+                  
                   {/* Image indicators */}
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
                     {galleryImages.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`w-3 h-3 rounded-full transition-all ${
+                        className={`w-3 h-3 rounded-full transition-all border ${
                           index === currentImageIndex 
-                            ? "bg-white shadow-lg scale-125" 
-                            : "bg-white/50 hover:bg-white/75"
+                            ? "bg-blue-400 border-blue-300 shadow-lg scale-125" 
+                            : "bg-transparent border-blue-400 hover:bg-blue-400/50"
                         }`}
                       />
                     ))}
                   </div>
 
-                  {/* Floating price badge */}
+                  {/* Floating price badge with glow */}
                   <motion.div
-                    className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg"
+                    className="absolute top-6 right-6 bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-400 shadow-lg shadow-blue-400/20"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1 }}
                   >
-                    <span className="text-toyota-red font-bold">From AED {vehicle.price.toLocaleString()}</span>
+                    <span className="text-blue-300 font-bold">From AED {vehicle.price.toLocaleString()}</span>
                   </motion.div>
                 </div>
               </motion.div>
@@ -379,9 +433,9 @@ const VehicleDetails = () => {
             <motion.div
               animate={{ y: [0, 8, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="flex flex-col items-center text-gray-400"
+              className="flex flex-col items-center text-blue-300"
             >
-              <span className="text-sm mb-2">Discover more</span>
+              <span className="text-sm mb-2">Discover Future</span>
               <ChevronRight className="h-5 w-5 rotate-90" />
             </motion.div>
           </motion.div>
@@ -518,7 +572,7 @@ const VehicleDetails = () => {
                 transition={{ delay: 0.2 }}
                 whileHover={{ scale: 1.02 }}
                 className="group cursor-pointer"
-                onClick={() => setIsConfigureOpen(true)}
+                onClick={() => setIsCarBuilderOpen(true)}
               >
                 <Card className="h-full overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-green-600 to-green-700">
                   <CardContent className="p-8 text-white relative overflow-hidden">
@@ -542,6 +596,9 @@ const VehicleDetails = () => {
             </div>
           </div>
         </section>
+
+        {/* Offers Section */}
+        <OffersSection />
 
         {/* Technology & Safety Section */}
         <section className="py-20 bg-white">
@@ -587,11 +644,11 @@ const VehicleDetails = () => {
               <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   variant="outline"
-                  onClick={() => setIsFinanceOpen(true)}
+                  onClick={() => setIsCarBuilderOpen(true)}
                   className="w-full border-2 border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white rounded-xl py-3"
                 >
-                  <Tag className="h-4 w-4 mr-2" />
-                  Finance
+                  <Settings className="h-4 w-4 mr-2" />
+                  Build
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -622,14 +679,11 @@ const VehicleDetails = () => {
         vehicle={vehicle} 
       />
 
-      <Dialog open={isConfigureOpen} onOpenChange={setIsConfigureOpen}>
-        <DialogContent className="max-w-4xl p-0">
-          <ConfigureVehicle 
-            vehicle={vehicle}
-            onClose={() => setIsConfigureOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <CarBuilder 
+        isOpen={isCarBuilderOpen} 
+        onClose={() => setIsCarBuilderOpen(false)} 
+        vehicle={vehicle} 
+      />
     </ToyotaLayout>
   );
 };
