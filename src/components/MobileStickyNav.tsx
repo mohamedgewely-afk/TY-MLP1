@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone } from "lucide-react";
+import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,13 +12,13 @@ import {
   CarouselItem, 
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface MobileStickyNavProps {
   activeItem?: string;
   onMenuToggle?: () => void;
 }
 
-// Categories for vehicle filtering
 const vehicleCategories = [
   { id: "all", name: "All", icon: <Car className="h-6 w-6" /> },
   { id: "sedan", name: "Sedan", icon: <Car className="h-6 w-6" /> },
@@ -33,11 +33,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   onMenuToggle 
 }) => {
   const isMobile = useIsMobile();
-  const [expanded, setExpanded] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   
-  // Quick action cards data - Updated with more context-aware actions
   const quickActionCards = [
     {
       id: "test-drive",
@@ -69,104 +68,115 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     },
   ];
 
-  // Filter vehicles based on selected category
   const filteredVehicles = vehicles.filter(vehicle => 
     selectedCategory === "all" || vehicle.category.toLowerCase() === selectedCategory
-  ).slice(0, 8); // Limit to 8 vehicles for performance
+  ).slice(0, 8);
   
-  // Handle sections for expanded nav
   const handleSectionToggle = (section: string) => {
     if (activeSection === section) {
       setActiveSection(null);
     } else {
       setActiveSection(section);
-      setExpanded(true);
+      setIsMenuOpen(true);
     }
   };
 
-  // Close expanded section when clicking a category
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId);
   };
-  
-  if (!isMobile) return null;
 
-  const handleToggleExpanded = () => {
-    if (!expanded) {
-      setExpanded(true);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+    if (!isMenuOpen) {
       setActiveSection("quick-actions");
-    } else if (!activeSection) {
-      setExpanded(false);
     } else {
       setActiveSection(null);
     }
   };
+  
+  if (!isMobile) return null;
 
   return (
     <>
-      {/* Main Sticky Nav */}
-      <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg z-50 pt-2 pb-6 md:hidden"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      >
-        {/* Expandable Card Area */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden"
-            >
+      {/* Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sliding Menu from Bottom */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="fixed bottom-20 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl z-50 max-h-[70vh] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-bold text-lg">Quick Access</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[calc(70vh-80px)]">
               {/* Quick Actions Section */}
               {activeSection === "quick-actions" && (
-                <div className="px-4 pb-4">
-                  <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h3>
-                  <Carousel
-                    opts={{ align: "start" }}
+                <div className="p-4">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {quickActionCards.map((card) => (
+                      <Link key={card.id} to={card.link} onClick={() => setIsMenuOpen(false)}>
+                        <Card className={cn("h-24", card.color)}>
+                          <CardContent className="flex items-center justify-center h-full p-4">
+                            <div className="text-center">
+                              <div className="flex justify-center mb-2">
+                                {card.icon}
+                              </div>
+                              <h3 className="font-medium text-sm">{card.title}</h3>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
                     className="w-full"
+                    onClick={() => setActiveSection("models")}
                   >
-                    <CarouselContent>
-                      {quickActionCards.map((card) => (
-                        <CarouselItem key={card.id} className="basis-1/2 md:basis-1/3 pl-4">
-                          <Link to={card.link}>
-                            <Card className={cn("h-24", card.color)}>
-                              <CardContent className="flex items-center justify-center h-full p-4">
-                                <div className="text-center">
-                                  <div className="flex justify-center mb-2">
-                                    {card.icon}
-                                  </div>
-                                  <h3 className="font-medium">{card.title}</h3>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </Link>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
+                    Browse All Models
+                  </Button>
                 </div>
               )}
 
-              {/* Models Section - Shows when "Models" is clicked */}
+              {/* Models Section */}
               {activeSection === "models" && (
-                <div className="px-4 pb-4">
-                  {/* Categories Filter */}
+                <div className="p-4">
                   <div className="mb-4">
-                    <Carousel
-                      opts={{ align: "start" }}
-                      className="w-full"
-                    >
+                    <Carousel opts={{ align: "start" }} className="w-full">
                       <CarouselContent>
                         {vehicleCategories.map((category) => (
                           <CarouselItem key={category.id} className="basis-auto pl-4 first:pl-4">
                             <button
                               onClick={() => handleCategoryClick(category.id)}
                               className={cn(
-                                "flex flex-col items-center justify-center p-2 rounded-lg transition-colors",
+                                "flex flex-col items-center justify-center p-3 rounded-lg transition-colors",
                                 selectedCategory === category.id 
                                   ? "bg-toyota-red text-white" 
                                   : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
@@ -181,15 +191,14 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                     </Carousel>
                   </div>
 
-                  {/* Vehicle Cards */}
-                  <Carousel
-                    opts={{ align: "start" }}
-                    className="w-full"
-                  >
+                  <Carousel opts={{ align: "start" }} className="w-full">
                     <CarouselContent>
                       {filteredVehicles.map((vehicle) => (
-                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4"> {/* Use vehicle.name as key instead of id */}
-                          <Link to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase())}`}>
+                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
+                          <Link 
+                            to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase())}`}
+                            onClick={() => setIsMenuOpen(false)}
+                          >
                             <Card className="overflow-hidden">
                               <div className="aspect-[16/9] w-full bg-gray-100 dark:bg-gray-800">
                                 {vehicle.image && (
@@ -209,7 +218,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                                   <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                                     {vehicle.category}
                                   </span>
-                                  <button className="text-toyota-red text-xs font-medium">View</button>
+                                  <span className="text-toyota-red text-xs font-medium">View</span>
                                 </div>
                               </CardContent>
                             </Card>
@@ -219,10 +228,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                     </CarouselContent>
                   </Carousel>
 
-                  <div className="mt-3 flex justify-center">
+                  <div className="mt-4 flex justify-center">
                     <Link 
                       to={`/new-cars${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
                       className="text-sm text-toyota-red font-medium flex items-center"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       View All {selectedCategory !== 'all' ? vehicleCategories.find(c => c.id === selectedCategory)?.name : ''} Models
                       <ChevronRight className="ml-1 h-4 w-4" />
@@ -230,30 +240,19 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   </div>
                 </div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Toggle Button */}
-        <div className="flex justify-center mb-2">
-          <button
-            onClick={handleToggleExpanded}
-            className="rounded-full bg-gray-200 dark:bg-gray-800 p-1 flex items-center justify-center"
-          >
-            {expanded ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-gray-500">
-                <path d="m6 9 6 6 6-6"/>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-gray-500">
-                <path d="m18 15-6-6-6 6"/>
-              </svg>
-            )}
-          </button>
-        </div>
-
-        {/* Main Navigation */}
-        <div className="grid grid-cols-5 gap-1">
+      {/* Main Sticky Nav */}
+      <motion.div 
+        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg z-30 pt-2 pb-6 md:hidden"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      >
+        <div className="grid grid-cols-5 gap-1 px-2">
           <NavItem 
             icon={<Home className="h-6 w-6" />}
             label="Home"
@@ -270,7 +269,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             icon={<Car className="h-6 w-6" />}
             label="Models"
             to="#"
-            onClick={() => handleSectionToggle("models")}
+            onClick={() => {
+              setActiveSection("models");
+              toggleMenu();
+            }}
             isActive={activeItem === "models" || activeSection === "models"}
           />
           <NavItem 
@@ -283,19 +285,17 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             icon={<Menu className="h-6 w-6" />}
             label="Menu"
             to="#"
-            onClick={onMenuToggle}
-            isActive={activeItem === "menu"}
+            onClick={toggleMenu}
+            isActive={isMenuOpen}
           />
         </div>
 
-        {/* Safe area for iOS devices */}
         <div className="h-6 bg-white dark:bg-gray-900 pb-safe-area-inset-bottom" />
       </motion.div>
     </>
   );
 };
 
-// NavItem Component - Keep this the same
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
