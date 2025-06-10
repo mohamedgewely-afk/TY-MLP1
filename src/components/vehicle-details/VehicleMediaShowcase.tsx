@@ -1,25 +1,60 @@
 
-import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video as VideoIcon, CircleChevronLeft, CircleChevronRight } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video as VideoIcon, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-// Define media item types for better type safety
+// Enhanced media item types
 interface MediaItem {
-  type: "image" | "video";
+  type: "image" | "video" | "360";
   url: string;
   thumbnail?: string;
+  title?: string;
+  description?: string;
 }
 
-// Enhanced media gallery with better real-world visuals
+// Premium Toyota media gallery with real images
 const defaultMedia: MediaItem[] = [
-  { type: "image", url: "https://di-uploads-pod34.dealerinspire.com/toyotaofnorthcharlotte/uploads/2023/11/2024-toyota-camry-hybrid-xse-platinum-white-pearl-front-three-quarter-view.jpg" },
-  { type: "image", url: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg" },
-  { type: "image", url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg" },
-  { type: "image", url: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2018/03/2018_Toyota_Camry_XSE_21_697238F73E9357A92C5B4C81E4E13233D9628987-1500x844.jpg" },
-  { type: "video", url: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg" },
-  { type: "video", url: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg" },
+  { 
+    type: "image", 
+    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
+    title: "Exterior Profile",
+    description: "Aerodynamic design meets premium styling"
+  },
+  { 
+    type: "image", 
+    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
+    title: "Interior Luxury",
+    description: "Sophisticated cabin with premium materials"
+  },
+  { 
+    type: "image", 
+    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-b.jpg",
+    title: "Technology Hub",
+    description: "Advanced infotainment and connectivity"
+  },
+  { 
+    type: "image", 
+    url: "https://di-uploads-pod34.dealerinspire.com/toyotaofnorthcharlotte/uploads/2023/11/2024-toyota-camry-hybrid-xse-platinum-white-pearl-front-three-quarter-view.jpg",
+    title: "Hybrid Performance",
+    description: "Efficient power delivery system"
+  },
+  { 
+    type: "video", 
+    url: "https://www.w3schools.com/html/mov_bbb.mp4",
+    thumbnail: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg",
+    title: "Dynamic Demo",
+    description: "See the hybrid system in action"
+  },
+  { 
+    type: "360", 
+    url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg",
+    title: "360° View",
+    description: "Interactive exterior exploration"
+  },
 ];
 
 interface VehicleMediaShowcaseProps {
@@ -28,16 +63,27 @@ interface VehicleMediaShowcaseProps {
 
 const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
   const media: MediaItem[] = [
-    { type: "image", url: vehicle.image },
+    { 
+      type: "image", 
+      url: vehicle.image,
+      title: "Hero Shot",
+      description: `${vehicle.name} in all its glory`
+    },
     ...defaultMedia,
   ];
 
   const [current, setCurrent] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'image' | 'video'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'image' | 'video' | '360'>('all');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const next = () => setCurrent((prev) => (prev + 1) % media.length);
-  const prev = () => setCurrent((prev) => (prev - 1 + media.length) % media.length);
+  // Enhanced navigation
+  const next = () => setCurrent((prev) => (prev + 1) % filteredMedia.length);
+  const prev = () => setCurrent((prev) => (prev - 1 + filteredMedia.length) % filteredMedia.length);
 
   // Filter media based on active filter
   const filteredMedia = media.filter(m => 
@@ -45,14 +91,13 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   );
 
   const currentFilteredIndex = filteredMedia.findIndex(
-    (_, i) => filteredMedia[i] === media[current]
+    (item) => item === media[current]
   );
 
   // Handle filter change
-  const handleFilterChange = (filter: 'all' | 'image' | 'video') => {
+  const handleFilterChange = (filter: 'all' | 'image' | 'video' | '360') => {
     setActiveFilter(filter);
     if (filter !== 'all' && media[current].type !== filter) {
-      // Find first media item matching the filter
       const firstMatchingIndex = media.findIndex(m => m.type === filter);
       if (firstMatchingIndex >= 0) {
         setCurrent(firstMatchingIndex);
@@ -60,197 +105,464 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     }
   };
 
+  // Enhanced touch/swipe handling
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.x || !touchStart.y) return;
+
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY
+    };
+
+    const deltaX = touchStart.x - touchEnd.x;
+    const deltaY = touchStart.y - touchEnd.y;
+    const minSwipeDistance = 50;
+
+    // Horizontal swipe for navigation
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+  };
+
+  // Pan gesture handling
+  const handlePan = (event: any, info: PanInfo) => {
+    if (Math.abs(info.offset.x) > 100) {
+      if (info.offset.x > 0) {
+        prev();
+      } else {
+        next();
+      }
+    }
+  };
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (fullscreen) return;
+    
+    const interval = setInterval(() => {
+      if (activeFilter === 'all' || media[current].type === 'image') {
+        next();
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [current, activeFilter, fullscreen]);
+
+  // Video controls
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const currentMedia = media[current];
+
   return (
     <>
       <div className="toyota-container mt-6 mb-12">
-        <div className="relative rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
-          <Carousel className="w-full">
-            <div className="relative h-[340px] md:h-[520px] xl:h-[600px] flex items-center justify-center">
-              {media[current].type === "image" ? (
-                <img 
-                  src={media[current].url} 
-                  alt={vehicle.name + " showcase"} 
-                  className="object-cover w-full h-full transition-all duration-300 rounded-t-2xl" 
-                />
-              ) : (
-                <video
-                  src={media[current].url}
-                  controls
-                  className="object-cover w-full h-full transition-all duration-300 rounded-t-2xl"
-                  poster={media[current].thumbnail || vehicle.image}
-                />
-              )}
+        <motion.div 
+          className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-black shadow-2xl border border-gray-200 dark:border-gray-800"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Enhanced Media Display */}
+          <div 
+            ref={containerRef}
+            className="relative h-[350px] md:h-[550px] xl:h-[650px] flex items-center justify-center overflow-hidden bg-black"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.5 }}
+                className="w-full h-full relative"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={handlePan}
+              >
+                {currentMedia.type === "image" ? (
+                  <img 
+                    src={currentMedia.url} 
+                    alt={currentMedia.title || `${vehicle.name} showcase`} 
+                    className="object-cover w-full h-full transition-all duration-500" 
+                  />
+                ) : currentMedia.type === "video" ? (
+                  <div className="relative w-full h-full">
+                    <video
+                      ref={videoRef}
+                      src={currentMedia.url}
+                      className="object-cover w-full h-full"
+                      poster={currentMedia.thumbnail || vehicle.image}
+                      loop
+                      muted={isMuted}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                    />
+                    
+                    {/* Video Controls */}
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={togglePlay}
+                          className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                        >
+                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={toggleMute}
+                          className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                        >
+                          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      
+                      <Badge className="bg-black/50 backdrop-blur border-white/20 text-white">
+                        <Video className="h-3 w-3 mr-1" />
+                        Video
+                      </Badge>
+                    </div>
+                  </div>
+                ) : (
+                  // 360° View placeholder
+                  <div className="relative w-full h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
+                    <img 
+                      src={currentMedia.url} 
+                      alt={currentMedia.title || "360° View"} 
+                      className="object-cover w-full h-full opacity-80" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <RotateCcw className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <Badge className="absolute top-4 left-4 bg-purple-500 text-white">
+                      360° Interactive
+                    </Badge>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
 
-              {/* Arrows */}
-              <div className="absolute inset-y-0 left-0 flex items-center">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="ml-4 rounded-full bg-white/70 hover:bg-white/90 dark:bg-gray-900/70 hover:dark:bg-gray-900/90"
-                  onClick={prev}
-                  aria-label="Previous media"
-                >
-                  <CircleChevronLeft className="h-8 w-8" />
-                </Button>
-              </div>
-              <div className="absolute inset-y-0 right-0 flex items-center">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="mr-4 rounded-full bg-white/70 hover:bg-white/90 dark:bg-gray-900/70 hover:dark:bg-gray-900/90"
-                  onClick={next}
-                  aria-label="Next media"
-                >
-                  <CircleChevronRight className="h-8 w-8" />
-                </Button>
-              </div>
-              
-              {/* Fullscreen */}
+            {/* Enhanced Navigation Arrows */}
+            <motion.div 
+              className="absolute inset-y-0 left-0 flex items-center"
+              whileHover={{ scale: 1.1 }}
+            >
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="ml-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                onClick={prev}
+                aria-label="Previous media"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+            </motion.div>
+            
+            <motion.div 
+              className="absolute inset-y-0 right-0 flex items-center"
+              whileHover={{ scale: 1.1 }}
+            >
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="mr-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                onClick={next}
+                aria-label="Next media"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            </motion.div>
+            
+            {/* Enhanced Action Buttons */}
+            <div className="absolute top-4 right-4 flex items-center space-x-3">
               <Button
                 variant="outline"
-                size="icon"
-                className="absolute bottom-4 right-4 bg-white/70 hover:bg-white/90 rounded-full"
-                onClick={() => setFullscreen(true)}
+                size="sm"
+                className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
               >
-                <Maximize2 className="h-6 w-6" />
+                <Heart className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFullscreen(true)}
+                className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+              >
+                <Maximize2 className="h-4 w-4" />
               </Button>
             </div>
-          </Carousel>
-          
-          {/* Media Type buttons */}
-          <div className="absolute top-4 right-4 flex gap-2 z-10">
-            <Button
-              size="sm"
-              variant={activeFilter === "all" ? "default" : "outline"}
-              className="rounded-full bg-white/70 hover:bg-white/90"
-              onClick={() => handleFilterChange('all')}
-              aria-label="Show all media"
-            >
-              All
-            </Button>
-            <Button
-              size="sm"
-              variant={activeFilter === "image" ? "default" : "outline"}
-              className="rounded-full bg-white/70 hover:bg-white/90"
-              onClick={() => handleFilterChange('image')}
-              aria-label="Show images"
-            >
-              <ImageIcon className="h-4 w-4 mr-1" />
-              Images
-            </Button>
-            <Button
-              size="sm"
-              variant={activeFilter === "video" ? "default" : "outline"}
-              className="rounded-full bg-white/70 hover:bg-white/90"
-              onClick={() => handleFilterChange('video')}
-              aria-label="Show videos"
-            >
-              <VideoIcon className="h-4 w-4 mr-1" />
-              Videos
-            </Button>
+
+            {/* Enhanced Media Type Filters */}
+            <div className="absolute top-4 left-4 flex items-center space-x-2">
+              {[
+                { key: 'all', label: 'All', icon: null },
+                { key: 'image', label: 'Photos', icon: <ImageIcon className="h-3 w-3" /> },
+                { key: 'video', label: 'Videos', icon: <VideoIcon className="h-3 w-3" /> },
+                { key: '360', label: '360°', icon: <RotateCcw className="h-3 w-3" /> }
+              ].map((filter) => (
+                <Button
+                  key={filter.key}
+                  size="sm"
+                  variant={activeFilter === filter.key ? "default" : "outline"}
+                  className={`text-xs ${
+                    activeFilter === filter.key 
+                      ? "bg-toyota-red text-white border-toyota-red" 
+                      : "bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                  }`}
+                  onClick={() => handleFilterChange(filter.key as any)}
+                >
+                  {filter.icon && <span className="mr-1">{filter.icon}</span>}
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Enhanced Progress Indicators */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-3">
+              <div className="flex space-x-2">
+                {filteredMedia.map((_, idx) => (
+                  <motion.button
+                    key={idx}
+                    onClick={() => setCurrent(media.indexOf(filteredMedia[idx]))}
+                    className={`h-2 rounded-full transition-all ${
+                      idx === currentFilteredIndex 
+                        ? 'bg-toyota-red w-8 shadow-lg' 
+                        : 'bg-white/40 w-2 hover:bg-white/60'
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  />
+                ))}
+              </div>
+              
+              {/* Media Info */}
+              {currentMedia.title && (
+                <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 border border-white/20">
+                  <span className="text-white text-xs font-medium">
+                    {currentMedia.title}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           
-          {/* Progress indicator */}
-          <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2 z-10">
-            {filteredMedia.map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`h-2 w-2 rounded-full transition-all ${
-                  idx === currentFilteredIndex ? 'bg-toyota-red w-8' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                onClick={() => setCurrent(media.indexOf(filteredMedia[idx]))}
-              />
-            ))}
-          </div>
-          
-          {/* Thumbnails */}
-          <div className="p-4 bg-white dark:bg-gray-800">
-            <div className="flex overflow-x-auto gap-2 pb-2 px-2">
-              {media.map((m, idx) => (
-                <div
+          {/* Enhanced Media Information Panel */}
+          <div className="p-6 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {currentMedia.title || `${vehicle.name} Gallery`}
+                </h3>
+                {currentMedia.description && (
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                    {currentMedia.description}
+                  </p>
+                )}
+              </div>
+              <Badge variant="outline" className="px-3 py-1">
+                {current + 1} of {media.length}
+              </Badge>
+            </div>
+            
+            {/* Enhanced Thumbnail Gallery */}
+            <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
+              {media.map((item, idx) => (
+                <motion.div
                   key={idx}
                   onClick={() => setCurrent(idx)}
-                  className={`flex-shrink-0 w-20 h-14 cursor-pointer rounded-lg overflow-hidden border-2 transition-all
-                    ${idx === current ? "border-toyota-red" : "border-gray-200 dark:border-gray-700"}
-                    ${activeFilter !== 'all' && m.type !== activeFilter ? "opacity-40" : ""}
-                  `}
+                  className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                    current === idx 
+                      ? 'border-toyota-red shadow-lg scale-105' 
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                  whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {m.type === "image" ? (
-                    <img src={m.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                  {item.type === "image" || item.type === "360" ? (
+                    <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                      <VideoIcon className="h-8 w-8 text-toyota-red" />
+                    <div className="w-full h-full flex items-center justify-center bg-black relative">
+                      {item.thumbnail ? (
+                        <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="bg-gray-800" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                      </div>
                     </div>
                   )}
-                </div>
+                  
+                  {/* Type indicator */}
+                  <div className="absolute top-1 right-1">
+                    {item.type === 'video' && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                    )}
+                    {item.type === '360' && (
+                      <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                    )}
+                  </div>
+                </motion.div>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
       
-      {/* Fullscreen Modal */}
-      {fullscreen && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col" onClick={() => setFullscreen(false)}>
-          <div className="flex justify-end p-6">
-            <Button variant="outline" size="icon" className="bg-black/70 text-white"
-              onClick={() => setFullscreen(false)}
-            >
-              <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </Button>
-          </div>
-          <div className="flex-1 flex items-center justify-center">
-            {media[current].type === "image" ? (
-              <img src={media[current].url} alt={"Fullscreen " + vehicle.name} className="max-h-[80vh] max-w-full rounded-lg shadow-xl" />
-            ) : (
-              <video src={media[current].url} controls className="max-h-[80vh] max-w-full rounded-lg shadow-xl" autoPlay />
-            )}
-          </div>
-          
-          <div className="flex justify-between items-center p-6">
-            <Button 
-              variant="outline" 
-              className="bg-black/50 text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                prev();
-              }}
-            >
-              <ChevronLeft className="h-5 w-5 mr-2" />
-              Previous
-            </Button>
-            
-            <div className="flex gap-2">
-              {media.map((_, idx) => (
-                <div 
-                  key={idx} 
-                  className={`h-2 w-2 rounded-full cursor-pointer transition-all ${
-                    idx === current ? 'bg-toyota-red w-8' : 'bg-gray-400'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrent(idx);
-                  }}
-                />
-              ))}
+      {/* Enhanced Fullscreen Modal */}
+      <AnimatePresence>
+        {fullscreen && (
+          <motion.div 
+            className="fixed inset-0 z-50 bg-black flex flex-col"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setFullscreen(false)}
+          >
+            {/* Fullscreen Header */}
+            <div className="flex justify-between items-center p-6 bg-black/50 backdrop-blur">
+              <div className="text-white">
+                <h3 className="font-semibold">{currentMedia.title}</h3>
+                <p className="text-sm text-gray-300">{current + 1} of {media.length}</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button variant="outline" size="sm" className="bg-black/50 text-white border-white/20">
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" className="bg-black/50 text-white border-white/20">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="bg-black/50 text-white border-white/20"
+                  onClick={() => setFullscreen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
             
-            <Button 
-              variant="outline" 
-              className="bg-black/50 text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                next();
-              }}
-            >
-              Next
-              <ChevronRight className="h-5 w-5 ml-2" />
-            </Button>
-          </div>
-        </div>
-      )}
+            {/* Fullscreen Content */}
+            <div className="flex-1 flex items-center justify-center relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={current}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-h-[80vh] max-w-full"
+                >
+                  {currentMedia.type === "image" || currentMedia.type === "360" ? (
+                    <img 
+                      src={currentMedia.url} 
+                      alt={`Fullscreen ${currentMedia.title || vehicle.name}`} 
+                      className="max-h-full max-w-full object-contain rounded-lg shadow-2xl" 
+                    />
+                  ) : (
+                    <video 
+                      src={currentMedia.url} 
+                      controls 
+                      className="max-h-full max-w-full rounded-lg shadow-2xl" 
+                      autoPlay 
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            
+            {/* Fullscreen Navigation */}
+            <div className="flex justify-between items-center p-6 bg-black/50 backdrop-blur">
+              <Button 
+                variant="outline" 
+                className="bg-black/50 text-white border-white/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
+                }}
+              >
+                <ChevronLeft className="h-5 w-5 mr-2" />
+                Previous
+              </Button>
+              
+              <div className="flex space-x-2">
+                {media.map((_, idx) => (
+                  <motion.button
+                    key={idx}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      idx === current ? 'bg-toyota-red w-6' : 'bg-gray-400 hover:bg-gray-300'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrent(idx);
+                    }}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  />
+                ))}
+              </div>
+              
+              <Button 
+                variant="outline" 
+                className="bg-black/50 text-white border-white/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
+              >
+                Next
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
