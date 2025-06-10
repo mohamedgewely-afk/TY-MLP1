@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -45,16 +44,7 @@ const VehicleDetails = () => {
   const scale = useTransform(scrollYProgress, [0, 0.3], [1, 1.05]);
   
   const heroImageRef = useRef<HTMLDivElement>(null);
-  const isHeroInView = useInView(heroImageRef, { threshold: 0.3 });
-  
-  // Mock gallery images for demonstration
-  const galleryImages = [
-    vehicle?.image || "/placeholder.svg",
-    "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800",
-    "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800",
-    "https://images.unsplash.com/photo-1493238792000-8113da705763?w=800",
-    "https://images.unsplash.com/photo-1502161254066-6c74afbf07aa?w=800"
-  ];
+  const isHeroInView = useInView(heroImageRef);
 
   useEffect(() => {
     const foundVehicle = vehicles.find(v => {
@@ -72,6 +62,15 @@ const VehicleDetails = () => {
     
     window.scrollTo(0, 0);
   }, [vehicleName]);
+
+  // Mock gallery images for demonstration
+  const galleryImages = [
+    vehicle?.image || "/placeholder.svg",
+    "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800",
+    "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800",
+    "https://images.unsplash.com/photo-1493238792000-8113da705763?w=800",
+    "https://images.unsplash.com/photo-1502161254066-6c74afbf07aa?w=800"
+  ];
 
   // Auto-rotate gallery images
   useEffect(() => {
