@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Enhanced media item types
 interface MediaItem {
@@ -31,26 +33,26 @@ const defaultMedia: MediaItem[] = [
   },
   { 
     type: "image", 
-    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-b.jpg",
+    url: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80",
     title: "Technology Hub",
     description: "Advanced infotainment and connectivity"
   },
   { 
     type: "image", 
-    url: "https://di-uploads-pod34.dealerinspire.com/toyotaofnorthcharlotte/uploads/2023/11/2024-toyota-camry-hybrid-xse-platinum-white-pearl-front-three-quarter-view.jpg",
+    url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
     title: "Hybrid Performance",
     description: "Efficient power delivery system"
   },
   { 
     type: "video", 
     url: "https://www.w3schools.com/html/mov_bbb.mp4",
-    thumbnail: "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg",
+    thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=1200&q=80",
     title: "Dynamic Demo",
     description: "See the hybrid system in action"
   },
   { 
     type: "360", 
-    url: "https://global.toyota/pages/news/images/2021/07/15/1330/20210715_01_02_s.jpg",
+    url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=1200&q=80",
     title: "360° View",
     description: "Interactive exterior exploration"
   },
@@ -61,6 +63,7 @@ interface VehicleMediaShowcaseProps {
 }
 
 const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
+  const isMobile = useIsMobile();
   const media: MediaItem[] = [
     { 
       type: "image", 
@@ -203,9 +206,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.5 }}
                 className="w-full h-full relative"
-                drag="x"
+                drag={isMobile ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={handlePan}
+                onDragEnd={isMobile ? handlePan : undefined}
               >
                 {currentMedia.type === "image" ? (
                   <img 
@@ -279,36 +282,40 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </motion.div>
             </AnimatePresence>
 
-            {/* Enhanced Navigation Arrows */}
-            <motion.div 
-              className="absolute inset-y-0 left-0 flex items-center"
-              whileHover={{ scale: 1.1 }}
-            >
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="ml-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
-                onClick={prev}
-                aria-label="Previous media"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              className="absolute inset-y-0 right-0 flex items-center"
-              whileHover={{ scale: 1.1 }}
-            >
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="mr-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
-                onClick={next}
-                aria-label="Next media"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </motion.div>
+            {/* Enhanced Navigation Arrows - Hidden on mobile for better swipe experience */}
+            {!isMobile && (
+              <>
+                <motion.div 
+                  className="absolute inset-y-0 left-0 flex items-center"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="ml-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                    onClick={prev}
+                    aria-label="Previous media"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                </motion.div>
+                
+                <motion.div 
+                  className="absolute inset-y-0 right-0 flex items-center"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="mr-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                    onClick={next}
+                    aria-label="Next media"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                </motion.div>
+              </>
+            )}
             
             {/* Enhanced Action Buttons */}
             <div className="absolute top-4 right-4 flex items-center space-x-3">
@@ -336,29 +343,31 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Button>
             </div>
 
-            {/* Enhanced Media Type Filters */}
-            <div className="absolute top-4 left-4 flex items-center space-x-2">
-              {[
-                { key: 'all', label: 'All', icon: null },
-                { key: 'image', label: 'Photos', icon: <ImageIcon className="h-3 w-3" /> },
-                { key: 'video', label: 'Videos', icon: <Video className="h-3 w-3" /> },
-                { key: '360', label: '360°', icon: <RotateCcw className="h-3 w-3" /> }
-              ].map((filter) => (
-                <Button
-                  key={filter.key}
-                  size="sm"
-                  variant={activeFilter === filter.key ? "default" : "outline"}
-                  className={`text-xs ${
-                    activeFilter === filter.key 
-                      ? "bg-toyota-red text-white border-toyota-red" 
-                      : "bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
-                  }`}
-                  onClick={() => handleFilterChange(filter.key as any)}
-                >
-                  {filter.icon && <span className="mr-1">{filter.icon}</span>}
-                  {filter.label}
-                </Button>
-              ))}
+            {/* Enhanced Media Type Filters - Swipeable on mobile */}
+            <div className="absolute top-4 left-4">
+              <div className={`${isMobile ? 'flex overflow-x-auto scrollbar-hide space-x-2 max-w-[200px]' : 'flex items-center space-x-2'}`}>
+                {[
+                  { key: 'all', label: 'All', icon: null },
+                  { key: 'image', label: 'Photos', icon: <ImageIcon className="h-3 w-3" /> },
+                  { key: 'video', label: 'Videos', icon: <Video className="h-3 w-3" /> },
+                  { key: '360', label: '360°', icon: <RotateCcw className="h-3 w-3" /> }
+                ].map((filter) => (
+                  <Button
+                    key={filter.key}
+                    size="sm"
+                    variant={activeFilter === filter.key ? "default" : "outline"}
+                    className={`text-xs whitespace-nowrap ${isMobile ? 'flex-shrink-0' : ''} ${
+                      activeFilter === filter.key 
+                        ? "bg-toyota-red text-white border-toyota-red" 
+                        : "bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                    }`}
+                    onClick={() => handleFilterChange(filter.key as any)}
+                  >
+                    {filter.icon && <span className="mr-1">{filter.icon}</span>}
+                    {filter.label}
+                  </Button>
+                ))}
+              </div>
             </div>
             
             {/* Enhanced Progress Indicators */}
@@ -388,6 +397,19 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 </div>
               )}
             </div>
+
+            {/* Mobile swipe indicator */}
+            {isMobile && (
+              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+                <motion.div
+                  animate={{ x: [-10, 10, -10] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-white/60 text-xs flex items-center space-x-2"
+                >
+                  <span>← Swipe →</span>
+                </motion.div>
+              </div>
+            )}
           </div>
           
           {/* Enhanced Media Information Panel */}
@@ -408,46 +430,48 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery */}
-            <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
-              {media.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  onClick={() => setCurrent(idx)}
-                  className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
-                    current === idx 
-                      ? 'border-toyota-red shadow-lg scale-105' 
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
-                  whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {item.type === "image" || item.type === "360" ? (
-                    <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-black relative">
-                      {item.thumbnail ? (
-                        <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="bg-gray-800" />
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="h-6 w-6 text-white drop-shadow-lg" />
+            {/* Enhanced Thumbnail Gallery - Swipeable on mobile */}
+            <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex overflow-x-auto'} space-x-3 pb-2`}>
+              <div className={`flex space-x-3 ${isMobile ? 'w-max' : ''}`}>
+                {media.map((item, idx) => (
+                  <motion.div
+                    key={idx}
+                    onClick={() => setCurrent(idx)}
+                    className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                      current === idx 
+                        ? 'border-toyota-red shadow-lg scale-105' 
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                    whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {item.type === "image" || item.type === "360" ? (
+                      <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-black relative">
+                        {item.thumbnail ? (
+                          <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="bg-gray-800 w-full h-full" />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                        </div>
                       </div>
+                    )}
+                    
+                    {/* Type indicator */}
+                    <div className="absolute top-1 right-1">
+                      {item.type === 'video' && (
+                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                      )}
+                      {item.type === '360' && (
+                        <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                      )}
                     </div>
-                  )}
-                  
-                  {/* Type indicator */}
-                  <div className="absolute top-1 right-1">
-                    {item.type === 'video' && (
-                      <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
-                    )}
-                    {item.type === '360' && (
-                      <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>
