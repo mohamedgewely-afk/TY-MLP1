@@ -1,16 +1,13 @@
-
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { VehicleModel } from "@/types/vehicle";
 import { ChevronLeft, ChevronRight, Check, Car, Palette, Settings, CreditCard, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CarBuilderProps {
   vehicle: VehicleModel;
@@ -117,7 +114,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
-  const form = useForm();
+  const isMobile = useIsMobile();
 
   const steps = [
     { number: 1, title: "Model Year", icon: <Car className="h-5 w-5" /> },
@@ -157,6 +154,16 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     if (step > 1) setStep(step - 1);
   };
 
+  const handleSwipe = (event: any, info: PanInfo) => {
+    if (Math.abs(info.offset.x) > 100) {
+      if (info.offset.x > 0 && step > 1) {
+        prevStep();
+      } else if (info.offset.x < 0 && step < 6) {
+        nextStep();
+      }
+    }
+  };
+
   const handleAccessoryToggle = (accessoryName: string) => {
     setConfig(prev => ({
       ...prev,
@@ -167,7 +174,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const handlePayment = () => {
-    // Simulate payment processing
     toast({
       title: "Processing Payment...",
       description: "Please wait while we process your order.",
@@ -186,8 +192,8 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     switch (step) {
       case 1:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Choose Model Year</h3>
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Choose Model Year</h3>
             <div className="grid grid-cols-2 gap-4">
               {modelYears.map((year) => (
                 <motion.div
@@ -196,11 +202,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
                   whileTap={{ scale: 0.98 }}
                 >
                   <Card 
-                    className={`cursor-pointer transition-all ${config.modelYear === year ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground'}`}
+                    className={`cursor-pointer transition-all ${config.modelYear === year ? 'border-toyota-red bg-toyota-red/5' : 'hover:border-muted-foreground'}`}
                     onClick={() => setConfig(prev => ({ ...prev, modelYear: year }))}
                   >
                     <CardContent className="p-6 text-center">
-                      <h4 className="text-xl font-bold">{year}</h4>
+                      <h4 className="text-xl font-bold text-foreground">{year}</h4>
                       <p className="text-muted-foreground">{year === "2025" ? "Latest Model" : "Previous Year"}</p>
                     </CardContent>
                   </Card>
@@ -212,9 +218,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 2:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Select Grade</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Select Grade</h3>
+            <div className="overflow-y-auto max-h-96 space-y-3">
               {grades.map((grade) => {
                 const gradePricing = { "Base": 0, "SE": 2000, "XLE": 4000, "Limited": 6000, "Platinum": 10000 };
                 const additionalPrice = gradePricing[grade as keyof typeof gradePricing] || 0;
@@ -226,14 +232,14 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
                     whileTap={{ scale: 0.98 }}
                   >
                     <Card 
-                      className={`cursor-pointer transition-all ${config.grade === grade ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground'}`}
+                      className={`cursor-pointer transition-all ${config.grade === grade ? 'border-toyota-red bg-toyota-red/5' : 'hover:border-muted-foreground'}`}
                       onClick={() => setConfig(prev => ({ ...prev, grade }))}
                     >
                       <CardContent className="p-4">
                         <div className="flex justify-between items-center">
-                          <h4 className="text-lg font-bold">{grade}</h4>
+                          <h4 className="text-lg font-bold text-foreground">{grade}</h4>
                           {additionalPrice > 0 && (
-                            <Badge className="bg-primary">+AED {additionalPrice.toLocaleString()}</Badge>
+                            <Badge className="bg-toyota-red">+AED {additionalPrice.toLocaleString()}</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">
@@ -254,156 +260,294 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 3:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Choose Exterior Color</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {exteriorColors.map((color) => (
-                <motion.div
-                  key={color.name}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Card 
-                    className={`cursor-pointer transition-all ${config.exteriorColor === color.name ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
-                    onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Choose Exterior Color</h3>
+            {isMobile ? (
+              <div className="overflow-x-auto">
+                <div className="flex space-x-4 pb-4" style={{ width: `${exteriorColors.length * 250}px` }}>
+                  {exteriorColors.map((color) => (
+                    <motion.div
+                      key={color.name}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-shrink-0 w-60"
+                    >
+                      <Card 
+                        className={`cursor-pointer transition-all ${config.exteriorColor === color.name ? 'border-toyota-red bg-toyota-red/5 ring-2 ring-toyota-red/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
+                        onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
+                      >
+                        <CardContent className="p-4">
+                          <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                            <img 
+                              src={color.image} 
+                              alt={color.name}
+                              className="w-full h-full object-cover"
+                            />
+                            {config.exteriorColor === color.name && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute inset-0 flex items-center justify-center bg-black/20"
+                              >
+                                <div className="w-8 h-8 bg-toyota-red rounded-full flex items-center justify-center">
+                                  <Check className="h-5 w-5 text-white" />
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                          <div className="text-center space-y-2">
+                            <h4 className="font-semibold text-foreground">{color.name}</h4>
+                            <div className="flex items-center justify-center space-x-2">
+                              <div 
+                                className="w-6 h-6 rounded-full border-2 border-border"
+                                style={{ backgroundColor: color.code }}
+                              />
+                              {color.price > 0 && (
+                                <Badge className="bg-toyota-red text-white">+AED {color.price}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                {exteriorColors.map((color) => (
+                  <motion.div
+                    key={color.name}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <CardContent className="p-4">
-                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
-                        <img 
-                          src={color.image} 
-                          alt={color.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div 
-                          className="absolute inset-0 bg-black/20 flex items-center justify-center"
-                          style={{ backgroundColor: `${color.code}20` }}
-                        >
-                          {config.exteriorColor === color.name && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-8 h-8 bg-primary rounded-full flex items-center justify-center"
-                            >
-                              <Check className="h-5 w-5 text-primary-foreground" />
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-center space-y-2">
-                        <h4 className="font-semibold text-foreground">{color.name}</h4>
-                        <div className="flex items-center justify-center space-x-2">
-                          <div 
-                            className="w-6 h-6 rounded-full border-2 border-muted"
-                            style={{ backgroundColor: color.code }}
+                    <Card 
+                      className={`cursor-pointer transition-all ${config.exteriorColor === color.name ? 'border-toyota-red bg-toyota-red/5 ring-2 ring-toyota-red/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
+                      onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
+                    >
+                      <CardContent className="p-4">
+                        <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                          <img 
+                            src={color.image} 
+                            alt={color.name}
+                            className="w-full h-full object-cover"
                           />
-                          {color.price > 0 && (
-                            <Badge className="bg-primary text-primary-foreground">+AED {color.price}</Badge>
-                          )}
+                          <div 
+                            className="absolute inset-0 bg-black/20 flex items-center justify-center"
+                          >
+                            {config.exteriorColor === color.name && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="w-8 h-8 bg-toyota-red rounded-full flex items-center justify-center"
+                              >
+                                <Check className="h-5 w-5 text-white" />
+                              </motion.div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                        <div className="text-center space-y-2">
+                          <h4 className="font-semibold text-foreground">{color.name}</h4>
+                          <div className="flex items-center justify-center space-x-2">
+                            <div 
+                              className="w-6 h-6 rounded-full border-2 border-border"
+                              style={{ backgroundColor: color.code }}
+                            />
+                            {color.price > 0 && (
+                              <Badge className="bg-toyota-red text-white">+AED {color.price}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
       case 4:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Choose Interior Color</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {interiorColors.map((color) => (
-                <motion.div
-                  key={color.name}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Card 
-                    className={`cursor-pointer transition-all ${config.interiorColor === color.name ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
-                    onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Choose Interior Color</h3>
+            {isMobile ? (
+              <div className="overflow-x-auto">
+                <div className="flex space-x-4 pb-4" style={{ width: `${interiorColors.length * 250}px` }}>
+                  {interiorColors.map((color) => (
+                    <motion.div
+                      key={color.name}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-shrink-0 w-60"
+                    >
+                      <Card 
+                        className={`cursor-pointer transition-all ${config.interiorColor === color.name ? 'border-toyota-red bg-toyota-red/5 ring-2 ring-toyota-red/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
+                        onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
+                      >
+                        <CardContent className="p-4">
+                          <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                            <img 
+                              src={color.image} 
+                              alt={color.name}
+                              className="w-full h-full object-cover"
+                            />
+                            {config.interiorColor === color.name && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute inset-0 flex items-center justify-center bg-black/20"
+                              >
+                                <div className="w-8 h-8 bg-toyota-red rounded-full flex items-center justify-center">
+                                  <Check className="h-5 w-5 text-white" />
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                          <div className="text-center space-y-2">
+                            <h4 className="font-semibold text-foreground">{color.name}</h4>
+                            <div className="flex items-center justify-center space-x-2">
+                              <div 
+                                className="w-6 h-6 rounded-lg border-2 border-border"
+                                style={{ backgroundColor: color.code }}
+                              />
+                              {color.price > 0 && (
+                                <Badge className="bg-toyota-red text-white">+AED {color.price.toLocaleString()}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {interiorColors.map((color) => (
+                  <motion.div
+                    key={color.name}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <CardContent className="p-4">
-                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
-                        <img 
-                          src={color.image} 
-                          alt={color.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div 
-                          className="absolute inset-0 bg-black/10 flex items-center justify-center"
-                        >
-                          {config.interiorColor === color.name && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-8 h-8 bg-primary rounded-full flex items-center justify-center"
-                            >
-                              <Check className="h-5 w-5 text-primary-foreground" />
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-center space-y-2">
-                        <h4 className="font-semibold text-foreground">{color.name}</h4>
-                        <div className="flex items-center justify-center space-x-2">
-                          <div 
-                            className="w-6 h-6 rounded-lg border-2 border-muted"
-                            style={{ backgroundColor: color.code }}
+                    <Card 
+                      className={`cursor-pointer transition-all ${config.interiorColor === color.name ? 'border-toyota-red bg-toyota-red/5 ring-2 ring-toyota-red/20' : 'hover:border-muted-foreground hover:shadow-lg'}`}
+                      onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
+                    >
+                      <CardContent className="p-4">
+                        <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                          <img 
+                            src={color.image} 
+                            alt={color.name}
+                            className="w-full h-full object-cover"
                           />
-                          {color.price > 0 && (
-                            <Badge className="bg-primary text-primary-foreground">+AED {color.price.toLocaleString()}</Badge>
-                          )}
+                          <div 
+                            className="absolute inset-0 bg-black/10 flex items-center justify-center"
+                          >
+                            {config.interiorColor === color.name && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="w-8 h-8 bg-toyota-red rounded-full flex items-center justify-center"
+                              >
+                                <Check className="h-5 w-5 text-white" />
+                              </motion.div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                        <div className="text-center space-y-2">
+                          <h4 className="font-semibold text-foreground">{color.name}</h4>
+                          <div className="flex items-center justify-center space-x-2">
+                            <div 
+                              className="w-6 h-6 rounded-lg border-2 border-border"
+                              style={{ backgroundColor: color.code }}
+                            />
+                            {color.price > 0 && (
+                              <Badge className="bg-toyota-red text-white">+AED {color.price.toLocaleString()}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
       case 5:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Select Accessories</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {accessories.map((accessory) => {
-                const isSelected = config.accessories.includes(accessory.name);
-                return (
-                  <motion.div
-                    key={accessory.name}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Card 
-                      className={`cursor-pointer transition-all ${isSelected ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'hover:border-muted-foreground'}`}
-                      onClick={() => handleAccessoryToggle(accessory.name)}
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Select Accessories</h3>
+            {isMobile ? (
+              <div className="overflow-x-auto">
+                <div className="flex space-x-4 pb-4" style={{ width: `${accessories.length * 200}px` }}>
+                  {accessories.map((accessory) => {
+                    const isSelected = config.accessories.includes(accessory.name);
+                    return (
+                      <motion.div
+                        key={accessory.name}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex-shrink-0 w-48"
+                      >
+                        <Card 
+                          className={`cursor-pointer transition-all h-24 ${isSelected ? 'border-toyota-red bg-toyota-red/5 ring-2 ring-toyota-red/20' : 'hover:border-muted-foreground'}`}
+                          onClick={() => handleAccessoryToggle(accessory.name)}
+                        >
+                          <CardContent className="p-4 h-full flex flex-col justify-center">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center space-x-2">
+                                {isSelected && <Check className="h-4 w-4 text-toyota-red" />}
+                                <h4 className="font-semibold text-sm">{accessory.name}</h4>
+                              </div>
+                            </div>
+                            <Badge className="bg-toyota-red text-white mt-2 text-xs">AED {accessory.price}</Badge>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {accessories.map((accessory) => {
+                  const isSelected = config.accessories.includes(accessory.name);
+                  return (
+                    <motion.div
+                      key={accessory.name}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center space-x-3">
-                            {isSelected && <Check className="h-5 w-5 text-primary" />}
-                            <h4 className="font-semibold">{accessory.name}</h4>
+                      <Card 
+                        className={`cursor-pointer transition-all ${isSelected ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'hover:border-muted-foreground'}`}
+                        onClick={() => handleAccessoryToggle(accessory.name)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              {isSelected && <Check className="h-5 w-5 text-primary" />}
+                              <h4 className="font-semibold">{accessory.name}</h4>
+                            </div>
+                            <Badge className="bg-primary text-primary-foreground">AED {accessory.price}</Badge>
                           </div>
-                          <Badge className="bg-primary text-primary-foreground">AED {accessory.price}</Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
 
       case 6:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Payment & Checkout</h3>
-            <Card>
+          <div className="h-full flex flex-col justify-center space-y-6">
+            <h3 className="text-2xl font-bold text-center text-foreground">Payment & Checkout</h3>
+            <Card className="max-h-96 overflow-y-auto">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
@@ -437,7 +581,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
                 </div>
                 <Button 
                   onClick={handlePayment}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3"
+                  className="w-full bg-toyota-red hover:bg-toyota-darkred text-white py-3"
                   size="lg"
                 >
                   Complete Purchase
@@ -480,7 +624,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               </CardContent>
             </Card>
             
-            <Button onClick={onClose} className="bg-primary hover:bg-primary/90">
+            <Button onClick={onClose} className="bg-toyota-red hover:bg-toyota-darkred">
               Close
             </Button>
           </motion.div>
@@ -491,44 +635,46 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-2xl font-bold">Configure Your {vehicle.name}</DialogTitle>
         </DialogHeader>
         
         {/* Progress Steps */}
-        <div className="flex justify-between items-center mb-8 px-4">
+        <div className="flex justify-between items-center mb-6 px-4 flex-shrink-0">
           {steps.map((stepData, index) => (
             <div key={stepData.number} className="flex flex-col items-center">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= stepData.number ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                step >= stepData.number ? 'bg-toyota-red text-white' : 'bg-muted text-muted-foreground'
               }`}>
                 {step > stepData.number ? <Check className="h-5 w-5" /> : stepData.icon}
               </div>
               <span className="text-xs mt-1 text-center">{stepData.title}</span>
-              {index < steps.length - 1 && (
-                <div className={`w-full h-1 mt-2 ${step > stepData.number ? 'bg-primary' : 'bg-muted'}`} />
-              )}
             </div>
           ))}
         </div>
 
-        {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="min-h-[400px] p-4"
-          >
-            {renderStepContent()}
-          </motion.div>
-        </AnimatePresence>
+        {/* Step Content - Swipeable */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="h-full p-4"
+              drag={isMobile ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={isMobile ? handleSwipe : undefined}
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center pt-6 border-t">
+        <div className="flex justify-between items-center pt-4 border-t flex-shrink-0">
           <Button 
             variant="outline" 
             onClick={prevStep} 
@@ -540,7 +686,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           </Button>
           
           <div className="text-center">
-            <p className="text-lg font-bold text-primary">
+            <p className="text-lg font-bold text-toyota-red">
               Total: AED {calculateTotalPrice().toLocaleString()}
             </p>
           </div>
@@ -548,7 +694,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <Button 
             onClick={nextStep} 
             disabled={step === 6}
-            className="bg-primary hover:bg-primary/90 flex items-center space-x-2"
+            className="bg-toyota-red hover:bg-toyota-darkred flex items-center space-x-2"
           >
             <span>Next</span>
             <ChevronRight className="h-4 w-4" />
