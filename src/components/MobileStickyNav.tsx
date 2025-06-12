@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone, X } from "lucide-react";
+import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";

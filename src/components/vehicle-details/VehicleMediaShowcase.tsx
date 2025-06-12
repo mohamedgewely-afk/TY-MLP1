@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video as VideoIcon, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
