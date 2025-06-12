@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -342,7 +341,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               {[
                 { key: 'all', label: 'All', icon: null },
                 { key: 'image', label: 'Photos', icon: <ImageIcon className="h-3 w-3" /> },
-                { key: 'video', label: 'Videos', icon: <VideoIcon className="h-3 w-3" /> },
+                { key: 'video', label: 'Videos', icon: <Video className="h-3 w-3" /> },
                 { key: '360', label: '360°', icon: <RotateCcw className="h-3 w-3" /> }
               ].map((filter) => (
                 <Button
