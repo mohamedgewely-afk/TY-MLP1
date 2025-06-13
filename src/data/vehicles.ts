@@ -1,3 +1,4 @@
+
 import { VehicleModel, PreOwnedVehicle } from "@/types/vehicle";
 
 export const vehicles: VehicleModel[] = [
@@ -8,8 +9,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/camry",
     configureUrl: "/configure/camry-hybrid",
     price: 129900,
-    originalPrice: 142900,
-    description: "Experience the perfect blend of efficiency and performance with our advanced hybrid technology.",
     category: "Hybrid",
     features: ["2.5L Hybrid Engine", "Advanced Safety", "Apple CarPlay/Android Auto"],
     specifications: {
@@ -27,8 +26,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/corolla",
     configureUrl: "/configure/corolla-hybrid",
     price: 94500,
-    originalPrice: 104500,
-    description: "The world's best-selling car, now with advanced hybrid technology for ultimate efficiency.",
     category: "Hybrid",
     features: ["1.8L Hybrid Engine", "Toyota Safety Sense", "Smart Connectivity"],
     specifications: {
@@ -46,8 +43,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/rav4",
     configureUrl: "/configure/rav4-hybrid",
     price: 139900,
-    originalPrice: 154900,
-    description: "Adventure-ready SUV with hybrid efficiency and all-wheel drive capability.",
     category: "Hybrid",
     features: ["2.5L Hybrid Engine", "AWD System", "Panoramic Roof"],
     specifications: {
@@ -65,8 +60,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/highlander",
     configureUrl: "/configure/highlander-hybrid",
     price: 179900,
-    originalPrice: 199900,
-    description: "Spacious 7-seater SUV with premium hybrid technology and family-focused features.",
     category: "Hybrid",
     features: ["3.5L Hybrid V6", "7-Seater", "Premium Interior"],
     specifications: {
@@ -84,7 +77,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/land-cruiser",
     configureUrl: "/configure/land-cruiser",
     price: 249900,
-    description: "Legendary off-road capability meets premium luxury in Toyota's flagship SUV.",
     category: "SUV",
     features: ["5.7L V8 Engine", "Off-Road Technology", "Premium Comfort"],
     specifications: {
@@ -102,7 +94,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/sequoia",
     configureUrl: "/configure/sequoia",
     price: 219900,
-    description: "Full-size SUV with commanding presence and spacious 8-seat configuration.",
     category: "SUV",
     features: ["5.7L V8 Engine", "8-Seater", "Premium Audio System"],
     specifications: {
@@ -120,7 +111,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/prado",
     configureUrl: "/configure/prado",
     price: 189900,
-    description: "Versatile mid-size SUV built for both urban driving and off-road adventures.",
     category: "SUV",
     features: ["4.0L V6 Engine", "Multi-Terrain Select", "Kinetic Dynamic Suspension"],
     specifications: {
@@ -138,7 +128,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/fortuner",
     configureUrl: "/configure/fortuner",
     price: 149900,
-    description: "Rugged and reliable 7-seater SUV designed for family adventures.",
     category: "SUV",
     features: ["2.7L Engine", "7-Seater", "Robust Construction"],
     specifications: {
@@ -156,7 +145,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/avalon",
     configureUrl: "/configure/avalon",
     price: 159900,
-    description: "Premium full-size sedan with luxury appointments and refined performance.",
     category: "Sedan",
     features: ["3.5L V6 Engine", "Luxury Interior", "JBL Audio System"],
     specifications: {
@@ -174,7 +162,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/camry",
     configureUrl: "/configure/camry",
     price: 119900,
-    description: "America's best-selling sedan with bold design and advanced safety features.",
     category: "Sedan",
     features: ["2.5L Engine", "Dynamic Design", "Advanced Safety Features"],
     specifications: {
@@ -192,7 +179,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/corolla",
     configureUrl: "/configure/corolla",
     price: 84900,
-    description: "The world's best-selling car with proven reliability and exceptional value.",
     category: "Sedan",
     features: ["1.6L Engine", "Efficient Fuel Economy", "Spacious Interior"],
     specifications: {
@@ -210,7 +196,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/yaris",
     configureUrl: "/configure/yaris",
     price: 69900,
-    description: "Compact sedan perfect for city driving with outstanding fuel efficiency.",
     category: "Sedan",
     features: ["1.5L Engine", "Compact Design", "Smart Technology"],
     specifications: {
@@ -228,7 +213,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr-supra",
     configureUrl: "/configure/gr-supra",
     price: 249900,
-    description: "Pure sports car DNA with legendary Supra performance and modern technology.",
     category: "GR Performance",
     features: ["3.0L Turbocharged Engine", "Sport-Tuned Suspension", "Racing Heritage"],
     specifications: {
@@ -246,7 +230,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr-yaris",
     configureUrl: "/configure/gr-yaris",
     price: 149900,
-    description: "Rally-bred hot hatch with all-wheel drive and turbocharged performance.",
     category: "GR Performance",
     features: ["1.6L Turbocharged Engine", "All-Wheel Drive", "Rally Inspired"],
     specifications: {
@@ -264,7 +247,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/hiace",
     configureUrl: "/configure/hiace",
     price: 109900,
-    description: "Versatile commercial van with spacious cargo area and reliable performance.",
     category: "Commercial",
     features: ["2.7L Engine", "Versatile Cargo Space", "Comfortable Seating"],
     specifications: {
@@ -282,7 +264,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/hilux",
     configureUrl: "/configure/hilux",
     price: 99900,
-    description: "Legendary pickup truck with unmatched durability and 4x4 capability.",
     category: "Commercial",
     features: ["2.4L Diesel Engine", "Tough Construction", "Advanced 4x4 Capability"],
     specifications: {
@@ -300,7 +281,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/bz4x",
     configureUrl: "/configure/bz4x",
     price: 159900,
-    description: "Toyota's first all-electric SUV with cutting-edge technology and zero emissions.",
     category: "Electric",
     features: ["Electric Powertrain", "Fast Charging", "Advanced Tech"],
     specifications: {
@@ -318,8 +298,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/crown",
     configureUrl: "/configure/crown",
     price: 189900,
-    originalPrice: 209900,
-    description: "Premium sedan with hybrid technology and sophisticated luxury appointments.",
     category: "Hybrid",
     features: ["2.4L Hybrid Turbo", "AWD System", "Premium Experience"],
     specifications: {
@@ -337,7 +315,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/mirai",
     configureUrl: "/configure/mirai",
     price: 219900,
-    description: "Revolutionary hydrogen fuel cell vehicle representing the future of mobility.",
     category: "Hydrogen",
     features: ["Hydrogen Fuel Cell", "Zero Emissions", "Future Technology"],
     specifications: {
@@ -355,8 +332,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/venza",
     configureUrl: "/configure/venza",
     price: 149900,
-    originalPrice: 164900,
-    description: "Stylish luxury crossover with panoramic roof and advanced hybrid technology.",
     category: "Hybrid",
     features: ["2.5L Hybrid Engine", "Star Gaze Panoramic Roof", "Luxury Crossover"],
     specifications: {
@@ -374,7 +349,6 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr86",
     configureUrl: "/configure/gr86",
     price: 139900,
-    description: "Pure driving sports car with rear-wheel drive and perfectly balanced handling.",
     category: "GR Performance",
     features: ["2.4L Boxer Engine", "Rear-Wheel Drive", "Sports Car Handling"],
     specifications: {
@@ -553,3 +527,4 @@ export const heroSlides = [
     ctaLink: "/gr"
   }
 ];
+
