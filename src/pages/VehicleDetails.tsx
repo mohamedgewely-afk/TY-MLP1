@@ -103,7 +103,10 @@ const VehicleDetails: React.FC = () => {
     );
   }
 
-  const discountPercentage = Math.round(((vehicle.originalPrice - vehicle.price) / vehicle.originalPrice) * 100);
+  // Handle cases where originalPrice might not exist
+  const originalPrice = vehicle.originalPrice || vehicle.price + (vehicle.price * 0.1);
+  const discountPercentage = Math.round(((originalPrice - vehicle.price) / originalPrice) * 100);
+  const hasDiscount = vehicle.originalPrice && vehicle.originalPrice > vehicle.price;
 
   return (
     <ToyotaLayout>
@@ -144,7 +147,7 @@ const VehicleDetails: React.FC = () => {
           </div>
 
           {/* Enhanced Save Banner */}
-          {discountPercentage > 0 && (
+          {hasDiscount && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -157,7 +160,7 @@ const VehicleDetails: React.FC = () => {
                     <div className="text-sm opacity-90">Limited Time Offer</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-semibold">AED {(vehicle.originalPrice - vehicle.price).toLocaleString()}</div>
+                    <div className="text-lg font-semibold">AED {(originalPrice - vehicle.price).toLocaleString()}</div>
                     <div className="text-xs opacity-75">off MSRP</div>
                   </div>
                 </div>
@@ -175,13 +178,15 @@ const VehicleDetails: React.FC = () => {
                     <div className="text-3xl font-bold text-toyota-red">
                       AED {vehicle.price.toLocaleString()}
                     </div>
-                    {vehicle.originalPrice > vehicle.price && (
+                    {hasDiscount && (
                       <div className="text-lg text-muted-foreground line-through">
-                        AED {vehicle.originalPrice.toLocaleString()}
+                        AED {originalPrice.toLocaleString()}
                       </div>
                     )}
                   </div>
-                  <p className="text-muted-foreground mt-2">{vehicle.description}</p>
+                  {vehicle.description && (
+                    <p className="text-muted-foreground mt-2">{vehicle.description}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -234,7 +239,11 @@ const VehicleDetails: React.FC = () => {
                   <DialogHeader>
                     <DialogTitle>Finance Calculator</DialogTitle>
                   </DialogHeader>
-                  <FinanceCalculator vehicle={vehicle} />
+                  <FinanceCalculator 
+                    vehicle={vehicle} 
+                    isOpen={showFinanceCalc} 
+                    onClose={() => setShowFinanceCalc(false)} 
+                  />
                 </DialogContent>
               </Dialog>
 

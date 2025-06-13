@@ -19,6 +19,8 @@ export interface VehicleModel {
   mmeUrl: string;
   configureUrl: string;
   price: number;
+  originalPrice?: number; // Add originalPrice property
+  description?: string; // Add description property
   category: string;
   features: string[];
   specifications?: {
