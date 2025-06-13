@@ -82,16 +82,16 @@ const App = () => {
               <main id="main-content">
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
+                  <Route path="/vehicle/:slug" element={<VehicleDetails />} />
                   <Route path="/test-drive" element={<TestDrive />} />
                   <Route path="/pre-owned" element={<PreOwned />} />
-                  <Route path="/new-cars" element={<Index />} /> {/* Redirects to home for now */}
-                  <Route path="/hybrid" element={<Index />} /> {/* Redirects to home for now */}
-                  <Route path="/offers" element={<Index />} /> {/* Redirects to home for now */}
-                  <Route path="/service" element={<Index />} /> {/* Redirects to home for now */}
-                  <Route path="/configure" element={<Index />} /> {/* Redirects to home for now */}
+                  <Route path="/new-cars" element={<Index />} />
+                  <Route path="/hybrid" element={<Index />} />
+                  <Route path="/offers" element={<Index />} />
+                  <Route path="/service" element={<Index />} />
+                  <Route path="/configure" element={<Index />} />
                   <Route path="/enquire" element={<Enquire />} />
-                  <Route path="/contact" element={<Index />} /> {/* Redirects to home for now */}
+                  <Route path="/contact" element={<Index />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

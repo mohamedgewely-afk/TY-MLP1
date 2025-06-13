@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Heart, Share2, Calculator, Car, Calendar, ArrowUp } from "lucide-react";
+import { ChevronLeft, Heart, Share2, Calculator, Car, Calendar, ArrowUp, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,13 +33,21 @@ const VehicleDetails: React.FC = () => {
   const [showTestDrive, setShowTestDrive] = useState(false);
   const [showFinanceCalc, setShowFinanceCalc] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [activeSection, setActiveSection] = useState(0);
 
   useEffect(() => {
     if (slug) {
-      const foundVehicle = vehicles.find(v => 
-        v.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') === slug
-      );
+      // Fix slug matching - match against vehicle name converted to slug format
+      const foundVehicle = vehicles.find(v => {
+        const vehicleSlug = v.name.toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w-]+/g, '');
+        return vehicleSlug === slug;
+      });
+      
+      console.log('Looking for slug:', slug);
+      console.log('Available vehicles slugs:', vehicles.map(v => v.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')));
+      console.log('Found vehicle:', foundVehicle);
+      
       if (foundVehicle) {
         setVehicle(foundVehicle);
       }
@@ -91,9 +99,10 @@ const VehicleDetails: React.FC = () => {
   if (!vehicle) {
     return (
       <ToyotaLayout>
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center p-6">
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold text-foreground">Vehicle not found</h2>
+            <p className="text-muted-foreground">The vehicle you're looking for doesn't exist or has been moved.</p>
             <Button onClick={() => navigate('/')} className="bg-toyota-red hover:bg-toyota-darkred">
               Return Home
             </Button>
@@ -119,7 +128,7 @@ const VehicleDetails: React.FC = () => {
               variant="outline"
               size="icon"
               onClick={() => navigate(-1)}
-              className="bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90"
+              className="bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90 shadow-lg"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -129,8 +138,8 @@ const VehicleDetails: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={handleFavorite}
-                className={`bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90 ${
-                  isFavorite ? 'text-red-500' : ''
+                className={`bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90 shadow-lg ${
+                  isFavorite ? 'text-red-500 border-red-200' : ''
                 }`}
               >
                 <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
@@ -139,7 +148,7 @@ const VehicleDetails: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={handleShare}
-                className="bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90"
+                className="bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90 shadow-lg"
               >
                 <Share2 className="h-5 w-5" />
               </Button>
@@ -153,15 +162,22 @@ const VehicleDetails: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="absolute top-20 left-4 right-4 z-10"
             >
-              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-lg">
+              <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-500 rounded-2xl p-4 shadow-xl border border-emerald-400/30">
                 <div className="flex items-center justify-between text-white">
-                  <div>
-                    <div className="text-2xl font-bold">Save {discountPercentage}%</div>
-                    <div className="text-sm opacity-90">Limited Time Offer</div>
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-white/20 p-2 rounded-full">
+                      <Badge className="bg-transparent text-white border-white/30 font-bold">
+                        {discountPercentage}% OFF
+                      </Badge>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">Limited Time Savings</div>
+                      <div className="text-sm opacity-90">Special offer ends soon</div>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-semibold">AED {(originalPrice - vehicle.price).toLocaleString()}</div>
-                    <div className="text-xs opacity-75">off MSRP</div>
+                    <div className="text-xl font-bold">AED {(originalPrice - vehicle.price).toLocaleString()}</div>
+                    <div className="text-xs opacity-75">total savings</div>
                   </div>
                 </div>
               </div>
@@ -170,11 +186,11 @@ const VehicleDetails: React.FC = () => {
 
           {/* Vehicle Title & Price */}
           <div className="absolute bottom-6 left-4 right-4 z-10">
-            <div className="bg-background/90 backdrop-blur-md rounded-2xl p-6 border border-border/50">
+            <div className="bg-background/95 backdrop-blur-md rounded-2xl p-6 border border-border/50 shadow-xl">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-foreground mb-2">{vehicle.name}</h1>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 mb-3">
                     <div className="text-3xl font-bold text-toyota-red">
                       AED {vehicle.price.toLocaleString()}
                     </div>
@@ -185,7 +201,7 @@ const VehicleDetails: React.FC = () => {
                     )}
                   </div>
                   {vehicle.description && (
-                    <p className="text-muted-foreground mt-2">{vehicle.description}</p>
+                    <p className="text-muted-foreground">{vehicle.description}</p>
                   )}
                 </div>
               </div>
@@ -197,8 +213,8 @@ const VehicleDetails: React.FC = () => {
         <VehicleMediaShowcase vehicle={vehicle} />
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 space-y-8">
-          {/* Features Section - Swipeable */}
+        <div className="container mx-auto px-4 space-y-8 pb-32">
+          {/* Features Section */}
           <VehicleFeatures vehicle={vehicle} />
 
           {/* Specifications */}
@@ -211,72 +227,67 @@ const VehicleDetails: React.FC = () => {
           <RelatedVehicles currentVehicle={vehicle} />
         </div>
 
-        {/* Smart Floating Action Buttons */}
-        <AnimatePresence>
-          {!showCarBuilder && !showTestDrive && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed bottom-20 right-4 z-30 flex flex-col space-y-3"
-            >
-              {/* Finance Calculator */}
-              <Dialog open={showFinanceCalc} onOpenChange={setShowFinanceCalc}>
-                <DialogTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Button
-                      size="icon"
-                      className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl border-4 border-background"
-                    >
-                      <Calculator className="h-6 w-6" />
-                    </Button>
-                  </motion.div>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Finance Calculator</DialogTitle>
-                  </DialogHeader>
-                  <FinanceCalculator 
-                    vehicle={vehicle} 
-                    isOpen={showFinanceCalc} 
-                    onClose={() => setShowFinanceCalc(false)} 
-                  />
-                </DialogContent>
-              </Dialog>
+        {/* Smart Bottom Action Bar - Better UX */}
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t border-border shadow-2xl">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between space-x-3">
+              {/* Price Info */}
+              <div className="flex-1">
+                <div className="text-lg font-bold text-toyota-red">
+                  AED {vehicle.price.toLocaleString()}
+                </div>
+                <div className="text-xs text-muted-foreground">Starting price</div>
+              </div>
 
-              {/* Build Your Car */}
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-2">
+                {/* Finance Calculator */}
+                <Dialog open={showFinanceCalc} onOpenChange={setShowFinanceCalc}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center space-x-1"
+                    >
+                      <Calculator className="h-4 w-4" />
+                      <span className="hidden sm:inline">Finance</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Finance Calculator</DialogTitle>
+                    </DialogHeader>
+                    <FinanceCalculator 
+                      vehicle={vehicle} 
+                      isOpen={showFinanceCalc} 
+                      onClose={() => setShowFinanceCalc(false)} 
+                    />
+                  </DialogContent>
+                </Dialog>
+
+                {/* Build Your Car */}
                 <Button
                   onClick={() => setShowCarBuilder(true)}
-                  size="icon"
-                  className="h-14 w-14 rounded-full bg-toyota-red hover:bg-toyota-darkred text-white shadow-xl border-4 border-background"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
                 >
-                  <Car className="h-6 w-6" />
+                  <Car className="h-4 w-4" />
+                  <span className="hidden sm:inline">Build</span>
                 </Button>
-              </motion.div>
 
-              {/* Test Drive */}
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
+                {/* Test Drive - Primary CTA */}
                 <Button
                   onClick={() => setShowTestDrive(true)}
-                  size="icon"
-                  className="h-14 w-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-xl border-4 border-background"
+                  className="bg-toyota-red hover:bg-toyota-darkred text-white px-6"
                 >
-                  <Calendar className="h-6 w-6" />
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Test Drive
                 </Button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Scroll to Top Button */}
         <AnimatePresence>
@@ -285,7 +296,7 @@ const VehicleDetails: React.FC = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed bottom-20 left-4 z-30"
+              className="fixed bottom-24 right-4 z-30"
             >
               <Button
                 onClick={scrollToTop}
