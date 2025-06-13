@@ -36,16 +36,20 @@ const VehicleDetails: React.FC = () => {
 
   useEffect(() => {
     if (slug) {
-      // Fix slug matching - match against vehicle name converted to slug format
+      // Fix slug matching - remove "toyota-" prefix from vehicle names for comparison
       const foundVehicle = vehicles.find(v => {
-        const vehicleSlug = v.name.toLowerCase()
+        const vehicleSlug = v.name
+          .toLowerCase()
+          .replace('toyota ', '') // Remove "Toyota " prefix
           .replace(/\s+/g, '-')
           .replace(/[^\w-]+/g, '');
         return vehicleSlug === slug;
       });
       
       console.log('Looking for slug:', slug);
-      console.log('Available vehicles slugs:', vehicles.map(v => v.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')));
+      console.log('Available vehicles slugs:', vehicles.map(v => 
+        v.name.toLowerCase().replace('toyota ', '').replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+      ));
       console.log('Found vehicle:', foundVehicle);
       
       if (foundVehicle) {
