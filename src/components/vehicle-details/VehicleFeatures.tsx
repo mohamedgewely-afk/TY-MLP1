@@ -265,39 +265,24 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
             </AnimatePresence>
           </div>
 
-          {/* Navigation Arrows */}
-          <button
-            onClick={prevCategory}
-            disabled={selectedCategory === 0}
-            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
-              selectedCategory === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
-            }`}
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-700" />
-          </button>
+          {/* Navigation Arrows - Only show when not at edges */}
+          {selectedCategory > 0 && (
+            <button
+              onClick={prevCategory}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
 
-          <button
-            onClick={nextCategory}
-            disabled={selectedCategory === featureCategories.length - 1}
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
-              selectedCategory === featureCategories.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
-            }`}
-          >
-            <ChevronRight className="h-6 w-6 text-gray-700" />
-          </button>
-
-          {/* Progress Indicators */}
-          <div className="flex justify-center space-x-2 p-4">
-            {featureCategories.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedCategory(idx)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  selectedCategory === idx ? 'bg-toyota-red scale-125' : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-              />
-            ))}
-          </div>
+          {selectedCategory < featureCategories.length - 1 && (
+            <button
+              onClick={nextCategory}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
         </div>
       </div>
       

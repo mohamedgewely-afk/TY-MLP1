@@ -24,6 +24,7 @@ import OffersSection from "@/components/home/OffersSection";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
+import MobileStickyNav from "@/components/MobileStickyNav";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -272,7 +273,7 @@ const VehicleDetails = () => {
                 }}
                 animate={{ 
                   y: [null, -200],
-                  opacity: [0, 1, 1, 0],
+                  opacity: [0,1, 1, 0],
                   scale: [null, 1.5, 1],
                   rotate: [0, 360]
                 }}
@@ -757,6 +758,9 @@ const VehicleDetails = () => {
           onFinanceCalculator={() => setIsFinanceOpen(true)}
         />
       </div>
+
+      {/* Mobile Sticky Navigation */}
+      <MobileStickyNav activeItem="vehicle" />
 
       {/* Modals */}
       <BookTestDrive 
