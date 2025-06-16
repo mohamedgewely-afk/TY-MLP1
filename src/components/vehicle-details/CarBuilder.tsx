@@ -1,13 +1,9 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { VehicleModel } from "@/types/vehicle";
 import { ChevronLeft, ChevronRight, Check, Car, Palette, Settings, CreditCard, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -116,8 +112,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     accessories: []
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const { toast } = useToast();
-  const form = useForm();
 
   const steps = [
     { number: 1, title: "Model Year", icon: <Car className="h-5 w-5" /> },
@@ -127,6 +124,30 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     { number: 5, title: "Accessories", icon: <Sparkles className="h-5 w-5" /> },
     { number: 6, title: "Payment", icon: <CreditCard className="h-5 w-5" /> }
   ];
+
+  // Handle swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && step < 6) {
+      setStep(step + 1);
+    }
+    if (isRightSwipe && step > 1) {
+      setStep(step - 1);
+    }
+  };
 
   const calculateTotalPrice = () => {
     let basePrice = vehicle.price;
@@ -186,10 +207,15 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     switch (step) {
       case 1:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Choose Model Year</h3>
             <div className="grid grid-cols-2 gap-4">
-              {modelYears.map((year) => (
+              {["2024", "2025"].map((year) => (
                 <motion.div
                   key={year}
                   whileHover={{ scale: 1.02 }}
@@ -212,7 +238,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 2:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Select Grade</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {grades.map((grade) => {
@@ -254,7 +285,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Choose Exterior Color</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {exteriorColors.map((color) => (
@@ -311,7 +347,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 4:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Choose Interior Color</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {interiorColors.map((color) => (
@@ -367,7 +408,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 5:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Select Accessories</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {accessories.map((accessory) => {
@@ -401,7 +447,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       case 6:
         return (
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 h-[400px] flex flex-col justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <h3 className="text-2xl font-bold text-center">Payment & Checkout</h3>
             <Card>
               <CardHeader>
@@ -491,69 +542,76 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-2xl font-bold">Configure Your {vehicle.name}</DialogTitle>
         </DialogHeader>
         
-        {/* Progress Steps */}
-        <div className="flex justify-between items-center mb-8 px-4">
-          {steps.map((stepData, index) => (
-            <div key={stepData.number} className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= stepData.number ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                {step > stepData.number ? <Check className="h-5 w-5" /> : stepData.icon}
-              </div>
-              <span className="text-xs mt-1 text-center">{stepData.title}</span>
-              {index < steps.length - 1 && (
-                <div className={`w-full h-1 mt-2 ${step > stepData.number ? 'bg-primary' : 'bg-muted'}`} />
-              )}
-            </div>
-          ))}
+        {/* Compact Progress Steps */}
+        <div className="flex justify-center items-center mb-4 px-4 flex-shrink-0">
+          <div className="flex items-center space-x-2">
+            {steps.map((stepData, index) => (
+              <React.Fragment key={stepData.number}>
+                <div 
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                    step >= stepData.number ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {step > stepData.number ? <Check className="h-4 w-4" /> : stepData.number}
+                </div>
+                {index < steps.length - 1 && (
+                  <div className={`w-8 h-1 ${step > stepData.number ? 'bg-primary' : 'bg-muted'}`} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
-        {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="min-h-[400px] p-4"
-          >
-            {renderStepContent()}
-          </motion.div>
-        </AnimatePresence>
+        {/* Step Content - No Scroll */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="h-full p-4"
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-6 border-t">
-          <Button 
-            variant="outline" 
-            onClick={prevStep} 
-            disabled={step === 1}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Previous</span>
-          </Button>
-          
-          <div className="text-center">
+        {/* Navigation - Fixed at bottom */}
+        <div className="flex justify-between items-center pt-4 border-t flex-shrink-0">
+          <div className="text-center flex-1">
             <p className="text-lg font-bold text-primary">
               Total: AED {calculateTotalPrice().toLocaleString()}
             </p>
           </div>
-          
-          <Button 
-            onClick={nextStep} 
-            disabled={step === 6}
-            className="bg-primary hover:bg-primary/90 flex items-center space-x-2"
-          >
-            <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
         </div>
+
+        {/* Swipe Navigation Arrows */}
+        <button
+          onClick={() => step > 1 && setStep(step - 1)}
+          disabled={step === 1}
+          className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
+            step === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
+          }`}
+        >
+          <ChevronLeft className="h-6 w-6 text-gray-700" />
+        </button>
+
+        <button
+          onClick={() => step < 6 && setStep(step + 1)}
+          disabled={step === 6}
+          className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
+            step === 6 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
+          }`}
+        >
+          <ChevronRight className="h-6 w-6 text-gray-700" />
+        </button>
       </DialogContent>
     </Dialog>
   );

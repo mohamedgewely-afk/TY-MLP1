@@ -23,6 +23,7 @@ import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowc
 import OffersSection from "@/components/home/OffersSection";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ActionPanel from "@/components/vehicle-details/ActionPanel";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -238,7 +239,7 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout>
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden pb-32"> {/* Added bottom padding for action panel */}
         {/* Enhanced Hero Section with better mobile optimization */}
         <section className="relative min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 overflow-hidden">
           {/* Background effects */}
@@ -746,69 +747,15 @@ const VehicleDetails = () => {
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
 
-        {/* Improved Mobile Floating Actions */}
-        {isMobile && (
-          <motion.div
-            className="fixed top-1/2 right-4 transform -translate-y-1/2 z-40 flex flex-col space-y-3"
-            initial={{ x: 100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1 }}
-          >
-            <motion.div 
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }}
-              className="relative"
-            >
-              <Button 
-                onClick={() => setIsBookingOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-14 h-14 shadow-2xl border-2 border-primary-foreground/20"
-              >
-                <Car className="h-6 w-6" />
-              </Button>
-              <div className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Test Drive
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }}
-              className="relative group"
-            >
-              <Button 
-                variant="outline"
-                onClick={() => setIsCarBuilderOpen(true)}
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-full w-14 h-14 shadow-2xl bg-background/90 backdrop-blur-sm"
-              >
-                <Settings className="h-6 w-6" />
-              </Button>
-              <div className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Build & Price
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }}
-              className="relative group"
-            >
-              <Button 
-                variant="outline" 
-                onClick={toggleFavorite}
-                className={`rounded-full w-14 h-14 shadow-2xl border-2 backdrop-blur-sm ${
-                  isFavorite 
-                    ? "text-primary border-primary bg-primary/10" 
-                    : "border-primary text-primary bg-background/90"
-                }`}
-              >
-                <Heart className="h-6 w-6" fill={isFavorite ? "currentColor" : "none"} />
-              </Button>
-              <div className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                {isFavorite ? "Remove" : "Favorite"}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        {/* Replace floating buttons with ActionPanel */}
+        <ActionPanel
+          vehicle={vehicle}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => setIsCarBuilderOpen(true)}
+          onFinanceCalculator={() => setIsFinanceOpen(true)}
+        />
       </div>
 
       {/* Modals */}

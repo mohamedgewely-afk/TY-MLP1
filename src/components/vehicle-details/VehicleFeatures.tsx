@@ -6,16 +6,9 @@ import {
   BookOpen, GalleryVertical, ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselPrevious, 
-  CarouselNext 
-} from "@/components/ui/carousel";
 
 interface VehicleFeaturesProps {
   vehicle: VehicleModel;
@@ -27,6 +20,8 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
   const [selectedMedia, setSelectedMedia] = useState<{url: string, type: string, thumbnail?: string}>({
     url: "", type: "image"
   });
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Enhanced feature categories with media
   const featureCategories = [
@@ -134,146 +129,175 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
     setOpenMediaDialog(true);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && selectedCategory < featureCategories.length - 1) {
+      setSelectedCategory(prev => prev + 1);
+    }
+    if (isRightSwipe && selectedCategory > 0) {
+      setSelectedCategory(prev => prev - 1);
+    }
+  };
+
+  const nextCategory = () => {
+    if (selectedCategory < featureCategories.length - 1) {
+      setSelectedCategory(prev => prev + 1);
+    }
+  };
+
+  const prevCategory = () => {
+    if (selectedCategory > 0) {
+      setSelectedCategory(prev => prev - 1);
+    }
+  };
+
   return (
     <>
-      {/* Featured Media Carousel - Large Format */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-          Features & Highlights
-        </h2>
-        
-        <div className="bg-black rounded-xl overflow-hidden">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {featureCategories[selectedCategory].media.map((media, idx) => (
-                <CarouselItem key={idx} className="relative">
-                  <div className="aspect-[16/9] md:aspect-[21/9] overflow-hidden">
-                    {media.type === "image" ? (
-                      <img 
-                        src={media.url} 
-                        alt={featureCategories[selectedCategory].title} 
-                        className="w-full h-full object-cover"
-                        onClick={() => handleOpenMedia(media)}
-                      />
-                    ) : (
-                      <video
-                        src={media.url}
-                        poster={media.thumbnail}
-                        controls
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-8">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <h3 className="text-xl md:text-3xl font-bold text-white mb-2">
-                        {featureCategories[selectedCategory].title}
-                      </h3>
-                      <p className="text-white/80 mb-4 max-w-2xl">
-                        {featureCategories[selectedCategory].description}
-                      </p>
-                    </motion.div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="absolute z-10 inset-y-0 left-0 flex items-center">
-              <CarouselPrevious className="ml-4 bg-black/30 hover:bg-black/60 border-none text-white" />
-            </div>
-            <div className="absolute z-10 inset-y-0 right-0 flex items-center">
-              <CarouselNext className="mr-4 bg-black/30 hover:bg-black/60 border-none text-white" />
-            </div>
-          </Carousel>
-          
-          {/* Category Selector */}
-          <div className="bg-gray-900 p-4">
-            <div className="flex overflow-x-auto space-x-2 pb-2">
-              {featureCategories.map((category, idx) => (
-                <Button
-                  key={idx}
-                  variant={selectedCategory === idx ? "default" : "outline"}
-                  className={`rounded-full whitespace-nowrap transition-all ${selectedCategory === idx ? 'bg-toyota-red hover:bg-toyota-darkred' : 'bg-transparent text-white hover:text-white'}`}
-                  onClick={() => setSelectedCategory(idx)}
-                >
-                  <span className="flex items-center">
-                    <span className="mr-2">{category.icon}</span>
-                    {category.title}
-                  </span>
-                </Button>
-              ))}
-            </div>
-          </div>
+      {/* Single Features Section - Swipeable */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+            Vehicle Features
+          </h2>
         </div>
-      </div>
 
-      {/* Features Grid */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
-          Detailed Features
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {featureCategories.map((category, idx) => (
-            <Card key={idx} className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="h-40 relative overflow-hidden cursor-pointer" onClick={() => setSelectedCategory(idx)}>
-                <Carousel opts={{ align: "start", loop: true }}>
-                  <CarouselContent>
-                    {category.media.map((m, i) => (
-                      <CarouselItem key={i}>
-                        {m.type === "image" ? (
-                          <img src={m.url} alt={category.title} className="w-full h-40 object-cover" />
-                        ) : (
-                          <div className="relative w-full h-40 bg-gray-200">
+        {/* Swipeable Feature Cards */}
+        <div className="relative">
+          <div 
+            className="overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedCategory}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="p-6"
+              >
+                <Card className="h-full overflow-hidden">
+                  {/* Media Section */}
+                  <div className="h-48 relative overflow-hidden">
+                    <div className="flex transition-transform duration-300">
+                      {featureCategories[selectedCategory].media.map((m, i) => (
+                        <div key={i} className="w-full flex-shrink-0 relative">
+                          {m.type === "image" ? (
                             <img 
-                              src={m.thumbnail || ''} 
-                              alt={category.title} 
-                              className="w-full h-full object-cover opacity-60"
+                              src={m.url} 
+                              alt={featureCategories[selectedCategory].title} 
+                              className="w-full h-48 object-cover cursor-pointer"
+                              onClick={() => handleOpenMedia(m)}
                             />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-toyota-red rounded-full p-3 bg-opacity-80">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M8 5V19L19 12L8 5Z" fill="white" />
-                                </svg>
+                          ) : (
+                            <div className="relative w-full h-48 bg-gray-200 cursor-pointer" onClick={() => handleOpenMedia(m)}>
+                              <img 
+                                src={m.thumbnail || ''} 
+                                alt={featureCategories[selectedCategory].title} 
+                                className="w-full h-full object-cover opacity-60"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-toyota-red rounded-full p-3 bg-opacity-80">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5V19L19 12L8 5Z" fill="white" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="flex items-center">
+                          <div className="bg-toyota-red p-2 rounded-full mr-3">
+                            {featureCategories[selectedCategory].icon}
                           </div>
-                        )}
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="flex items-center">
-                      <div className="bg-toyota-red p-2 rounded-full mr-3">
-                        {category.icon}
+                          <div>
+                            <h3 className="text-lg font-bold text-white">{featureCategories[selectedCategory].title}</h3>
+                            <p className="text-white/80 text-sm">{featureCategories[selectedCategory].description}</p>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="text-lg font-bold text-white">{category.title}</h3>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              <CardContent className="p-4 bg-white dark:bg-gray-900">
-                <ul className="space-y-2">
-                  {category.features.map((feature, i) => (
-                    <li key={i} className="flex items-start">
-                      <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
+                  
+                  {/* Features List */}
+                  <CardContent className="p-6 bg-white dark:bg-gray-900">
+                    <ul className="space-y-3">
+                      {featureCategories[selectedCategory].features.map((feature, i) => (
+                        <motion.li 
+                          key={i} 
+                          className="flex items-start"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                        >
+                          <span className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-3 mt-0.5 bg-toyota-red/10 rounded-full text-toyota-red">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </span>
+                          <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevCategory}
+            disabled={selectedCategory === 0}
+            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
+              selectedCategory === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
+            }`}
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-700" />
+          </button>
+
+          <button
+            onClick={nextCategory}
+            disabled={selectedCategory === featureCategories.length - 1}
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all ${
+              selectedCategory === featureCategories.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
+            }`}
+          >
+            <ChevronRight className="h-6 w-6 text-gray-700" />
+          </button>
+
+          {/* Progress Indicators */}
+          <div className="flex justify-center space-x-2 p-4">
+            {featureCategories.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(idx)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  selectedCategory === idx ? 'bg-toyota-red scale-125' : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
       
