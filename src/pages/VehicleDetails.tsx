@@ -241,7 +241,7 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout>
-      <div className={`relative overflow-hidden ${isMobile ? 'pb-44' : 'pb-32'}`}>
+      <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
         {/* Enhanced Hero Section with better mobile optimization */}
         <section className="relative min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 overflow-hidden">
           {/* Background effects */}

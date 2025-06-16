@@ -42,14 +42,93 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     }
   };
 
+  if (isMobile) {
+    return (
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="fixed left-4 right-4 bottom-20 z-30 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+      >
+        {/* Compact Price Display */}
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <span className="text-lg font-bold text-primary">
+              AED {vehicle.price.toLocaleString()}
+            </span>
+            <p className="text-xs text-muted-foreground">From AED 899/month</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button 
+              onClick={onToggleFavorite}
+              variant="outline"
+              size="sm"
+              className={`p-2 rounded-xl ${
+                isFavorite 
+                  ? "border-primary text-primary bg-primary/10" 
+                  : "border-gray-300 text-gray-700 bg-white/50"
+              }`}
+            >
+              <Heart className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
+            </Button>
+            <Button 
+              onClick={handleShare}
+              variant="outline"
+              size="sm"
+              className="p-2 border-gray-300 text-gray-700 rounded-xl bg-white/50"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Compact Action Buttons */}
+        <div className="grid grid-cols-3 gap-2">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              onClick={onBookTestDrive}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-2 rounded-xl text-sm font-medium"
+              size="sm"
+            >
+              <Car className="h-4 w-4 mr-1" />
+              Test Drive
+            </Button>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              onClick={onCarBuilder}
+              variant="outline"
+              className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground py-2 rounded-xl bg-white/70 text-sm font-medium"
+              size="sm"
+            >
+              <Settings className="h-4 w-4 mr-1" />
+              Configure
+            </Button>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              onClick={onFinanceCalculator}
+              variant="outline"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-xl bg-white/70 text-sm font-medium"
+              size="sm"
+            >
+              <Calculator className="h-4 w-4 mr-1" />
+              Finance
+            </Button>
+          </motion.div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      className={`fixed left-0 right-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl ${
-        isMobile ? 'bottom-16' : 'bottom-0'
-      }`}
+      className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
     >
       <div className="toyota-container py-4">
         {/* Price Display */}
@@ -69,7 +148,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Primary Actions */}
           <motion.div 
-            whileHover={{ scale: 1.02 }} 
+            whileH0ver={{ scale: 1.02 }} 
             whileTap={{ scale: 0.98 }}
             className="lg:col-span-2"
           >

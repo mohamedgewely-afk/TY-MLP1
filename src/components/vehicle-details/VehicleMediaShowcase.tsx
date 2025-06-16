@@ -282,40 +282,36 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </motion.div>
             </AnimatePresence>
 
-            {/* Enhanced Navigation Arrows - Hidden on mobile for better swipe experience */}
-            {!isMobile && (
-              <>
-                <motion.div 
-                  className="absolute inset-y-0 left-0 flex items-center"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="ml-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
-                    onClick={prev}
-                    aria-label="Previous media"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </Button>
-                </motion.div>
-                
-                <motion.div 
-                  className="absolute inset-y-0 right-0 flex items-center"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="mr-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
-                    onClick={next}
-                    aria-label="Next media"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </Button>
-                </motion.div>
-              </>
-            )}
+            {/* Navigation Arrows */}
+            <motion.div 
+              className="absolute inset-y-0 left-0 flex items-center"
+              whileHover={{ scale: 1.1 }}
+            >
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="ml-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                onClick={prev}
+                aria-label="Previous media"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+            </motion.div>
+            
+            <motion.div 
+              className="absolute inset-y-0 right-0 flex items-center"
+              whileHover={{ scale: 1.1 }}
+            >
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="mr-4 rounded-full bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70 h-12 w-12"
+                onClick={next}
+                aria-label="Next media"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            </motion.div>
             
             {/* Enhanced Action Buttons */}
             <div className="absolute top-4 right-4 flex items-center space-x-3">
@@ -343,9 +339,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Button>
             </div>
 
-            {/* Enhanced Media Type Filters - Swipeable on mobile */}
+            {/* Enhanced Media Type Filters */}
             <div className="absolute top-4 left-4">
-              <div className={`${isMobile ? 'flex overflow-x-auto scrollbar-hide space-x-2 max-w-[200px]' : 'flex items-center space-x-2'}`}>
+              <div className="flex items-center space-x-2">
                 {[
                   { key: 'all', label: 'All', icon: null },
                   { key: 'image', label: 'Photos', icon: <ImageIcon className="h-3 w-3" /> },
@@ -356,7 +352,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                     key={filter.key}
                     size="sm"
                     variant={activeFilter === filter.key ? "default" : "outline"}
-                    className={`text-xs whitespace-nowrap ${isMobile ? 'flex-shrink-0' : ''} ${
+                    className={`text-xs whitespace-nowrap ${
                       activeFilter === filter.key 
                         ? "bg-toyota-red text-white border-toyota-red" 
                         : "bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
@@ -369,19 +365,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 ))}
               </div>
             </div>
-            
-            {/* Mobile swipe indicator */}
-            {isMobile && (
-              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-                <motion.div
-                  animate={{ x: [-10, 10, -10] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-white/60 text-xs flex items-center space-x-2"
-                >
-                  <span>← Swipe →</span>
-                </motion.div>
-              </div>
-            )}
           </div>
           
           {/* Enhanced Media Information Panel */}
@@ -402,49 +385,47 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery - No swipe bars, just arrows on desktop */}
+            {/* Enhanced Thumbnail Gallery with arrows only */}
             <div className="relative">
-              <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex overflow-x-auto'} space-x-3 pb-2`}>
-                <div className={`flex space-x-3 ${isMobile ? 'w-max' : ''}`}>
-                  {media.map((item, idx) => (
-                    <motion.div
-                      key={idx}
-                      onClick={() => setCurrent(idx)}
-                      className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
-                        current === idx 
-                          ? 'border-toyota-red shadow-lg scale-105' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
-                      whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {item.type === "image" || item.type === "360" ? (
-                        <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-black relative">
-                          {item.thumbnail ? (
-                            <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="bg-gray-800 w-full h-full" />
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Play className="h-6 w-6 text-white drop-shadow-lg" />
-                          </div>
+              <div className="flex overflow-x-auto scrollbar-hide space-x-3 pb-2">
+                {media.map((item, idx) => (
+                  <motion.div
+                    key={idx}
+                    onClick={() => setCurrent(idx)}
+                    className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all relative ${
+                      current === idx 
+                        ? 'border-toyota-red shadow-lg scale-105' 
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                    whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {item.type === "image" || item.type === "360" ? (
+                      <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-black relative">
+                        {item.thumbnail ? (
+                          <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="bg-gray-800 w-full h-full" />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play className="h-6 w-6 text-white drop-shadow-lg" />
                         </div>
-                      )}
-                      
-                      {/* Type indicator */}
-                      <div className="absolute top-1 right-1">
-                        {item.type === 'video' && (
-                          <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
-                        )}
-                        {item.type === '360' && (
-                          <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
-                        )}
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
+                    )}
+                    
+                    {/* Type indicator */}
+                    <div className="absolute top-1 right-1">
+                      {item.type === 'video' && (
+                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                      )}
+                      {item.type === '360' && (
+                        <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
               
               {/* Desktop thumbnail navigation arrows */}
@@ -453,7 +434,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md z-10"
                     onClick={() => {
                       const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
                       if (container) {
@@ -466,7 +447,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md"
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md z-10"
                     onClick={() => {
                       const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
                       if (container) {
@@ -546,7 +527,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
             
-            {/* Fullscreen Navigation - No progress bars */}
+            {/* Fullscreen Navigation */}
             <div className="flex justify-between items-center p-6 bg-black/50 backdrop-blur">
               <Button 
                 variant="outline" 
