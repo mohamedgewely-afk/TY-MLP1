@@ -53,7 +53,8 @@ const VehicleDetails = () => {
   useEffect(() => {
     const foundVehicle = vehicles.find(v => {
       if (v.id === vehicleName) return true;
-      return v.name.toLowerCase().replace(/\s+/g, '-') === vehicleName;
+      const slugFromName = v.name.toLowerCase().replace(/^toyota\s+/, '').replace(/\s+/g, '-');
+      return slugFromName === vehicleName;
     });
     
     if (foundVehicle) {
@@ -240,7 +241,7 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout>
-      <div className="relative overflow-hidden pb-32"> {/* Added bottom padding for action panel */}
+      <div className={`relative overflow-hidden ${isMobile ? 'pb-44' : 'pb-32'}`}>
         {/* Enhanced Hero Section with better mobile optimization */}
         <section className="relative min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 overflow-hidden">
           {/* Background effects */}
@@ -460,7 +461,7 @@ const VehicleDetails = () => {
                     />
                   </AnimatePresence>
                   
-                  {/* Image indicators */}
+                  {/* Image indicators - No bars, just clean dots */}
                   <div className="absolute bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
                     {galleryImages.map((_, index) => (
                       <motion.button
@@ -748,7 +749,7 @@ const VehicleDetails = () => {
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
 
-        {/* Replace floating buttons with ActionPanel */}
+        {/* Action Panel with proper spacing for mobile sticky nav */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
@@ -760,7 +761,7 @@ const VehicleDetails = () => {
       </div>
 
       {/* Mobile Sticky Navigation */}
-      <MobileStickyNav activeItem="vehicle" />
+      {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
       {/* Modals */}
       <BookTestDrive 

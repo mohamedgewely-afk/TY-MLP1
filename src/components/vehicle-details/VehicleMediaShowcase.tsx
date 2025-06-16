@@ -370,34 +370,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </div>
             </div>
             
-            {/* Enhanced Progress Indicators */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-3">
-              <div className="flex space-x-2">
-                {filteredMedia.map((_, idx) => (
-                  <motion.button
-                    key={idx}
-                    onClick={() => setCurrent(media.indexOf(filteredMedia[idx]))}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === currentFilteredIndex 
-                        ? 'bg-toyota-red w-8 shadow-lg' 
-                        : 'bg-white/40 w-2 hover:bg-white/60'
-                    }`}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
-              
-              {/* Media Info */}
-              {currentMedia.title && (
-                <div className="bg-black/50 backdrop-blur rounded-full px-3 py-1 border border-white/20">
-                  <span className="text-white text-xs font-medium">
-                    {currentMedia.title}
-                  </span>
-                </div>
-              )}
-            </div>
-
             {/* Mobile swipe indicator */}
             {isMobile && (
               <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
@@ -430,48 +402,82 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery - Swipeable on mobile */}
-            <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex overflow-x-auto'} space-x-3 pb-2`}>
-              <div className={`flex space-x-3 ${isMobile ? 'w-max' : ''}`}>
-                {media.map((item, idx) => (
-                  <motion.div
-                    key={idx}
-                    onClick={() => setCurrent(idx)}
-                    className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
-                      current === idx 
-                        ? 'border-toyota-red shadow-lg scale-105' 
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
-                    whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {item.type === "image" || item.type === "360" ? (
-                      <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black relative">
-                        {item.thumbnail ? (
-                          <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="bg-gray-800 w-full h-full" />
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Play className="h-6 w-6 text-white drop-shadow-lg" />
+            {/* Enhanced Thumbnail Gallery - No swipe bars, just arrows on desktop */}
+            <div className="relative">
+              <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex overflow-x-auto'} space-x-3 pb-2`}>
+                <div className={`flex space-x-3 ${isMobile ? 'w-max' : ''}`}>
+                  {media.map((item, idx) => (
+                    <motion.div
+                      key={idx}
+                      onClick={() => setCurrent(idx)}
+                      className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                        current === idx 
+                          ? 'border-toyota-red shadow-lg scale-105' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                      whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {item.type === "image" || item.type === "360" ? (
+                        <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-black relative">
+                          {item.thumbnail ? (
+                            <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="bg-gray-800 w-full h-full" />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                          </div>
                         </div>
+                      )}
+                      
+                      {/* Type indicator */}
+                      <div className="absolute top-1 right-1">
+                        {item.type === 'video' && (
+                          <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                        )}
+                        {item.type === '360' && (
+                          <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                        )}
                       </div>
-                    )}
-                    
-                    {/* Type indicator */}
-                    <div className="absolute top-1 right-1">
-                      {item.type === 'video' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
-                      )}
-                      {item.type === '360' && (
-                        <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
+              
+              {/* Desktop thumbnail navigation arrows */}
+              {!isMobile && media.length > 5 && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md"
+                    onClick={() => {
+                      const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
+                      if (container) {
+                        container.scrollBy({ left: -200, behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md"
+                    onClick={() => {
+                      const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
+                      if (container) {
+                        container.scrollBy({ left: 200, behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
@@ -540,7 +546,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
             
-            {/* Fullscreen Navigation */}
+            {/* Fullscreen Navigation - No progress bars */}
             <div className="flex justify-between items-center p-6 bg-black/50 backdrop-blur">
               <Button 
                 variant="outline" 
@@ -554,22 +560,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 Previous
               </Button>
               
-              <div className="flex space-x-2">
-                {media.map((_, idx) => (
-                  <motion.button
-                    key={idx}
-                    className={`h-2 w-2 rounded-full transition-all ${
-                      idx === current ? 'bg-toyota-red w-6' : 'bg-gray-400 hover:bg-gray-300'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrent(idx);
-                    }}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
+              <span className="text-white text-sm">
+                {current + 1} of {media.length}
+              </span>
               
               <Button 
                 variant="outline" 

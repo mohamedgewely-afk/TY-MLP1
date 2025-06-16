@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Car, Settings, Heart, Share2, Calculator, MapPin } from 'lucide-react';
 import { VehicleModel } from '@/types/vehicle';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ActionPanelProps {
   vehicle: VehicleModel;
@@ -22,6 +23,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   onCarBuilder,
   onFinanceCalculator
 }) => {
+  const isMobile = useIsMobile();
+
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -44,7 +47,9 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
+      className={`fixed left-0 right-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl ${
+        isMobile ? 'bottom-16' : 'bottom-0'
+      }`}
     >
       <div className="toyota-container py-4">
         {/* Price Display */}
