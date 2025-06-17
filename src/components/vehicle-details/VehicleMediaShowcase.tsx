@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -79,7 +79,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const [activeFilter, setActiveFilter] = useState<'all' | 'image' | 'video' | '360'>('all');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -92,10 +91,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     activeFilter === 'all' ? true : m.type === activeFilter
   );
 
-  const currentFilteredIndex = filteredMedia.findIndex(
-    (item) => item === media[current]
-  );
-
   // Handle filter change
   const handleFilterChange = (filter: 'all' | 'image' | 'video' | '360') => {
     setActiveFilter(filter);
@@ -103,47 +98,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       const firstMatchingIndex = media.findIndex(m => m.type === filter);
       if (firstMatchingIndex >= 0) {
         setCurrent(firstMatchingIndex);
-      }
-    }
-  };
-
-  // Enhanced touch/swipe handling
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY
-    });
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart.x || !touchStart.y) return;
-
-    const touchEnd = {
-      x: e.changedTouches[0].clientX,
-      y: e.changedTouches[0].clientY
-    };
-
-    const deltaX = touchStart.x - touchEnd.x;
-    const deltaY = touchStart.y - touchEnd.y;
-    const minSwipeDistance = 50;
-
-    // Horizontal swipe for navigation
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
-      if (deltaX > 0) {
-        next();
-      } else {
-        prev();
-      }
-    }
-  };
-
-  // Pan gesture handling
-  const handlePan = (event: any, info: PanInfo) => {
-    if (Math.abs(info.offset.x) > 100) {
-      if (info.offset.x > 0) {
-        prev();
-      } else {
-        next();
       }
     }
   };
@@ -195,8 +149,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           <div 
             ref={containerRef}
             className="relative h-[350px] md:h-[550px] xl:h-[650px] flex items-center justify-center overflow-hidden bg-black"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -206,9 +158,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.5 }}
                 className="w-full h-full relative"
-                drag={isMobile ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={isMobile ? handlePan : undefined}
               >
                 {currentMedia.type === "image" ? (
                   <img 

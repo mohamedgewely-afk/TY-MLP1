@@ -20,8 +20,6 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
   const [selectedMedia, setSelectedMedia] = useState<{url: string, type: string, thumbnail?: string}>({
     url: "", type: "image"
   });
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
 
   // Enhanced feature categories with media
   const featureCategories = [
@@ -129,29 +127,6 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
     setOpenMediaDialog(true);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && selectedCategory < featureCategories.length - 1) {
-      setSelectedCategory(prev => prev + 1);
-    }
-    if (isRightSwipe && selectedCategory > 0) {
-      setSelectedCategory(prev => prev - 1);
-    }
-  };
-
   const nextCategory = () => {
     if (selectedCategory < featureCategories.length - 1) {
       setSelectedCategory(prev => prev + 1);
@@ -176,12 +151,7 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
 
         {/* Swipeable Feature Cards */}
         <div className="relative">
-          <div 
-            className="overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
+          <div className="overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedCategory}
