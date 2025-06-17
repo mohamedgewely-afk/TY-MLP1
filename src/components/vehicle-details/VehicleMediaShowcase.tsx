@@ -385,7 +385,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery with arrows only */}
+            {/* Enhanced Thumbnail Gallery with arrows */}
             <div className="relative">
               <div className="flex overflow-x-auto scrollbar-hide space-x-3 pb-2">
                 {media.map((item, idx) => (
