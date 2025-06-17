@@ -141,7 +141,7 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
 
   return (
     <>
-      {/* Single Features Section - Swipeable */}
+      {/* Single Features Section - Swipeable with Navigation Arrows */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
         <div className="p-6 pb-0">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -149,7 +149,7 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
           </h2>
         </div>
 
-        {/* Swipeable Feature Cards */}
+        {/* Swipeable Feature Cards with Navigation */}
         <div className="relative">
           <div className="overflow-hidden">
             <AnimatePresence mode="wait">
@@ -235,24 +235,41 @@ const VehicleFeatures: React.FC<VehicleFeaturesProps> = ({ vehicle }) => {
             </AnimatePresence>
           </div>
 
-          {/* Navigation Arrows - Only show when not at edges */}
-          {selectedCategory > 0 && (
-            <button
-              onClick={prevCategory}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl"
-            >
-              <ChevronLeft className="h-6 w-6 text-gray-700" />
-            </button>
-          )}
+          {/* Navigation Arrows - Always visible for clarity */}
+          <button
+            onClick={prevCategory}
+            disabled={selectedCategory === 0}
+            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl ${
+              selectedCategory === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+            }`}
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-700" />
+          </button>
 
-          {selectedCategory < featureCategories.length - 1 && (
-            <button
-              onClick={nextCategory}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl"
-            >
-              <ChevronRight className="h-6 w-6 text-gray-700" />
-            </button>
-          )}
+          <button
+            onClick={nextCategory}
+            disabled={selectedCategory === featureCategories.length - 1}
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl ${
+              selectedCategory === featureCategories.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+            }`}
+          >
+            <ChevronRight className="h-6 w-6 text-gray-700" />
+          </button>
+
+          {/* Feature Category Dots - Simple indicator dots */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {featureCategories.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedCategory(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === selectedCategory 
+                    ? "bg-toyota-red scale-125" 
+                    : "bg-gray-400 hover:bg-gray-600"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
       

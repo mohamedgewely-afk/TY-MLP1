@@ -241,7 +241,7 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout>
-      <div className={`relative overflow-hidden ${isMobile ? 'pb-24' : 'pb-32'}`}>
+      <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
         {/* Enhanced Hero Section with better mobile optimization */}
         <section className="relative min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 overflow-hidden">
           {/* Background effects */}
@@ -749,7 +749,7 @@ const VehicleDetails = () => {
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
 
-        {/* Action Panel - now as small floating button on mobile */}
+        {/* Action Panel - Better positioned for mobile */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}

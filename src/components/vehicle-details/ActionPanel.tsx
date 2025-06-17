@@ -46,22 +46,22 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   if (isMobile) {
     return (
       <>
-        {/* Floating Action Button - Fixed positioning above sticky nav */}
+        {/* Smaller Floating Action Button - Better positioned */}
         <motion.div
-          className="fixed right-4 bottom-20 z-40"
+          className="fixed right-4 bottom-24 z-40"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}
         >
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl border-2 border-white/20"
+            className="w-14 h-14 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-2xl border-2 border-white/20"
           >
             <motion.div
               animate={{ rotate: isExpanded ? 45 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-6 w-6" />
             </motion.div>
           </Button>
         </motion.div>
@@ -85,7 +85,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 300, opacity: 0 }}
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                className="fixed left-4 right-4 bottom-20 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+                className="fixed left-4 right-4 bottom-24 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">

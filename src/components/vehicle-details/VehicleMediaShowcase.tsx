@@ -334,80 +334,46 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery with arrows */}
-            <div className="relative">
-              <div className="flex overflow-x-auto scrollbar-hide space-x-3 pb-2">
-                {media.map((item, idx) => (
-                  <motion.div
-                    key={idx}
-                    onClick={() => setCurrent(idx)}
-                    className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all relative ${
-                      current === idx 
-                        ? 'border-toyota-red shadow-lg scale-105' 
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
-                    whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {item.type === "image" || item.type === "360" ? (
-                      <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black relative">
-                        {item.thumbnail ? (
-                          <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="bg-gray-800 w-full h-full" />
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Play className="h-6 w-6 text-white drop-shadow-lg" />
-                        </div>
+            {/* Simple Thumbnail Gallery - NO BARS */}
+            <div className="flex overflow-x-auto space-x-3 pb-2">
+              {media.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  onClick={() => setCurrent(idx)}
+                  className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all relative ${
+                    current === idx 
+                      ? 'border-toyota-red shadow-lg scale-105' 
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                  whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {item.type === "image" || item.type === "360" ? (
+                    <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-black relative">
+                      {item.thumbnail ? (
+                        <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="bg-gray-800 w-full h-full" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Play className="h-6 w-6 text-white drop-shadow-lg" />
                       </div>
-                    )}
-                    
-                    {/* Type indicator */}
-                    <div className="absolute top-1 right-1">
-                      {item.type === 'video' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
-                      )}
-                      {item.type === '360' && (
-                        <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
-                      )}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              {/* Desktop thumbnail navigation arrows */}
-              {!isMobile && media.length > 5 && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md z-10"
-                    onClick={() => {
-                      const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
-                      if (container) {
-                        container.scrollBy({ left: -200, behavior: 'smooth' });
-                      }
-                    }}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-md z-10"
-                    onClick={() => {
-                      const container = containerRef.current?.querySelector('.flex.overflow-x-auto');
-                      if (container) {
-                        container.scrollBy({ left: 200, behavior: 'smooth' });
-                      }
-                    }}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
+                  )}
+                  
+                  {/* Type indicator */}
+                  <div className="absolute top-1 right-1">
+                    {item.type === 'video' && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                    )}
+                    {item.type === '360' && (
+                      <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                    )}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.div>
