@@ -99,7 +99,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
 
   return (
     <section className="relative h-screen overflow-hidden bg-black">
-      {/* Background Images - Sequential, not overlapping */}
+      {/* Background Images */}
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
