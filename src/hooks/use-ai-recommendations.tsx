@@ -36,7 +36,7 @@ export const useAIRecommendations = (usagePattern?: UsagePattern) => {
     }
 
     // Family size matching (25% weight)
-    const seatCapacity = vehicle.specs?.seating || 5;
+    const seatCapacity = 5; // Default seating capacity since specifications doesn't have seating info
     if (seatCapacity >= pattern.familySize) {
       score += 25;
       reasons.push(`Accommodates your family of ${pattern.familySize}`);
@@ -46,7 +46,7 @@ export const useAIRecommendations = (usagePattern?: UsagePattern) => {
     if (pattern.fuelPreference === 'hybrid' && vehicle.category.toLowerCase().includes('hybrid')) {
       score += 20;
       reasons.push('Matches your hybrid preference');
-    } else if (pattern.fuelPreference === 'efficiency' && vehicle.specs?.fuelEconomy) {
+    } else if (pattern.fuelPreference === 'efficiency' && vehicle.specifications?.fuelEconomy) {
       score += 15;
       reasons.push('Excellent fuel efficiency');
     }
