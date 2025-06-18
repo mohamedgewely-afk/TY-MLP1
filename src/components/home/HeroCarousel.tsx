@@ -47,7 +47,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
       title: "RAV4 Adventure",
       subtitle: "Built for Every Journey",
       description: "Conquer any terrain with confidence. The RAV4 combines rugged capability with refined comfort.",
-      image: "https://images.unsplash.com/photo-1571088520017-b4e1b2e1c6dd?auto=format&fit=crop&w=1920&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/f5b0eec7-2576-4e8a-9aa7-2589d2c985ef/items/500204ce-384d-4ae5-8585-3111b7d7dd16/renditions/51797f22-123a-413b-8817-57b1f0ce0788?binary=true&mformat=true",
       cta: "Discover RAV4",
       ctaText: "Discover RAV4",
       link: "/vehicle/rav4-hybrid",
