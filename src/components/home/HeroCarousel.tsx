@@ -5,15 +5,33 @@ import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-const HeroCarousel = () => {
+interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  description?: string;
+  image: string;
+  cta?: string;
+  ctaText?: string;
+  link?: string;
+  ctaLink?: string;
+  badge?: string;
+  isHybrid?: boolean;
+}
+
+interface HeroCarouselProps {
+  slides?: HeroSlide[];
+}
+
+const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  // High-quality Toyota vehicle images that actually work
-  const slides = [
+  // Default slides if none provided
+  const defaultSlides = [
     {
-      id: 1,
+      id: "1",
       title: "New Camry Hybrid",
       subtitle: "The Future of Driving",
       description: "Experience the perfect blend of performance, efficiency, and luxury with our latest hybrid technology.",
@@ -23,7 +41,7 @@ const HeroCarousel = () => {
       badge: "New 2024"
     },
     {
-      id: 2,
+      id: "2",
       title: "RAV4 Adventure",
       subtitle: "Built for Every Journey",
       description: "Conquer any terrain with confidence. The RAV4 combines rugged capability with refined comfort.",
@@ -33,7 +51,7 @@ const HeroCarousel = () => {
       badge: "Best Seller"
     },
     {
-      id: 3,
+      id: "3",
       title: "Prius Prime",
       subtitle: "Electrify Your Drive",
       description: "Revolutionary plug-in hybrid technology that redefines what's possible in eco-friendly transportation.",
@@ -43,7 +61,7 @@ const HeroCarousel = () => {
       badge: "Eco Choice"
     },
     {
-      id: 4,
+      id: "4",
       title: "Land Cruiser",
       subtitle: "Legendary Performance",
       description: "Unmatched capability and reliability for those who demand the very best in off-road excellence.",
@@ -53,6 +71,8 @@ const HeroCarousel = () => {
       badge: "Icon"
     }
   ];
+
+  const slides = propSlides || defaultSlides;
 
   // Auto-play functionality
   useEffect(() => {
@@ -84,9 +104,9 @@ const HeroCarousel = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, scale: 1.1 }}
+            initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 1.2, ease: "easeInOut" }}
             className="absolute inset-0"
           >
@@ -116,16 +136,18 @@ const HeroCarousel = () => {
                 className="space-y-6 text-white"
               >
                 {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-block"
-                >
-                  <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
-                    {slides[currentSlide].badge}
-                  </span>
-                </motion.div>
+                {slides[currentSlide].badge && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="inline-block"
+                  >
+                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
+                      {slides[currentSlide].badge}
+                    </span>
+                  </motion.div>
+                )}
 
                 {/* Title */}
                 <motion.h1
@@ -148,30 +170,34 @@ const HeroCarousel = () => {
                 </motion.h2>
 
                 {/* Description */}
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-lg md:text-xl text-white/80 max-w-2xl leading-relaxed"
-                >
-                  {slides[currentSlide].description}
-                </motion.p>
+                {slides[currentSlide].description && (
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-lg md:text-xl text-white/80 max-w-2xl leading-relaxed"
+                  >
+                    {slides[currentSlide].description}
+                  </motion.p>
+                )}
 
                 {/* CTA Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="pt-4"
-                >
-                  <Button
-                    size="lg"
-                    onClick={() => navigate(slides[currentSlide].link)}
-                    className="bg-white text-toyota-red hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                {(slides[currentSlide].cta || slides[currentSlide].ctaText) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="pt-4"
                   >
-                    {slides[currentSlide].cta}
-                  </Button>
-                </motion.div>
+                    <Button
+                      size="lg"
+                      onClick={() => navigate(slides[currentSlide].link || slides[currentSlide].ctaLink || "/")}
+                      className="bg-white text-toyota-red hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      {slides[currentSlide].cta || slides[currentSlide].ctaText}
+                    </Button>
+                  </motion.div>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
