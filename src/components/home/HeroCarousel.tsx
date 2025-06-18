@@ -28,8 +28,8 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  // Default slides if none provided
-  const defaultSlides = [
+  // Default slides with consistent properties
+  const defaultSlides: HeroSlide[] = [
     {
       id: "1",
       title: "New Camry Hybrid",
@@ -37,7 +37,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
       description: "Experience the perfect blend of performance, efficiency, and luxury with our latest hybrid technology.",
       image: "https://images.unsplash.com/photo-1494976688531-c21fd785c8d0?auto=format&fit=crop&w=1920&q=80",
       cta: "Explore Camry",
+      ctaText: "Explore Camry",
       link: "/vehicle/camry-hybrid",
+      ctaLink: "/vehicle/camry-hybrid",
       badge: "New 2024"
     },
     {
@@ -47,7 +49,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
       description: "Conquer any terrain with confidence. The RAV4 combines rugged capability with refined comfort.",
       image: "https://images.unsplash.com/photo-1571088520017-b4e1b2e1c6dd?auto=format&fit=crop&w=1920&q=80",
       cta: "Discover RAV4",
+      ctaText: "Discover RAV4",
       link: "/vehicle/rav4-hybrid",
+      ctaLink: "/vehicle/rav4-hybrid",
       badge: "Best Seller"
     },
     {
@@ -57,7 +61,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
       description: "Revolutionary plug-in hybrid technology that redefines what's possible in eco-friendly transportation.",
       image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1920&q=80",
       cta: "Go Electric",
+      ctaText: "Go Electric",
       link: "/vehicle/prius-prime",
+      ctaLink: "/vehicle/prius-prime",
       badge: "Eco Choice"
     },
     {
@@ -67,7 +73,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
       description: "Unmatched capability and reliability for those who demand the very best in off-road excellence.",
       image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1920&q=80",
       cta: "Experience Legend",
+      ctaText: "Experience Legend",
       link: "/vehicle/land-cruiser",
+      ctaLink: "/vehicle/land-cruiser",
       badge: "Icon"
     }
   ];
@@ -116,15 +124,15 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
               className="w-full h-full object-cover"
               style={{ objectPosition: 'center center' }}
             />
-            {/* Gradient overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/50" />
+            {/* Enhanced gradient overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
-        <div className="toyota-container">
+      {/* Content positioned at bottom */}
+      <div className="relative z-10 h-full flex items-end pb-32 md:pb-24">
+        <div className="toyota-container w-full">
           <div className="max-w-4xl">
             <AnimatePresence mode="wait">
               <motion.div
@@ -133,7 +141,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                 animate={{ opacity: 1, y: 0, x: 0 }}
                 exit={{ opacity: 0, y: -30, x: 30 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="space-y-6 text-white"
+                className="space-y-4 md:space-y-6 text-white"
               >
                 {/* Badge */}
                 {slides[currentSlide].badge && (
@@ -143,7 +151,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                     transition={{ delay: 0.2 }}
                     className="inline-block"
                   >
-                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
+                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold border border-white/20">
                       {slides[currentSlide].badge}
                     </span>
                   </motion.div>
@@ -154,7 +162,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight"
+                  className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight"
                 >
                   {slides[currentSlide].title}
                 </motion.h1>
@@ -164,7 +172,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-2xl md:text-3xl lg:text-4xl font-light text-white/90 leading-relaxed"
+                  className="text-lg md:text-2xl lg:text-3xl font-light text-white/90 leading-relaxed"
                 >
                   {slides[currentSlide].subtitle}
                 </motion.h2>
@@ -175,7 +183,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-lg md:text-xl text-white/80 max-w-2xl leading-relaxed"
+                    className="text-sm md:text-lg text-white/80 max-w-2xl leading-relaxed"
                   >
                     {slides[currentSlide].description}
                   </motion.p>
@@ -187,12 +195,12 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="pt-4"
+                    className="pt-2 md:pt-4"
                   >
                     <Button
                       size="lg"
                       onClick={() => navigate(slides[currentSlide].link || slides[currentSlide].ctaLink || "/")}
-                      className="bg-white text-toyota-red hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                      className="bg-white text-toyota-red hover:bg-gray-100 px-6 py-3 md:px-8 md:py-4 text-sm md:text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                     >
                       {slides[currentSlide].cta || slides[currentSlide].ctaText}
                     </Button>
@@ -204,16 +212,16 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
         </div>
       </div>
 
-      {/* Navigation Controls */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="flex items-center space-x-6">
+      {/* Navigation Controls - Responsive positioning */}
+      <div className="absolute bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex items-center space-x-4 md:space-x-6">
           {/* Dots Indicator */}
-          <div className="flex space-x-3">
+          <div className="flex space-x-2 md:space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? "bg-white scale-125 shadow-lg"
                     : "bg-white/40 hover:bg-white/60"
@@ -226,29 +234,29 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
           {/* Auto-play Toggle */}
           <button
             onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className="bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 rounded-full hover:bg-white/30 transition-all duration-300"
+            className="bg-white/20 backdrop-blur-sm border border-white/30 text-white p-1.5 md:p-2 rounded-full hover:bg-white/30 transition-all duration-300"
             aria-label={isAutoPlay ? "Pause slideshow" : "Play slideshow"}
           >
-            {isAutoPlay ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {isAutoPlay ? <Pause className="h-3 w-3 md:h-4 md:w-4" /> : <Play className="h-3 w-3 md:h-4 md:w-4" />}
           </button>
         </div>
       </div>
 
-      {/* Arrow Navigation */}
+      {/* Arrow Navigation - Responsive */}
       <button
         onClick={prevSlide}
-        className="absolute left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        className="absolute left-3 md:left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        className="absolute right-3 md:right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
       </button>
 
       {/* Progress Bar */}
