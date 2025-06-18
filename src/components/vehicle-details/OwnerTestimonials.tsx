@@ -11,22 +11,13 @@ interface OwnerTestimonialsProps {
 }
 
 const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
-  // Real Toyota vehicle images for testimonials
-  const vehicleImages = [
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/corolla/images/desktop/hero/corolla-24-hero-desktop-a.jpg",
-    "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1551830820-330a71b99659?auto=format&fit=crop&w=800&q=80"
-  ];
-
-  // Sample owner testimonials data with car images
+  // Sample owner testimonials data
   const testimonials = [
     {
       name: "Ahmed Al Mansouri",
       location: "Dubai",
       rating: 5,
       image: "https://randomuser.me/api/portraits/men/32.jpg",
-      vehicleImage: vehicleImages[0],
       testimonial: "My family and I have been driving the Toyota Camry for over 2 years now. The fuel efficiency is incredible, and the comfort level makes long drives a pleasure. The safety features give me peace of mind when driving with my children.",
       ownership: "2 years",
     },
@@ -35,7 +26,6 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Abu Dhabi",
       rating: 5,
       image: "https://randomuser.me/api/portraits/women/44.jpg",
-      vehicleImage: vehicleImages[1],
       testimonial: "As a busy professional, I needed a reliable car that wouldn't let me down. My Toyota has exceeded all expectations with its smooth ride and advanced tech features. The apple carplay integration is seamless, and I love the fuel economy.",
       ownership: "1.5 years",
     },
@@ -44,7 +34,6 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Sharjah",
       rating: 4,
       image: "https://randomuser.me/api/portraits/men/22.jpg",
-      vehicleImage: vehicleImages[2],
       testimonial: "After comparing several sedans, I chose the Toyota for its reputation for reliability. After a year of ownership, I'm impressed with how well it handles the UAE heat and how little maintenance it requires. Great value for money!",
       ownership: "1 year",
     },
@@ -53,14 +42,13 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Ras Al Khaimah",
       rating: 5,
       image: "https://randomuser.me/api/portraits/women/68.jpg",
-      vehicleImage: vehicleImages[3],
       testimonial: "This is my third Toyota and definitely the best one yet. The cabin is quiet, the acceleration is responsive, and the hybrid system is so smooth you barely notice when it switches between electric and gas power.",
       ownership: "8 months",
     },
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-br from-background via-muted/30 to-background">
+    <section className="py-16 bg-white dark:bg-gray-800">
       <div className="toyota-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -91,22 +79,9 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="h-full border-none shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    {/* Vehicle Image Header */}
-                    <div className="h-48 overflow-hidden relative">
-                      <img 
-                        src={testimonial.vehicleImage} 
-                        alt={vehicle.name} 
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className="absolute bottom-3 left-3 text-white">
-                        <p className="text-sm font-medium">{vehicle.name}</p>
-                      </div>
-                    </div>
-
+                  <Card className="h-full border-none shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="p-6 relative">
-                      <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-200 dark:text-gray-700" />
+                      <Quote className="absolute top-4 right-4 h-10 w-10 text-gray-200 dark:text-gray-700" />
                       
                       <div className="flex items-center mb-4">
                         <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
