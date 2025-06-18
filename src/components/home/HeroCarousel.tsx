@@ -1,260 +1,241 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft, Play, Pause } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 
-interface HeroSlide {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
-  ctaText: string;
-  ctaLink: string;
-  isHybrid?: boolean;
-}
-
-interface HeroCarouselProps {
-  slides: HeroSlide[];
-}
-
-const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
+const HeroCarousel = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [progressBar, setProgressBar] = useState(0);
-  const isMobile = useIsMobile();
-  // Fix: Change the type from number to NodeJS.Timeout
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
-  
-  // Handle swipe on mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-  
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-  
-  const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 75) {
-      // Swipe left
-      nextSlide();
-    }
-    
-    if (touchStart - touchEnd < -75) {
-      // Swipe right
-      prevSlide();
-    }
-  };
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  // Reset progress bar when slide changes or when paused/resumed
+  // High-quality Toyota vehicle images that actually work
+  const slides = [
+    {
+      id: 1,
+      title: "New Camry Hybrid",
+      subtitle: "The Future of Driving",
+      description: "Experience the perfect blend of performance, efficiency, and luxury with our latest hybrid technology.",
+      image: "https://images.unsplash.com/photo-1494976688531-c21fd785c8d0?auto=format&fit=crop&w=1920&q=80",
+      cta: "Explore Camry",
+      link: "/vehicle/camry-hybrid",
+      badge: "New 2024"
+    },
+    {
+      id: 2,
+      title: "RAV4 Adventure",
+      subtitle: "Built for Every Journey",
+      description: "Conquer any terrain with confidence. The RAV4 combines rugged capability with refined comfort.",
+      image: "https://images.unsplash.com/photo-1571088520017-b4e1b2e1c6dd?auto=format&fit=crop&w=1920&q=80",
+      cta: "Discover RAV4",
+      link: "/vehicle/rav4-hybrid",
+      badge: "Best Seller"
+    },
+    {
+      id: 3,
+      title: "Prius Prime",
+      subtitle: "Electrify Your Drive",
+      description: "Revolutionary plug-in hybrid technology that redefines what's possible in eco-friendly transportation.",
+      image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1920&q=80",
+      cta: "Go Electric",
+      link: "/vehicle/prius-prime",
+      badge: "Eco Choice"
+    },
+    {
+      id: 4,
+      title: "Land Cruiser",
+      subtitle: "Legendary Performance",
+      description: "Unmatched capability and reliability for those who demand the very best in off-road excellence.",
+      image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1920&q=80",
+      cta: "Experience Legend",
+      link: "/vehicle/land-cruiser",
+      badge: "Icon"
+    }
+  ];
+
+  // Auto-play functionality
   useEffect(() => {
-    setProgressBar(0);
-    if (progressInterval.current) {
-      clearInterval(progressInterval.current);
-      progressInterval.current = null;
-    }
+    if (!isAutoPlay) return;
     
-    if (!isPaused) {
-      const interval = setInterval(() => {
-        setProgressBar((prev) => {
-          if (prev >= 100) {
-            nextSlide();
-            return 0;
-          }
-          return prev + 0.4; // 100% over 6 seconds (approximately)
-        });
-      }, 25);
-      progressInterval.current = interval;
-    }
-    
-    return () => {
-      if (progressInterval.current) {
-        clearInterval(progressInterval.current);
-      }
-    };
-  }, [currentSlide, isPaused]);
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 6000);
 
-  // Navigate to next slide
+    return () => clearInterval(interval);
+  }, [isAutoPlay, slides.length]);
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
 
-  // Navigate to previous slide
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  const togglePause = () => {
-    setIsPaused(!isPaused);
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
   };
 
   return (
-    <div 
-      className="relative h-[85vh] sm:h-[80vh] md:h-[70vh] overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0"
-        >
-          <div className="absolute inset-0 bg-black/40 bg-gradient-to-b from-black/60 to-black/30 z-10" />
-          
-          <motion.img
-            src={slides[currentSlide].image}
-            alt={slides[currentSlide].title}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 6 }}
-          />
-          
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-6">
-            <div className="max-w-4xl mx-auto">
-              {slides[currentSlide].isHybrid && (
-                <motion.div 
-                  className="mb-4 inline-block bg-toyota-red px-4 py-1 rounded-full text-sm font-medium"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ 
-                    opacity: [0, 1, 1],
-                    y: [-20, 0, 0],
-                    scale: [0.95, 1.05, 1]
-                  }}
-                  transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+    <section className="relative h-screen overflow-hidden bg-black">
+      {/* Background Images - Sequential, not overlapping */}
+      <div className="absolute inset-0">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            <img
+              src={slides[currentSlide].image}
+              alt={slides[currentSlide].title}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: 'center center' }}
+            />
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/50" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex items-center">
+        <div className="toyota-container">
+          <div className="max-w-4xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0, y: 50, x: -30 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                exit={{ opacity: 0, y: -30, x: 30 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="space-y-6 text-white"
+              >
+                {/* Badge */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="inline-block"
                 >
-                  <span className="animate-pulse-soft inline-flex items-center">
-                    <span className="h-2.5 w-2.5 rounded-full bg-white mr-2 animate-ping opacity-75 inline-block"></span>
-                    Hybrid Technology
+                  <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
+                    {slides[currentSlide].badge}
                   </span>
                 </motion.div>
-              )}
-              
-              <motion.h1 
-                className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 text-shadow-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                {slides[currentSlide].title}
-              </motion.h1>
-              
-              <motion.p 
-                className="text-lg sm:text-xl md:text-2xl mb-8 text-shadow max-w-2xl mx-auto"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                {slides[currentSlide].subtitle}
-              </motion.p>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-toyota-red hover:bg-toyota-darkred text-white rounded-full shadow-lg transform transition-all"
-                >
-                  <Link to={slides[currentSlide].ctaLink} className="flex items-center gap-2 px-6 py-6 text-base sm:text-lg">
-                    {slides[currentSlide].ctaText}
-                    <ChevronRight className="h-5 w-5" />
-                  </Link>
-                </Button>
-              </motion.div>
-            </div>
-          </div>
 
-          {/* Interactive elements based on media queries */}
-          <motion.div 
-            className="absolute bottom-28 left-0 right-0 z-30 flex justify-center space-x-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
+                {/* Title */}
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight"
+                >
+                  {slides[currentSlide].title}
+                </motion.h1>
+
+                {/* Subtitle */}
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-2xl md:text-3xl lg:text-4xl font-light text-white/90 leading-relaxed"
+                >
+                  {slides[currentSlide].subtitle}
+                </motion.h2>
+
+                {/* Description */}
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-lg md:text-xl text-white/80 max-w-2xl leading-relaxed"
+                >
+                  {slides[currentSlide].description}
+                </motion.p>
+
+                {/* CTA Button */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="pt-4"
+                >
+                  <Button
+                    size="lg"
+                    onClick={() => navigate(slides[currentSlide].link)}
+                    className="bg-white text-toyota-red hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    {slides[currentSlide].cta}
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Controls */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex items-center space-x-6">
+          {/* Dots Indicator */}
+          <div className="flex space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
-                    ? "bg-white w-8"
-                    : "bg-white/50 hover:bg-white/80"
+                    ? "bg-white scale-125 shadow-lg"
+                    : "bg-white/40 hover:bg-white/60"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
-          </motion.div>
-
-          {/* Progress bar */}
-          <div className="absolute bottom-20 left-0 right-0 z-30 flex justify-center">
-            <div className="w-[200px] h-1 bg-white/30 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-toyota-red"
-                style={{ width: `${progressBar}%` }}
-              />
-            </div>
           </div>
 
-          {/* Control buttons */}
-          <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center space-x-3">
-            <button
-              onClick={togglePause}
-              className="bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
-              aria-label={isPaused ? "Resume slideshow" : "Pause slideshow"}
-            >
-              {isPaused ? (
-                <Play className="h-4 w-4 fill-white" />
-              ) : (
-                <Pause className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+          {/* Auto-play Toggle */}
+          <button
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 rounded-full hover:bg-white/30 transition-all duration-300"
+            aria-label={isAutoPlay ? "Pause slideshow" : "Play slideshow"}
+          >
+            {isAutoPlay ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
 
-          {/* Navigation arrows - hidden on mobile, visible on larger screens */}
-          {!isMobile && (
-            <>
-              <motion.button 
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 z-30 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
-                aria-label="Previous slide"
-                whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.5)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </motion.button>
-              <motion.button 
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 z-30 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
-                aria-label="Next slide"
-                whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.5)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </motion.button>
-            </>
-          )}
+      {/* Arrow Navigation */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </button>
 
-          {/* Slide counter */}
-          <div className="absolute top-4 right-4 z-30 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm">
-            {currentSlide + 1} / {slides.length}
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
+      <button
+        onClick={nextSlide}
+        className="absolute right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
+
+      {/* Progress Bar */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-20">
+        <motion.div
+          className="h-full bg-toyota-red"
+          initial={{ width: "0%" }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 6, ease: "linear", repeat: Infinity }}
+          key={currentSlide}
+        />
+      </div>
+    </section>
   );
 };
 

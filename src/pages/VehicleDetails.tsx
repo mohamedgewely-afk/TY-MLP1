@@ -74,8 +74,8 @@ const VehicleDetails = () => {
     "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
     "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-b.jpg",
     "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-c.jpg",
-    "https://di-uploads-pod34.dealerinspire.com/toyotaofnorthcharlotte/uploads/2023/11/2024-toyota-camry-hybrid-xse-platinum-white-pearl-front-three-quarter-view.jpg",
-    "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2023/03/2023_Toyota_Camry_XSE_SupersonicRed_001-1500x1000.jpg"
+    "https://images.unsplash.com/photo-1494976688531-c21fd785c8d0?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1571088520017-b4e1b2e1c6dd?auto=format&fit=crop&w=1200&q=80"
   ];
 
   // Auto-rotate gallery images with smoother transitions
@@ -165,6 +165,17 @@ const VehicleDetails = () => {
     vehicle.name === "Toyota Land Cruiser" || 
     vehicle.name === "Toyota RAV4 Hybrid";
 
+  // Calculate monthly EMI (simplified calculation)
+  const calculateEMI = (price: number) => {
+    const principal = price * 0.8; // 80% financing
+    const rate = 0.035 / 12; // 3.5% annual rate
+    const tenure = 60; // 5 years
+    const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
+    return Math.round(emi);
+  };
+
+  const monthlyEMI = calculateEMI(vehicle.price);
+
   const premiumFeatures = [
     { 
       icon: <Zap className="h-8 w-8" />, 
@@ -242,237 +253,185 @@ const VehicleDetails = () => {
   return (
     <ToyotaLayout>
       <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
-        {/* Enhanced Hero Section with better mobile optimization */}
-        <section className="relative min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 overflow-hidden">
-          {/* Background effects */}
+        {/* Enhanced Hero Section - Full Width Images */}
+        <section className="relative min-h-screen overflow-hidden">
+          {/* Full Screen Image Background */}
           <div className="absolute inset-0">
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 animate-pulse" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-l from-transparent via-primary/10 to-transparent"
-                animate={{ 
-                  background: [
-                    "linear-gradient(90deg, transparent, rgba(var(--primary), 0.1), transparent)",
-                    "linear-gradient(270deg, transparent, rgba(var(--primary), 0.15), transparent)",
-                    "linear-gradient(90deg, transparent, rgba(var(--primary), 0.1), transparent)"
-                  ]
-                }}
-                transition={{ duration: 8, repeat: Infinity }}
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentImageIndex}
+                src={galleryImages[currentImageIndex]}
+                alt={vehicle.name}
+                className="w-full h-full object-cover"
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               />
-            </div>
-            
-            {/* Floating particles */}
-            {[...Array(isMobile ? 15 : 30)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-primary-foreground/30 rounded-full shadow-lg"
-                initial={{ 
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                  y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
-                  opacity: 0,
-                  scale: Math.random() * 0.5 + 0.5
-                }}
-                animate={{ 
-                  y: [null, -200],
-                  opacity: [0,1, 1, 0],
-                  scale: [null, 1.5, 1],
-                  rotate: [0, 360]
-                }}
-                transition={{
-                  duration: 8 + Math.random() * 4,
-                  repeat: Infinity,
-                  delay: Math.random() * 5,
-                  ease: "easeInOut"
-                }}
-              />
-            ))}
+            </AnimatePresence>
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
           </div>
 
           <div className="toyota-container min-h-screen flex flex-col justify-center relative z-10 py-16 md:py-20">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-              {/* Left Content */}
+              {/* Left Content - Reduced Text */}
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
-                className="space-y-6 lg:space-y-10 text-primary-foreground order-2 lg:order-1"
+                className="space-y-4 lg:space-y-6 text-white order-2 lg:order-1"
               >
                 {/* Breadcrumb */}
                 <motion.div 
-                  className="flex items-center space-x-2 text-sm text-primary-foreground/70"
+                  className="flex items-center space-x-2 text-sm text-white/70"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Link to="/" className="hover:text-primary-foreground transition-colors flex items-center">
-                    <span className="w-2 h-2 bg-primary-foreground rounded-full mr-2" />
+                  <Link to="/" className="hover:text-white transition-colors flex items-center">
+                    <span className="w-2 h-2 bg-white rounded-full mr-2" />
                     Home
                   </Link>
                   <ChevronRight className="h-4 w-4" />
-                  <Link to="/" className="hover:text-primary-foreground transition-colors">Vehicles</Link>
+                  <Link to="/" className="hover:text-white transition-colors">Vehicles</Link>
                   <ChevronRight className="h-4 w-4" />
-                  <span className="text-primary-foreground font-medium">{vehicle.name}</span>
+                  <span className="text-white font-medium">{vehicle.name}</span>
                 </motion.div>
 
                 {/* Smaller Badges */}
                 <motion.div 
-                  className="flex flex-wrap gap-2 lg:gap-3"
+                  className="flex flex-wrap gap-2"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1 lg:px-4 lg:py-2 border border-primary-foreground/20 text-xs lg:text-sm shadow-lg">
-                    <Sparkles className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
+                  <Badge className="bg-primary text-primary-foreground px-2 py-1 border border-white/20 text-xs shadow-lg">
+                    <Sparkles className="h-3 w-3 mr-1" />
                     {vehicle.category}
                   </Badge>
                   {isBestSeller && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-3 py-1 lg:px-4 lg:py-2 border border-amber-400 text-xs lg:text-sm shadow-lg">
-                      <Award className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
+                    <Badge className="bg-amber-500 text-white px-2 py-1 border border-amber-400 text-xs shadow-lg">
+                      <Award className="h-3 w-3 mr-1" />
                       Best Seller
                     </Badge>
                   )}
-                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-1 lg:px-4 lg:py-2 border border-emerald-400 text-xs lg:text-sm shadow-lg">
-                    <Leaf className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
-                    Hybrid Power
+                  <Badge className="bg-emerald-500 text-white px-2 py-1 border border-emerald-400 text-xs shadow-lg">
+                    <Leaf className="h-3 w-3 mr-1" />
+                    Hybrid
                   </Badge>
                 </motion.div>
 
-                {/* Title */}
+                {/* Title - Reduced Size */}
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="space-y-4 lg:space-y-6"
+                  className="space-y-3"
                 >
-                  <h1 className="text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary-foreground via-primary-foreground/90 to-primary-foreground/80 leading-tight tracking-tight">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight">
                     {vehicle.name}
                   </h1>
                   <motion.p 
-                    className="text-lg lg:text-2xl text-primary-foreground/80 leading-relaxed max-w-2xl"
+                    className="text-base lg:text-lg text-white/80 leading-relaxed max-w-xl"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
                   >
-                    Redefining the future of sustainable luxury with revolutionary hybrid technology, 
-                    intelligent design, and uncompromising performance.
+                    Advanced hybrid technology meets luxury design.
                   </motion.p>
+                </motion.div>
+
+                {/* Price and EMI */}
+                <motion.div 
+                  className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 max-w-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/80 text-sm">Starting Price</span>
+                      <span className="text-white font-bold text-xl">AED {vehicle.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/80 text-sm">Monthly EMI from</span>
+                      <span className="text-white font-bold text-lg">AED {monthlyEMI.toLocaleString()}</span>
+                    </div>
+                  </div>
                 </motion.div>
 
                 {/* Desktop Action Buttons */}
                 {!isMobile && (
                   <motion.div 
-                    className="flex flex-col sm:flex-row gap-4 lg:gap-6 pt-4"
+                    className="flex flex-col sm:flex-row gap-4 pt-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
+                    transition={{ delay: 1 }}
                   >
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }} 
-                      whileTap={{ scale: 0.95 }} 
-                      className="flex-1 sm:flex-none"
-                    >
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button 
                         size="lg"
-                        className="bg-gradient-to-r from-primary-foreground to-primary-foreground/90 hover:from-primary-foreground/90 hover:to-primary-foreground/80 text-primary px-8 lg:px-12 py-4 lg:py-6 text-lg lg:text-xl rounded-2xl shadow-2xl w-full sm:w-auto"
+                        className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg rounded-xl shadow-lg"
                         onClick={() => setIsBookingOpen(true)}
                       >
-                        <Car className="h-5 w-5 lg:h-6 lg:w-6 mr-3" />
+                        <Car className="h-5 w-5 mr-3" />
                         Book Test Drive
                       </Button>
                     </motion.div>
                     
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }} 
-                      whileTap={{ scale: 0.95 }} 
-                      className="flex-1 sm:flex-none"
-                    >
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button 
                         variant="outline" 
                         size="lg"
-                        className="border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary px-8 lg:px-12 py-4 lg:py-6 text-lg lg:text-xl rounded-2xl w-full sm:w-auto bg-primary/20 backdrop-blur-sm shadow-lg"
+                        className="border-2 border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg rounded-xl bg-white/10 backdrop-blur-sm"
                         onClick={() => setIsCarBuilderOpen(true)}
                       >
-                        <Settings className="h-5 w-5 lg:h-6 lg:w-6 mr-3" />
-                        Build & Price
+                        <Settings className="h-5 w-5 mr-3" />
+                        Configure
                       </Button>
                     </motion.div>
 
-                    <motion.div 
-                      whileHover={{ scale: 1.1 }} 
-                      whileTap={{ scale: 0.9 }}
-                    >
+                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                       <Button 
                         variant="outline" 
                         size="lg"
                         onClick={toggleFavorite}
-                        className={`p-4 lg:p-6 rounded-2xl border-2 bg-primary/20 backdrop-blur-sm shadow-lg ${isFavorite ? "border-primary-foreground text-primary-foreground bg-primary-foreground/10" : "border-primary-foreground/30 text-primary-foreground"}`}
+                        className={`p-4 rounded-xl border-2 bg-white/10 backdrop-blur-sm ${isFavorite ? "border-white text-white bg-white/20" : "border-white/30 text-white"}`}
                       >
-                        <Heart className="h-5 w-5 lg:h-6 lg:w-6" fill={isFavorite ? "currentColor" : "none"} />
+                        <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
                       </Button>
                     </motion.div>
                   </motion.div>
                 )}
               </motion.div>
 
-              {/* Larger Image Gallery */}
+              {/* Right side - Image indicators only */}
               <motion.div
                 ref={heroImageRef}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative order-1 lg:order-2"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                className="relative order-1 lg:order-2 flex justify-center lg:justify-end"
               >
-                <div className="relative h-96 md:h-[500px] lg:h-[600px] xl:h-[800px] rounded-3xl lg:rounded-[2rem] overflow-hidden border-2 border-primary-foreground/20 shadow-2xl backdrop-blur-sm">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentImageIndex}
-                      src={galleryImages[currentImageIndex]}
-                      alt={vehicle.name}
-                      className="w-full h-full object-cover rounded-3xl lg:rounded-[2rem] scale-110"
-                      initial={{ opacity: 0, scale: 1.2 }}
-                      animate={{ opacity: 1, scale: 1.1 }}
-                      exit={{ opacity: 0, scale: 1 }}
-                      transition={{ duration: 1, ease: "easeInOut" }}
+                {/* Image indicators */}
+                <div className="flex space-x-3">
+                  {galleryImages.map((_, index) => (
+                    <motion.button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-3 h-3 lg:w-4 lg:h-4 rounded-full transition-all duration-300 border-2 ${
+                        index === currentImageIndex 
+                          ? "bg-white border-white shadow-lg scale-125" 
+                          : "bg-transparent border-white/50 hover:bg-white/30 hover:border-white"
+                      }`}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
                     />
-                  </AnimatePresence>
-                  
-                  {/* Image indicators - No bars, just clean dots */}
-                  <div className="absolute bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
-                    {galleryImages.map((_, index) => (
-                      <motion.button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-3 h-3 lg:w-4 lg:h-4 rounded-full transition-all duration-300 border-2 ${
-                          index === currentImageIndex 
-                            ? "bg-primary-foreground border-primary-foreground shadow-lg scale-125" 
-                            : "bg-transparent border-primary-foreground/50 hover:bg-primary-foreground/30 hover:border-primary-foreground"
-                        }`}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Price badge over image */}
-                  <motion.div
-                    className="absolute top-6 lg:top-8 right-6 lg:right-8 bg-background/90 backdrop-blur-md px-4 py-3 lg:px-6 lg:py-4 rounded-2xl border border-border shadow-2xl"
-                    initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: 1.2 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <div className="text-center">
-                      <span className="text-primary font-black text-lg lg:text-2xl block">
-                        AED {vehicle.price.toLocaleString()}
-                      </span>
-                      <span className="text-xs lg:text-sm text-muted-foreground">
-                        Starting from
-                      </span>
-                    </div>
-                  </motion.div>
+                  ))}
                 </div>
               </motion.div>
             </div>
@@ -488,13 +447,13 @@ const VehicleDetails = () => {
             <motion.div
               animate={{ y: [0, 12, 0] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="flex flex-col items-center text-primary-foreground/70 cursor-pointer"
+              className="flex flex-col items-center text-white/70 cursor-pointer"
               onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
             >
-              <span className="text-sm mb-3 font-medium">Discover Innovation</span>
-              <div className="w-8 h-12 border-2 border-primary-foreground/50 rounded-full flex justify-center">
+              <span className="text-sm mb-3 font-medium">Discover More</span>
+              <div className="w-8 h-12 border-2 border-white/50 rounded-full flex justify-center">
                 <motion.div
-                  className="w-1 h-3 bg-primary-foreground rounded-full mt-2"
+                  className="w-1 h-3 bg-white rounded-full mt-2"
                   animate={{ y: [0, 16, 0] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />
