@@ -17,13 +17,14 @@ interface LifestyleGalleryProps {
   vehicle: VehicleModel;
 }
 
+// High-quality car lifestyle images
 const realLifestyleImages = [
-  "https://images.pexels.com/photos/1707828/pexels-photo-1707828.jpeg",
-  "https://images.pexels.com/photos/464439/pexels-photo-464439.jpeg",
-  "https://images.pexels.com/photos/2179217/pexels-photo-2179217.jpeg",
-  "https://images.pexels.com/photos/1619311/pexels-photo-1619311.jpeg",
-  "https://images.pexels.com/photos/1394882/pexels-photo-1394882.jpeg",
-  "https://images.pexels.com/photos/543726/pexels-photo-543726.jpeg"
+  "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80", // Family car
+  "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80", // Urban driving
+  "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=1200&q=80", // Desert adventure
+  "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1200&q=80", // Weekend getaway
+  "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=1200&q=80", // Adventure destinations
+  "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1200&q=80"  // Business travel
 ];
 
 const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
@@ -98,15 +99,21 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.08 }}
                 >
-                  <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full group">
+                  <Card className="overflow-hidden hover:shadow-xl transition-all duration-500 h-full group">
                     <div className="h-60 overflow-hidden relative">
                       <img
                         src={card.image}
                         alt={card.title}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-lg font-semibold">
-                        {card.title}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <motion.div
+                          className="bg-white/90 backdrop-blur-sm text-gray-900 px-6 py-3 rounded-full font-semibold"
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          {card.title}
+                        </motion.div>
                       </div>
                     </div>
                     <CardContent className="p-6">
@@ -114,7 +121,7 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
                       <p className="text-gray-600 dark:text-gray-400 mb-4">{card.description}</p>
                       <Button
                         variant="link"
-                        className="p-0 text-toyota-red hover:text-toyota-darkred"
+                        className="p-0 text-toyota-red hover:text-toyota-darkred group-hover:translate-x-1 transition-transform duration-300"
                         asChild
                       >
                         <a href={card.link} className="flex items-center">
@@ -142,7 +149,7 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
           <Button
             asChild
             size="lg"
-            className="bg-toyota-red hover:bg-toyota-darkred"
+            className="bg-toyota-red hover:bg-toyota-darkred transform hover:scale-105 transition-all duration-300"
           >
             <a href="/lifestyle">Explore Toyota Lifestyle</a>
           </Button>

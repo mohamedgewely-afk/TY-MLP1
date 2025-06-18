@@ -21,6 +21,23 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
     )
   ).slice(0, 6);
   
+  // Enhanced car images for related vehicles
+  const enhancedVehicles = relatedVehicles.map((vehicle, index) => {
+    const carImages = [
+      "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=800&q=80"
+    ];
+    
+    return {
+      ...vehicle,
+      image: carImages[index % carImages.length]
+    };
+  });
+  
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const { current } = scrollContainerRef;
@@ -61,19 +78,20 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
         ref={scrollContainerRef}
       >
         <div className="flex space-x-6">
-          {relatedVehicles.map((vehicle) => (
+          {enhancedVehicles.map((vehicle) => (
             <Link 
               key={vehicle.name} 
               to={`/vehicle/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`}
               className="flex-shrink-0 w-[300px] card-zoom-effect"
             >
-              <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
-                <div className="h-48 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group">
+                <div className="h-48 overflow-hidden relative">
                   <img
                     src={vehicle.image}
                     alt={vehicle.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-1">

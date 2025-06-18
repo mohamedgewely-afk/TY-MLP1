@@ -11,13 +11,14 @@ interface OwnerTestimonialsProps {
 }
 
 const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
-  // Sample owner testimonials data
+  // Sample owner testimonials data with car images
   const testimonials = [
     {
       name: "Ahmed Al Mansouri",
       location: "Dubai",
       rating: 5,
       image: "https://randomuser.me/api/portraits/men/32.jpg",
+      carImage: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
       testimonial: "My family and I have been driving the Toyota Camry for over 2 years now. The fuel efficiency is incredible, and the comfort level makes long drives a pleasure. The safety features give me peace of mind when driving with my children.",
       ownership: "2 years",
     },
@@ -26,6 +27,7 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Abu Dhabi",
       rating: 5,
       image: "https://randomuser.me/api/portraits/women/44.jpg",
+      carImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
       testimonial: "As a busy professional, I needed a reliable car that wouldn't let me down. My Toyota has exceeded all expectations with its smooth ride and advanced tech features. The apple carplay integration is seamless, and I love the fuel economy.",
       ownership: "1.5 years",
     },
@@ -34,6 +36,7 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Sharjah",
       rating: 4,
       image: "https://randomuser.me/api/portraits/men/22.jpg",
+      carImage: "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=800&q=80",
       testimonial: "After comparing several sedans, I chose the Toyota for its reputation for reliability. After a year of ownership, I'm impressed with how well it handles the UAE heat and how little maintenance it requires. Great value for money!",
       ownership: "1 year",
     },
@@ -42,6 +45,7 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
       location: "Ras Al Khaimah",
       rating: 5,
       image: "https://randomuser.me/api/portraits/women/68.jpg",
+      carImage: "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=800&q=80",
       testimonial: "This is my third Toyota and definitely the best one yet. The cabin is quiet, the acceleration is responsive, and the hybrid system is so smooth you barely notice when it switches between electric and gas power.",
       ownership: "8 months",
     },
@@ -79,9 +83,19 @@ const OwnerTestimonials: React.FC<OwnerTestimonialsProps> = ({ vehicle }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="h-full border-none shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <Card className="h-full border-none shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                    {/* Car Image */}
+                    <div className="h-48 overflow-hidden relative">
+                      <img 
+                        src={testimonial.carImage} 
+                        alt={`${testimonial.name}'s car`} 
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    </div>
+                    
                     <CardContent className="p-6 relative">
-                      <Quote className="absolute top-4 right-4 h-10 w-10 text-gray-200 dark:text-gray-700" />
+                      <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-200 dark:text-gray-700" />
                       
                       <div className="flex items-center mb-4">
                         <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
