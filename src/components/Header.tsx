@@ -35,18 +35,12 @@ const Header: React.FC = () => {
             whileTap={{ scale: 0.95 }}
           >
             <div className="flex items-center space-x-3">
-              <div className="bg-toyota-red rounded-full p-2">
-                <svg 
-                  width="32" 
-                  height="32" 
-                  viewBox="0 0 100 100" 
-                  className="text-white"
-                  fill="currentColor"
-                >
-                  <ellipse cx="50" cy="50" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="8"/>
-                  <ellipse cx="50" cy="35" rx="20" ry="15" fill="none" stroke="currentColor" strokeWidth="6"/>
-                  <ellipse cx="35" cy="50" rx="15" ry="20" fill="none" stroke="currentColor" strokeWidth="6"/>
-                </svg>
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img 
+                  src="https://dam.alfuttaim.com/wps/wcm/connect/a4d697d5-b0c5-4f79-a410-8266625f6b1f/brand-toyota-toyota-mark-black.svg?MOD=AJPERES&CACHEID=ROOTWORKSPACE-a4d697d5-b0c5-4f79-a410-8266625f6b1f-p5aTs4r&mformat=true"
+                  alt="Toyota Logo"
+                  className="w-10 h-10 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TOYOTA</h1>

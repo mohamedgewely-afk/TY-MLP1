@@ -314,25 +314,25 @@ const VehicleDetails = () => {
                   <span className="text-primary-foreground font-medium">{vehicle.name}</span>
                 </motion.div>
 
-                {/* Badges */}
+                {/* Smaller Badges */}
                 <motion.div 
-                  className="flex flex-wrap gap-3 lg:gap-4"
+                  className="flex flex-wrap gap-2 lg:gap-3"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 lg:px-6 lg:py-3 border border-primary-foreground/20 text-sm lg:text-base shadow-lg">
-                    <Sparkles className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1 lg:px-4 lg:py-2 border border-primary-foreground/20 text-xs lg:text-sm shadow-lg">
+                    <Sparkles className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                     {vehicle.category}
                   </Badge>
                   {isBestSeller && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-4 py-2 lg:px-6 lg:py-3 border border-amber-400 text-sm lg:text-base shadow-lg">
-                      <Award className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-3 py-1 lg:px-4 lg:py-2 border border-amber-400 text-xs lg:text-sm shadow-lg">
+                      <Award className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                       Best Seller
                     </Badge>
                   )}
-                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 lg:px-6 lg:py-3 border border-emerald-400 text-sm lg:text-base shadow-lg">
-                    <Leaf className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-1 lg:px-4 lg:py-2 border border-emerald-400 text-xs lg:text-sm shadow-lg">
+                    <Leaf className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                     Hybrid Power
                   </Badge>
                 </motion.div>
@@ -356,28 +356,6 @@ const VehicleDetails = () => {
                     Redefining the future of sustainable luxury with revolutionary hybrid technology, 
                     intelligent design, and uncompromising performance.
                   </motion.p>
-                </motion.div>
-
-                {/* Pricing */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex flex-col sm:flex-row sm:items-baseline space-y-3 sm:space-y-0 sm:space-x-6"
-                >
-                  <motion.span 
-                    className="text-3xl lg:text-5xl xl:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary-foreground/90 via-primary-foreground to-primary-foreground/90"
-                  >
-                    AED {vehicle.price.toLocaleString()}
-                  </motion.span>
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                    <span className="text-primary-foreground/60 line-through text-xl lg:text-2xl">
-                      AED {Math.round(vehicle.price * 1.15).toLocaleString()}
-                    </span>
-                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-400 text-white border border-green-400 px-3 py-1 text-sm lg:text-base shadow-lg">
-                      Save 15%
-                    </Badge>
-                  </div>
                 </motion.div>
 
                 {/* Desktop Action Buttons */}
@@ -436,7 +414,7 @@ const VehicleDetails = () => {
                 )}
               </motion.div>
 
-              {/* Image Gallery */}
+              {/* Larger Image Gallery */}
               <motion.div
                 ref={heroImageRef}
                 initial={{ opacity: 0, x: 50 }}
@@ -447,7 +425,7 @@ const VehicleDetails = () => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               >
-                <div className="relative h-80 md:h-96 lg:h-[500px] xl:h-[700px] rounded-3xl lg:rounded-[2rem] overflow-hidden border-2 border-primary-foreground/20 shadow-2xl backdrop-blur-sm">
+                <div className="relative h-96 md:h-[500px] lg:h-[600px] xl:h-[800px] rounded-3xl lg:rounded-[2rem] overflow-hidden border-2 border-primary-foreground/20 shadow-2xl backdrop-blur-sm">
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentImageIndex}
@@ -478,17 +456,22 @@ const VehicleDetails = () => {
                     ))}
                   </div>
 
-                  {/* Price badge */}
+                  {/* Price badge over image */}
                   <motion.div
-                    className="absolute top-6 lg:top-8 right-6 lg:right-8 bg-background/80 backdrop-blur-md px-4 py-2 lg:px-6 lg:py-3 rounded-2xl border border-border shadow-2xl"
+                    className="absolute top-6 lg:top-8 right-6 lg:right-8 bg-background/90 backdrop-blur-md px-4 py-3 lg:px-6 lg:py-4 rounded-2xl border border-border shadow-2xl"
                     initial={{ opacity: 0, y: -20, scale: 0.8 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ delay: 1.2 }}
                     whileHover={{ scale: 1.05 }}
                   >
-                    <span className="text-primary font-bold text-sm lg:text-lg">
-                      From AED {vehicle.price.toLocaleString()}
-                    </span>
+                    <div className="text-center">
+                      <span className="text-primary font-black text-lg lg:text-2xl block">
+                        AED {vehicle.price.toLocaleString()}
+                      </span>
+                      <span className="text-xs lg:text-sm text-muted-foreground">
+                        Starting from
+                      </span>
+                    </div>
                   </motion.div>
                 </div>
               </motion.div>
