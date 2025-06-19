@@ -45,65 +45,83 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative h-full w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden"
+      className="relative h-full w-full bg-gradient-to-br from-toyota-black via-toyota-gray to-toyota-black overflow-hidden"
     >
-      {/* Animated background */}
+      {/* Toyota-themed animated background */}
       <div className="absolute inset-0">
-        {Array.from({ length: 50 }).map((_, i) => (
+        {Array.from({ length: 30 }).map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-cyan-400 rounded-full opacity-30"
+            className="absolute w-1 h-1 bg-toyota-red rounded-full opacity-20"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
             }}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.5, 1],
+              y: [0, -30, 0],
+              opacity: [0.2, 0.6, 0.2],
+              scale: [0.5, 1.2, 0.5],
             }}
             transition={{
-              duration: 3 + Math.random() * 4,
+              duration: 4 + Math.random() * 6,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           />
         ))}
+        
+        {/* Toyota geometric patterns */}
+        <motion.div
+          className="absolute top-20 right-10 w-32 h-32 border border-toyota-red/20 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute bottom-32 left-10 w-24 h-24 border border-toyota-red/15 rounded-lg"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        />
       </div>
 
-      {/* Header */}
+      {/* Header with Toyota styling */}
       <motion.div 
-        className="relative z-10 flex items-center justify-between p-4 bg-black/30 backdrop-blur-xl border-b border-white/10"
+        className="relative z-10 flex items-center justify-between p-4 bg-toyota-black/70 backdrop-blur-xl border-b border-toyota-red/20"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+          className="p-3 rounded-xl bg-toyota-gray/20 backdrop-blur-xl border border-toyota-red/30 hover:bg-toyota-red/20 transition-all duration-300"
+          whileHover={{ scale: 1.1, boxShadow: "0 0 20px rgba(229, 0, 0, 0.3)" }}
           whileTap={{ scale: 0.9 }}
         >
           {step > 1 ? (
-            <ArrowLeft className="h-6 w-6 text-white" />
+            <ArrowLeft className="h-6 w-6 text-toyota-white" />
           ) : (
-            <X className="h-6 w-6 text-white" />
+            <X className="h-6 w-6 text-toyota-white" />
           )}
         </motion.button>
 
         <div className="text-center">
-          <h1 className="text-lg font-bold text-white">Build Your {vehicle.name}</h1>
-          <p className="text-xs text-cyan-400">Step {step} of 6</p>
+          <motion.h1 
+            className="text-xl font-bold text-toyota-white"
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            Build Your {vehicle.name}
+          </motion.h1>
+          <p className="text-sm text-toyota-red font-medium">Step {step} of 6</p>
         </div>
 
-        <div className="w-10" />
+        <div className="w-12" />
       </motion.div>
 
       {/* Progress */}
       <MobileProgress currentStep={step} />
 
       {/* Content Area */}
-      <div className="flex-1 relative z-10">
+      <div className="flex-1 relative z-10 pb-20">
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}

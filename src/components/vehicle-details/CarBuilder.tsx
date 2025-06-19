@@ -32,10 +32,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     accessories: []
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [lastChoiceTime, setLastChoiceTime] = useState<number>(Date.now());
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Auto-transition after 3 seconds of inactivity
+  // Auto-transition after customer choice (2.5 seconds delay)
   useEffect(() => {
     if (!isOpen || step >= 6 || showConfirmation) return;
     
@@ -43,10 +44,10 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       if (step < 6) {
         setStep(prev => prev + 1);
       }
-    }, 3000);
+    }, 2500);
 
     return () => clearTimeout(timer);
-  }, [step, isOpen, showConfirmation]);
+  }, [lastChoiceTime, step, isOpen, showConfirmation]);
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -114,6 +115,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     if (step < 6) setStep(step + 1);
   };
 
+  const handleConfigChange = (newConfig: Partial<BuilderConfig>) => {
+    setConfig(prev => ({ ...prev, ...newConfig }));
+    setLastChoiceTime(Date.now());
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-black overflow-hidden">
@@ -124,7 +130,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               vehicle={vehicle}
               step={step}
               config={config}
-              setConfig={setConfig}
+              setConfig={handleConfigChange}
               showConfirmation={showConfirmation}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}
@@ -138,7 +144,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               vehicle={vehicle}
               step={step}
               config={config}
-              setConfig={setConfig}
+              setConfig={handleConfigChange}
               showConfirmation={showConfirmation}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}

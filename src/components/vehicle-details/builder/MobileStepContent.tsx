@@ -3,7 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 
 interface BuilderConfig {
   modelYear: string;
@@ -68,7 +68,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6">
             <motion.h2 
-              className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-center mb-8 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -82,18 +82,18 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
+                  className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${
                     config.modelYear === year 
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-2 border-cyan-400' 
-                      : 'bg-white/5 border border-white/20'
+                      ? 'bg-toyota-red/20 border-toyota-red shadow-lg shadow-toyota-red/30' 
+                      : 'bg-toyota-gray/10 border-toyota-gray/30 hover:border-toyota-red/50'
                   }`}
                   onClick={() => setConfig(prev => ({ ...prev, modelYear: year }))}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(229, 0, 0, 0.2)" }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-white mb-2">{year}</h3>
-                    <p className="text-cyan-400 text-sm">
+                    <h3 className="text-xl font-bold text-toyota-white mb-2">{year}</h3>
+                    <p className="text-toyota-red text-sm font-medium">
                       {year === "2025" ? "Latest Technology" : "Proven Reliability"}
                     </p>
                   </div>
@@ -107,7 +107,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6">
             <motion.h2 
-              className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-center mb-8 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -121,17 +121,17 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                  className={`p-4 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
                     config.grade === grade 
-                      ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-400' 
-                      : 'bg-white/5 border border-white/20'
+                      ? 'bg-toyota-red/20 border-toyota-red shadow-lg shadow-toyota-red/30' 
+                      : 'bg-toyota-gray/10 border-toyota-gray/30 hover:border-toyota-red/50'
                   }`}
                   onClick={() => setConfig(prev => ({ ...prev, grade }))}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <h3 className="text-lg font-bold text-white">{grade}</h3>
-                  <p className="text-purple-400 text-sm">
+                  <h3 className="text-lg font-bold text-toyota-white">{grade}</h3>
+                  <p className="text-toyota-red text-sm">
                     {grade === "Base" && "Essential features"}
                     {grade === "SE" && "Sport edition"}
                     {grade === "XLE" && "Premium comfort"}
@@ -148,7 +148,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6">
             <motion.h2 
-              className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-center mb-6 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -156,7 +156,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
             </motion.h2>
             
             <motion.div 
-              className="relative w-full h-48 rounded-2xl overflow-hidden mb-6"
+              className="relative w-full h-48 rounded-2xl overflow-hidden mb-6 border-2 border-toyota-red/30"
               layoutId="vehicle-preview"
               key={config.exteriorColor}
             >
@@ -168,10 +168,10 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.8 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-toyota-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-toyota-white">
                 <h3 className="text-lg font-bold">{config.exteriorColor}</h3>
-                <p className="text-white/80 text-sm">Premium Finish</p>
+                <p className="text-toyota-red text-sm font-medium">Premium Finish</p>
               </div>
             </motion.div>
             
@@ -182,21 +182,21 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer ${
-                    config.exteriorColor === color.name ? 'ring-2 ring-cyan-400' : ''
+                  className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 ${
+                    config.exteriorColor === color.name ? 'border-toyota-red shadow-lg shadow-toyota-red/30' : 'border-toyota-gray/30'
                   }`}
                   onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <img src={color.image} alt={color.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-toyota-black/50 to-transparent" />
                   <div className="absolute bottom-1 left-1 right-1">
                     <div 
-                      className="w-4 h-4 rounded-full border border-white mx-auto mb-1" 
+                      className="w-4 h-4 rounded-full border border-toyota-white mx-auto mb-1" 
                       style={{ backgroundColor: color.code }} 
                     />
-                    <p className="text-white text-xs text-center font-medium">{color.name}</p>
+                    <p className="text-toyota-white text-xs text-center font-medium">{color.name}</p>
                   </div>
                 </motion.div>
               ))}
@@ -208,7 +208,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6">
             <motion.h2 
-              className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-center mb-8 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -222,22 +222,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-4 rounded-xl cursor-pointer flex items-center space-x-4 transition-all duration-300 ${
+                  className={`p-4 rounded-xl cursor-pointer flex items-center space-x-4 transition-all duration-300 border-2 ${
                     config.interiorColor === color.name 
-                      ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border-2 border-orange-400' 
-                      : 'bg-white/5 border border-white/20'
+                      ? 'bg-toyota-red/20 border-toyota-red shadow-lg shadow-toyota-red/30' 
+                      : 'bg-toyota-gray/10 border-toyota-gray/30 hover:border-toyota-red/50'
                   }`}
                   onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div 
-                    className="w-12 h-12 rounded-full border-2 border-white/50" 
+                    className="w-12 h-12 rounded-full border-2 border-toyota-white/50" 
                     style={{ backgroundColor: color.code }} 
                   />
                   <div>
-                    <h3 className="text-lg font-bold text-white">{color.name}</h3>
-                    <p className="text-orange-400 text-sm">Premium Interior</p>
+                    <h3 className="text-lg font-bold text-toyota-white">{color.name}</h3>
+                    <p className="text-toyota-red text-sm">Premium Interior</p>
                   </div>
                 </motion.div>
               ))}
@@ -249,7 +249,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6">
             <motion.h2 
-              className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-center mb-8 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -265,10 +265,10 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`p-4 rounded-xl cursor-pointer flex items-center justify-between transition-all duration-300 ${
+                    className={`p-4 rounded-xl cursor-pointer flex items-center justify-between transition-all duration-300 border-2 ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border-2 border-indigo-400' 
-                        : 'bg-white/5 border border-white/20'
+                        ? 'bg-toyota-red/20 border-toyota-red shadow-lg shadow-toyota-red/30' 
+                        : 'bg-toyota-gray/10 border-toyota-gray/30 hover:border-toyota-red/50'
                     }`}
                     onClick={() => setConfig(prev => ({
                       ...prev,
@@ -282,17 +282,17 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">{accessory.icon}</span>
                       <div>
-                        <h3 className="text-white font-bold">{accessory.name}</h3>
-                        <p className="text-indigo-400 text-sm">AED {accessory.price}</p>
+                        <h3 className="text-toyota-white font-bold">{accessory.name}</h3>
+                        <p className="text-toyota-red text-sm">AED {accessory.price}</p>
                       </div>
                     </div>
                     {isSelected && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center"
+                        className="w-6 h-6 bg-toyota-red rounded-full flex items-center justify-center"
                       >
-                        <span className="text-white text-sm">✓</span>
+                        <span className="text-toyota-white text-sm">✓</span>
                       </motion.div>
                     )}
                   </motion.div>
@@ -306,7 +306,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return (
           <div className="p-6 text-center">
             <motion.h2 
-              className="text-2xl font-bold mb-8 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold mb-8 text-toyota-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -314,7 +314,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
             </motion.h2>
             
             <motion.div 
-              className="relative w-full h-48 rounded-2xl overflow-hidden mb-6"
+              className="relative w-full h-48 rounded-2xl overflow-hidden mb-6 border-2 border-toyota-red/30"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8 }}
@@ -324,37 +324,37 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                 alt="Final Configuration"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-toyota-black/80 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 text-toyota-white">
                 <h3 className="text-xl font-bold">{vehicle.name}</h3>
-                <p className="text-white/80">{config.modelYear} {config.grade}</p>
+                <p className="text-toyota-red">{config.modelYear} {config.grade}</p>
               </div>
             </motion.div>
 
-            <div className="space-y-3 mb-8">
-              <div className="flex justify-between text-white">
+            <div className="space-y-3 mb-8 text-left bg-toyota-gray/10 p-4 rounded-xl border border-toyota-red/20">
+              <div className="flex justify-between text-toyota-white">
                 <span>Exterior:</span>
-                <span className="text-cyan-400">{config.exteriorColor}</span>
+                <span className="text-toyota-red font-medium">{config.exteriorColor}</span>
               </div>
-              <div className="flex justify-between text-white">
+              <div className="flex justify-between text-toyota-white">
                 <span>Interior:</span>
-                <span className="text-cyan-400">{config.interiorColor}</span>
+                <span className="text-toyota-red font-medium">{config.interiorColor}</span>
               </div>
-              <div className="flex justify-between text-white">
+              <div className="flex justify-between text-toyota-white">
                 <span>Accessories:</span>
-                <span className="text-cyan-400">{config.accessories.length} selected</span>
+                <span className="text-toyota-red font-medium">{config.accessories.length} selected</span>
               </div>
             </div>
 
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Button 
                 onClick={handlePayment}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-4 rounded-xl text-lg font-bold"
+                className="w-full bg-toyota-red hover:bg-toyota-darkred text-toyota-white py-4 rounded-xl text-lg font-bold border-2 border-toyota-red shadow-lg shadow-toyota-red/30"
               >
-                <Play className="mr-2 h-5 w-5" />
+                <Zap className="mr-2 h-5 w-5" />
                 Confirm Order - AED {calculateTotalPrice().toLocaleString()}
               </Button>
             </motion.div>
@@ -385,7 +385,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         >
           <Button 
             onClick={goNext}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-3 rounded-xl font-bold"
+            className="w-full bg-toyota-red hover:bg-toyota-darkred text-toyota-white py-3 rounded-xl font-bold border-2 border-toyota-red"
           >
             Continue
             <ArrowRight className="ml-2 h-4 w-4" />

@@ -41,16 +41,22 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="relative h-full w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden"
+      className="relative h-full w-full bg-gradient-to-br from-toyota-black via-toyota-gray to-toyota-black overflow-hidden"
     >
       <div className="flex items-center justify-center h-full">
-        <div className="text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Desktop Experience</h2>
-          <p className="text-lg">Coming Soon - Optimized for Mobile First</p>
+        <div className="text-center text-toyota-white">
+          <motion.h2 
+            className="text-4xl font-bold mb-6 text-toyota-white"
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            Desktop Experience
+          </motion.h2>
+          <p className="text-xl mb-8 text-toyota-white/80">Coming Soon - Optimized for Mobile First</p>
           <motion.button
             onClick={onClose}
-            className="mt-6 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl font-bold"
-            whileHover={{ scale: 1.05 }}
+            className="px-8 py-4 bg-toyota-red hover:bg-toyota-darkred rounded-xl font-bold text-toyota-white border-2 border-toyota-red shadow-lg shadow-toyota-red/30"
+            whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(229, 0, 0, 0.4)" }}
             whileTap={{ scale: 0.95 }}
           >
             Close Builder
