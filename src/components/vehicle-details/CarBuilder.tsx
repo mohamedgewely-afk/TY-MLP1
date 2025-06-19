@@ -113,12 +113,14 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   const goNext = () => {
     if (step < 6) setStep(step + 1);
-  };
-
-  const handleConfigChange = (newConfig: Partial<BuilderConfig>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
     setLastChoiceTime(Date.now());
   };
+
+  // Create a wrapped setConfig that updates lastChoiceTime
+  const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
+    setConfig(value);
+    setLastChoiceTime(Date.now());
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,7 +132,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               vehicle={vehicle}
               step={step}
               config={config}
-              setConfig={handleConfigChange}
+              setConfig={updateConfig}
               showConfirmation={showConfirmation}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}
@@ -144,7 +146,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               vehicle={vehicle}
               step={step}
               config={config}
-              setConfig={handleConfigChange}
+              setConfig={updateConfig}
               showConfirmation={showConfirmation}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}
