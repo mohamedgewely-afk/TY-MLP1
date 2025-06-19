@@ -189,19 +189,20 @@ const VehicleShowcase: React.FC<VehicleShowcaseProps> = ({
             {categories.map((category) => (
               <motion.div
                 key={category}
-                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer flex items-center ${
-                  personaData ? `border border-${personaData.colorScheme.primary}/20 text-${personaData.colorScheme.primary}` : 
-                  "border border-toyota-red/20 text-toyota-red"
-                }`}
+                className="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer flex items-center border border-toyota-red/20 text-toyota-red"
                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
                 whileTap={{ scale: 0.98 }}
+                style={personaData ? {
+                  borderColor: `${personaData.colorScheme.primary}40`,
+                  color: personaData.colorScheme.primary,
+                } : {}}
               >
                 <Filter className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5 opacity-70" />
                 {category}
                 <span className="ml-1 md:ml-1.5 opacity-60 text-xs">{vehicles.filter(v => v.category === category).length}</span>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         <AnimatePresence mode="wait">
