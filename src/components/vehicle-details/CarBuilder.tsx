@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { VehicleModel } from "@/types/vehicle";
@@ -32,22 +32,8 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     accessories: []
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [lastChoiceTime, setLastChoiceTime] = useState<number>(Date.now());
   const { toast } = useToast();
   const isMobile = useIsMobile();
-
-  // Auto-transition after customer choice (2.5 seconds delay)
-  useEffect(() => {
-    if (!isOpen || step >= 6 || showConfirmation) return;
-    
-    const timer = setTimeout(() => {
-      if (step < 6) {
-        setStep(prev => prev + 1);
-      }
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [lastChoiceTime, step, isOpen, showConfirmation]);
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -113,18 +99,16 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   const goNext = () => {
     if (step < 6) setStep(step + 1);
-    setLastChoiceTime(Date.now());
   };
 
-  // Create a wrapped setConfig that updates lastChoiceTime
+  // Create a wrapped setConfig that handles updates
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
     setConfig(value);
-    setLastChoiceTime(Date.now());
   }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-black overflow-hidden">
+      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobileCarBuilder

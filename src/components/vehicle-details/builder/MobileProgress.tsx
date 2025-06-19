@@ -6,98 +6,62 @@ interface MobileProgressProps {
   currentStep: number;
 }
 
-const MobileProgress: React.FC<MobileProgressProps> = ({ currentStep }) => {
-  const steps = ["Year", "Grade", "Exterior", "Interior", "Accessories", "Review"];
+const steps = [
+  "Model Year",
+  "Grade",
+  "Exterior",
+  "Interior", 
+  "Accessories",
+  "Review"
+];
 
+const MobileProgress: React.FC<MobileProgressProps> = ({ currentStep }) => {
   return (
-    <div className="px-4 py-4 relative z-10">
-      <div className="flex items-center justify-between">
+    <motion.div 
+      className="px-4 py-3 bg-card/50 backdrop-blur-xl border-b border-border"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <div className="flex justify-between items-center mb-2">
         {steps.map((step, index) => (
-          <div key={step} className="flex flex-col items-center relative">
-            <motion.div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold relative overflow-hidden border-2 ${
-                currentStep > index + 1
-                  ? "bg-toyota-red border-toyota-red text-toyota-white shadow-lg shadow-toyota-red/30"
-                  : currentStep === index + 1
-                  ? "bg-gradient-to-r from-toyota-red to-toyota-darkred border-toyota-red text-toyota-white"
-                  : "bg-toyota-gray/20 text-toyota-white/60 border-toyota-gray/40"
-              }`}
-              animate={currentStep === index + 1 ? {
-                boxShadow: [
-                  "0 0 0px rgba(229, 0, 0, 0)",
-                  "0 0 25px rgba(229, 0, 0, 0.6)",
-                  "0 0 0px rgba(229, 0, 0, 0)"
-                ],
-                scale: [1, 1.05, 1]
-              } : {}}
-              transition={{ duration: 2, repeat: Infinity }}
-              whileHover={{ scale: 1.1 }}
-            >
-              {currentStep > index + 1 ? (
-                <motion.span
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  className="text-lg"
-                >
-                  ✓
-                </motion.span>
-              ) : (
-                index + 1
-              )}
-              
-              {currentStep === index + 1 && (
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-toyota-red/30 to-toyota-darkred/30 rounded-xl"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                />
-              )}
-            </motion.div>
-            
-            <motion.span 
-              className={`text-xs mt-2 font-medium ${
-                currentStep >= index + 1 ? "text-toyota-white" : "text-toyota-white/50"
-              }`}
-              animate={currentStep === index + 1 ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              {step}
-            </motion.span>
-            
-            {index < steps.length - 1 && (
-              <motion.div
-                className={`absolute top-5 left-12 w-8 h-0.5 ${
-                  currentStep > index + 1 
-                    ? "bg-toyota-red shadow-lg shadow-toyota-red/30" 
-                    : "bg-toyota-gray/30"
-                }`}
-                initial={{ scaleX: 0 }}
-                animate={{ 
-                  scaleX: currentStep > index + 1 ? 1 : 0.3,
-                  opacity: currentStep > index + 1 ? 1 : 0.5
-                }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            )}
-          </div>
+          <motion.div
+            key={step}
+            className={`text-xs font-medium transition-colors duration-300 ${
+              index + 1 <= currentStep ? 'text-primary' : 'text-muted-foreground'
+            }`}
+            animate={index + 1 === currentStep ? { scale: [1, 1.1, 1] } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            {step}
+          </motion.div>
         ))}
       </div>
       
-      {/* Overall progress bar */}
-      <motion.div 
-        className="mt-4 h-1 bg-toyota-gray/20 rounded-full overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
+      <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-toyota-red to-toyota-darkred shadow-lg shadow-toyota-red/50"
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
           initial={{ width: 0 }}
-          animate={{ width: `${(currentStep / 6) * 100}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          animate={{ width: `${(currentStep / steps.length) * 100}%` }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
         />
-      </motion.div>
-    </div>
+        
+        {/* Progress dots */}
+        {steps.map((_, index) => (
+          <motion.div
+            key={index}
+            className={`absolute top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full border-2 ${
+              index + 1 <= currentStep 
+                ? 'bg-primary border-primary' 
+                : 'bg-background border-border'
+            }`}
+            style={{ left: `${(index / (steps.length - 1)) * 100}%`, marginLeft: '-6px' }}
+            animate={index + 1 === currentStep ? { scale: [1, 1.3, 1] } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 };
 

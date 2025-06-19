@@ -40,88 +40,92 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   goNext,
   onClose
 }) => {
+  const getCurrentVehicleImage = () => {
+    const exteriorColors = [
+      { name: "Pearl White", image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80" },
+      { name: "Midnight Black", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" },
+      { name: "Silver Metallic", image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80" },
+      { name: "Ruby Red", image: "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80" },
+      { name: "Ocean Blue", image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
+      { name: "Storm Gray", image: "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80" }
+    ];
+    
+    const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
+    return colorData?.image || exteriorColors[0].image;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative h-full w-full bg-gradient-to-br from-toyota-black via-toyota-gray to-toyota-black overflow-hidden"
+      className="relative h-full w-full bg-background overflow-hidden"
     >
-      {/* Toyota-themed animated background */}
-      <div className="absolute inset-0">
-        {Array.from({ length: 30 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-toyota-red rounded-full opacity-20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [0.5, 1.2, 0.5],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-        
-        {/* Toyota geometric patterns */}
-        <motion.div
-          className="absolute top-20 right-10 w-32 h-32 border border-toyota-red/20 rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute bottom-32 left-10 w-24 h-24 border border-toyota-red/15 rounded-lg"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        />
-      </div>
-
-      {/* Header with Toyota styling */}
+      {/* Header */}
       <motion.div 
-        className="relative z-10 flex items-center justify-between p-4 bg-toyota-black/70 backdrop-blur-xl border-b border-toyota-red/20"
+        className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-3 rounded-xl bg-toyota-gray/20 backdrop-blur-xl border border-toyota-red/30 hover:bg-toyota-red/20 transition-all duration-300"
-          whileHover={{ scale: 1.1, boxShadow: "0 0 20px rgba(229, 0, 0, 0.3)" }}
+          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-300"
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
           {step > 1 ? (
-            <ArrowLeft className="h-6 w-6 text-toyota-white" />
+            <ArrowLeft className="h-6 w-6 text-foreground" />
           ) : (
-            <X className="h-6 w-6 text-toyota-white" />
+            <X className="h-6 w-6 text-foreground" />
           )}
         </motion.button>
 
         <div className="text-center">
           <motion.h1 
-            className="text-xl font-bold text-toyota-white"
+            className="text-xl font-bold text-foreground"
             animate={{ scale: [1, 1.02, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
             Build Your {vehicle.name}
           </motion.h1>
-          <p className="text-sm text-toyota-red font-medium">Step {step} of 6</p>
+          <p className="text-sm text-primary font-medium">Step {step} of 6</p>
         </div>
 
         <div className="w-12" />
+      </motion.div>
+
+      {/* Dynamic Vehicle Image */}
+      <motion.div 
+        className="relative w-full h-48 bg-card/50 overflow-hidden border-b border-border"
+        layoutId="vehicle-image"
+        key={config.exteriorColor + config.grade + config.modelYear}
+      >
+        <motion.img 
+          src={getCurrentVehicleImage()}
+          alt="Vehicle Preview"
+          className="w-full h-full object-cover"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+        <motion.div 
+          className="absolute bottom-4 left-4 text-foreground"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
+          <p className="text-primary text-sm font-medium">{config.grade} • {config.exteriorColor}</p>
+        </motion.div>
       </motion.div>
 
       {/* Progress */}
       <MobileProgress currentStep={step} />
 
       {/* Content Area */}
-      <div className="flex-1 relative z-10 pb-20">
+      <div className="flex-1 relative z-10 pb-20 overflow-y-auto">
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
