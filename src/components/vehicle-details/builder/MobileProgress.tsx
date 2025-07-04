@@ -27,7 +27,7 @@ const MobileProgress: React.FC<MobileProgressProps> = ({
           className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
       
@@ -36,7 +36,7 @@ const MobileProgress: React.FC<MobileProgressProps> = ({
         {Array.from({ length: totalSteps }).map((_, index) => (
           <motion.div
             key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            className={`w-2 h-2 rounded-full transition-all duration-200 ${
               index + 1 <= currentStep
                 ? "bg-primary shadow-lg"
                 : "bg-muted-foreground/30"
@@ -44,7 +44,7 @@ const MobileProgress: React.FC<MobileProgressProps> = ({
             whileHover={{ scale: 1.2 }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.05, duration: 0.2 }}
           />
         ))}
       </div>

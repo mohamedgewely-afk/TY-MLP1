@@ -68,7 +68,7 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Updated Toyota Camry Hybrid official images
+  // Updated Toyota Camry Hybrid official images - spread throughout
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -185,7 +185,7 @@ const VehicleDetails = () => {
       description: "World's most advanced hybrid system with instant electric response",
       color: "from-primary to-primary/80",
       bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[0]
     },
     { 
       icon: <Shield className="h-8 w-8" />, 
@@ -194,7 +194,7 @@ const VehicleDetails = () => {
       description: "Next-generation safety with AI-powered collision prevention",
       color: "from-green-500 to-emerald-400",
       bgPattern: "bg-gradient-to-br from-green-50 to-emerald-50",
-      image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[1]
     },
     { 
       icon: <Gauge className="h-8 w-8" />, 
@@ -203,7 +203,7 @@ const VehicleDetails = () => {
       description: "Seamlessly blended electric and gasoline power delivery",
       color: "from-orange-500 to-red-400",
       bgPattern: "bg-gradient-to-br from-orange-50 to-red-50",
-      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[2]
     },
     { 
       icon: <Leaf className="h-8 w-8" />, 
@@ -212,7 +212,7 @@ const VehicleDetails = () => {
       description: "Ultra-low emissions with pure electric driving capability",
       color: "from-emerald-500 to-green-400",
       bgPattern: "bg-gradient-to-br from-emerald-50 to-green-50",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[3]
     }
   ];
 
@@ -223,7 +223,7 @@ const VehicleDetails = () => {
       description: "Seamless smartphone integration with wireless Apple CarPlay & Android Auto",
       features: ["Wireless connectivity", "Voice commands", "Remote vehicle start"],
       color: "from-primary to-primary/70",
-      image: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[4]
     },
     {
       icon: <Wind className="h-12 w-12" />,
@@ -231,7 +231,7 @@ const VehicleDetails = () => {
       description: "Dual-zone automatic climate control with air purification system",
       features: ["HEPA filtration", "UV sterilization", "Eco-mode optimization"],
       color: "from-cyan-600 to-teal-600",
-      image: "https://images.unsplash.com/photo-1506744038136-80022131f5a1?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[5]
     },
     {
       icon: <Battery className="h-12 w-12" />,
@@ -239,7 +239,7 @@ const VehicleDetails = () => {
       description: "Regenerative braking system that converts motion into electrical energy",
       features: ["Brake energy recovery", "Smart charging", "Power output capability"],
       color: "from-green-600 to-emerald-600",
-      image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[6]
     },
     {
       icon: <Lock className="h-12 w-12" />,
@@ -247,7 +247,7 @@ const VehicleDetails = () => {
       description: "Advanced security system with remote monitoring and smart access",
       features: ["Biometric access", "Remote monitoring", "Anti-theft protection"],
       color: "from-red-600 to-pink-600",
-      image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=600&q=80"
+      image: galleryImages[0]
     }
   ];
 

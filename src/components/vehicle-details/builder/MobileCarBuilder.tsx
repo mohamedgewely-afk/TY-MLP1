@@ -57,6 +57,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden"
     >
       {/* Header */}
@@ -64,13 +65,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.4 }}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-300"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           {step > 1 ? (
             <ArrowLeft className="h-6 w-6 text-foreground" />
@@ -82,8 +83,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="text-center">
           <motion.h1 
             className="text-xl font-bold text-foreground"
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
+            animate={{ scale: [1, 1.01, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
             Build Your {vehicle.name}
           </motion.h1>
@@ -103,16 +104,16 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
           className="w-full h-full object-cover"
-          initial={{ scale: 1.1, opacity: 0 }}
+          initial={{ scale: 1.05, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.5 }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         <motion.div 
           className="absolute bottom-4 left-4 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.3 }}
         >
           <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
           <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
@@ -123,7 +124,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       <MobileProgress currentStep={step} totalSteps={7} />
 
       {/* Content Area */}
-      <div className="flex-1 relative z-10 pb-20 overflow-y-auto">
+      <div className="flex-1 relative z-10 overflow-y-auto">
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
