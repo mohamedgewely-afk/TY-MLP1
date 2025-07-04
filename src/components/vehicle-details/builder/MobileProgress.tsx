@@ -4,64 +4,51 @@ import { motion } from "framer-motion";
 
 interface MobileProgressProps {
   currentStep: number;
+  totalSteps?: number;
 }
 
-const steps = [
-  "Model Year",
-  "Grade",
-  "Exterior",
-  "Interior", 
-  "Accessories",
-  "Review"
-];
-
-const MobileProgress: React.FC<MobileProgressProps> = ({ currentStep }) => {
+const MobileProgress: React.FC<MobileProgressProps> = ({ 
+  currentStep, 
+  totalSteps = 7 
+}) => {
   return (
-    <motion.div 
-      className="px-4 py-3 bg-card/50 backdrop-blur-xl border-b border-border"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      <div className="flex justify-between items-center mb-2">
-        {steps.map((step, index) => (
-          <motion.div
-            key={step}
-            className={`text-xs font-medium transition-colors duration-300 ${
-              index + 1 <= currentStep ? 'text-primary' : 'text-muted-foreground'
-            }`}
-            animate={index + 1 === currentStep ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {step}
-          </motion.div>
-        ))}
+    <div className="px-6 py-4 bg-card/50 backdrop-blur-xl border-b border-border">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          Step {currentStep} of {totalSteps}
+        </span>
+        <span className="text-sm font-medium text-primary">
+          {Math.round((currentStep / totalSteps) * 100)}% Complete
+        </span>
       </div>
       
-      <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
+          className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
           initial={{ width: 0 }}
-          animate={{ width: `${(currentStep / steps.length) * 100}%` }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
+          animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         />
-        
-        {/* Progress dots */}
-        {steps.map((_, index) => (
+      </div>
+      
+      {/* Step indicators */}
+      <div className="flex justify-between mt-3">
+        {Array.from({ length: totalSteps }).map((_, index) => (
           <motion.div
             key={index}
-            className={`absolute top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full border-2 ${
-              index + 1 <= currentStep 
-                ? 'bg-primary border-primary' 
-                : 'bg-background border-border'
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index + 1 <= currentStep
+                ? "bg-primary shadow-lg"
+                : "bg-muted-foreground/30"
             }`}
-            style={{ left: `${(index / (steps.length - 1)) * 100}%`, marginLeft: '-6px' }}
-            animate={index + 1 === currentStep ? { scale: [1, 1.3, 1] } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
+            whileHover={{ scale: 1.2 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: index * 0.1 }}
           />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -16,6 +16,7 @@ interface CarBuilderProps {
 
 interface BuilderConfig {
   modelYear: string;
+  engine: string;
   grade: string;
   exteriorColor: string;
   interiorColor: string;
@@ -26,9 +27,10 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const [step, setStep] = useState(1);
   const [config, setConfig] = useState<BuilderConfig>({
     modelYear: "2025",
+    engine: "3.5L",
     grade: "Base",
     exteriorColor: "Pearl White",
-    interiorColor: "Black Fabric",
+    interiorColor: "Black Leather",
     accessories: []
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -38,24 +40,23 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
     
+    // Engine pricing
+    const enginePricing = { "3.5L": 0, "4.0L": 5000 };
+    basePrice += enginePricing[config.engine as keyof typeof enginePricing] || 0;
+    
+    // Grade pricing
     const gradePricing = { "Base": 0, "SE": 2000, "XLE": 4000, "Limited": 6000, "Platinum": 10000 };
     basePrice += gradePricing[config.grade as keyof typeof gradePricing] || 0;
     
+    // Exterior colors pricing
     const exteriorColors = [
       { name: "Pearl White", price: 0 },
       { name: "Midnight Black", price: 500 },
-      { name: "Silver Metallic", price: 300 },
-      { name: "Ruby Red", price: 700 },
-      { name: "Ocean Blue", price: 600 },
-      { name: "Storm Gray", price: 400 }
+      { name: "Silver Metallic", price: 300 }
     ];
     
-    const interiorColors = [
-      { name: "Black Fabric", price: 0 },
-      { name: "Beige Leather", price: 1500 },
-      { name: "Brown Leather", price: 1500 },
-      { name: "Red Leather", price: 2000 }
-    ];
+    // Interior pricing
+    const interiorColorPrice = 1500; // Black Leather base price
     
     const accessories = [
       { name: "Premium Sound System", price: 1200 },
@@ -63,13 +64,10 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       { name: "Navigation System", price: 600 },
       { name: "Heated Seats", price: 400 },
       { name: "Backup Camera", price: 300 },
-      { name: "Alloy Wheels", price: 900 },
-      { name: "Roof Rack", price: 250 },
-      { name: "Floor Mats", price: 150 }
+      { name: "Alloy Wheels", price: 900 }
     ];
     
     const exteriorColorPrice = exteriorColors.find(c => c.name === config.exteriorColor)?.price || 0;
-    const interiorColorPrice = interiorColors.find(c => c.name === config.interiorColor)?.price || 0;
     const accessoriesPrice = config.accessories.reduce((total, accessory) => {
       const accessoryData = accessories.find(a => a.name === accessory);
       return total + (accessoryData?.price || 0);
@@ -98,10 +96,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 6) setStep(step + 1);
+    if (step < 7) setStep(step + 1); // Updated to 7 steps
   };
 
-  // Create a wrapped setConfig that handles updates
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
     setConfig(value);
   }, []);

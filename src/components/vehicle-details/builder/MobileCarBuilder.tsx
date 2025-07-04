@@ -9,6 +9,7 @@ import MobileSummary from "./MobileSummary";
 
 interface BuilderConfig {
   modelYear: string;
+  engine: string;
   grade: string;
   exteriorColor: string;
   interiorColor: string;
@@ -42,12 +43,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 }) => {
   const getCurrentVehicleImage = () => {
     const exteriorColors = [
-      { name: "Pearl White", image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80" },
-      { name: "Midnight Black", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" },
-      { name: "Silver Metallic", image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80" },
-      { name: "Ruby Red", image: "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80" },
-      { name: "Ocean Blue", image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
-      { name: "Storm Gray", image: "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80" }
+      { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
+      { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
+      { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" }
     ];
     
     const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
@@ -89,7 +87,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           >
             Build Your {vehicle.name}
           </motion.h1>
-          <p className="text-sm text-primary font-medium">Step {step} of 6</p>
+          <p className="text-sm text-primary font-medium">Step {step} of 7</p>
         </div>
 
         <div className="w-12" />
@@ -99,7 +97,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       <motion.div 
         className="relative w-full h-48 bg-card/50 overflow-hidden border-b border-border"
         layoutId="vehicle-image"
-        key={config.exteriorColor + config.grade + config.modelYear}
+        key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
@@ -117,12 +115,12 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           transition={{ delay: 0.5 }}
         >
           <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
-          <p className="text-primary text-sm font-medium">{config.grade} • {config.exteriorColor}</p>
+          <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
         </motion.div>
       </motion.div>
 
       {/* Progress */}
-      <MobileProgress currentStep={step} />
+      <MobileProgress currentStep={step} totalSteps={7} />
 
       {/* Content Area */}
       <div className="flex-1 relative z-10 pb-20 overflow-y-auto">
