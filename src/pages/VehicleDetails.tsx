@@ -68,14 +68,15 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Real Toyota Camry Hybrid images
+  // Updated Toyota Camry Hybrid official images
   const galleryImages = [
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-b.jpg",
-    "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-c.jpg",
-    "https://images.unsplash.com/photo-1494976688531-c21fd785c8d0?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1571088520017-b4e1b2e1c6dd?auto=format&fit=crop&w=1200&q=80"
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0d?binary=true&mformat=true"
   ];
 
   // Auto-rotate gallery images with smoother transitions
@@ -276,148 +277,128 @@ const VehicleDetails = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
           </div>
 
-          <div className="toyota-container min-h-screen flex flex-col justify-center relative z-10 py-16 md:py-20">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-              {/* Left Content - Reduced Text */}
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="space-y-4 lg:space-y-6 text-white order-2 lg:order-1"
+          <div className="toyota-container min-h-screen flex flex-col justify-end relative z-10 pb-32">
+            {/* Content positioned at bottom */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-4 lg:space-y-6 text-white max-w-4xl"
+            >
+              {/* Badges */}
+              <motion.div 
+                className="flex flex-wrap gap-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
               >
-                {/* Breadcrumb */}
-                <motion.div 
-                  className="flex items-center space-x-2 text-sm text-white/70"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Link to="/" className="hover:text-white transition-colors flex items-center">
-                    <span className="w-2 h-2 bg-white rounded-full mr-2" />
-                    Home
-                  </Link>
-                  <ChevronRight className="h-4 w-4" />
-                  <Link to="/" className="hover:text-white transition-colors">Vehicles</Link>
-                  <ChevronRight className="h-4 w-4" />
-                  <span className="text-white font-medium">{vehicle.name}</span>
-                </motion.div>
-
-                {/* Smaller Badges */}
-                <motion.div 
-                  className="flex flex-wrap gap-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Badge className="bg-primary text-primary-foreground px-2 py-1 border border-white/20 text-xs shadow-lg">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    {vehicle.category}
+                <Badge className="bg-primary text-primary-foreground px-2 py-1 border border-white/20 text-xs shadow-lg">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {vehicle.category}
+                </Badge>
+                {isBestSeller && (
+                  <Badge className="bg-amber-500 text-white px-2 py-1 border border-amber-400 text-xs shadow-lg">
+                    <Award className="h-3 w-3 mr-1" />
+                    Best Seller
                   </Badge>
-                  {isBestSeller && (
-                    <Badge className="bg-amber-500 text-white px-2 py-1 border border-amber-400 text-xs shadow-lg">
-                      <Award className="h-3 w-3 mr-1" />
-                      Best Seller
-                    </Badge>
-                  )}
-                  <Badge className="bg-emerald-500 text-white px-2 py-1 border border-emerald-400 text-xs shadow-lg">
-                    <Leaf className="h-3 w-3 mr-1" />
-                    Hybrid
-                  </Badge>
-                </motion.div>
-
-                {/* Title - Reduced Size */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="space-y-3"
-                >
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight">
-                    {vehicle.name}
-                  </h1>
-                  <motion.p 
-                    className="text-base lg:text-lg text-white/80 leading-relaxed max-w-xl"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    Advanced hybrid technology meets luxury design.
-                  </motion.p>
-                </motion.div>
-
-                {/* Price and EMI */}
-                <motion.div 
-                  className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 max-w-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/80 text-sm">Starting Price</span>
-                      <span className="text-white font-bold text-xl">AED {vehicle.price.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/80 text-sm">Monthly EMI from</span>
-                      <span className="text-white font-bold text-lg">AED {monthlyEMI.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Desktop Action Buttons */}
-                {!isMobile && (
-                  <motion.div 
-                    className="flex flex-col sm:flex-row gap-4 pt-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 }}
-                  >
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        size="lg"
-                        className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg rounded-xl shadow-lg"
-                        onClick={() => setIsBookingOpen(true)}
-                      >
-                        <Car className="h-5 w-5 mr-3" />
-                        Book Test Drive
-                      </Button>
-                    </motion.div>
-                    
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        className="border-2 border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg rounded-xl bg-white/10 backdrop-blur-sm"
-                        onClick={() => setIsCarBuilderOpen(true)}
-                      >
-                        <Settings className="h-5 w-5 mr-3" />
-                        Configure
-                      </Button>
-                    </motion.div>
-
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        onClick={toggleFavorite}
-                        className={`p-4 rounded-xl border-2 bg-white/10 backdrop-blur-sm ${isFavorite ? "border-white text-white bg-white/20" : "border-white/30 text-white"}`}
-                      >
-                        <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
-                      </Button>
-                    </motion.div>
-                  </motion.div>
                 )}
+                <Badge className="bg-emerald-500 text-white px-2 py-1 border border-emerald-400 text-xs shadow-lg">
+                  <Leaf className="h-3 w-3 mr-1" />
+                  Hybrid
+                </Badge>
               </motion.div>
 
-              {/* Right side - Image indicators only */}
+              {/* Title */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="space-y-3"
+              >
+                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight">
+                  {vehicle.name}
+                </h1>
+                <motion.p 
+                  className="text-base lg:text-lg text-white/80 leading-relaxed max-w-xl"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  Advanced hybrid technology meets luxury design.
+                </motion.p>
+              </motion.div>
+
+              {/* Price and EMI */}
+              <motion.div 
+                className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 max-w-md"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/80 text-sm">Starting Price</span>
+                    <span className="text-white font-bold text-xl">AED {vehicle.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/80 text-sm">Monthly EMI from</span>
+                    <span className="text-white font-bold text-lg">AED {monthlyEMI.toLocaleString()}</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Desktop Action Buttons */}
+              {!isMobile && (
+                <motion.div 
+                  className="flex flex-col sm:flex-row gap-4 pt-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 }}
+                >
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      size="lg"
+                      className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg rounded-xl shadow-lg"
+                      onClick={() => setIsBookingOpen(true)}
+                    >
+                      <Car className="h-5 w-5 mr-3" />
+                      Book Test Drive
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="border-2 border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg rounded-xl bg-white/10 backdrop-blur-sm"
+                      onClick={() => setIsCarBuilderOpen(true)}
+                    >
+                      <Settings className="h-5 w-5 mr-3" />
+                      Configure
+                    </Button>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={toggleFavorite}
+                      className={`p-4 rounded-xl border-2 bg-white/10 backdrop-blur-sm ${isFavorite ? "border-white text-white bg-white/20" : "border-white/30 text-white"}`}
+                    >
+                      <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Image indicators positioned at bottom right */}
               <motion.div
                 ref={heroImageRef}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative order-1 lg:order-2 flex justify-center lg:justify-end"
+                className="flex justify-end pt-4"
               >
-                {/* Image indicators */}
                 <div className="flex space-x-3">
                   {galleryImages.map((_, index) => (
                     <motion.button
@@ -434,10 +415,10 @@ const VehicleDetails = () => {
                   ))}
                 </div>
               </motion.div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Scroll indicator */}
+          {/* Scroll indicator - Always visible at bottom center */}
           <motion.div 
             className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
             initial={{ opacity: 0 }}

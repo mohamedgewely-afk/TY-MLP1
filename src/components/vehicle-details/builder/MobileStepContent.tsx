@@ -26,12 +26,12 @@ interface MobileStepContentProps {
 const modelYears = ["2024", "2025"];
 const grades = ["Base", "SE", "XLE", "Limited", "Platinum"];
 const exteriorColors = [
-  { name: "Pearl White", code: "#F8F8FF", image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80" },
-  { name: "Midnight Black", code: "#000000", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" },
-  { name: "Silver Metallic", code: "#C0C0C0", image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80" },
-  { name: "Ruby Red", code: "#DC143C", image: "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80" },
-  { name: "Ocean Blue", code: "#006994", image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80" },
-  { name: "Storm Gray", code: "#708090", image: "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80" }
+  { name: "Pearl White", code: "#F8F8FF", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true" },
+  { name: "Midnight Black", code: "#000000", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true" },
+  { name: "Silver Metallic", code: "#C0C0C0", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true" },
+  { name: "Ruby Red", code: "#DC143C", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true" },
+  { name: "Ocean Blue", code: "#006994", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true" },
+  { name: "Storm Gray", code: "#708090", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true" }
 ];
 const interiorColors = [
   { name: "Black Fabric", code: "#2C2C2C" },
@@ -100,7 +100,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 
       case 2:
         return (
-          <div className="p-6">
+          <div className="p-6 pb-24">
             <motion.h2 
               className="text-2xl font-bold text-center mb-8 text-foreground"
               initial={{ opacity: 0, y: 20 }}
@@ -329,32 +329,35 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-      className="h-full overflow-y-auto"
-    >
-      {renderContent()}
+    <div className="relative">
+      <motion.div
+        initial={{ opacity: 0, x: 100 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -100 }}
+        transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+        className="min-h-full"
+      >
+        {renderContent()}
+      </motion.div>
       
+      {/* Fixed Continue Button */}
       {step < 6 && (
         <motion.div 
-          className="p-6"
+          className="fixed bottom-0 left-0 right-0 p-6 bg-card/95 backdrop-blur-xl border-t border-border z-50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
           <Button 
             onClick={goNext}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-xl font-bold border border-primary"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg"
           >
             Continue
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
