@@ -78,7 +78,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       <div className="flex h-full">
         {/* Left Panel */}
         <div className="w-1/2 p-8 overflow-y-auto">
-          <BuilderProgress currentStep={step} />
+          <BuilderProgress currentStep={step} totalSteps={7} />
           
           <AnimatePresence mode="wait">
             <StepContent
@@ -86,6 +86,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               step={step}
               config={config}
               setConfig={setConfig}
+              vehicle={vehicle}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}
               goNext={goNext}
