@@ -5,19 +5,24 @@ import { Check, Car, Palette, Settings, CreditCard, Sparkles, Zap, Star } from "
 
 interface BuilderProgressProps {
   currentStep: number;
-  steps: Array<{
-    number: number;
-    title: string;
-    icon: React.ReactNode;
-    gradient: string;
-  }>;
+  totalSteps: number;
 }
 
-const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, steps }) => {
+const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSteps }) => {
+  const steps = [
+    { number: 1, title: "Year", icon: <Star className="h-5 w-5" />, gradient: "from-blue-500 to-cyan-400" },
+    { number: 2, title: "Grade", icon: <Zap className="h-5 w-5" />, gradient: "from-purple-500 to-pink-400" },
+    { number: 3, title: "Exterior", icon: <Palette className="h-5 w-5" />, gradient: "from-green-500 to-emerald-400" },
+    { number: 4, title: "Interior", icon: <Car className="h-5 w-5" />, gradient: "from-orange-500 to-red-400" },
+    { number: 5, title: "Accessories", icon: <Settings className="h-5 w-5" />, gradient: "from-indigo-500 to-purple-400" },
+    { number: 6, title: "Review", icon: <Check className="h-5 w-5" />, gradient: "from-teal-500 to-green-400" },
+    { number: 7, title: "Order", icon: <CreditCard className="h-5 w-5" />, gradient: "from-pink-500 to-rose-400" }
+  ];
+
   return (
     <div className="flex justify-center items-center mb-6 px-4 flex-shrink-0 relative z-10">
       <div className="flex items-center space-x-4 bg-white/5 backdrop-blur-xl rounded-full p-4 border border-white/20">
-        {steps.map((stepData, index) => (
+        {steps.slice(0, totalSteps).map((stepData, index) => (
           <React.Fragment key={stepData.number}>
             <motion.div 
               className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
@@ -58,7 +63,7 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, steps })
               </motion.div>
             </motion.div>
             
-            {index < steps.length - 1 && (
+            {index < steps.slice(0, totalSteps).length - 1 && (
               <motion.div 
                 className={`w-8 h-1 rounded-full transition-all duration-500 ${
                   currentStep > stepData.number 

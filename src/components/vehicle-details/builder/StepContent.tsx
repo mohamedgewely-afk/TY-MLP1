@@ -1,9 +1,9 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
+import { VehicleModel } from "@/types/vehicle";
 
 interface BuilderConfig {
   modelYear: string;
@@ -17,11 +17,10 @@ interface StepContentProps {
   step: number;
   config: BuilderConfig;
   setConfig: React.Dispatch<React.SetStateAction<BuilderConfig>>;
-  handleAccessoryToggle: (accessoryName: string) => void;
-  handleTouchStart: (e: React.TouchEvent) => void;
-  handleTouchMove: (e: React.TouchEvent) => void;
-  handleTouchEnd: () => void;
-  getCurrentVehicleImage: () => string;
+  vehicle: VehicleModel;
+  calculateTotalPrice: () => number;
+  handlePayment: () => void;
+  goNext: () => void;
 }
 
 const modelYears = ["2024", "2025"];
@@ -108,21 +107,41 @@ const StepContent: React.FC<StepContentProps> = ({
   step,
   config,
   setConfig,
-  handleAccessoryToggle,
-  handleTouchStart,
-  handleTouchMove,
-  handleTouchEnd,
-  getCurrentVehicleImage
+  vehicle,
+  calculateTotalPrice,
+  handlePayment,
+  goNext
 }) => {
+  const handleAccessoryToggle = (accessoryName: string) => {
+    setConfig(prev => ({
+      ...prev,
+      accessories: prev.accessories.includes(accessoryName)
+        ? prev.accessories.filter(a => a !== accessoryName)
+        : [...prev.accessories, accessoryName]
+    }));
+  };
+
+  const getCurrentVehicleImage = () => {
+    const colorImages = {
+      "Pearl White": "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80",
+      "Midnight Black": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
+      "Silver Metallic": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80",
+      "Ruby Red": "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80",
+      "Ocean Blue": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
+      "Storm Gray": "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80"
+    };
+    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.images[0];
+  };
+
   const renderContent = () => {
     switch (step) {
       case 1:
         return (
           <div 
             className="space-y-8 h-[500px] flex flex-col justify-center"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onTouchStart={() => {}}
+            onTouchMove={() => {}}
+            onTouchEnd={() => {}}
           >
             <motion.h3 
               className="text-4xl font-black text-center bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent"
@@ -197,9 +216,9 @@ const StepContent: React.FC<StepContentProps> = ({
         return (
           <div 
             className="space-y-8 h-[500px] flex flex-col justify-center"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onTouchStart={() => {}}
+            onTouchMove={() => {}}
+            onTouchEnd={() => {}}
           >
             <motion.h3 
               className="text-4xl font-black text-center bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
@@ -289,9 +308,9 @@ const StepContent: React.FC<StepContentProps> = ({
         return (
           <div 
             className="space-y-8 h-[500px] overflow-y-auto"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onTouchStart={() => {}}
+            onTouchMove={() => {}}
+            onTouchEnd={() => {}}
           >
             <motion.h3 
               className="text-4xl font-black text-center bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent"
@@ -426,9 +445,9 @@ const StepContent: React.FC<StepContentProps> = ({
         return (
           <div 
             className="space-y-8 h-[500px] overflow-y-auto"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onTouchStart={() => {}}
+            onTouchMove={() => {}}
+            onTouchEnd={() => {}}
           >
             <motion.h3 
               className="text-4xl font-black text-center bg-gradient-to-r from-orange-400 to-red-300 bg-clip-text text-transparent"
@@ -518,9 +537,9 @@ const StepContent: React.FC<StepContentProps> = ({
         return (
           <div 
             className="space-y-8 h-[500px] overflow-y-auto"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onTouchStart={() => {}}
+            onTouchMove={() => {}}
+            onTouchEnd={() => {}}
           >
             <motion.h3 
               className="text-4xl font-black text-center bg-gradient-to-r from-indigo-400 to-purple-300 bg-clip-text text-transparent"

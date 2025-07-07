@@ -2,6 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
+import { VehicleModel } from "@/types/vehicle";
 
 interface BuilderConfig {
   modelYear: string;
@@ -14,14 +15,26 @@ interface BuilderConfig {
 interface ChoicesSummaryProps {
   config: BuilderConfig;
   totalPrice: number;
-  getCurrentVehicleImage: () => string;
+  vehicle: VehicleModel;
 }
 
 const ChoicesSummary: React.FC<ChoicesSummaryProps> = ({ 
   config, 
   totalPrice, 
-  getCurrentVehicleImage 
+  vehicle 
 }) => {
+  const getCurrentVehicleImage = () => {
+    const colorImages = {
+      "Pearl White": "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80",
+      "Midnight Black": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
+      "Silver Metallic": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80",
+      "Ruby Red": "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80",
+      "Ocean Blue": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
+      "Storm Gray": "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80"
+    };
+    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.images[0];
+  };
+
   return (
     <motion.div 
       className="fixed top-4 right-4 w-80 bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl z-50"
