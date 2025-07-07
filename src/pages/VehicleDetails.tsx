@@ -27,8 +27,9 @@ import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import MobileStickyNav from "@/components/MobileStickyNav";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import CombinedSpecsAndTech from "@/components/vehicle-details/CombinedSpecsAndTech";
+import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
+import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -350,8 +351,8 @@ const VehicleDetails = () => {
           </div>
         </section>
 
-        {/* Combined Specs and Technology Section */}
-        <CombinedSpecsAndTech vehicle={vehicle} />
+        {/* Interactive Specifications & Technology Suite */}
+        <InteractiveSpecsTech vehicle={vehicle} />
 
         {/* Other Sections */}
         <OffersSection />
@@ -365,6 +366,9 @@ const VehicleDetails = () => {
         <section className="py-12 lg:py-20 bg-muted/30">
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
+
+        {/* Pre-Owned Similar Models Section */}
+        <PreOwnedSimilar currentVehicle={vehicle} />
 
         {/* Action Panel */}
         <ActionPanel

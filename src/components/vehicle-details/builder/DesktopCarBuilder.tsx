@@ -1,12 +1,11 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft } from "lucide-react";
+import { X } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import StepContent from "./StepContent";
 import BuilderProgress from "./BuilderProgress";
 import ChoicesSummary from "./ChoicesSummary";
-import ChoiceCollector from "./ChoiceCollector";
 
 interface BuilderConfig {
   modelYear: string;
@@ -50,7 +49,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden"
     >
-      {/* Header with Back Button */}
+      {/* Header */}
       <motion.div 
         className="flex items-center justify-between p-6 border-b border-border bg-card/50 backdrop-blur-xl"
         initial={{ y: -50, opacity: 0 }}
@@ -59,16 +58,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       >
         <div className="flex items-center space-x-4">
           <motion.button
-            onClick={step > 1 ? goBack : onClose}
+            onClick={onClose}
             className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {step > 1 ? (
-              <ArrowLeft className="h-6 w-6 text-foreground" />
-            ) : (
-              <X className="h-6 w-6 text-foreground" />
-            )}
+            <X className="h-6 w-6 text-foreground" />
           </motion.button>
           
           <div>
@@ -83,9 +78,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       <div className="flex h-full">
         {/* Left Panel */}
         <div className="w-1/2 p-8 overflow-y-auto">
-          <ChoiceCollector config={config} step={step} />
-          
-          <BuilderProgress currentStep={step} totalSteps={7} />
+          <BuilderProgress currentStep={step} />
           
           <AnimatePresence mode="wait">
             <StepContent
@@ -93,7 +86,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               step={step}
               config={config}
               setConfig={setConfig}
-              vehicle={vehicle}
               calculateTotalPrice={calculateTotalPrice}
               handlePayment={handlePayment}
               goNext={goNext}
