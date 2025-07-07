@@ -54,7 +54,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  // Show specs after year and grade selection
   const showSpecs = step > 3 && (config.modelYear && config.grade);
 
   return (
@@ -99,9 +98,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - Much bigger space */}
+      {/* Enhanced Vehicle Image - Compact */}
       <motion.div 
-        className="relative w-full h-80 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-48 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
@@ -115,50 +114,55 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
         
-        {/* Vehicle Info Overlay */}
+        {/* Vehicle Info Overlay - Compact */}
         <motion.div 
-          className="absolute bottom-4 left-4 right-4 text-foreground"
+          className="absolute bottom-2 left-2 right-2 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="bg-card/90 backdrop-blur-lg rounded-2xl p-4 border border-border">
-            <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
+          <div className="bg-card/90 backdrop-blur-lg rounded-lg p-3 border border-border">
+            <h3 className="text-base font-bold">{config.modelYear} {vehicle.name}</h3>
+            <p className="text-primary text-xs font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* Progress */}
-      <MobileProgress currentStep={step} totalSteps={7} />
+      {/* Progress - Compact */}
+      <div className="px-4 py-2 flex-shrink-0">
+        <MobileProgress currentStep={step} totalSteps={7} />
+      </div>
 
-      {/* Content Area - Flexible height */}
-      <div className="flex-1 relative z-10 overflow-y-auto">
-        <div className="p-4">
-          {/* Choice Collector */}
+      {/* Content Area - Fixed height, no scroll */}
+      <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        {/* Choice Collector - Compact */}
+        <div className="px-4 pb-2 flex-shrink-0">
           <ChoiceCollector config={config} step={step} />
           
-          {/* Collapsible Specs */}
+          {/* Collapsible Specs - Compact */}
           {showSpecs && (
             <CollapsibleSpecs config={config} />
           )}
         </div>
 
-        <AnimatePresence mode="wait">
-          <MobileStepContent
-            key={step}
-            step={step}
-            config={config}
-            setConfig={setConfig}
-            vehicle={vehicle}
-            calculateTotalPrice={calculateTotalPrice}
-            handlePayment={handlePayment}
-            goNext={goNext}
-          />
-        </AnimatePresence>
+        {/* Step Content - Takes remaining space */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <MobileStepContent
+              key={step}
+              step={step}
+              config={config}
+              setConfig={setConfig}
+              vehicle={vehicle}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goNext={goNext}
+            />
+          </AnimatePresence>
+        </div>
       </div>
 
-      {/* Price Summary */}
+      {/* Price Summary - Fixed at bottom */}
       <div className="flex-shrink-0 relative z-20">
         <MobileSummary 
           config={config}

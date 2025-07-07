@@ -68,12 +68,14 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.3, type: "spring", stiffness: 150, damping: 20 }}
-        className="flex-1"
+        className="flex-1 overflow-hidden"
       >
-        {renderContent()}
+        <div className="h-full p-4 overflow-y-auto">
+          {renderContent()}
+        </div>
       </motion.div>
       
-      {/* Fixed Continue Button - Properly positioned above price summary */}
+      {/* Fixed Continue Button - Above price summary */}
       {step < 7 && (
         <motion.div 
           className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-xl z-30 border-t border-border/50"

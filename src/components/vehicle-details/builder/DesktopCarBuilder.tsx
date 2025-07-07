@@ -54,7 +54,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  // Show specs after year and grade selection
   const showSpecs = step > 3 && (config.modelYear && config.grade);
 
   return (
@@ -63,106 +62,114 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col"
+      className="relative h-full w-full bg-background overflow-hidden flex"
     >
-      {/* Header with Back Button */}
-      <motion.div 
-        className="relative z-10 flex items-center justify-between p-6 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <motion.button
-          onClick={step > 1 ? goBack : onClose}
-          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {step > 1 ? (
-            <ArrowLeft className="h-6 w-6 text-foreground" />
-          ) : (
-            <X className="h-6 w-6 text-foreground" />
-          )}
-        </motion.button>
-
-        <div className="text-center">
-          <motion.h1 
-            className="text-2xl font-bold text-foreground"
-            animate={{ scale: [1, 1.01, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            Build Your {vehicle.name}
-          </motion.h1>
-          <p className="text-sm text-primary font-medium">Step {step} of 7</p>
-        </div>
-
-        <div className="w-12" />
-      </motion.div>
-
-      {/* Enhanced Vehicle Image - Large desktop space */}
-      <motion.div 
-        className="relative w-full h-96 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
-        layoutId="vehicle-image"
-        key={config.exteriorColor + config.grade + config.modelYear + config.engine}
-      >
-        <motion.img 
-          src={getCurrentVehicleImage()}
-          alt="Vehicle Preview"
-          className="w-full h-full object-cover scale-105"
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1.05, opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-        
-        {/* Vehicle Info Overlay */}
+      {/* Left Side - Interactive Car Image (50% width) */}
+      <div className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30">
+        {/* Header overlay on image */}
         <motion.div 
-          className="absolute bottom-6 left-6 right-6 text-foreground"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="bg-card/90 backdrop-blur-lg rounded-2xl p-6 border border-border max-w-md">
-            <h3 className="text-xl font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-base font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
-          </div>
-        </motion.div>
-      </motion.div>
+          <motion.button
+            onClick={step > 1 ? goBack : onClose}
+            className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {step > 1 ? (
+              <ArrowLeft className="h-6 w-6 text-foreground" />
+            ) : (
+              <X className="h-6 w-6 text-foreground" />
+            )}
+          </motion.button>
 
-      {/* Progress */}
-      <div className="px-6 py-4 flex-shrink-0">
-        <MobileProgress currentStep={step} totalSteps={7} />
+          <div className="text-center">
+            <motion.h1 
+              className="text-2xl font-bold text-foreground"
+              animate={{ scale: [1, 1.01, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Build Your {vehicle.name}
+            </motion.h1>
+            <p className="text-sm text-primary font-medium">Step {step} of 7</p>
+          </div>
+
+          <div className="w-12" />
+        </motion.div>
+
+        {/* Full height interactive car image */}
+        <motion.div 
+          className="relative w-full h-full overflow-hidden"
+          layoutId="vehicle-image"
+          key={config.exteriorColor + config.grade + config.modelYear + config.engine}
+        >
+          <motion.img 
+            src={getCurrentVehicleImage()}
+            alt="Vehicle Preview"
+            className="w-full h-full object-cover scale-110"
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1.1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20" />
+          
+          {/* Vehicle Info Overlay - Bottom */}
+          <motion.div 
+            className="absolute bottom-8 left-8 right-8 text-foreground"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-6 border border-border max-w-md">
+              <h3 className="text-2xl font-bold mb-2">{config.modelYear} {vehicle.name}</h3>
+              <p className="text-primary text-lg font-medium">{config.grade} • {config.engine}</p>
+              <p className="text-muted-foreground text-base">{config.exteriorColor} Exterior</p>
+              <div className="mt-4 text-3xl font-black text-primary">
+                AED {calculateTotalPrice().toLocaleString()}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Content Area - Two column layout for desktop */}
-      <div className="flex-1 relative z-10 overflow-hidden flex">
-        {/* Left Column - Content */}
-        <div className="w-2/3 overflow-y-auto p-6">
-          {/* Choice Collector */}
-          <ChoiceCollector config={config} step={step} />
-          
-          {/* Collapsible Specs */}
-          {showSpecs && (
-            <CollapsibleSpecs config={config} />
-          )}
-
-          <AnimatePresence mode="wait">
-            <MobileStepContent
-              key={step}
-              step={step}
-              config={config}
-              setConfig={setConfig}
-              vehicle={vehicle}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goNext={goNext}
-            />
-          </AnimatePresence>
+      {/* Right Side - Configuration Panel (50% width) */}
+      <div className="w-1/2 h-full flex flex-col bg-background border-l border-border">
+        {/* Progress */}
+        <div className="px-6 py-4 border-b border-border">
+          <MobileProgress currentStep={step} totalSteps={7} />
         </div>
 
-        {/* Right Column - Summary */}
-        <div className="w-1/3 border-l border-border bg-muted/30 flex flex-col">
-          <div className="flex-1 p-6">
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Choice Collector & Specs */}
+          <div className="px-6 py-4 border-b border-border">
+            <ChoiceCollector config={config} step={step} />
+            {showSpecs && (
+              <CollapsibleSpecs config={config} />
+            )}
+          </div>
+
+          {/* Step Content */}
+          <div className="flex-1 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <MobileStepContent
+                key={step}
+                step={step}
+                config={config}
+                setConfig={setConfig}
+                vehicle={vehicle}
+                calculateTotalPrice={calculateTotalPrice}
+                handlePayment={handlePayment}
+                goNext={goNext}
+              />
+            </AnimatePresence>
+          </div>
+
+          {/* Summary */}
+          <div className="border-t border-border">
             <MobileSummary 
               config={config}
               totalPrice={calculateTotalPrice()}

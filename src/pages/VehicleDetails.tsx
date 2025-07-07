@@ -30,6 +30,7 @@ import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSectio
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
+import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -270,6 +271,9 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
+        {/* Interactive Specifications & Technology Suite - Moved up */}
+        <InteractiveSpecsTech vehicle={vehicle} />
+
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
 
@@ -349,9 +353,6 @@ const VehicleDetails = () => {
           </div>
         </section>
 
-        {/* Interactive Specifications & Technology Suite */}
-        <InteractiveSpecsTech vehicle={vehicle} />
-
         {/* Other Sections - Optimized spacing */}
         <OffersSection />
         <section className="py-8 lg:py-16 bg-muted/30">
@@ -367,6 +368,9 @@ const VehicleDetails = () => {
 
         {/* Pre-Owned Similar Models Carousel */}
         <PreOwnedSimilar currentVehicle={vehicle} />
+
+        {/* FAQ Section */}
+        <VehicleFAQ vehicle={vehicle} />
 
         {/* Action Panel */}
         <ActionPanel
