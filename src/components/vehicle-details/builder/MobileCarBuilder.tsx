@@ -6,6 +6,8 @@ import { VehicleModel } from "@/types/vehicle";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
+import ChoiceCollector from "./ChoiceCollector";
+import CollapsibleSpecs from "./CollapsibleSpecs";
 
 interface BuilderConfig {
   modelYear: string;
@@ -54,17 +56,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   // Show specs after year and grade selection
   const showSpecs = step > 3 && (config.modelYear && config.grade);
-  
-  const getSpecsForConfig = () => {
-    const baseSpecs = {
-      power: config.engine === "4.0L" ? "301 HP" : "268 HP",
-      torque: config.engine === "4.0L" ? "365 Nm" : "336 Nm",
-      fuelEconomy: config.grade === "Platinum" ? "20.5 km/L" : "22.2 km/L",
-      transmission: "CVT",
-      drivetrain: config.grade === "Limited" || config.grade === "Platinum" ? "AWD" : "FWD"
-    };
-    return baseSpecs;
-  };
 
   return (
     <motion.div
@@ -74,7 +65,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden flex flex-col"
     >
-      {/* Header */}
+      {/* Header with Back Button */}
       <motion.div 
         className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
@@ -108,18 +99,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - Bigger space */}
+      {/* Enhanced Vehicle Image - Much bigger space */}
       <motion.div 
-        className="relative w-full h-64 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-80 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-cover scale-110"
-          initial={{ scale: 1.15, opacity: 0 }}
-          animate={{ scale: 1.1, opacity: 1 }}
+          className="w-full h-full object-cover scale-105"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1.05, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
@@ -134,23 +125,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <div className="bg-card/90 backdrop-blur-lg rounded-2xl p-4 border border-border">
             <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
             <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
-            
-            {/* Show specs after grade selection */}
-            {showSpecs && (
-              <motion.div 
-                className="mt-3 grid grid-cols-2 gap-2 text-xs"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.4 }}
-              >
-                {Object.entries(getSpecsForConfig()).map(([key, value]) => (
-                  <div key={key} className="bg-muted/50 rounded-lg p-2">
-                    <div className="text-muted-foreground capitalize text-xs">{key.replace(/([A-Z])/g, ' $1')}</div>
-                    <div className="font-semibold text-xs">{value}</div>
-                  </div>
-                ))}
-              </motion.div>
-            )}
           </div>
         </motion.div>
       </motion.div>
@@ -160,6 +134,16 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
       {/* Content Area - Flexible height */}
       <div className="flex-1 relative z-10 overflow-y-auto">
+        <div className="p-4">
+          {/* Choice Collector */}
+          <ChoiceCollector config={config} step={step} />
+          
+          {/* Collapsible Specs */}
+          {showSpecs && (
+            <CollapsibleSpecs config={config} />
+          )}
+        </div>
+
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
@@ -174,7 +158,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Price Summary - Fixed position, higher z-index */}
+      {/* Price Summary */}
       <div className="flex-shrink-0 relative z-20">
         <MobileSummary 
           config={config}

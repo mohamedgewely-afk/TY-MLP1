@@ -27,6 +27,8 @@ import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import MobileStickyNav from "@/components/MobileStickyNav";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
+import CombinedSpecsAndTech from "@/components/vehicle-details/CombinedSpecsAndTech";
+import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -348,18 +350,18 @@ const VehicleDetails = () => {
           </div>
         </section>
 
-        {/* Refined Tech Experience - Combined Section */}
-        <RefinedTechExperience vehicle={vehicle} />
+        {/* Combined Specs and Technology Section */}
+        <CombinedSpecsAndTech vehicle={vehicle} />
 
         {/* Other Sections */}
         <OffersSection />
-        <section className="py-12 lg:py-20 bg-background">
-          <VehicleSpecs vehicle={vehicle} />
-        </section>
         <section className="py-12 lg:py-20 bg-muted/30">
           <VehicleGallery vehicle={vehicle} />
         </section>
-        <LifestyleGallery vehicle={vehicle} />
+        
+        {/* Enhanced Lifestyle Gallery */}
+        <EnhancedLifestyleGallery vehicle={vehicle} />
+        
         <section className="py-12 lg:py-20 bg-muted/30">
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
