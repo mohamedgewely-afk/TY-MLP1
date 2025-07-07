@@ -1,68 +1,51 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-
-interface BuilderConfig {
-  modelYear: string;
-  grade: string;
-  exteriorColor: string;
-  interiorColor: string;
-  accessories: string[];
-}
+import { Card, CardContent } from "@/components/ui/card";
 
 interface MobileSummaryProps {
-  config: BuilderConfig;
+  config: {
+    modelYear: string;
+    engine: string;
+    grade: string;
+    exteriorColor: string;
+    interiorColor: string;
+    accessories: string[];
+  };
   totalPrice: number;
   step: number;
 }
 
-const MobileSummary: React.FC<MobileSummaryProps> = ({ 
-  config, 
-  totalPrice, 
-  step 
-}) => {
-  if (step === 6) return null;
+const MobileSummary: React.FC<MobileSummaryProps> = ({ config, totalPrice, step }) => {
+  if (step === 7) return null; // Don't show on review step
 
   return (
     <motion.div 
-      className="fixed bottom-0 left-0 right-0 z-20 p-4 bg-card/95 backdrop-blur-xl border-t border-border"
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, delay: 0.3 }}
+      className="sticky bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border p-4 z-10"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-foreground text-sm font-semibold mb-1">Current Configuration</p>
-          <p className="text-primary text-xs font-medium">
-            {config.modelYear} {config.grade} • {config.exteriorColor}
-          </p>
-          {config.accessories.length > 0 && (
-            <p className="text-muted-foreground text-xs mt-1">
-              +{config.accessories.length} accessories
-            </p>
-          )}
-        </div>
-        
-        <motion.div
-          className="text-right"
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          <p className="text-xs text-muted-foreground mb-1">Total Price</p>
-          <p className="text-2xl font-bold text-primary">
-            AED {totalPrice.toLocaleString()}
-          </p>
-        </motion.div>
-      </div>
-      
-      <div className="mt-3 h-1 bg-secondary rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-primary shadow-lg"
-          initial={{ width: 0 }}
-          animate={{ width: `${(step / 6) * 100}%` }}
-          transition={{ duration: 0.8 }}
-        />
-      </div>
+      <Card className="border-0 shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-bold text-foreground">Current Total</h4>
+              <p className="text-sm text-muted-foreground">
+                {config.modelYear} • {config.grade} • {config.engine}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-black text-primary">
+                AED {totalPrice.toLocaleString()}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Starting from AED {Math.round(totalPrice * 0.8 / 60).toLocaleString()}/mo
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };

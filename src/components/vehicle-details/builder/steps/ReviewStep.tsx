@@ -2,7 +2,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, CreditCard } from "lucide-react";
 
 interface ReviewStepProps {
   config: {
@@ -18,56 +19,98 @@ interface ReviewStepProps {
 }
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ config, calculateTotalPrice, handlePayment }) => {
+  const configItems = [
+    { label: "Model Year", value: config.modelYear },
+    { label: "Engine", value: config.engine },
+    { label: "Grade", value: config.grade },
+    { label: "Exterior Color", value: config.exteriorColor },
+    { label: "Interior Color", value: config.interiorColor },
+  ];
+
   return (
-    <div className="p-6 text-center">
+    <div className="p-6 pb-8">
       <motion.h2 
-        className="text-2xl font-bold mb-8 text-foreground"
+        className="text-2xl font-bold text-center mb-8 text-foreground"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        Review & Confirm
+        Review Your Configuration
       </motion.h2>
+      
+      <div className="space-y-6">
+        {/* Configuration Summary */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-bold mb-4">Your Selection</h3>
+            <div className="space-y-3">
+              {configItems.map((item, index) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex justify-between items-center py-2 border-b border-border last:border-b-0"
+                >
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium">{item.value}</span>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="space-y-3 mb-8 text-left bg-card p-4 rounded-xl border border-border">
-        <div className="flex justify-between text-foreground">
-          <span>Model Year:</span>
-          <span className="text-primary font-medium">{config.modelYear}</span>
-        </div>
-        <div className="flex justify-between text-foreground">
-          <span>Engine:</span>
-          <span className="text-primary font-medium">{config.engine}</span>
-        </div>
-        <div className="flex justify-between text-foreground">
-          <span>Grade:</span>
-          <span className="text-primary font-medium">{config.grade}</span>
-        </div>
-        <div className="flex justify-between text-foreground">
-          <span>Exterior:</span>
-          <span className="text-primary font-medium">{config.exteriorColor}</span>
-        </div>
-        <div className="flex justify-between text-foreground">
-          <span>Interior:</span>
-          <span className="text-primary font-medium">{config.interiorColor}</span>
-        </div>
-        <div className="flex justify-between text-foreground">
-          <span>Accessories:</span>
-          <span className="text-primary font-medium">{config.accessories.length} selected</span>
-        </div>
-      </div>
+        {/* Accessories */}
+        {config.accessories.length > 0 && (
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-bold mb-4">Selected Accessories</h3>
+              <div className="space-y-2">
+                {config.accessories.map((accessory, index) => (
+                  <motion.div
+                    key={accessory}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center space-x-3"
+                  >
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">{accessory}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        <Button 
-          onClick={handlePayment}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl text-lg font-bold border border-primary"
+        {/* Total Price */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center">
+              <span className="text-xl font-bold">Total Price</span>
+              <span className="text-2xl font-black text-primary">
+                AED {calculateTotalPrice().toLocaleString()}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Payment Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <Zap className="mr-2 h-5 w-5" />
-          Confirm Order - AED {calculateTotalPrice().toLocaleString()}
-        </Button>
-      </motion.div>
+          <Button 
+            onClick={handlePayment}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg"
+            size="lg"
+          >
+            <CreditCard className="mr-3 h-5 w-5" />
+            Proceed to Payment
+          </Button>
+        </motion.div>
+      </div>
     </div>
   );
 };

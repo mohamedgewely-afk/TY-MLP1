@@ -25,6 +25,8 @@ import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import MobileStickyNav from "@/components/MobileStickyNav";
+import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
+import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -254,194 +256,16 @@ const VehicleDetails = () => {
   return (
     <ToyotaLayout>
       <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
-        {/* Enhanced Hero Section - Full Width Images */}
-        <section className="relative min-h-screen overflow-hidden">
-          {/* Full Screen Image Background */}
-          <div className="absolute inset-0">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentImageIndex}
-                src={galleryImages[currentImageIndex]}
-                alt={vehicle.name}
-                className="w-full h-full object-cover"
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              />
-            </AnimatePresence>
-            {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
-          </div>
-
-          <div className="toyota-container min-h-screen flex flex-col justify-end relative z-10 pb-32">
-            {/* Content positioned at bottom */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-4 lg:space-y-6 text-white max-w-4xl"
-            >
-              {/* Badges */}
-              <motion.div 
-                className="flex flex-wrap gap-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Badge className="bg-primary text-primary-foreground px-2 py-1 border border-white/20 text-xs shadow-lg">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {vehicle.category}
-                </Badge>
-                {isBestSeller && (
-                  <Badge className="bg-amber-500 text-white px-2 py-1 border border-amber-400 text-xs shadow-lg">
-                    <Award className="h-3 w-3 mr-1" />
-                    Best Seller
-                  </Badge>
-                )}
-                <Badge className="bg-emerald-500 text-white px-2 py-1 border border-emerald-400 text-xs shadow-lg">
-                  <Leaf className="h-3 w-3 mr-1" />
-                  Hybrid
-                </Badge>
-              </motion.div>
-
-              {/* Title */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="space-y-3"
-              >
-                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight">
-                  {vehicle.name}
-                </h1>
-                <motion.p 
-                  className="text-base lg:text-lg text-white/80 leading-relaxed max-w-xl"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  Advanced hybrid technology meets luxury design.
-                </motion.p>
-              </motion.div>
-
-              {/* Price and EMI */}
-              <motion.div 
-                className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 max-w-md"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/80 text-sm">Starting Price</span>
-                    <span className="text-white font-bold text-xl">AED {vehicle.price.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/80 text-sm">Monthly EMI from</span>
-                    <span className="text-white font-bold text-lg">AED {monthlyEMI.toLocaleString()}</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Desktop Action Buttons */}
-              {!isMobile && (
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 pt-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 }}
-                >
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      size="lg"
-                      className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg rounded-xl shadow-lg"
-                      onClick={() => setIsBookingOpen(true)}
-                    >
-                      <Car className="h-5 w-5 mr-3" />
-                      Book Test Drive
-                    </Button>
-                  </motion.div>
-                  
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="border-2 border-white/30 text-white hover:bg-white hover:text-primary px-8 py-4 text-lg rounded-xl bg-white/10 backdrop-blur-sm"
-                      onClick={() => setIsCarBuilderOpen(true)}
-                    >
-                      <Settings className="h-5 w-5 mr-3" />
-                      Configure
-                    </Button>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      onClick={toggleFavorite}
-                      className={`p-4 rounded-xl border-2 bg-white/10 backdrop-blur-sm ${isFavorite ? "border-white text-white bg-white/20" : "border-white/30 text-white"}`}
-                    >
-                      <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
-                    </Button>
-                  </motion.div>
-                </motion.div>
-              )}
-
-              {/* Image indicators positioned at bottom right */}
-              <motion.div
-                ref={heroImageRef}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="flex justify-end pt-4"
-              >
-                <div className="flex space-x-3">
-                  {galleryImages.map((_, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-3 h-3 lg:w-4 lg:h-4 rounded-full transition-all duration-300 border-2 ${
-                        index === currentImageIndex 
-                          ? "bg-white border-white shadow-lg scale-125" 
-                          : "bg-transparent border-white/50 hover:bg-white/30 hover:border-white"
-                      }`}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-
-          {/* Scroll indicator - Always visible at bottom center */}
-          <motion.div 
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2 }}
-          >
-            <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="flex flex-col items-center text-white/70 cursor-pointer"
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-            >
-              <span className="text-sm mb-3 font-medium">Discover More</span>
-              <div className="w-8 h-12 border-2 border-white/50 rounded-full flex justify-center">
-                <motion.div
-                  className="w-1 h-3 bg-white rounded-full mt-2"
-                  animate={{ y: [0, 16, 0] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        </section>
+        {/* Enhanced Hero Section with Swipe Controls */}
+        <EnhancedHeroSection
+          vehicle={vehicle}
+          galleryImages={galleryImages}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => setIsCarBuilderOpen(true)}
+          monthlyEMI={monthlyEMI}
+        />
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
@@ -524,147 +348,15 @@ const VehicleDetails = () => {
           </div>
         </section>
 
-        {/* Innovation Section */}
-        <section className="py-16 lg:py-24 bg-gradient-to-br from-muted via-muted/50 to-background relative overflow-hidden">
-          <div className="toyota-container relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16 lg:mb-20"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-3 rounded-full text-sm font-medium mb-6"
-              >
-                <Target className="h-4 w-4 mr-2" />
-                Next-Generation Features
-              </motion.div>
-              <h2 className="text-4xl lg:text-6xl xl:text-7xl font-black text-foreground mb-6 lg:mb-8 leading-tight">
-                Experience{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-                  Toyota Innovation
-                </span>
-              </h2>
-              <p className="text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-                Step into tomorrow with intelligent systems that anticipate your needs, 
-                enhance your journey, and redefine what's possible in automotive excellence.
-              </p>
-            </motion.div>
-
-            {/* Innovation Features */}
-            <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide mb-16' : 'grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16'}`}>
-              <div className={`${isMobile ? 'flex space-x-6 pb-4' : 'contents'}`} style={{ width: isMobile ? `${innovationFeatures.length * 350}px` : 'auto' }}>
-                {innovationFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.2, duration: 0.8 }}
-                    whileHover={{ scale: 1.02 }}
-                    className={`group ${isMobile ? 'w-80 flex-shrink-0' : ''}`}
-                  >
-                    <Card className="h-full p-8 lg:p-10 border-0 shadow-2xl bg-card backdrop-blur-lg border border-border hover:border-primary/20 transition-all duration-500 relative overflow-hidden">
-                      <div className="absolute inset-0 opacity-5">
-                        <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
-                      </div>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
-                      
-                      <CardContent className="p-0 space-y-6 relative z-10">
-                        <div className="flex items-start space-x-6">
-                          <motion.div 
-                            className={`flex-shrink-0 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform duration-300`}
-                            whileHover={{ rotate: 10 }}
-                          >
-                            {feature.icon}
-                          </motion.div>
-                          
-                          <div className="flex-1 space-y-4">
-                            <h3 className="text-2xl lg:text-3xl font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-300">
-                              {feature.title}
-                            </h3>
-                            <p className="text-muted-foreground leading-relaxed text-base lg:text-lg">
-                              {feature.description}
-                            </p>
-                            
-                            <div className="space-y-2">
-                              {feature.features.map((item, i) => (
-                                <motion.div
-                                  key={i}
-                                  className="flex items-center space-x-3"
-                                  initial={{ opacity: 0, x: 20 }}
-                                  whileInView={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.5 + i * 0.1 }}
-                                >
-                                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                                  <span className="text-muted-foreground text-sm lg:text-base">{item}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-lg rounded-3xl p-8 lg:p-12 border border-primary/20 max-w-4xl mx-auto">
-                <h3 className="text-2xl lg:text-4xl font-bold text-foreground mb-4">
-                  Ready to Experience the Future?
-                </h3>
-                <p className="text-muted-foreground text-lg lg:text-xl mb-8 leading-relaxed">
-                  Book your test drive today and discover why the {vehicle.name} represents 
-                  the next evolution in automotive excellence.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      size="lg"
-                      className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground px-8 py-4 text-lg rounded-xl shadow-lg"
-                      onClick={() => setIsBookingOpen(true)}
-                    >
-                      <Car className="h-5 w-5 mr-3" />
-                      Book Test Drive
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      variant="outline"
-                      size="lg"
-                      className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg rounded-xl bg-transparent"
-                      onClick={() => setIsCarBuilderOpen(true)}
-                    >
-                      <Settings className="h-5 w-5 mr-3" />
-                      Configure Now
-                    </Button>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+        {/* Refined Tech Experience - Combined Section */}
+        <RefinedTechExperience vehicle={vehicle} />
 
         {/* Other Sections */}
         <OffersSection />
         <section className="py-12 lg:py-20 bg-background">
-          <TechnologyShowcase vehicle={vehicle} />
+          <VehicleSpecs vehicle={vehicle} />
         </section>
         <section className="py-12 lg:py-20 bg-muted/30">
-          <VehicleFeatures vehicle={vehicle} />
-        </section>
-        <section className="py-12 lg:py-20 bg-background">
           <VehicleGallery vehicle={vehicle} />
         </section>
         <LifestyleGallery vehicle={vehicle} />
@@ -672,7 +364,7 @@ const VehicleDetails = () => {
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
 
-        {/* Action Panel - Better positioned for mobile */}
+        {/* Action Panel */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}

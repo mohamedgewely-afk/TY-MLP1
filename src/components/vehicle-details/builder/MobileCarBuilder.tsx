@@ -52,17 +52,31 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
+  // Show specs after year and grade selection
+  const showSpecs = step > 3 && (config.modelYear && config.grade);
+  
+  const getSpecsForConfig = () => {
+    const baseSpecs = {
+      power: config.engine === "4.0L" ? "301 HP" : "268 HP",
+      torque: config.engine === "4.0L" ? "365 Nm" : "336 Nm",
+      fuelEconomy: config.grade === "Platinum" ? "20.5 km/L" : "22.2 km/L",
+      transmission: "CVT",
+      drivetrain: config.grade === "Limited" || config.grade === "Platinum" ? "AWD" : "FWD"
+    };
+    return baseSpecs;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden"
+      className="relative h-full w-full bg-background overflow-hidden flex flex-col"
     >
       {/* Header */}
       <motion.div 
-        className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border"
+        className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
@@ -94,36 +108,57 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="w-12" />
       </motion.div>
 
-      {/* Dynamic Vehicle Image */}
+      {/* Enhanced Vehicle Image - Bigger space */}
       <motion.div 
-        className="relative w-full h-48 bg-card/50 overflow-hidden border-b border-border"
+        className="relative w-full h-64 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-cover"
-          initial={{ scale: 1.05, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          className="w-full h-full object-cover scale-110"
+          initial={{ scale: 1.15, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+        
+        {/* Vehicle Info Overlay */}
         <motion.div 
-          className="absolute bottom-4 left-4 text-foreground"
+          className="absolute bottom-4 left-4 right-4 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
-          <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
+          <div className="bg-card/90 backdrop-blur-lg rounded-2xl p-4 border border-border">
+            <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
+            <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
+            
+            {/* Show specs after grade selection */}
+            {showSpecs && (
+              <motion.div 
+                className="mt-3 grid grid-cols-2 gap-2 text-xs"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                transition={{ duration: 0.4 }}
+              >
+                {Object.entries(getSpecsForConfig()).map(([key, value]) => (
+                  <div key={key} className="bg-muted/50 rounded-lg p-2">
+                    <div className="text-muted-foreground capitalize text-xs">{key.replace(/([A-Z])/g, ' $1')}</div>
+                    <div className="font-semibold text-xs">{value}</div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </div>
         </motion.div>
       </motion.div>
 
       {/* Progress */}
       <MobileProgress currentStep={step} totalSteps={7} />
 
-      {/* Content Area */}
+      {/* Content Area - Flexible height */}
       <div className="flex-1 relative z-10 overflow-y-auto">
         <AnimatePresence mode="wait">
           <MobileStepContent
@@ -139,12 +174,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Price Summary */}
-      <MobileSummary 
-        config={config}
-        totalPrice={calculateTotalPrice()}
-        step={step}
-      />
+      {/* Price Summary - Fixed position, higher z-index */}
+      <div className="flex-shrink-0 relative z-20">
+        <MobileSummary 
+          config={config}
+          totalPrice={calculateTotalPrice()}
+          step={step}
+        />
+      </div>
     </motion.div>
   );
 };

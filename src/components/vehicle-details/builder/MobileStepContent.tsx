@@ -62,21 +62,21 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-300px)]">
+    <div className="relative flex flex-col h-full">
       <motion.div
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.3, type: "spring", stiffness: 150, damping: 20 }}
-        className="min-h-full pb-24"
+        className="flex-1"
       >
         {renderContent()}
       </motion.div>
       
-      {/* Fixed Continue Button - Always visible except on review step */}
+      {/* Fixed Continue Button - Properly positioned above price summary */}
       {step < 7 && (
         <motion.div 
-          className="fixed bottom-0 left-0 right-0 p-6 bg-card/95 backdrop-blur-xl border-t border-border z-50"
+          className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-xl z-30 border-t border-border/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -84,6 +84,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           <Button 
             onClick={goNext}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-200"
+            size="lg"
           >
             Continue
             <ArrowRight className="ml-2 h-5 w-5" />
