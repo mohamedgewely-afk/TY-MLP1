@@ -32,7 +32,7 @@ const ChoicesSummary: React.FC<ChoicesSummaryProps> = ({
       "Ocean Blue": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
       "Storm Gray": "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80"
     };
-    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.images[0];
+    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.image;
   };
 
   return (
