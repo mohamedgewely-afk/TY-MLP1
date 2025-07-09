@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ import LifestyleGallery from "@/components/vehicle-details/LifestyleGallery";
 import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import OffersSection from "@/components/home/OffersSection";
+import OffersModal from "@/components/home/OffersModal";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";

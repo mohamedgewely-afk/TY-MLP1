@@ -11,10 +11,11 @@ interface CollapsibleSpecsProps {
     engine: string;
     grade: string;
   };
+  expanded?: boolean;
 }
 
-const CollapsibleSpecs: React.FC<CollapsibleSpecsProps> = ({ config }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const CollapsibleSpecs: React.FC<CollapsibleSpecsProps> = ({ config, expanded = false }) => {
+  const [isExpanded, setIsExpanded] = useState(expanded);
 
   const getSpecsForConfig = () => {
     return {
