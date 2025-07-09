@@ -31,7 +31,6 @@ import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsT
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
-import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -272,14 +271,11 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Interactive Specifications & Technology Suite - Now above multimedia */}
+        {/* Interactive Specifications & Technology Suite - Moved up */}
         <InteractiveSpecsTech vehicle={vehicle} />
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
-
-        {/* Virtual Showroom Section */}
-        <VirtualShowroom vehicle={vehicle} />
 
         {/* Why Choose Section */}
         <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">

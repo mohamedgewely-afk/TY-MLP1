@@ -96,7 +96,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 4) setStep(step + 1); // Updated to 4 steps
+    if (step < 7) setStep(step + 1); // Updated to 7 steps
   };
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {

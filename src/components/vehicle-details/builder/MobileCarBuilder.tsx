@@ -54,7 +54,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  const showSpecs = step > 2 && (config.modelYear && config.grade);
+  const showSpecs = step > 3 && (config.modelYear && config.grade);
 
   return (
     <motion.div
@@ -92,67 +92,56 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           >
             Build Your {vehicle.name}
           </motion.h1>
-          <p className="text-sm text-primary font-medium">Step {step} of 4</p>
+          <p className="text-sm text-primary font-medium">Step {step} of 7</p>
         </div>
 
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - Larger */}
+      {/* Enhanced Vehicle Image - Compact */}
       <motion.div 
-        className="relative w-full h-64 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-48 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-cover scale-110"
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1.1, opacity: 1 }}
+          className="w-full h-full object-cover scale-105"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1.05, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
         
-        {/* Vehicle Info Overlay - Positioned better */}
+        {/* Vehicle Info Overlay - Compact */}
         <motion.div 
-          className="absolute bottom-3 left-3 right-3 text-foreground"
+          className="absolute bottom-2 left-2 right-2 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           <div className="bg-card/90 backdrop-blur-lg rounded-lg p-3 border border-border">
-            <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
-            {/* Reserve Amount Highlight */}
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Reserve Amount:</span>
-              <span className="text-lg font-black text-primary">د.إ 2,000</span>
-            </div>
+            <h3 className="text-base font-bold">{config.modelYear} {vehicle.name}</h3>
+            <p className="text-primary text-xs font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
           </div>
         </motion.div>
       </motion.div>
 
       {/* Progress - Compact */}
       <div className="px-4 py-2 flex-shrink-0">
-        <MobileProgress currentStep={step} totalSteps={4} />
+        <MobileProgress currentStep={step} totalSteps={7} />
       </div>
 
       {/* Content Area - Fixed height, no scroll */}
       <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
-        {/* Choice Collector & Specs - More space */}
-        <div className="px-4 pb-3 flex-shrink-0">
+        {/* Choice Collector - Compact */}
+        <div className="px-4 pb-2 flex-shrink-0">
           <ChoiceCollector config={config} step={step} />
           
-          {/* Expanded Collapsible Specs */}
+          {/* Collapsible Specs - Compact */}
           {showSpecs && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-3"
-            >
-              <CollapsibleSpecs config={config} expanded={true} />
-            </motion.div>
+            <CollapsibleSpecs config={config} />
           )}
         </div>
 
