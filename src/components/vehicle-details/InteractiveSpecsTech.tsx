@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,13 +83,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     },
     {
       category: "Performance",
-      icon: <Engine className="h-6 w-6" />,
+      icon: <Car className="h-6 w-6" />,
       color: "from-orange-500 to-red-500",
       specs: [
         { label: "Hybrid System", value: "Toyota Hybrid Synergy Drive", icon: <Zap className="h-4 w-4" /> },
         { label: "Total Power Output", value: "218 HP Combined", icon: <Gauge className="h-4 w-4" /> },
         { label: "Fuel Economy", value: "25.2 km/L City", icon: <Fuel className="h-4 w-4" /> },
-        { label: "Acceleration", value: "0-100 km/h in 8.2s", icon: <Engine className="h-4 w-4" /> },
+        { label: "Acceleration", value: "0-100 km/h in 8.2s", icon: <Car className="h-4 w-4" /> },
         { label: "Drive Modes", value: "EV, Eco, Normal, Sport", icon: <Settings className="h-4 w-4" /> }
       ]
     },
