@@ -271,11 +271,14 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Interactive Specifications & Technology Suite - Moved up */}
+        {/* Interactive Specifications & Technology Suite - Now above multimedia */}
         <InteractiveSpecsTech vehicle={vehicle} />
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
+
+        {/* Virtual Showroom Section */}
+        <VirtualShowroom vehicle={vehicle} />
 
         {/* Why Choose Section */}
         <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
