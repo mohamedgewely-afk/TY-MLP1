@@ -8,7 +8,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { 
   Camera, Play, RotateCcw, ZoomIn, ZoomOut, 
   Maximize, Eye, Move3D, MousePointer, 
-  Smartphone, Monitor, Headphones, Volume2
+  Smartphone, Monitor, Headphones, Volume2, Settings
 } from "lucide-react";
 
 interface VirtualShowroomProps {

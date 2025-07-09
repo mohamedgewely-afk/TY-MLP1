@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +10,11 @@ interface CollapsibleSpecsProps {
     engine: string;
     grade: string;
   };
+  expanded?: boolean;
 }
 
-const CollapsibleSpecs: React.FC<CollapsibleSpecsProps> = ({ config }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const CollapsibleSpecs: React.FC<CollapsibleSpecsProps> = ({ config, expanded: defaultExpanded = false }) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   const getSpecsForConfig = () => {
     return {

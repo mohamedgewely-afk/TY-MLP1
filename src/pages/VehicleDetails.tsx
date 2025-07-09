@@ -31,6 +31,7 @@ import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsT
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
+import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
