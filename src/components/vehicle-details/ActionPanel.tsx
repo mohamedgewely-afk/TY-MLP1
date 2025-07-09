@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Car, Settings, Heart, Share2, Calculator, MapPin, Plus, ChevronUp } from 'lucide-react';
+import { Car, Settings, Heart, Share2, Calculator, MapPin, Plus, ChevronUp, Download } from 'lucide-react';
 import { VehicleModel } from '@/types/vehicle';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 
 interface ActionPanelProps {
   vehicle: VehicleModel;
@@ -25,6 +26,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { toast } = useToast();
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -41,6 +43,20 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
     }
+  };
+
+  const handleBrochureDownload = () => {
+    toast({
+      title: "Brochure Download",
+      description: "Your brochure is being prepared and will be downloaded shortly.",
+    });
+    // Simulate brochure download
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${vehicle.name} brochure has been downloaded.`,
+      });
+    }, 2000);
   };
 
   if (isMobile) {
@@ -151,18 +167,18 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                     </Button>
                   </motion.div>
 
+                  {/* REPLACED FAVORITE WITH BROCHURE FOR MOBILE */}
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button 
-                      onClick={onToggleFavorite}
+                      onClick={() => {
+                        handleBrochureDownload();
+                        setIsExpanded(false);
+                      }}
                       variant="outline"
-                      className={`w-full py-2 rounded-lg border text-xs ${
-                        isFavorite 
-                          ? "border-primary text-primary bg-primary/10" 
-                          : "border-gray-300 text-gray-700 bg-white/70 hover:bg-gray-50"
-                      }`}
+                      className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
                     >
-                      <Heart className="h-4 w-4 mb-1" fill={isFavorite ? "currentColor" : "none"} />
-                      Save
+                      <Download className="h-4 w-4 mb-1" />
+                      Brochure
                     </Button>
                   </motion.div>
 

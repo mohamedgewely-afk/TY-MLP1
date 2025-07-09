@@ -54,7 +54,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  const showSpecs = step > 3 && (config.modelYear && config.grade);
+  const showSpecs = step > 1 && (config.modelYear && config.grade);
 
   return (
     <motion.div
@@ -64,7 +64,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden flex flex-col"
     >
-      {/* Header with Back Button */}
+      {/* Header with Back Button - Simplified */}
       <motion.div 
         className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
@@ -92,56 +92,53 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           >
             Build Your {vehicle.name}
           </motion.h1>
-          <p className="text-sm text-primary font-medium">Step {step} of 7</p>
+          {/* REMOVED STEP COUNTER AS REQUESTED */}
         </div>
 
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - Compact */}
+      {/* Enhanced Vehicle Image - BIGGER AND FULL VISIBILITY */}
       <motion.div 
-        className="relative w-full h-48 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-64 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-cover scale-105"
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1.05, opacity: 1 }}
+          className="w-full h-full object-contain scale-110" // Changed to object-contain and increased scale
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
         
-        {/* Vehicle Info Overlay - Compact */}
+        {/* Vehicle Info Overlay - REPOSITIONED TO NOT COVER IMAGE */}
         <motion.div 
-          className="absolute bottom-2 left-2 right-2 text-foreground"
+          className="absolute bottom-0 left-0 right-0 text-foreground p-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           <div className="bg-card/90 backdrop-blur-lg rounded-lg p-3 border border-border">
-            <h3 className="text-base font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-xs font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
+            <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
+            <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* Progress - Compact */}
-      <div className="px-4 py-2 flex-shrink-0">
-        <MobileProgress currentStep={step} totalSteps={7} />
-      </div>
+      {/* REMOVED PROGRESS BAR AS REQUESTED */}
 
-      {/* Content Area - Fixed height, no scroll */}
+      {/* Content Area - Enhanced spacing */}
       <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
-        {/* Choice Collector - Compact */}
-        <div className="px-4 pb-2 flex-shrink-0">
+        {/* Choice Collector - More spacious */}
+        <div className="px-4 py-3 flex-shrink-0">
           <ChoiceCollector config={config} step={step} />
           
-          {/* Collapsible Specs - Compact */}
+          {/* Collapsible Specs - Enhanced */}
           {showSpecs && (
-            <CollapsibleSpecs config={config} />
+            <CollapsibleSpecs config={config} expanded={true} />
           )}
         </div>
 
@@ -162,12 +159,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Price Summary - Fixed at bottom */}
+      {/* Price Summary - HIGHLIGHT RESERVE AMOUNT */}
       <div className="flex-shrink-0 relative z-20">
         <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
           step={step}
+          reserveAmount={2000} // HIGHLIGHTED RESERVE AMOUNT
         />
       </div>
     </motion.div>

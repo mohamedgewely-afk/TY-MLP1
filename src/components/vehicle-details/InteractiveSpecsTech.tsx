@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,18 +18,11 @@ interface InteractiveSpecsTechProps {
 }
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
-  const [selectedGrade, setSelectedGrade] = useState("XLE");
   const [selectedEngine, setSelectedEngine] = useState("Hybrid 2.5L");
-  const [activeTab, setActiveTab] = useState("performance");
+  const [selectedGrade, setSelectedGrade] = useState("XLE");
   const [currentPerformanceIndex, setCurrentPerformanceIndex] = useState(0);
 
-  const grades = [
-    { name: "LE", price: "+AED 0", features: ["Basic Package", "Standard Safety"] },
-    { name: "SE", price: "+AED 8,000", features: ["Sport Package", "Enhanced Audio"] },
-    { name: "XLE", price: "+AED 15,000", features: ["Premium Package", "Luxury Interior"] },
-    { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
-  ];
-
+  // Engine options (prioritized first)
   const engines = [
     { 
       name: "Hybrid 2.5L", 
@@ -44,80 +38,85 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     }
   ];
 
-  const performanceSpecs = [
-    {
-      category: "Safety",
-      icon: <Shield className="h-6 w-6" />,
-      color: "from-green-500 to-emerald-500",
-      specs: [
-        { label: "Pre-Collision System", value: "Standard", icon: <Car className="h-4 w-4" /> },
-        { label: "Lane Departure Alert", value: "With Steering Assist", icon: <Navigation className="h-4 w-4" /> },
-        { label: "Dynamic Radar Cruise Control", value: "Full-Speed Range", icon: <Gauge className="h-4 w-4" /> },
-        { label: "Automatic High Beams", value: "LED", icon: <Zap className="h-4 w-4" /> },
-        { label: "Blind Spot Monitor", value: "With Cross-Traffic Alert", icon: <Shield className="h-4 w-4" /> }
-      ]
-    },
-    {
-      category: "Technology",
-      icon: <Smartphone className="h-6 w-6" />,
-      color: "from-blue-500 to-cyan-500",
-      specs: [
-        { label: "Infotainment Display", value: "12.3-inch Touchscreen", icon: <Monitor className="h-4 w-4" /> },
-        { label: "Wireless Connectivity", value: "Apple CarPlay & Android Auto", icon: <Wifi className="h-4 w-4" /> },
-        { label: "Premium Audio", value: "9-Speaker JBL System", icon: <Volume2 className="h-4 w-4" /> },
-        { label: "Navigation System", value: "Cloud-Based with Live Traffic", icon: <MapPin className="h-4 w-4" /> },
-        { label: "Remote Connect", value: "Toyota App Integration", icon: <Smartphone className="h-4 w-4" /> }
-      ]
-    },
-    {
-      category: "Multimedia",
-      icon: <Volume2 className="h-6 w-6" />,
-      color: "from-purple-500 to-pink-500",
-      specs: [
-        { label: "Audio System", value: "Premium JBL with Subwoofer", icon: <Volume2 className="h-4 w-4" /> },
-        { label: "Bluetooth", value: "Multi-device Connection", icon: <Bluetooth className="h-4 w-4" /> },
-        { label: "USB Ports", value: "Multiple Charging Points", icon: <Battery className="h-4 w-4" /> },
-        { label: "Wireless Charging", value: "Qi-Compatible Pad", icon: <Zap className="h-4 w-4" /> },
-        { label: "Voice Control", value: "Natural Language Processing", icon: <MicIcon className="h-4 w-4" /> }
-      ]
-    },
-    {
-      category: "Performance",
-      icon: <Car className="h-6 w-6" />,
-      color: "from-orange-500 to-red-500",
-      specs: [
-        { label: "Hybrid System", value: "Toyota Hybrid Synergy Drive", icon: <Zap className="h-4 w-4" /> },
-        { label: "Total Power Output", value: "218 HP Combined", icon: <Gauge className="h-4 w-4" /> },
-        { label: "Fuel Economy", value: "25.2 km/L City", icon: <Fuel className="h-4 w-4" /> },
-        { label: "Acceleration", value: "0-100 km/h in 8.2s", icon: <Car className="h-4 w-4" /> },
-        { label: "Drive Modes", value: "EV, Eco, Normal, Sport", icon: <Settings className="h-4 w-4" /> }
-      ]
-    },
-    {
-      category: "Comfort",
-      icon: <Wind className="h-6 w-6" />,
-      color: "from-teal-500 to-green-500",
-      specs: [
-        { label: "Climate Control", value: "Dual-Zone Automatic", icon: <Thermometer className="h-4 w-4" /> },
-        { label: "Heated Seats", value: "Front & Rear Available", icon: <Car className="h-4 w-4" /> },
-        { label: "Ventilated Seats", value: "Driver & Passenger", icon: <Wind className="h-4 w-4" /> },
-        { label: "Memory Settings", value: "Driver Seat & Mirrors", icon: <Settings className="h-4 w-4" /> },
-        { label: "Ambient Lighting", value: "64-Color Customizable", icon: <Zap className="h-4 w-4" /> }
-      ]
-    },
-    {
-      category: "Security",
-      icon: <Lock className="h-6 w-6" />,
-      color: "from-red-500 to-pink-500",
-      specs: [
-        { label: "Smart Key System", value: "Push Button Start", icon: <Lock className="h-4 w-4" /> },
-        { label: "Remote Start", value: "Smartphone App Control", icon: <Smartphone className="h-4 w-4" /> },
-        { label: "Security System", value: "Anti-theft with Immobilizer", icon: <Shield className="h-4 w-4" /> },
-        { label: "Backup Camera", value: "Multi-angle View", icon: <Camera className="h-4 w-4" /> },
-        { label: "Parking Sensors", value: "Front & Rear", icon: <Car className="h-4 w-4" /> }
-      ]
+  // Grade options (dependent on engine selection)
+  const getGradesForEngine = (engine: string) => {
+    const baseGrades = [
+      { name: "LE", price: "+AED 0", features: ["Basic Package", "Standard Safety"] },
+      { name: "SE", price: "+AED 8,000", features: ["Sport Package", "Enhanced Audio"] },
+      { name: "XLE", price: "+AED 15,000", features: ["Premium Package", "Luxury Interior"] },
+      { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
+    ];
+    
+    if (engine === "Hybrid 2.5L") {
+      return baseGrades.map(grade => ({
+        ...grade,
+        features: [...grade.features, "Hybrid Technology"]
+      }));
     }
-  ];
+    
+    return baseGrades;
+  };
+
+  const grades = getGradesForEngine(selectedEngine);
+
+  // Dynamic specifications based on engine and grade selection
+  const getPerformanceSpecs = () => {
+    const isHybrid = selectedEngine === "Hybrid 2.5L";
+    const isPremium = selectedGrade === "Limited" || selectedGrade === "XLE";
+    
+    return [
+      {
+        category: "Performance",
+        icon: <Car className="h-6 w-6" />,
+        color: "from-orange-500 to-red-500",
+        specs: [
+          { label: isHybrid ? "Hybrid System" : "Engine Type", value: isHybrid ? "Toyota Hybrid Synergy Drive" : "Dynamic Force Engine", icon: <Zap className="h-4 w-4" /> },
+          { label: "Total Power Output", value: isHybrid ? "218 HP Combined" : "203 HP", icon: <Gauge className="h-4 w-4" /> },
+          { label: "Fuel Economy", value: isHybrid ? "25.2 km/L City" : "15.8 km/L City", icon: <Fuel className="h-4 w-4" /> },
+          { label: "Acceleration", value: isHybrid ? "0-100 km/h in 8.2s" : "0-100 km/h in 9.1s", icon: <Car className="h-4 w-4" /> },
+          { label: "Drive Modes", value: isHybrid ? "EV, Eco, Normal, Sport" : "Eco, Normal, Sport", icon: <Settings className="h-4 w-4" /> }
+        ]
+      },
+      {
+        category: "Safety",
+        icon: <Shield className="h-6 w-6" />,
+        color: "from-green-500 to-emerald-500",
+        specs: [
+          { label: "Pre-Collision System", value: "Standard", icon: <Car className="h-4 w-4" /> },
+          { label: "Lane Departure Alert", value: isPremium ? "With Steering Assist" : "Standard", icon: <Navigation className="h-4 w-4" /> },
+          { label: "Dynamic Radar Cruise Control", value: isPremium ? "Full-Speed Range" : "Standard", icon: <Gauge className="h-4 w-4" /> },
+          { label: "Automatic High Beams", value: "LED", icon: <Zap className="h-4 w-4" /> },
+          { label: "Blind Spot Monitor", value: isPremium ? "With Cross-Traffic Alert" : "Optional", icon: <Shield className="h-4 w-4" /> }
+        ]
+      },
+      {
+        category: "Technology",
+        icon: <Smartphone className="h-6 w-6" />,
+        color: "from-blue-500 to-cyan-500",
+        specs: [
+          { label: "Infotainment Display", value: isPremium ? "12.3-inch Touchscreen" : "9-inch Touchscreen", icon: <Monitor className="h-4 w-4" /> },
+          { label: "Wireless Connectivity", value: "Apple CarPlay & Android Auto", icon: <Wifi className="h-4 w-4" /> },
+          { label: "Premium Audio", value: isPremium ? "9-Speaker JBL System" : "6-Speaker System", icon: <Volume2 className="h-4 w-4" /> },
+          { label: "Navigation System", value: isPremium ? "Cloud-Based with Live Traffic" : "Basic Navigation", icon: <MapPin className="h-4 w-4" /> },
+          { label: "Remote Connect", value: isPremium ? "Toyota App Integration" : "Basic Remote", icon: <Smartphone className="h-4 w-4" /> }
+        ]
+      },
+      {
+        category: "Comfort",
+        icon: <Wind className="h-6 w-6" />,
+        color: "from-teal-500 to-green-500",
+        specs: [
+          { label: "Climate Control", value: isPremium ? "Dual-Zone Automatic" : "Manual A/C", icon: <Thermometer className="h-4 w-4" /> },
+          { label: "Heated Seats", value: isPremium ? "Front & Rear Available" : "Front Only", icon: <Car className="h-4 w-4" /> },
+          { label: "Ventilated Seats", value: isPremium ? "Driver & Passenger" : "Not Available", icon: <Wind className="h-4 w-4" /> },
+          { label: "Memory Settings", value: isPremium ? "Driver Seat & Mirrors" : "Not Available", icon: <Settings className="h-4 w-4" /> },
+          { label: "Ambient Lighting", value: isPremium ? "64-Color Customizable" : "Basic Lighting", icon: <Zap className="h-4 w-4" /> }
+        ]
+      }
+    ];
+  };
+
+  const performanceSpecs = getPerformanceSpecs();
 
   const nextPerformanceSpec = () => {
     setCurrentPerformanceIndex((prev) => (prev + 1) % performanceSpecs.length);
@@ -146,57 +145,18 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             </span>
           </h2>
           <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore specifications and technology features tailored to your preferences.
+            Configure your ideal vehicle and explore specifications in real-time.
           </p>
         </motion.div>
 
-        {/* Grade Selection */}
+        {/* Engine Selection - PRIORITIZED FIRST */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-6"
         >
-          <h3 className="text-lg font-bold mb-3 text-center">Choose Your Grade</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {grades.map((grade) => (
-              <motion.button
-                key={grade.name}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedGrade(grade.name)}
-                className={`p-3 rounded-xl border-2 transition-all text-left ${
-                  selectedGrade === grade.name
-                    ? 'border-primary bg-primary/5 shadow-lg'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-bold text-lg">{grade.name}</h4>
-                  <Badge variant={selectedGrade === grade.name ? "default" : "secondary"} className="text-xs">
-                    {grade.price}
-                  </Badge>
-                </div>
-                <div className="space-y-1">
-                  {grade.features.map((feature) => (
-                    <div key={feature} className="text-xs text-muted-foreground">
-                      • {feature}
-                    </div>
-                  ))}
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Engine Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-6"
-        >
-          <h3 className="text-lg font-bold mb-3 text-center">Select Engine</h3>
+          <h3 className="text-lg font-bold mb-3 text-center">Choose Your Engine</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl mx-auto">
             {engines.map((engine) => (
               <motion.button
@@ -235,12 +195,56 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Performance Specs Carousel */}
+        {/* Grade Selection - SECOND */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-6"
+          key={selectedEngine} // Re-animate when engine changes
+        >
+          <h3 className="text-lg font-bold mb-3 text-center">Select Your Grade</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {grades.map((grade, index) => (
+              <motion.button
+                key={grade.name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedGrade(grade.name)}
+                className={`p-3 rounded-xl border-2 transition-all text-left ${
+                  selectedGrade === grade.name
+                    ? 'border-primary bg-primary/5 shadow-lg'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-lg">{grade.name}</h4>
+                  <Badge variant={selectedGrade === grade.name ? "default" : "secondary"} className="text-xs">
+                    {grade.price}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  {grade.features.map((feature) => (
+                    <div key={feature} className="text-xs text-muted-foreground">
+                      • {feature}
+                    </div>
+                  ))}
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Performance Specs Carousel - ANIMATED BASED ON SELECTIONS */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-6"
+          key={`${selectedEngine}-${selectedGrade}`} // Re-animate when selections change
         >
           <div className="flex items-center justify-center mb-4">
             <h3 className="text-lg font-bold">Detailed Specifications</h3>
@@ -265,7 +269,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             {/* Spec Card */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentPerformanceIndex}
+                key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
@@ -318,27 +322,28 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Quick Comparison */}
+        {/* Quick Configuration Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center"
+          key={`${selectedEngine}-${selectedGrade}-summary`}
         >
           <Card className="max-w-2xl mx-auto bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="p-6">
               <h3 className="text-xl font-bold mb-3">Your Configuration</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-muted-foreground">Grade</div>
-                  <div className="font-bold text-lg">{selectedGrade}</div>
-                </div>
+              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                 <div>
                   <div className="text-muted-foreground">Engine</div>
                   <div className="font-bold text-lg">{selectedEngine}</div>
                 </div>
+                <div>
+                  <div className="text-muted-foreground">Grade</div>
+                  <div className="font-bold text-lg">{selectedGrade}</div>
+                </div>
               </div>
-              <Button className="mt-4">
+              <Button className="w-full">
                 Configure Your Vehicle
                 <Settings className="ml-2 h-4 w-4" />
               </Button>

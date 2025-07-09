@@ -27,7 +27,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const [step, setStep] = useState(1);
   const [config, setConfig] = useState<BuilderConfig>({
     modelYear: "2025",
-    engine: "3.5L",
+    engine: "3.5L V6",
     grade: "Base",
     exteriorColor: "Pearl White",
     interiorColor: "Black Leather",
@@ -41,7 +41,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     let basePrice = vehicle.price;
     
     // Engine pricing
-    const enginePricing = { "3.5L": 0, "4.0L": 5000 };
+    const enginePricing = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 };
     basePrice += enginePricing[config.engine as keyof typeof enginePricing] || 0;
     
     // Grade pricing
@@ -52,11 +52,13 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     const exteriorColors = [
       { name: "Pearl White", price: 0 },
       { name: "Midnight Black", price: 500 },
-      { name: "Silver Metallic", price: 300 }
+      { name: "Silver Metallic", price: 300 },
+      { name: "Deep Blue", price: 400 },
+      { name: "Ruby Red", price: 600 }
     ];
     
     // Interior pricing
-    const interiorColorPrice = 1500; // Black Leather base price
+    const interiorPricing = { "Black Leather": 0, "Beige Leather": 800, "Gray Fabric": -500 };
     
     const accessories = [
       { name: "Premium Sound System", price: 1200 },
@@ -68,6 +70,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     ];
     
     const exteriorColorPrice = exteriorColors.find(c => c.name === config.exteriorColor)?.price || 0;
+    const interiorColorPrice = interiorPricing[config.interiorColor as keyof typeof interiorPricing] || 0;
     const accessoriesPrice = config.accessories.reduce((total, accessory) => {
       const accessoryData = accessories.find(a => a.name === accessory);
       return total + (accessoryData?.price || 0);
@@ -96,7 +99,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 7) setStep(step + 1); // Updated to 7 steps
+    if (step < 4) setStep(step + 1); // Updated to 4 steps
   };
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {

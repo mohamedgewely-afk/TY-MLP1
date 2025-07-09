@@ -38,6 +38,7 @@ const VehicleDetails = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
+  const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -271,8 +272,13 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Interactive Specifications & Technology Suite - Moved up */}
+        {/* Interactive Specifications & Technology Suite - MOVED TO TOP */}
         <InteractiveSpecsTech vehicle={vehicle} />
+
+        {/* Offers Section - WITH MODAL TRIGGER */}
+        <div onClick={() => setIsOffersModalOpen(true)} className="cursor-pointer">
+          <OffersSection />
+        </div>
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
@@ -354,7 +360,6 @@ const VehicleDetails = () => {
         </section>
 
         {/* Other Sections - Optimized spacing */}
-        <OffersSection />
         <section className="py-8 lg:py-16 bg-muted/30">
           <VehicleGallery vehicle={vehicle} />
         </section>
@@ -386,7 +391,13 @@ const VehicleDetails = () => {
       {/* Mobile Sticky Navigation */}
       {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
-      {/* Modals */}
+      {/* NEW OFFERS MODAL */}
+      <OffersModal 
+        isOpen={isOffersModalOpen} 
+        onClose={() => setIsOffersModalOpen(false)} 
+      />
+
+      {/* Existing Modals */}
       <BookTestDrive 
         isOpen={isBookingOpen} 
         onClose={() => setIsBookingOpen(false)} 
