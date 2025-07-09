@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   Zap, Gauge, Fuel, Settings, Shield, Smartphone, 
-  Volume2, Thermometer, Wind, Battery, Engine, 
+  Volume2, Thermometer, Wind, Battery, Car, 
   ChevronLeft, ChevronRight, Star, Award, Layers,
-  Monitor, Wifi, Car, Lock, MapPin, Navigation,
+  Monitor, Wifi, Lock, MapPin, Navigation,
   Radio, Bluetooth, Camera, MicIcon
 } from "lucide-react";
 

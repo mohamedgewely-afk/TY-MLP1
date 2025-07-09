@@ -28,6 +28,16 @@ export interface VehicleModel {
     safetyRating?: string;
     warranty?: string;
   };
+  // Add optional pre-owned properties
+  year?: number;
+  mileage?: string;
+  location?: string;
+  certification?: string;
+  rating?: number;
+  originalPrice?: number;
+  warranty?: string;
+  owners?: number;
+  condition?: string;
 }
 
 export interface PreOwnedVehicle {

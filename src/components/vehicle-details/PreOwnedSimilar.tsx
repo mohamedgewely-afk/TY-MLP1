@@ -113,7 +113,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
     setCurrentIndex(index);
   };
 
-  const currentVehicle = preOwnedVehicles[currentIndex];
+  const selectedVehicle = preOwnedVehicles[currentIndex];
 
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-muted/30 to-background">
@@ -174,8 +174,8 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                 <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group">
                   <div className="relative">
                     <img 
-                      src={currentVehicle.image} 
-                      alt={currentVehicle.name}
+                      src={selectedVehicle.image} 
+                      alt={selectedVehicle.name}
                       className="w-full h-64 lg:h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -184,13 +184,13 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-green-600 text-white text-sm">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        {currentVehicle.certification}
+                        {selectedVehicle.certification}
                       </Badge>
                     </div>
                     <div className="absolute top-4 right-4">
                       <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                        <span className="text-sm font-semibold">{currentVehicle.rating}</span>
+                        <span className="text-sm font-semibold">{selectedVehicle.rating}</span>
                       </div>
                     </div>
                     
@@ -207,19 +207,19 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
 
                   <CardContent className="p-6 space-y-4">
                     <div>
-                      <h3 className="text-2xl font-bold text-foreground mb-2">{currentVehicle.name}</h3>
+                      <h3 className="text-2xl font-bold text-foreground mb-2">{selectedVehicle.name}</h3>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />
-                          {currentVehicle.year}
+                          {selectedVehicle.year}
                         </div>
                         <div className="flex items-center">
                           <Gauge className="h-4 w-4 mr-1" />
-                          {currentVehicle.mileage}
+                          {selectedVehicle.mileage}
                         </div>
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {currentVehicle.location}
+                          {selectedVehicle.location}
                         </div>
                       </div>
                     </div>
@@ -227,11 +227,11 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-3xl font-bold text-foreground">
-                          AED {currentVehicle.price.toLocaleString()}
+                          AED {selectedVehicle.price.toLocaleString()}
                         </span>
-                        {currentVehicle.originalPrice > currentVehicle.price && (
+                        {selectedVehicle.originalPrice > selectedVehicle.price && (
                           <span className="text-lg text-muted-foreground line-through">
-                            AED {currentVehicle.originalPrice.toLocaleString()}
+                            AED {selectedVehicle.originalPrice.toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -239,10 +239,10 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center text-green-600">
                           <Shield className="h-4 w-4 mr-1" />
-                          {currentVehicle.warranty} warranty
+                          {selectedVehicle.warranty} warranty
                         </div>
                         <div className="text-muted-foreground">
-                          {currentVehicle.owners} previous owner{currentVehicle.owners > 1 ? 's' : ''}
+                          {selectedVehicle.owners} previous owner{selectedVehicle.owners > 1 ? 's' : ''}
                         </div>
                       </div>
                     </div>
@@ -251,7 +251,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                       <div>
                         <div className="text-sm font-medium mb-2">Key Features</div>
                         <div className="flex flex-wrap gap-2">
-                          {currentVehicle.features.map((feature, idx) => (
+                          {selectedVehicle.features.map((feature, idx) => (
                             <Badge key={idx} variant="secondary" className="text-xs">
                               {feature}
                             </Badge>
@@ -262,7 +262,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                       <div className="flex items-center justify-between text-sm">
                         <div>
                           <span className="text-muted-foreground">Condition: </span>
-                          <span className="font-medium">{currentVehicle.condition}</span>
+                          <span className="font-medium">{selectedVehicle.condition}</span>
                         </div>
                       </div>
                     </div>
