@@ -73,7 +73,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
+          className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200 min-h-[44px] min-w-[44px]"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -92,53 +92,67 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           >
             Build Your {vehicle.name}
           </motion.h1>
-          {/* REMOVED STEP COUNTER AS REQUESTED */}
         </div>
 
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - BIGGER AND FULL VISIBILITY */}
+      {/* Enhanced Vehicle Image - MUCH BIGGER AND FULL VISIBILITY */}
       <motion.div 
-        className="relative w-full h-64 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-80 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
+        {/* Loading skeleton */}
+        <div className="absolute inset-0 bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50 animate-pulse" />
+        
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain scale-110" // Changed to object-contain and increased scale
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1.1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full h-full object-contain scale-125 relative z-10"
+          initial={{ scale: 1.3, opacity: 0 }}
+          animate={{ scale: 1.25, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          onLoad={(e) => {
+            // Hide loading skeleton
+            const skeleton = e.currentTarget.previousElementSibling;
+            if (skeleton) skeleton.style.display = 'none';
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
         
-        {/* Vehicle Info Overlay - REPOSITIONED TO NOT COVER IMAGE */}
+        {/* Minimal gradient overlay - reduced opacity */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
+        
+        {/* Vehicle Info Overlay - More compact and better positioned */}
         <motion.div 
-          className="absolute bottom-0 left-0 right-0 text-foreground p-4"
+          className="absolute bottom-4 left-4 right-4 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
         >
-          <div className="bg-card/90 backdrop-blur-lg rounded-lg p-3 border border-border">
+          <div className="bg-card/80 backdrop-blur-lg rounded-xl p-4 border border-border shadow-lg">
             <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
             <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* REMOVED PROGRESS BAR AS REQUESTED */}
-
       {/* Content Area - Enhanced spacing */}
       <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
-        {/* Choice Collector - More spacious */}
-        <div className="px-4 py-3 flex-shrink-0">
+        {/* Choice Collector - More spacious with better padding */}
+        <div className="px-6 py-4 flex-shrink-0 space-y-4">
           <ChoiceCollector config={config} step={step} />
           
-          {/* Collapsible Specs - Enhanced */}
+          {/* Collapsible Specs - Enhanced visibility and prominence */}
           {showSpecs && (
-            <CollapsibleSpecs config={config} expanded={true} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20"
+            >
+              <CollapsibleSpecs config={config} expanded={true} />
+            </motion.div>
           )}
         </div>
 

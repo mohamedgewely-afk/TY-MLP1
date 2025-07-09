@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -277,7 +278,7 @@ const VehicleDetails = () => {
         {/* Interactive Specifications & Technology Suite - MOVED TO TOP */}
         <InteractiveSpecsTech vehicle={vehicle} />
 
-        {/* Offers Section - WITH MODAL TRIGGER */}
+        {/* Offers Section - WITH MODAL TRIGGER INSTEAD OF REDIRECT */}
         <div onClick={() => setIsOffersModalOpen(true)} className="cursor-pointer">
           <OffersSection />
         </div>
@@ -393,7 +394,7 @@ const VehicleDetails = () => {
       {/* Mobile Sticky Navigation */}
       {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
-      {/* NEW OFFERS MODAL */}
+      {/* NEW OFFERS MODAL - POPUP INSTEAD OF REDIRECT */}
       <OffersModal 
         isOpen={isOffersModalOpen} 
         onClose={() => setIsOffersModalOpen(false)} 

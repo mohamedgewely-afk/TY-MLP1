@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -136,9 +135,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-6 lg:mb-8"
+          className="text-center mb-8 lg:mb-12"
         >
-          <h2 className="text-2xl lg:text-4xl font-black text-foreground mb-3 leading-tight">
+          <h2 className="text-2xl lg:text-4xl font-black text-foreground mb-4 leading-tight">
             Interactive{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
               Experience
@@ -154,39 +153,52 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-6"
+          className="mb-8"
         >
-          <h3 className="text-lg font-bold mb-3 text-center">Choose Your Engine</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl mx-auto">
-            {engines.map((engine) => (
+          <h3 className="text-lg font-bold mb-4 text-center">Choose Your Engine</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto px-4">
+            {[
+              { 
+                name: "Hybrid 2.5L", 
+                power: "218 HP Combined", 
+                efficiency: "25.2 km/L",
+                emissions: "102g CO₂/km"
+              },
+              { 
+                name: "Gasoline 2.5L", 
+                power: "203 HP", 
+                efficiency: "15.8 km/L",
+                emissions: "145g CO₂/km"
+              }
+            ].map((engine) => (
               <motion.button
                 key={engine.name}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedEngine(engine.name)}
-                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                className={`p-6 rounded-xl border-2 transition-all text-left ${
                   selectedEngine === engine.name
                     ? 'border-primary bg-primary/5 shadow-lg'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <h4 className="font-bold text-lg">{engine.name}</h4>
                   {engine.name.includes("Hybrid") && (
                     <Badge className="bg-green-500 text-white">ECO</Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-3 text-sm">
                   <div>
-                    <div className="text-muted-foreground text-xs">Power</div>
+                    <div className="text-muted-foreground text-xs mb-1">Power</div>
                     <div className="font-semibold">{engine.power}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Efficiency</div>
+                    <div className="text-muted-foreground text-xs mb-1">Efficiency</div>
                     <div className="font-semibold">{engine.efficiency}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Emissions</div>
+                    <div className="text-muted-foreground text-xs mb-1">Emissions</div>
                     <div className="font-semibold">{engine.emissions}</div>
                   </div>
                 </div>
@@ -200,27 +212,32 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-6"
-          key={selectedEngine} // Re-animate when engine changes
+          className="mb-8"
+          key={selectedEngine}
         >
-          <h3 className="text-lg font-bold mb-3 text-center">Select Your Grade</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {grades.map((grade, index) => (
+          <h3 className="text-lg font-bold mb-4 text-center">Select Your Grade</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4">
+            {[
+              { name: "LE", price: "+AED 0", features: ["Basic Package", "Standard Safety"] },
+              { name: "SE", price: "+AED 8,000", features: ["Sport Package", "Enhanced Audio"] },
+              { name: "XLE", price: "+AED 15,000", features: ["Premium Package", "Luxury Interior"] },
+              { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
+            ].map((grade, index) => (
               <motion.button
                 key={grade.name}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedGrade(grade.name)}
-                className={`p-3 rounded-xl border-2 transition-all text-left ${
+                className={`p-4 rounded-xl border-2 transition-all text-left min-h-[120px] ${
                   selectedGrade === grade.name
                     ? 'border-primary bg-primary/5 shadow-lg'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <h4 className="font-bold text-lg">{grade.name}</h4>
                   <Badge variant={selectedGrade === grade.name ? "default" : "secondary"} className="text-xs">
                     {grade.price}
@@ -243,25 +260,25 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-6"
-          key={`${selectedEngine}-${selectedGrade}`} // Re-animate when selections change
+          className="mb-8"
+          key={`${selectedEngine}-${selectedGrade}`}
         >
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center justify-center mb-6">
             <h3 className="text-lg font-bold">Detailed Specifications</h3>
           </div>
           
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-5xl mx-auto px-4">
             {/* Navigation Buttons */}
             <button
               onClick={prevPerformanceSpec}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:-translate-x-4"
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:-translate-x-6 min-h-[44px] min-w-[44px]"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             
             <button
               onClick={nextPerformanceSpec}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:translate-x-4"
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:translate-x-6 min-h-[44px] min-w-[44px]"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -270,29 +287,29 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.3 }}
-                className="mx-8"
+                initial={{ opacity: 0, x: 100, scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -100, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="mx-12"
               >
-                <Card className={`overflow-hidden border-0 shadow-lg bg-gradient-to-br ${currentSpec.color} text-white`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      <div className="p-2 bg-white/20 rounded-lg mr-3">
+                <Card className={`overflow-hidden border-0 shadow-xl bg-gradient-to-br ${currentSpec.color} text-white`}>
+                  <CardContent className="p-6 lg:p-8">
+                    <div className="flex items-center mb-6">
+                      <div className="p-3 bg-white/20 rounded-lg mr-4">
                         {currentSpec.icon}
                       </div>
-                      <h4 className="text-2xl font-bold">{currentSpec.category}</h4>
+                      <h4 className="text-2xl lg:text-3xl font-bold">{currentSpec.category}</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {currentSpec.specs.map((spec, index) => (
                         <motion.div
                           key={spec.label}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="bg-white/10 backdrop-blur-sm rounded-lg p-3"
+                          transition={{ delay: index * 0.08, duration: 0.3 }}
+                          className="bg-white/10 backdrop-blur-sm rounded-lg p-4"
                         >
                           <div className="flex items-center mb-2">
                             {spec.icon}
@@ -308,13 +325,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             </AnimatePresence>
 
             {/* Indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
+            <div className="flex justify-center space-x-3 mt-6">
               {performanceSpecs.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentPerformanceIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentPerformanceIndex ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                  className={`h-3 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                    index === currentPerformanceIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30 w-3'
                   }`}
                 />
               ))}
@@ -327,23 +344,23 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center"
+          className="text-center px-4"
           key={`${selectedEngine}-${selectedGrade}-summary`}
         >
           <Card className="max-w-2xl mx-auto bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-3">Your Configuration</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+            <CardContent className="p-6 lg:p-8">
+              <h3 className="text-xl font-bold mb-4">Your Configuration</h3>
+              <div className="grid grid-cols-2 gap-6 text-sm mb-6">
                 <div>
-                  <div className="text-muted-foreground">Engine</div>
+                  <div className="text-muted-foreground mb-1">Engine</div>
                   <div className="font-bold text-lg">{selectedEngine}</div>
                 </div>
                 <div>
-                  <div className="text-muted-foreground">Grade</div>
+                  <div className="text-muted-foreground mb-1">Grade</div>
                   <div className="font-bold text-lg">{selectedGrade}</div>
                 </div>
               </div>
-              <Button className="w-full">
+              <Button className="w-full py-3 min-h-[44px]">
                 Configure Your Vehicle
                 <Settings className="ml-2 h-4 w-4" />
               </Button>

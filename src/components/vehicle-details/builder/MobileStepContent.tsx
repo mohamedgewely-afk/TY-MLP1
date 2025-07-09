@@ -58,22 +58,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -100 }}
-        transition={{ duration: 0.3, type: "spring", stiffness: 150, damping: 20 }}
+        transition={{ duration: 0.4, type: "spring", stiffness: 120, damping: 20 }}
         className="flex-1 overflow-hidden"
       >
-        <div className="h-full p-4 overflow-y-auto">
+        <div className="h-full px-6 py-4 overflow-y-auto">
           {renderContent()}
         </div>
       </motion.div>
       
-      {/* Fixed Continue Button with Animation */}
+      {/* Fixed Continue Button with Enhanced Animation */}
       {step < 4 && (
         <motion.div 
-          className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-xl z-30 border-t border-border/50"
+          className="sticky bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          whileHover={{ scale: 1.01 }}
         >
           <motion.div
             whileTap={{ scale: 0.98 }}
@@ -81,17 +81,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           >
             <Button 
               onClick={goNext}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-200 relative overflow-hidden"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden min-h-[44px]"
               size="lg"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
-                animate={{ x: [-300, 300] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                animate={{ x: [-400, 400] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
               />
               <span className="relative z-10 flex items-center justify-center">
                 Continue
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </motion.div>
               </span>
             </Button>
           </motion.div>
