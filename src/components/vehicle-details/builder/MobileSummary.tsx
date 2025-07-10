@@ -1,8 +1,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight, CreditCard } from "lucide-react";
 
 interface BuilderConfig {
   modelYear: string;
@@ -17,90 +18,45 @@ interface MobileSummaryProps {
   config: BuilderConfig;
   totalPrice: number;
   step: number;
-  reserveAmount?: number;
+  reserveAmount: number;
 }
 
-const MobileSummary: React.FC<MobileSummaryProps> = ({ 
-  config, 
-  totalPrice, 
+const MobileSummary: React.FC<MobileSummaryProps> = ({
+  config,
+  totalPrice,
   step,
-  reserveAmount = 2000 
+  reserveAmount
 }) => {
-  const monthlyEMI = Math.round((totalPrice * 0.8 * 0.035 / 12) / (1 - Math.pow(1 + 0.035/12, -60)));
-  
+  const monthlyPayment = Math.round((totalPrice * 0.8 * 0.035) / 12);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white/95 backdrop-blur-xl border-t border-border shadow-2xl"
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="bg-card/95 backdrop-blur-xl border-t border-border p-3"
     >
       <Card className="border-0 shadow-none bg-transparent">
-        <CardContent className="p-4">
-          {/* Price Display */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <motion.div 
-                className="text-2xl font-black text-primary"
-                animate={{ scale: [1, 1.02, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                AED {totalPrice.toLocaleString()}
-              </motion.div>
-              <div className="text-sm text-muted-foreground">
-                From AED {monthlyEMI}/month
-              </div>
+        <CardContent className="p-0">
+          <div className="grid grid-cols-3 gap-2 text-center mb-3">
+            <div className="bg-muted/50 rounded-lg p-2">
+              <div className="text-xs text-muted-foreground mb-1">Total Price</div>
+              <div className="text-sm font-bold">AED {totalPrice.toLocaleString()}</div>
             </div>
-            
-            {/* HIGHLIGHTED RESERVE AMOUNT */}
-            <motion.div
-              animate={{ 
-                boxShadow: [
-                  "0 0 0 0 rgba(239, 68, 68, 0.7)",
-                  "0 0 0 10px rgba(239, 68, 68, 0)",
-                  "0 0 0 0 rgba(239, 68, 68, 0)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-center bg-gradient-to-r from-red-500 to-red-600 text-white p-3 rounded-xl"
-            >
-              <div className="text-xs font-medium">Reserve Now</div>
-              <div className="text-lg font-bold flex items-center">
-                <span className="text-xs mr-1">د.إ</span>
-                {reserveAmount.toLocaleString()}
-              </div>
-            </motion.div>
+            <div className="bg-muted/50 rounded-lg p-2">
+              <div className="text-xs text-muted-foreground mb-1">Monthly</div>
+              <div className="text-sm font-bold">AED {monthlyPayment.toLocaleString()}</div>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2">
+              <div className="text-xs text-muted-foreground mb-1">Reserve</div>
+              <div className="text-sm font-bold">AED {reserveAmount.toLocaleString()}</div>
+            </div>
           </div>
-
-          {/* Configuration Summary */}
-          {step > 1 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="pt-3 border-t border-border"
-            >
-              <div className="flex flex-wrap gap-2">
-                {config.modelYear && (
-                  <Badge variant="secondary" className="text-xs">
-                    {config.modelYear}
-                  </Badge>
-                )}
-                {config.engine && (
-                  <Badge variant="secondary" className="text-xs">
-                    {config.engine}
-                  </Badge>
-                )}
-                {config.grade && (
-                  <Badge variant="default" className="text-xs">
-                    {config.grade}
-                  </Badge>
-                )}
-                {config.exteriorColor && (
-                  <Badge variant="outline" className="text-xs">
-                    {config.exteriorColor}
-                  </Badge>
-                )}
-              </div>
-            </motion.div>
+          
+          {step === 4 && (
+            <Button className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-3 rounded-lg font-semibold text-sm shadow-lg min-h-[44px]">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Reserve Now
+            </Button>
           )}
         </CardContent>
       </Card>

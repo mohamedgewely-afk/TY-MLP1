@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +44,7 @@ const VehicleDetails = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const { toast } = useToast();
   const { personaData } = usePersona();
   const navigate = useNavigate();
@@ -77,6 +76,23 @@ const VehicleDetails = () => {
     
     window.scrollTo(0, 0);
   }, [vehicleName]);
+
+  // Add event listener for car builder
+  useEffect(() => {
+    const handleOpenCarBuilder = (event: CustomEvent) => {
+      const { step, config } = event.detail;
+      setIsCarBuilderOpen(true);
+      // Set the config if provided
+      if (config) {
+        // You would set the config here
+      }
+    };
+
+    window.addEventListener('openCarBuilder', handleOpenCarBuilder as EventListener);
+    return () => {
+      window.removeEventListener('openCarBuilder', handleOpenCarBuilder as EventListener);
+    };
+  }, []);
 
   // Updated Toyota Camry Hybrid official images - spread throughout
   const galleryImages = [
@@ -261,6 +277,11 @@ const VehicleDetails = () => {
     }
   ];
 
+  const handleOfferClick = (offer: any) => {
+    setSelectedOffer(offer);
+    setIsOffersModalOpen(true);
+  };
+
   return (
     <ToyotaLayout>
       <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
@@ -275,13 +296,11 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Interactive Specifications & Technology Suite - MOVED TO TOP */}
+        {/* Interactive Specifications & Technology Suite */}
         <InteractiveSpecsTech vehicle={vehicle} />
 
-        {/* Offers Section - WITH MODAL TRIGGER INSTEAD OF REDIRECT */}
-        <div onClick={() => setIsOffersModalOpen(true)} className="cursor-pointer">
-          <OffersSection />
-        </div>
+        {/* Offers Section - WITH CLICK HANDLER */}
+        <OffersSection onOfferClick={handleOfferClick} />
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
@@ -394,10 +413,14 @@ const VehicleDetails = () => {
       {/* Mobile Sticky Navigation */}
       {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
-      {/* NEW OFFERS MODAL - POPUP INSTEAD OF REDIRECT */}
+      {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
       <OffersModal 
         isOpen={isOffersModalOpen} 
-        onClose={() => setIsOffersModalOpen(false)} 
+        onClose={() => {
+          setIsOffersModalOpen(false);
+          setSelectedOffer(null);
+        }}
+        selectedOffer={selectedOffer}
       />
 
       {/* Existing Modals */}

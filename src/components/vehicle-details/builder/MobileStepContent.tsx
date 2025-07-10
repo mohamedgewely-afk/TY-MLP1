@@ -61,15 +61,15 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         transition={{ duration: 0.4, type: "spring", stiffness: 120, damping: 20 }}
         className="flex-1 overflow-hidden"
       >
-        <div className="h-full px-6 py-4 overflow-y-auto">
+        <div className="h-full px-4 py-2 overflow-y-auto">
           {renderContent()}
         </div>
       </motion.div>
       
-      {/* Fixed Continue Button with Enhanced Animation */}
+      {/* Fixed Continue Button */}
       {step < 4 && (
         <motion.div 
-          className="sticky bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/50"
+          className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -81,7 +81,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           >
             <Button 
               onClick={goNext}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden min-h-[44px]"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl font-bold text-base shadow-lg transition-all duration-300 relative overflow-hidden min-h-[48px]"
               size="lg"
             >
               <motion.div

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,7 +68,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       {
         category: "Performance",
         icon: <Car className="h-6 w-6" />,
-        color: "from-orange-500 to-red-500",
         specs: [
           { label: isHybrid ? "Hybrid System" : "Engine Type", value: isHybrid ? "Toyota Hybrid Synergy Drive" : "Dynamic Force Engine", icon: <Zap className="h-4 w-4" /> },
           { label: "Total Power Output", value: isHybrid ? "218 HP Combined" : "203 HP", icon: <Gauge className="h-4 w-4" /> },
@@ -79,7 +79,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       {
         category: "Safety",
         icon: <Shield className="h-6 w-6" />,
-        color: "from-green-500 to-emerald-500",
         specs: [
           { label: "Pre-Collision System", value: "Standard", icon: <Car className="h-4 w-4" /> },
           { label: "Lane Departure Alert", value: isPremium ? "With Steering Assist" : "Standard", icon: <Navigation className="h-4 w-4" /> },
@@ -91,7 +90,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       {
         category: "Technology",
         icon: <Smartphone className="h-6 w-6" />,
-        color: "from-blue-500 to-cyan-500",
         specs: [
           { label: "Infotainment Display", value: isPremium ? "12.3-inch Touchscreen" : "9-inch Touchscreen", icon: <Monitor className="h-4 w-4" /> },
           { label: "Wireless Connectivity", value: "Apple CarPlay & Android Auto", icon: <Wifi className="h-4 w-4" /> },
@@ -103,7 +101,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       {
         category: "Comfort",
         icon: <Wind className="h-6 w-6" />,
-        color: "from-teal-500 to-green-500",
         specs: [
           { label: "Climate Control", value: isPremium ? "Dual-Zone Automatic" : "Manual A/C", icon: <Thermometer className="h-4 w-4" /> },
           { label: "Heated Seats", value: isPremium ? "Front & Rear Available" : "Front Only", icon: <Car className="h-4 w-4" /> },
@@ -148,47 +145,34 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </p>
         </motion.div>
 
-        {/* Engine Selection - PRIORITIZED FIRST */}
+        {/* Engine Selection - SIDE BY SIDE ON MOBILE */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-8"
         >
-          <h3 className="text-lg font-bold mb-4 text-center">Choose Your Engine</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto px-4">
-            {[
-              { 
-                name: "Hybrid 2.5L", 
-                power: "218 HP Combined", 
-                efficiency: "25.2 km/L",
-                emissions: "102g CO₂/km"
-              },
-              { 
-                name: "Gasoline 2.5L", 
-                power: "203 HP", 
-                efficiency: "15.8 km/L",
-                emissions: "145g CO₂/km"
-              }
-            ].map((engine) => (
+          <h3 className="text-lg font-bold mb-6 text-center">Choose Your Engine</h3>
+          <div className="grid grid-cols-2 gap-3 lg:gap-6 max-w-4xl mx-auto px-4">
+            {engines.map((engine) => (
               <motion.button
                 key={engine.name}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedEngine(engine.name)}
-                className={`p-6 rounded-xl border-2 transition-all text-left ${
+                className={`p-4 lg:p-6 rounded-xl border-2 transition-all text-left ${
                   selectedEngine === engine.name
                     ? 'border-primary bg-primary/5 shadow-lg'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-bold text-lg">{engine.name}</h4>
+                  <h4 className="font-bold text-sm lg:text-lg">{engine.name}</h4>
                   {engine.name.includes("Hybrid") && (
-                    <Badge className="bg-green-500 text-white">ECO</Badge>
+                    <Badge className="bg-green-500 text-white text-xs">ECO</Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-3 text-xs lg:text-sm">
                   <div>
                     <div className="text-muted-foreground text-xs mb-1">Power</div>
                     <div className="font-semibold">{engine.power}</div>
@@ -215,14 +199,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           className="mb-8"
           key={selectedEngine}
         >
-          <h3 className="text-lg font-bold mb-4 text-center">Select Your Grade</h3>
+          <h3 className="text-lg font-bold mb-6 text-center">Select Your Grade</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4">
-            {[
-              { name: "LE", price: "+AED 0", features: ["Basic Package", "Standard Safety"] },
-              { name: "SE", price: "+AED 8,000", features: ["Sport Package", "Enhanced Audio"] },
-              { name: "XLE", price: "+AED 15,000", features: ["Premium Package", "Luxury Interior"] },
-              { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
-            ].map((grade, index) => (
+            {grades.map((grade, index) => (
               <motion.button
                 key={grade.name}
                 initial={{ opacity: 0, x: -20 }}
@@ -255,7 +234,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Performance Specs Carousel - ANIMATED BASED ON SELECTIONS */}
+        {/* Performance Specs Carousel - FULL WIDTH MOBILE */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -283,7 +262,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <ChevronRight className="h-5 w-5" />
             </button>
 
-            {/* Spec Card */}
+            {/* Spec Card - FULL WIDTH ON MOBILE */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
@@ -291,31 +270,31 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -100, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
-                className="mx-12"
+                className="mx-0 lg:mx-12"
               >
-                <Card className={`overflow-hidden border-0 shadow-xl bg-gradient-to-br ${currentSpec.color} text-white`}>
-                  <CardContent className="p-6 lg:p-8">
+                <Card className="overflow-hidden border bg-card shadow-xl">
+                  <CardContent className="p-4 lg:p-8">
                     <div className="flex items-center mb-6">
-                      <div className="p-3 bg-white/20 rounded-lg mr-4">
+                      <div className="p-3 bg-primary/20 rounded-lg mr-4">
                         {currentSpec.icon}
                       </div>
-                      <h4 className="text-2xl lg:text-3xl font-bold">{currentSpec.category}</h4>
+                      <h4 className="text-xl lg:text-3xl font-bold">{currentSpec.category}</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                       {currentSpec.specs.map((spec, index) => (
                         <motion.div
                           key={spec.label}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.08, duration: 0.3 }}
-                          className="bg-white/10 backdrop-blur-sm rounded-lg p-4"
+                          className="bg-muted/50 rounded-lg p-4"
                         >
                           <div className="flex items-center mb-2">
                             {spec.icon}
                             <span className="ml-2 text-sm font-medium">{spec.label}</span>
                           </div>
-                          <div className="text-lg font-bold">{spec.value}</div>
+                          <div className="text-base lg:text-lg font-bold">{spec.value}</div>
                         </motion.div>
                       ))}
                     </div>
@@ -339,7 +318,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Quick Configuration Summary */}
+        {/* Quick Configuration Summary - CONNECT TO BUILDER */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -360,7 +339,16 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   <div className="font-bold text-lg">{selectedGrade}</div>
                 </div>
               </div>
-              <Button className="w-full py-3 min-h-[44px]">
+              <Button 
+                className="w-full py-3 min-h-[44px]"
+                onClick={() => {
+                  // This will be connected to open the car builder with colors step
+                  const event = new CustomEvent('openCarBuilder', { 
+                    detail: { step: 3, config: { engine: selectedEngine, grade: selectedGrade } } 
+                  });
+                  window.dispatchEvent(event);
+                }}
+              >
                 Configure Your Vehicle
                 <Settings className="ml-2 h-4 w-4" />
               </Button>

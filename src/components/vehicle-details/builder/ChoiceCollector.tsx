@@ -1,9 +1,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Calendar, Zap, Star, Palette } from "lucide-react";
 
 interface BuilderConfig {
   modelYear: string;
@@ -21,45 +20,58 @@ interface ChoiceCollectorProps {
 
 const ChoiceCollector: React.FC<ChoiceCollectorProps> = ({ config, step }) => {
   const choices = [
-    { key: 'modelYear', label: 'Year', value: config.modelYear, step: 1 },
-    { key: 'engine', label: 'Engine', value: config.engine, step: 2 },
-    { key: 'grade', label: 'Grade', value: config.grade, step: 3 },
-    { key: 'exteriorColor', label: 'Exterior', value: config.exteriorColor, step: 4 },
-    { key: 'interiorColor', label: 'Interior', value: config.interiorColor, step: 5 },
-    { key: 'accessories', label: 'Accessories', value: `${config.accessories.length} selected`, step: 6 }
+    { 
+      label: "Year", 
+      value: config.modelYear, 
+      icon: <Calendar className="h-3 w-3" />,
+      show: step >= 1 
+    },
+    { 
+      label: "Engine", 
+      value: config.engine, 
+      icon: <Zap className="h-3 w-3" />,
+      show: step >= 1 
+    },
+    { 
+      label: "Grade", 
+      value: config.grade, 
+      icon: <Star className="h-3 w-3" />,
+      show: step >= 2 
+    },
+    { 
+      label: "Color", 
+      value: config.exteriorColor, 
+      icon: <Palette className="h-3 w-3" />,
+      show: step >= 3 
+    }
   ];
 
-  const completedChoices = choices.filter(choice => 
-    choice.step < step && (
-      choice.key === 'accessories' ? config.accessories.length > 0 : choice.value && choice.value !== 'Base'
-    )
-  );
+  const visibleChoices = choices.filter(choice => choice.show && choice.value);
 
-  if (completedChoices.length === 0) return null;
+  if (visibleChoices.length === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-6"
+      className="space-y-2"
     >
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="p-4">
-          <h3 className="text-sm font-semibold text-primary mb-3">Your Selections</h3>
-          <div className="flex flex-wrap gap-2">
-            {completedChoices.map((choice) => (
-              <Badge
-                key={choice.key}
-                variant="secondary"
-                className="bg-primary/10 text-primary border-primary/20 text-xs"
-              >
-                <Check className="h-3 w-3 mr-1" />
-                {choice.label}: {choice.value}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <h4 className="text-xs font-medium text-muted-foreground">Your Choices</h4>
+      <div className="flex flex-wrap gap-1">
+        {visibleChoices.map((choice, index) => (
+          <motion.div
+            key={choice.label}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <Badge variant="secondary" className="text-xs px-2 py-1 bg-primary/10 text-primary border-primary/20">
+              <span className="mr-1">{choice.icon}</span>
+              {choice.value}
+            </Badge>
+          </motion.div>
+        ))}
+      </div>
     </motion.div>
   );
 };

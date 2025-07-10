@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, Heart, ChevronLeft, ChevronRight, Battery, ShoppingBag, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Slider } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -37,13 +36,6 @@ const searchSuggestions = [
   { term: "GR Supra", category: "Performance", icon: <Star className="h-5 w-5" /> },
 ];
 
-const favoriteActions = [
-  { title: "View Favorites", icon: <Heart className="h-6 w-6" />, color: "bg-red-500" },
-  { title: "Compare Models", icon: <Settings className="h-6 w-6" />, color: "bg-blue-500" },
-  { title: "Share List", icon: <Share2 className="h-6 w-6" />, color: "bg-green-500" },
-  { title: "Save Search", icon: <Star className="h-6 w-6" />, color: "bg-purple-500" },
-];
-
 const quickMenuItems = [
   { title: "Book Service", icon: <Settings className="h-6 w-6" />, color: "bg-blue-500", link: "/service" },
   { title: "Find Dealer", icon: <MapPin className="h-6 w-6" />, color: "bg-green-500", link: "/dealers" },
@@ -51,6 +43,58 @@ const quickMenuItems = [
   { title: "Finance Calculator", icon: <Calculator className="h-6 w-6" />, color: "bg-purple-500", link: "/finance" },
   { title: "Trade-In Value", icon: <TrendingUp className="h-6 w-6" />, color: "bg-cyan-500", link: "/trade-in" },
   { title: "Contact Us", icon: <Phone className="h-6 w-6" />, color: "bg-red-500", link: "/contact" },
+];
+
+// Pre-owned vehicles data
+const preOwnedVehicles = [
+  {
+    name: "2022 Toyota Camry LE",
+    price: 89000,
+    mileage: "25,000 km",
+    year: 2022,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+    category: "sedan"
+  },
+  {
+    name: "2021 Toyota RAV4 XLE",
+    price: 95000,
+    mileage: "35,000 km",
+    year: 2021,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    category: "suv"
+  },
+  {
+    name: "2023 Toyota Prius Hybrid",
+    price: 78000,
+    mileage: "15,000 km",
+    year: 2023,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+    category: "hybrid"
+  },
+  {
+    name: "2020 Toyota Corolla SE",
+    price: 65000,
+    mileage: "45,000 km",
+    year: 2020,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    category: "sedan"
+  },
+  {
+    name: "2022 Toyota Highlander Limited",
+    price: 145000,
+    mileage: "20,000 km",
+    year: 2022,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    category: "suv"
+  },
+  {
+    name: "2021 Toyota GR Supra 3.0",
+    price: 185000,
+    mileage: "12,000 km",
+    year: 2021,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+    category: "performance"
+  }
 ];
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ 
@@ -62,20 +106,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [favorites, setFavorites] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    setFavorites(storedFavorites);
-    
-    const handleFavoritesUpdate = () => {
-      const updatedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setFavorites(updatedFavorites);
-    };
-    
-    window.addEventListener('favorites-updated', handleFavoritesUpdate);
-    return () => window.removeEventListener('favorites-updated', handleFavoritesUpdate);
-  }, []);
+  const [priceRange, setPriceRange] = useState([50000, 200000]);
   
   const quickActionCards = [
     {
@@ -120,9 +151,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     vehicle.name.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 8);
 
-  const favoriteVehicles = vehicles.filter(vehicle => 
-    favorites.includes(vehicle.name)
-  );
+  const filteredPreOwnedVehicles = preOwnedVehicles.filter(vehicle => {
+    const categoryMatch = selectedCategory === "all" || vehicle.category === selectedCategory;
+    const priceMatch = vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1];
+    return categoryMatch && priceMatch;
+  });
   
   const handleSectionToggle = (section: string) => {
     if (activeSection === section) {
@@ -235,7 +268,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                     <Button 
                       variant="outline" 
                       className="h-12 text-left justify-start"
-                      onClick={() => setActiveSection("models")}
+                      onClick={() => handleSectionToggle("models")}
                     >
                       <Car className="h-4 w-4 mr-2" />
                       Browse Models
@@ -243,7 +276,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                     <Button 
                       variant="outline" 
                       className="h-12 text-left justify-start"
-                      onClick={() => setActiveSection("search")}
+                      onClick={() => handleSectionToggle("search")}
                     >
                       <Search className="h-4 w-4 mr-2" />
                       Find Vehicle
@@ -425,82 +458,133 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 </motion.div>
               )}
 
-              {/* Enhanced Favorites Section */}
-              {activeSection === "favorites" && (
+              {/* Enhanced Pre-Owned Section */}
+              {activeSection === "pre-owned" && (
                 <motion.div 
                   className="p-6"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Your Favorites</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Pre-Owned Vehicles</h4>
                   
-                  {favoriteVehicles.length > 0 ? (
-                    <>
-                      {/* Favorite actions */}
-                      <Carousel opts={{ align: "start" }} className="w-full mb-6">
-                        <CarouselContent>
-                          {favoriteActions.map((action) => (
-                            <CarouselItem key={action.title} className="basis-auto pl-3">
-                              <button className={cn(
-                                "flex items-center space-x-2 px-4 py-2 rounded-xl text-white text-sm font-medium whitespace-nowrap",
-                                action.color
-                              )}>
-                                {action.icon}
-                                <span>{action.title}</span>
-                              </button>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                      </Carousel>
+                  {/* Category selector with swipe */}
+                  <div className="mb-6">
+                    <Carousel opts={{ align: "start" }} className="w-full">
+                      <CarouselContent>
+                        {vehicleCategories.map((category) => (
+                          <CarouselItem key={category.id} className="basis-auto pl-3">
+                            <motion.button
+                              onClick={() => handleCategoryClick(category.id)}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-4 rounded-xl transition-all min-w-[80px]",
+                                selectedCategory === category.id 
+                                  ? "bg-toyota-red text-white shadow-lg scale-105" 
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              )}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <span className="mb-2">{category.icon}</span>
+                              <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+                            </motion.button>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
 
-                      {/* Favorite vehicles */}
-                      <Carousel opts={{ align: "start" }} className="w-full">
-                        <CarouselContent>
-                          {favoriteVehicles.map((vehicle) => (
-                            <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
-                              <Link 
-                                to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase().replace(/\s+/g, '-'))}`}
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-                                  <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 relative">
-                                    {vehicle.image && (
-                                      <img 
-                                        src={vehicle.image} 
-                                        alt={vehicle.name} 
-                                        className="w-full h-full object-cover"
-                                      />
-                                    )}
-                                    <div className="absolute top-2 right-2">
-                                      <Heart className="h-5 w-5 text-red-500 fill-current" />
-                                    </div>
-                                  </div>
-                                  <CardContent className="p-4">
-                                    <h3 className="font-semibold text-base mb-1">{vehicle.name}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                      From AED {vehicle.price.toLocaleString()}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                              </Link>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                      </Carousel>
-                    </>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500 dark:text-gray-400 mb-4">No favorites yet</p>
-                      <Button 
-                        onClick={() => setActiveSection("models")}
-                        className="bg-toyota-red text-white"
-                      >
-                        Browse Models
-                      </Button>
+                  {/* Price Range Slider */}
+                  <div className="mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">Price Range</h5>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        AED {priceRange[0].toLocaleString()} - AED {priceRange[1].toLocaleString()}
+                      </span>
                     </div>
-                  )}
+                    <div className="flex items-center space-x-3">
+                      <Slider className="h-5 w-5 text-toyota-red" />
+                      <input
+                        type="range"
+                        min="30000"
+                        max="300000"
+                        step="10000"
+                        value={priceRange[0]}
+                        onChange={(e) => setPriceRange([Math.min(parseInt(e.target.value), priceRange[1]), priceRange[1]])}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <input
+                        type="range"
+                        min="30000"
+                        max="300000"
+                        step="10000"
+                        value={priceRange[1]}
+                        onChange={(e) => setPriceRange([priceRange[0], Math.max(parseInt(e.target.value), priceRange[0])])}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pre-owned vehicle carousel */}
+                  <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent>
+                      {filteredPreOwnedVehicles.map((vehicle) => (
+                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
+                          <Link 
+                            to={`/pre-owned/${encodeURIComponent(vehicle.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 relative">
+                                  <img 
+                                    src={vehicle.image} 
+                                    alt={vehicle.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute top-2 right-2">
+                                    <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                      {vehicle.year}
+                                    </span>
+                                  </div>
+                                </div>
+                                <CardContent className="p-4">
+                                  <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-gray-100">{vehicle.name}</h3>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm font-bold text-toyota-red">
+                                      AED {vehicle.price.toLocaleString()}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {vehicle.mileage}
+                                    </p>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs bg-toyota-red/10 text-toyota-red px-2 py-1 rounded-full font-medium">
+                                      Certified Pre-Owned
+                                    </span>
+                                    <span className="text-toyota-red text-sm font-semibold flex items-center">
+                                      View <ChevronRight className="h-3 w-3 ml-1" />
+                                    </span>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+
+                  <div className="mt-6 text-center">
+                    <Link 
+                      to={`/pre-owned${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+                      className="text-toyota-red font-semibold flex items-center justify-center hover:text-red-700 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      View All Pre-Owned {selectedCategory !== 'all' ? vehicleCategories.find(c => c.id === selectedCategory)?.name : ''} Models
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </div>
                 </motion.div>
               )}
             </div>
@@ -538,12 +622,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             isActive={activeItem === "models" || activeSection === "models"}
           />
           <NavItem 
-            icon={<Heart className="h-5 w-5" />}
-            label="Favorites"
+            icon={<ShoppingBag className="h-5 w-5" />}
+            label="Pre-Owned"
             to="#"
-            onClick={() => handleSectionToggle("favorites")}
-            isActive={activeItem === "favorites" || activeSection === "favorites"}
-            badge={favorites.length > 0 ? favorites.length : undefined}
+            onClick={() => handleSectionToggle("pre-owned")}
+            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
           />
           <NavItem 
             icon={<Menu className="h-5 w-5" />}
