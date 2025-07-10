@@ -111,7 +111,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
     vehicle.name === "Toyota RAV4 Hybrid";
 
   const isHybrid = vehicle.name.toLowerCase().includes('hybrid');
-  const isElectric = vehicle.fuelType === 'Electric';
+  const isElectric = vehicle.name.toLowerCase().includes('bz4x') || vehicle.category === 'Electric';
 
   return (
     <section ref={heroRef} className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-muted/20 to-background">
@@ -325,34 +325,34 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
 
               {/* Image Controls - Bottom Left */}
               <motion.div 
-                className="absolute bottom-4 left-4 flex items-center space-x-2"
+                className="absolute bottom-4 left-4 flex items-center space-x-1"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1, duration: 0.6 }}
               >
                 <button
                   onClick={prevImage}
-                  className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[32px] min-w-[32px] flex items-center justify-center"
                 >
-                  <ChevronLeft className="h-4 w-4 text-gray-700" />
+                  <ChevronLeft className="h-3 w-3 text-gray-700" />
                 </button>
                 
                 <button
                   onClick={toggleAutoPlay}
-                  className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[32px] min-w-[32px] flex items-center justify-center"
                 >
                   {isAutoPlaying ? (
-                    <Pause className="h-4 w-4 text-gray-700" />
+                    <Pause className="h-3 w-3 text-gray-700" />
                   ) : (
-                    <Play className="h-4 w-4 text-gray-700" />
+                    <Play className="h-3 w-3 text-gray-700" />
                   )}
                 </button>
                 
                 <button
                   onClick={nextImage}
-                  className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[32px] min-w-[32px] flex items-center justify-center"
                 >
-                  <ChevronRight className="h-4 w-4 text-gray-700" />
+                  <ChevronRight className="h-3 w-3 text-gray-700" />
                 </button>
               </motion.div>
 
