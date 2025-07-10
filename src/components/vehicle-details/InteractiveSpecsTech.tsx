@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,23 +17,19 @@ interface InteractiveSpecsTechProps {
 }
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
-  const [selectedEngine, setSelectedEngine] = useState("Hybrid 2.5L");
+  const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [selectedGrade, setSelectedGrade] = useState("XLE");
   const [currentPerformanceIndex, setCurrentPerformanceIndex] = useState(0);
 
-  // Engine options (prioritized first)
+  // Simplified Engine options
   const engines = [
     { 
-      name: "Hybrid 2.5L", 
-      power: "218 HP Combined", 
-      efficiency: "25.2 km/L",
-      emissions: "102g CO₂/km"
+      name: "2.5L Hybrid", 
+      label: "2.5L Hybrid"
     },
     { 
-      name: "Gasoline 2.5L", 
-      power: "203 HP", 
-      efficiency: "15.8 km/L",
-      emissions: "145g CO₂/km"
+      name: "2.5L Gasoline", 
+      label: "2.5L Gasoline"
     }
   ];
 
@@ -47,7 +42,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
     ];
     
-    if (engine === "Hybrid 2.5L") {
+    if (engine === "2.5L Hybrid") {
       return baseGrades.map(grade => ({
         ...grade,
         features: [...grade.features, "Hybrid Technology"]
@@ -61,7 +56,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
   // Dynamic specifications based on engine and grade selection
   const getPerformanceSpecs = () => {
-    const isHybrid = selectedEngine === "Hybrid 2.5L";
+    const isHybrid = selectedEngine === "2.5L Hybrid";
     const isPremium = selectedGrade === "Limited" || selectedGrade === "XLE";
     
     return [
@@ -145,7 +140,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </p>
         </motion.div>
 
-        {/* Engine Selection - SIDE BY SIDE ON MOBILE */}
+        {/* Simplified Engine Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -153,45 +148,29 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           className="mb-8"
         >
           <h3 className="text-lg font-bold mb-6 text-center">Choose Your Engine</h3>
-          <div className="grid grid-cols-2 gap-3 lg:gap-6 max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-2 gap-3 lg:gap-6 max-w-md mx-auto px-4">
             {engines.map((engine) => (
               <motion.button
                 key={engine.name}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedEngine(engine.name)}
-                className={`p-4 lg:p-6 rounded-xl border-2 transition-all text-left ${
+                className={`p-4 lg:p-6 rounded-xl border-2 transition-all text-center ${
                   selectedEngine === engine.name
                     ? 'border-primary bg-primary/5 shadow-lg'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-bold text-sm lg:text-lg">{engine.name}</h4>
-                  {engine.name.includes("Hybrid") && (
-                    <Badge className="bg-green-500 text-white text-xs">ECO</Badge>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-3 text-xs lg:text-sm">
-                  <div>
-                    <div className="text-muted-foreground text-xs mb-1">Power</div>
-                    <div className="font-semibold">{engine.power}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs mb-1">Efficiency</div>
-                    <div className="font-semibold">{engine.efficiency}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs mb-1">Emissions</div>
-                    <div className="font-semibold">{engine.emissions}</div>
-                  </div>
-                </div>
+                <div className="font-bold text-lg">{engine.label}</div>
+                {engine.name.includes("Hybrid") && (
+                  <Badge className="bg-green-500 text-white text-xs mt-2">ECO</Badge>
+                )}
               </motion.button>
             ))}
           </div>
         </motion.div>
 
-        {/* Grade Selection - SECOND */}
+        {/* Grade Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -234,7 +213,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Performance Specs Carousel - FULL WIDTH MOBILE */}
+        {/* Performance Specs Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -262,7 +241,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <ChevronRight className="h-5 w-5" />
             </button>
 
-            {/* Spec Card - FULL WIDTH ON MOBILE */}
+            {/* Spec Card */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
@@ -318,7 +297,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Quick Configuration Summary - CONNECT TO BUILDER */}
+        {/* Quick Configuration Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -342,7 +321,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <Button 
                 className="w-full py-3 min-h-[44px]"
                 onClick={() => {
-                  // This will be connected to open the car builder with colors step
                   const event = new CustomEvent('openCarBuilder', { 
                     detail: { step: 3, config: { engine: selectedEngine, grade: selectedGrade } } 
                   });
