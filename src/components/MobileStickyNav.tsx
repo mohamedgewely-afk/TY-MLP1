@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Trophy, Wrench } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,7 +14,6 @@ interface MobileStickyNavProps {
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ activeItem = "home" }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showPreOwned, setShowPreOwned] = useState(false);
-  const [vehicleIndex, setVehicleIndex] = useState(0);
   const isMobile = useIsMobile();
 
   if (!isMobile) return null;
@@ -22,35 +21,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ activeItem = "home" }
   const navItems = [
     { id: "home", icon: Home, label: "Home", path: "/" },
     { id: "search", icon: Search, label: "Search", path: "/search" },
-    { id: "vehicle", icon: Car, label: "Vehicles", isCarousel: true },
+    { id: "vehicle", icon: Car, label: "Vehicles", path: "/vehicles" },
     { id: "preowned", icon: TrendingUp, label: "Pre-Owned", action: () => setShowPreOwned(true) },
     { id: "menu", icon: Menu, label: "Menu", action: () => setShowMenu(true) }
   ];
-
-  const vehicleTypes = [
-    { name: "SUV", path: "/vehicles?category=suv" },
-    { name: "Sedan", path: "/vehicles?category=sedan" },
-    { name: "Hybrid", path: "/vehicles?category=hybrid" },
-    { name: "Electric", path: "/vehicles?category=electric" }
-  ];
-
-  const menuItems = [
-    { icon: Trophy, label: "Motor Sport", path: "/motorsport" },
-    { icon: MapPin, label: "Locations", path: "/dealers" },
-    { icon: Tag, label: "Offers", path: "/offers" },
-    { icon: Star, label: "Owners", path: "/owners" },
-    { icon: Wrench, label: "Book Service", path: "/service" },
-    { icon: Calculator, label: "Finance", path: "/finance" },
-    { icon: Phone, label: "Contact", path: "/contact" }
-  ];
-
-  const nextVehicle = () => {
-    setVehicleIndex((prev) => (prev + 1) % vehicleTypes.length);
-  };
-
-  const prevVehicle = () => {
-    setVehicleIndex((prev) => (prev - 1 + vehicleTypes.length) % vehicleTypes.length);
-  };
 
   return (
     <>
@@ -63,41 +37,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ activeItem = "home" }
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
-            
-            if (item.isCarousel) {
-              return (
-                <motion.div key={item.id} className="flex-1 relative">
-                  <div className="flex items-center justify-center">
-                    <button
-                      onClick={prevVehicle}
-                      className="p-1 rounded-full hover:bg-gray-100"
-                    >
-                      <ChevronLeft className="h-3 w-3" />
-                    </button>
-                    
-                    <Link
-                      to={vehicleTypes[vehicleIndex].path}
-                      className={cn(
-                        "flex flex-col items-center space-y-1 px-2 py-2 rounded-lg transition-all mx-1",
-                        isActive 
-                          ? "text-toyota-red bg-red-50" 
-                          : "text-gray-600 hover:text-toyota-red hover:bg-red-50"
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", isActive && "text-toyota-red")} />
-                      <span className="text-xs font-medium">{vehicleTypes[vehicleIndex].name}</span>
-                    </Link>
-                    
-                    <button
-                      onClick={nextVehicle}
-                      className="p-1 rounded-full hover:bg-gray-100"
-                    >
-                      <ChevronRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            }
             
             return (
               <motion.div key={item.id} className="flex-1">
@@ -169,18 +108,25 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ activeItem = "home" }
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {menuItems.map((item) => {
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: Car, label: "Test Drive", path: "/test-drive" },
+                  { icon: Calculator, label: "Finance", path: "/finance" },
+                  { icon: Phone, label: "Contact", path: "/contact" },
+                  { icon: MapPin, label: "Dealers", path: "/dealers" },
+                  { icon: Settings, label: "Service", path: "/service" },
+                  { icon: Star, label: "Reviews", path: "/reviews" }
+                ].map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
                       key={item.label}
                       to={item.path}
-                      className="flex flex-col items-center space-y-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex flex-col items-center space-y-2 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       onClick={() => setShowMenu(false)}
                     >
-                      <Icon className="h-5 w-5 text-toyota-red" />
-                      <span className="text-sm font-medium text-center">{item.label}</span>
+                      <Icon className="h-6 w-6 text-toyota-red" />
+                      <span className="text-sm font-medium">{item.label}</span>
                     </Link>
                   );
                 })}

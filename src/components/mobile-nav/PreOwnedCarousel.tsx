@@ -122,7 +122,7 @@ const PreOwnedCarousel: React.FC<PreOwnedCarouselProps> = ({ onClose }) => {
                 <div key={vehicle.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="relative">
                     <img
-                      src={vehicle.image}
+                      src={vehicle.images[0]}
                       alt={vehicle.name}
                       className="w-full h-48 object-cover"
                     />
