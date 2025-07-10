@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import MobileStepContent from "./MobileStepContent";
-import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
 
@@ -61,7 +60,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden flex flex-col"
     >
-      {/* Header with Back Button */}
+      {/* Header */}
       <motion.div 
         className="relative z-10 flex items-center justify-between p-3 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
@@ -70,7 +69,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-2 rounded-lg bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200 min-h-[44px] min-w-[44px]"
+          className="p-2 rounded-lg bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -82,48 +81,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.button>
 
         <div className="text-center">
-          <motion.h1 
-            className="text-lg font-bold text-foreground"
-            animate={{ scale: [1, 1.01, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <h1 className="text-lg font-bold text-foreground">
             Build Your {vehicle.name}
-          </motion.h1>
+          </h1>
         </div>
 
         <div className="w-10" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - Even Larger */}
+      {/* Vehicle Image */}
       <motion.div 
-        className="relative w-full h-80 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-64 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
-        {/* Skeleton Loading */}
         <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain scale-125 relative z-10"
-          initial={{ scale: 1.3, opacity: 0 }}
-          animate={{ scale: 1.25, opacity: 1 }}
+          className="w-full h-full object-contain scale-110 relative z-10"
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          onLoad={(e) => {
-            const skeleton = (e.currentTarget.previousElementSibling as HTMLElement);
-            if (skeleton) {
-              skeleton.style.display = 'none';
-            }
-          }}
         />
         
-        {/* Minimal overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
-        
-        {/* Compact Vehicle Info */}
         <motion.div 
-          className="absolute bottom-3 left-3 right-3 text-foreground"
+          className="absolute bottom-2 left-2 right-2 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
@@ -135,13 +119,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.div>
       </motion.div>
 
-      {/* Progress Bar */}
-      <div className="flex-shrink-0 px-4 py-2 bg-muted/20">
-        <MobileProgress currentStep={step} totalSteps={4} />
-      </div>
-
-      {/* Compact Choice Collector */}
-      <div className="px-4 py-3 flex-shrink-0">
+      {/* Choice Collector */}
+      <div className="px-3 py-2 flex-shrink-0">
         <ChoiceCollector config={config} step={step} />
       </div>
 
@@ -161,7 +140,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Compact Price Summary */}
+      {/* Price Summary */}
       <div className="flex-shrink-0 relative z-20">
         <MobileSummary 
           config={config}
