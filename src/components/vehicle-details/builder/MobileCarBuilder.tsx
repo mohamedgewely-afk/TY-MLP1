@@ -64,7 +64,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       transition={{ duration: 0.3 }}
       className="relative h-full w-full bg-background overflow-hidden flex flex-col"
     >
-      {/* Header with Back Button - Simplified */}
+      {/* Header with Back Button */}
       <motion.div 
         className="relative z-10 flex items-center justify-between p-4 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
@@ -97,66 +97,67 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="w-12" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image - MUCH BIGGER AND FULL VISIBILITY */}
+      {/* Enhanced Vehicle Image - Larger and Full Visibility */}
       <motion.div 
-        className="relative w-full h-80 bg-gradient-to-br from-muted/50 to-card/50 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-96 bg-gradient-to-br from-muted/30 to-card/30 overflow-hidden border-b border-border flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
-        {/* Loading skeleton */}
+        {/* Skeleton Loading */}
         <div className="absolute inset-0 bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50 animate-pulse" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain scale-125 relative z-10"
-          initial={{ scale: 1.3, opacity: 0 }}
-          animate={{ scale: 1.25, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-full h-full object-contain scale-110 relative z-10"
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           onLoad={(e) => {
-            // Hide loading skeleton
-            const skeleton = e.currentTarget.previousElementSibling;
-            if (skeleton) skeleton.style.display = 'none';
+            const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+            if (skeleton) {
+              skeleton.style.display = 'none';
+            }
           }}
         />
         
-        {/* Minimal gradient overlay - reduced opacity */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
+        {/* Reduced opacity overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
         
-        {/* Vehicle Info Overlay - More compact and better positioned */}
+        {/* Vehicle Info Overlay - Compact and better positioned */}
         <motion.div 
-          className="absolute bottom-4 left-4 right-4 text-foreground"
+          className="absolute bottom-6 left-4 right-4 text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.3 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
         >
-          <div className="bg-card/80 backdrop-blur-lg rounded-xl p-4 border border-border shadow-lg">
-            <h3 className="text-lg font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-sm font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
+          <div className="bg-card/70 backdrop-blur-lg rounded-xl p-3 border border-border shadow-lg">
+            <h3 className="text-base font-bold">{config.modelYear} {vehicle.name}</h3>
+            <p className="text-primary text-xs font-medium">{config.grade} • {config.engine} • {config.exteriorColor}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* Content Area - Enhanced spacing */}
+      {/* Content Area */}
       <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
-        {/* Choice Collector - More spacious with better padding */}
-        <div className="px-6 py-4 flex-shrink-0 space-y-4">
+        {/* Choice Collector - Enhanced spacing */}
+        <div className="px-6 py-6 flex-shrink-0 space-y-6">
           <ChoiceCollector config={config} step={step} />
           
-          {/* Collapsible Specs - Enhanced visibility and prominence */}
+          {/* Enhanced Collapsible Specs */}
           {showSpecs && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-              className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20"
+              transition={{ duration: 0.5 }}
+              className="bg-gradient-to-r from-primary/8 to-primary/12 rounded-2xl p-5 border border-primary/30 shadow-lg"
             >
-              <CollapsibleSpecs config={config} expanded={true} />
+              <CollapsibleSpecs config={config} />
             </motion.div>
           )}
         </div>
 
-        {/* Step Content - Takes remaining space */}
+        {/* Step Content */}
         <div className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">
             <MobileStepContent
@@ -173,13 +174,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Price Summary - HIGHLIGHT RESERVE AMOUNT */}
+      {/* Price Summary */}
       <div className="flex-shrink-0 relative z-20">
         <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
           step={step}
-          reserveAmount={2000} // HIGHLIGHTED RESERVE AMOUNT
+          reserveAmount={2000}
         />
       </div>
     </motion.div>
