@@ -27,11 +27,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import MobileStickyNav from "@/components/MobileStickyNav";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
-import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
+import VehicleHeroSection from "@/components/vehicle-details/VehicleHeroSection";
+import WhyChooseSection from "@/components/vehicle-details/WhyChooseSection";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -82,10 +83,6 @@ const VehicleDetails = () => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
       const { step, config } = event.detail;
       setIsCarBuilderOpen(true);
-      // Set the config if provided
-      if (config) {
-        // You would set the config here
-      }
     };
 
     window.addEventListener('openCarBuilder', handleOpenCarBuilder as EventListener);
@@ -94,7 +91,7 @@ const VehicleDetails = () => {
     };
   }, []);
 
-  // Updated Toyota Camry Hybrid official images - spread throughout
+  // Gallery images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -105,7 +102,7 @@ const VehicleDetails = () => {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0d?binary=true&mformat=true"
   ];
 
-  // Auto-rotate gallery images with smoother transitions
+  // Auto-rotate gallery images
   useEffect(() => {
     if (!isHeroInView) return;
     
@@ -115,30 +112,6 @@ const VehicleDetails = () => {
     
     return () => clearInterval(interval);
   }, [isHeroInView, galleryImages.length]);
-
-  // Enhanced touch handlers for swipe functionality
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    }
-    if (isRightSwipe) {
-      setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-    }
-  };
 
   const toggleFavorite = () => {
     if (!vehicle) return;
@@ -186,96 +159,15 @@ const VehicleDetails = () => {
     );
   }
 
-  const isBestSeller = 
-    vehicle.name === "Toyota Camry" || 
-    vehicle.name === "Toyota Corolla Hybrid" || 
-    vehicle.name === "Toyota Land Cruiser" || 
-    vehicle.name === "Toyota RAV4 Hybrid";
-
-  // Calculate monthly EMI (simplified calculation)
   const calculateEMI = (price: number) => {
-    const principal = price * 0.8; // 80% financing
-    const rate = 0.035 / 12; // 3.5% annual rate
-    const tenure = 60; // 5 years
+    const principal = price * 0.8;
+    const rate = 0.035 / 12;
+    const tenure = 60;
     const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
     return Math.round(emi);
   };
 
   const monthlyEMI = calculateEMI(vehicle.price);
-
-  const premiumFeatures = [
-    { 
-      icon: <Zap className="h-8 w-8" />, 
-      title: "Hybrid Synergy Drive", 
-      value: "25.2 km/L", 
-      description: "World's most advanced hybrid system with instant electric response",
-      color: "from-primary to-primary/80",
-      bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
-      image: galleryImages[0]
-    },
-    { 
-      icon: <Shield className="h-8 w-8" />, 
-      title: "Toyota Safety Sense 3.0", 
-      value: "5-Star NCAP", 
-      description: "Next-generation safety with AI-powered collision prevention",
-      color: "from-green-500 to-emerald-400",
-      bgPattern: "bg-gradient-to-br from-green-50 to-emerald-50",
-      image: galleryImages[1]
-    },
-    { 
-      icon: <Gauge className="h-8 w-8" />, 
-      title: "Dynamic Performance", 
-      value: "218 HP Total", 
-      description: "Seamlessly blended electric and gasoline power delivery",
-      color: "from-orange-500 to-red-400",
-      bgPattern: "bg-gradient-to-br from-orange-50 to-red-50",
-      image: galleryImages[2]
-    },
-    { 
-      icon: <Leaf className="h-8 w-8" />, 
-      title: "Zero Emission Ready", 
-      value: "102g CO₂/km", 
-      description: "Ultra-low emissions with pure electric driving capability",
-      color: "from-emerald-500 to-green-400",
-      bgPattern: "bg-gradient-to-br from-emerald-50 to-green-50",
-      image: galleryImages[3]
-    }
-  ];
-
-  const innovationFeatures = [
-    {
-      icon: <Smartphone className="h-12 w-12" />,
-      title: "Connected Intelligence",
-      description: "Seamless smartphone integration with wireless Apple CarPlay & Android Auto",
-      features: ["Wireless connectivity", "Voice commands", "Remote vehicle start"],
-      color: "from-primary to-primary/70",
-      image: galleryImages[4]
-    },
-    {
-      icon: <Wind className="h-12 w-12" />,
-      title: "Climate Harmony",
-      description: "Dual-zone automatic climate control with air purification system",
-      features: ["HEPA filtration", "UV sterilization", "Eco-mode optimization"],
-      color: "from-cyan-600 to-teal-600",
-      image: galleryImages[5]
-    },
-    {
-      icon: <Battery className="h-12 w-12" />,
-      title: "Energy Intelligence",
-      description: "Regenerative braking system that converts motion into electrical energy",
-      features: ["Brake energy recovery", "Smart charging", "Power output capability"],
-      color: "from-green-600 to-emerald-600",
-      image: galleryImages[6]
-    },
-    {
-      icon: <Lock className="h-12 w-12" />,
-      title: "Security Command",
-      description: "Advanced security system with remote monitoring and smart access",
-      features: ["Biometric access", "Remote monitoring", "Anti-theft protection"],
-      color: "from-red-600 to-pink-600",
-      image: galleryImages[0]
-    }
-  ];
 
   const handleOfferClick = (offer: any) => {
     setSelectedOffer(offer);
@@ -285,8 +177,8 @@ const VehicleDetails = () => {
   return (
     <ToyotaLayout>
       <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
-        {/* Enhanced Hero Section with Swipe Controls */}
-        <EnhancedHeroSection
+        {/* Hero Section */}
+        <VehicleHeroSection
           vehicle={vehicle}
           galleryImages={galleryImages}
           isFavorite={isFavorite}
@@ -299,104 +191,30 @@ const VehicleDetails = () => {
         {/* Interactive Specifications & Technology Suite */}
         <InteractiveSpecsTech vehicle={vehicle} />
 
-        {/* Offers Section - WITH CLICK HANDLER */}
+        {/* Offers Section */}
         <OffersSection onOfferClick={handleOfferClick} />
 
         {/* Media Showcase Section */}
         <VehicleMediaShowcase vehicle={vehicle} />
 
         {/* Why Choose Section */}
-        <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
-          <div className="toyota-container relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12 lg:mb-16"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Premium Hybrid Technology
-              </motion.div>
-              <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight">
-                Why Choose{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-                  {vehicle.name.split(' ').pop()}?
-                </span>
-              </h2>
-              <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Experience the pinnacle of automotive innovation where luxury meets sustainability.
-              </p>
-            </motion.div>
+        <WhyChooseSection 
+          vehicleName={vehicle.name}
+          galleryImages={galleryImages}
+        />
 
-            {/* Features Grid - More compact for mobile */}
-            <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'}`}>
-              <div className={`${isMobile ? 'flex space-x-4 pb-4' : 'contents'}`} style={{ width: isMobile ? `${premiumFeatures.length * 260}px` : 'auto' }}>
-                {premiumFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ 
-                      y: -8, 
-                      scale: 1.01,
-                      transition: { duration: 0.2 }
-                    }}
-                    className={`group cursor-pointer ${isMobile ? 'w-60 flex-shrink-0' : ''}`}
-                  >
-                    <Card className={`h-full p-6 lg:p-8 text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${feature.bgPattern} relative overflow-hidden`}>
-                      <div className="absolute inset-0 opacity-5">
-                        <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
-                      </div>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                      
-                      <CardContent className="p-0 space-y-4 relative z-10">
-                        <motion.div 
-                          className={`inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-lg group-hover:scale-105 transition-transform duration-200`}
-                        >
-                          {feature.icon}
-                        </motion.div>
-                        <div className="space-y-3">
-                          <motion.h3 
-                            className="text-2xl lg:text-3xl font-black text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-200"
-                          >
-                            {feature.value}
-                          </motion.h3>
-                          <h4 className="text-lg lg:text-xl font-bold text-foreground mb-2">{feature.title}</h4>
-                          <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{feature.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Other Sections - Optimized spacing */}
+        {/* Other Sections */}
         <section className="py-8 lg:py-16 bg-muted/30">
           <VehicleGallery vehicle={vehicle} />
         </section>
         
-        {/* Enhanced Lifestyle Gallery */}
         <EnhancedLifestyleGallery vehicle={vehicle} />
         
         <section className="py-8 lg:py-16 bg-muted/30">
           <RelatedVehicles currentVehicle={vehicle} />
         </section>
 
-        {/* Pre-Owned Similar Models Carousel */}
         <PreOwnedSimilar currentVehicle={vehicle} />
-
-        {/* FAQ Section */}
         <VehicleFAQ vehicle={vehicle} />
 
         {/* Action Panel */}
@@ -413,7 +231,7 @@ const VehicleDetails = () => {
       {/* Mobile Sticky Navigation */}
       {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
-      {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
+      {/* Modals */}
       <OffersModal 
         isOpen={isOffersModalOpen} 
         onClose={() => {
@@ -423,7 +241,6 @@ const VehicleDetails = () => {
         selectedOffer={selectedOffer}
       />
 
-      {/* Existing Modals */}
       <BookTestDrive 
         isOpen={isBookingOpen} 
         onClose={() => setIsBookingOpen(false)} 
