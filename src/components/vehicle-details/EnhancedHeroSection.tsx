@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -118,8 +119,8 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
       </div>
 
-      {/* Image Controls - Moved to Bottom Left */}
-      <div className="absolute bottom-32 left-4 z-20 flex flex-col space-y-3">
+      {/* Image Controls */}
+      <div className="absolute top-1/2 left-4 transform -translate-y-1/2 z-20">
         <motion.button
           onClick={prevImage}
           className="p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
@@ -128,7 +129,9 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         >
           <ChevronLeft className="h-6 w-6" />
         </motion.button>
+      </div>
 
+      <div className="absolute top-1/2 right-4 transform -translate-y-1/2 z-20">
         <motion.button
           onClick={nextImage}
           className="p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
@@ -137,7 +140,10 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         >
           <ChevronRight className="h-6 w-6" />
         </motion.button>
+      </div>
 
+      {/* Play/Pause Control */}
+      <div className="absolute top-6 right-6 z-20">
         <motion.button
           onClick={toggleAutoPlay}
           className="p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
