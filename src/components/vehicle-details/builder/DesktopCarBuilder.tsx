@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
@@ -55,6 +54,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   };
 
   const showSpecs = step > 3 && (config.modelYear && config.grade);
+
+  const reserveAmount = 5000; // Standard reservation amount
 
   return (
     <motion.div
@@ -174,6 +175,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               config={config}
               totalPrice={calculateTotalPrice()}
               step={step}
+              reserveAmount={reserveAmount}
             />
           </div>
         </div>

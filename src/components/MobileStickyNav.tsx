@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Slider } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -503,7 +503,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Slider className="h-5 w-5 text-toyota-red" />
+                      <Sliders className="h-5 w-5 text-toyota-red" />
                       <input
                         type="range"
                         min="30000"
