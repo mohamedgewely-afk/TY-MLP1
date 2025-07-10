@@ -4,7 +4,9 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { Toaster } from "@/components/ui/toaster";
 import MobileStickyNav from "./MobileStickyNav";
+import LanguageSwitcher from "./LanguageSwitcher";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ToyotaLayoutProps {
   children: React.ReactNode;
@@ -13,6 +15,7 @@ interface ToyotaLayoutProps {
 
 const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children, activeNavItem }) => {
   const isMobile = useIsMobile();
+  const { isRTL } = useLanguage();
 
   useEffect(() => {
     // Register service worker for PWA
@@ -40,13 +43,13 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children, activeNavItem }) 
         if (deferredPrompt) {
           const installBanner = document.createElement('div');
           installBanner.innerHTML = `
-            <div style="position: fixed; bottom: 80px; left: 16px; right: 16px; background: #eb0a1e; color: white; padding: 16px; border-radius: 12px; z-index: 1000; display: flex; justify-content: space-between; align-items: center;">
+            <div style="position: fixed; bottom: 80px; ${isRTL ? 'right' : 'left'}: 16px; ${isRTL ? 'left' : 'right'}: 16px; background: #eb0a1e; color: white; padding: 16px; border-radius: 12px; z-index: 1000; display: flex; justify-content: space-between; align-items: center; direction: ${isRTL ? 'rtl' : 'ltr'};">
               <div>
                 <div style="font-weight: bold;">Install Toyota UAE App</div>
                 <div style="font-size: 14px; opacity: 0.9;">Get the full experience</div>
               </div>
               <button id="install-btn" style="background: white; color: #eb0a1e; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Install</button>
-              <button id="dismiss-btn" style="background: transparent; color: white; border: none; padding: 8px; margin-left: 8px;">×</button>
+              <button id="dismiss-btn" style="background: transparent; color: white; border: none; padding: 8px; margin-${isRTL ? 'right' : 'left'}: 8px;">×</button>
             </div>
           `;
           document.body.appendChild(installBanner);
@@ -65,10 +68,15 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children, activeNavItem }) 
         }
       }, 30000);
     });
-  }, []);
+  }, [isRTL]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`}>
+      {/* Language Switcher - Fixed Position */}
+      <div className={`fixed top-4 ${isRTL ? 'left-4' : 'right-4'} z-50`}>
+        <LanguageSwitcher />
+      </div>
+      
       <Header />
       
       <main className="flex-1">

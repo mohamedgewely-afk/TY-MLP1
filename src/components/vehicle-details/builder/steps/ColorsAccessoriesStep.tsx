@@ -1,186 +1,234 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
-
-interface BuilderConfig {
-  modelYear: string;
-  engine: string;
-  grade: string;
-  exteriorColor: string;
-  interiorColor: string;
-  accessories: string[];
-}
+import { Check, Clock, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ColorsAccessoriesStepProps {
-  config: BuilderConfig;
-  setConfig: React.Dispatch<React.SetStateAction<BuilderConfig>>;
+  config: { 
+    exteriorColor: string;
+    interiorColor: string;
+    accessories: string[];
+  };
+  setConfig: React.Dispatch<React.SetStateAction<any>>;
 }
 
+const exteriorColors = [
+  { 
+    name: "Pearl White", 
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", 
+    price: 0,
+    stock: 'available',
+    eta: null
+  },
+  { 
+    name: "Midnight Black", 
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", 
+    price: 500,
+    stock: 'pipeline',
+    eta: '2-3 weeks'
+  },
+  { 
+    name: "Silver Metallic", 
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", 
+    price: 300,
+    stock: 'unavailable',
+    eta: null
+  }
+];
+
+const interiorColors = [
+  { name: "Black Leather", price: 0, stock: 'available' },
+  { name: "Beige Leather", price: 800, stock: 'pipeline', eta: '1-2 weeks' },
+  { name: "Gray Fabric", price: -500, stock: 'unavailable' }
+];
+
+const accessories = [
+  { name: "Premium Sound System", price: 1200, stock: 'available' },
+  { name: "Sunroof", price: 800, stock: 'available' },
+  { name: "Navigation System", price: 600, stock: 'pipeline', eta: '3-4 weeks' },
+  { name: "Heated Seats", price: 400, stock: 'available' },
+  { name: "Backup Camera", price: 300, stock: 'unavailable' },
+  { name: "Alloy Wheels", price: 900, stock: 'available' }
+];
+
 const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, setConfig }) => {
-  const exteriorColors = [
-    { name: "Pearl White", price: 0, hex: "#f8f9fa", popular: true },
-    { name: "Midnight Black", price: 500, hex: "#1a1a1a", popular: true },
-    { name: "Silver Metallic", price: 300, hex: "#c0c0c0", popular: false },
-    { name: "Deep Blue", price: 400, hex: "#1e40af", popular: false },
-    { name: "Ruby Red", price: 600, hex: "#dc2626", popular: false }
-  ];
+  const [activeTab, setActiveTab] = useState<'exterior' | 'interior' | 'accessories'>('exterior');
+  const { t, isRTL } = useLanguage();
 
-  const interiorColors = [
-    { name: "Black Leather", price: 0, popular: true },
-    { name: "Beige Leather", price: 800, popular: true },
-    { name: "Gray Fabric", price: -500, popular: false }
-  ];
+  const getStockIcon = (stock: string) => {
+    switch (stock) {
+      case 'available':
+        return <Check className="h-4 w-4 text-green-500" />;
+      case 'pipeline':
+        return <Clock className="h-4 w-4 text-orange-500" />;
+      case 'unavailable':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
 
-  const accessories = [
-    { name: "Premium Sound System", price: 1200, category: "Audio" },
-    { name: "Sunroof", price: 800, category: "Comfort" },
-    { name: "Navigation System", price: 600, category: "Technology" },
-    { name: "Heated Seats", price: 400, category: "Comfort" },
-    { name: "Backup Camera", price: 300, category: "Safety" },
-    { name: "Alloy Wheels", price: 900, category: "Style" }
-  ];
+  const getStockBadge = (stock: string, eta?: string) => {
+    switch (stock) {
+      case 'available':
+        return <Badge className="bg-green-100 text-green-800 border-green-200">{t('builder.inStock')}</Badge>;
+      case 'pipeline':
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">{t('builder.pipeline')} {eta && `- ${eta}`}</Badge>;
+      case 'unavailable':
+        return <Badge className="bg-red-100 text-red-800 border-red-200">{t('builder.noStock')}</Badge>;
+      default:
+        return null;
+    }
+  };
 
-  const toggleAccessory = (accessoryName: string) => {
-    setConfig(prev => ({
+  const handleAccessoryToggle = (accessoryName: string) => {
+    setConfig((prev: any) => ({
       ...prev,
       accessories: prev.accessories.includes(accessoryName)
-        ? prev.accessories.filter(acc => acc !== accessoryName)
+        ? prev.accessories.filter((a: string) => a !== accessoryName)
         : [...prev.accessories, accessoryName]
     }));
   };
 
   return (
-    <div className="space-y-6">
-      {/* Exterior Colors */}
-      <motion.div
+    <div className="p-4 pb-24">
+      <motion.h2 
+        className="text-xl font-bold text-center mb-6 text-foreground"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-4"
+        transition={{ duration: 0.4 }}
       >
-        <h3 className="text-xl font-bold text-foreground">Exterior Color</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {exteriorColors.map((color) => (
-            <motion.button
+        {t('builder.exteriorColor')} & {t('builder.interiorColor')}
+      </motion.h2>
+      
+      {/* Tabs */}
+      <div className="flex space-x-1 mb-6 bg-muted rounded-lg p-1">
+        {(['exterior', 'interior', 'accessories'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
+              activeTab === tab
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t(`builder.${tab === 'exterior' ? 'exteriorColor' : tab === 'interior' ? 'interiorColor' : 'accessories'}`)}
+          </button>
+        ))}
+      </div>
+
+      {/* Exterior Colors */}
+      {activeTab === 'exterior' && (
+        <div className="space-y-3">
+          {exteriorColors.map((color, index) => (
+            <motion.div
               key={color.name}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
-              className={`p-3 rounded-xl border-2 transition-all text-left ${
-                config.exteriorColor === color.name
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+              initial={{ opacity: 0, x: isRTL ? 50 : -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
+                config.exteriorColor === color.name 
+                  ? 'bg-primary/10 border-primary shadow-md' 
+                  : 'bg-card border-border hover:border-primary/50'
               }`}
+              onClick={() => setConfig((prev: any) => ({ ...prev, exteriorColor: color.name }))}
             >
-              <div className="flex items-center space-x-3 mb-2">
-                <div 
-                  className="w-8 h-8 rounded-full border-2 border-gray-300"
-                  style={{ backgroundColor: color.hex }}
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={color.image} 
+                  alt={color.name} 
+                  className="w-16 h-10 object-cover rounded-md"
+                  loading="lazy"
                 />
                 <div className="flex-1">
-                  <div className="font-semibold">{color.name}</div>
-                  {color.popular && <Badge variant="secondary" className="text-xs">Popular</Badge>}
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-foreground">{color.name}</h3>
+                    {getStockIcon(color.stock)}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {getStockBadge(color.stock, color.eta)}
+                    {color.price > 0 && (
+                      <span className="text-primary font-medium text-sm">+AED {color.price}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {color.price > 0 ? `+AED ${color.price}` : 'Included'}
-              </div>
-            </motion.button>
+            </motion.div>
           ))}
         </div>
-      </motion.div>
+      )}
 
       {/* Interior Colors */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-4"
-      >
-        <h3 className="text-xl font-bold text-foreground">Interior</h3>
+      {activeTab === 'interior' && (
         <div className="space-y-3">
-          {interiorColors.map((interior) => (
-            <motion.button
-              key={interior.name}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => setConfig(prev => ({ ...prev, interiorColor: interior.name }))}
-              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                config.interiorColor === interior.name
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+          {interiorColors.map((color, index) => (
+            <motion.div
+              key={color.name}
+              initial={{ opacity: 0, x: isRTL ? 50 : -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
+                config.interiorColor === color.name 
+                  ? 'bg-primary/10 border-primary shadow-md' 
+                  : 'bg-card border-border hover:border-primary/50'
               }`}
+              onClick={() => setConfig((prev: any) => ({ ...prev, interiorColor: color.name }))}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">{interior.name}</div>
-                  {interior.popular && <Badge variant="secondary" className="text-xs mt-1">Popular Choice</Badge>}
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">
-                    {interior.price > 0 ? `+AED ${interior.price}` : 
-                     interior.price < 0 ? `AED ${Math.abs(interior.price)} savings` : 'Included'}
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="font-semibold text-foreground">{color.name}</h3>
+                    {getStockIcon(color.stock)}
                   </div>
+                  {getStockBadge(color.stock, color.eta)}
                 </div>
+                {color.price !== 0 && (
+                  <span className={`font-medium text-sm ${color.price > 0 ? 'text-primary' : 'text-green-600'}`}>
+                    {color.price > 0 ? '+' : ''}AED {color.price}
+                  </span>
+                )}
               </div>
-            </motion.button>
+            </motion.div>
           ))}
         </div>
-      </motion.div>
+      )}
 
       {/* Accessories */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-4"
-      >
-        <h3 className="text-xl font-bold text-foreground">Accessories</h3>
+      {activeTab === 'accessories' && (
         <div className="space-y-3">
-          {accessories.map((accessory) => (
-            <motion.button
+          {accessories.map((accessory, index) => (
+            <motion.div
               key={accessory.name}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => toggleAccessory(accessory.name)}
-              className={`w-full transition-all ${
-                config.accessories.includes(accessory.name) ? 'ring-2 ring-primary' : ''
-              }`}
-            >
-              <Card className={`${
+              initial={{ opacity: 0, x: isRTL ? 50 : -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
                 config.accessories.includes(accessory.name)
-                  ? 'border-primary bg-primary/5'
-                  : 'hover:border-primary/50'
-              }`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        config.accessories.includes(accessory.name)
-                          ? 'bg-primary border-primary'
-                          : 'border-gray-300'
-                      }`}>
-                        {config.accessories.includes(accessory.name) && (
-                          <Check className="h-3 w-3 text-white" />
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">{accessory.name}</div>
-                        <Badge variant="outline" className="text-xs">{accessory.category}</Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-primary">+AED {accessory.price}</div>
-                    </div>
+                  ? 'bg-primary/10 border-primary shadow-md' 
+                  : 'bg-card border-border hover:border-primary/50'
+              } ${accessory.stock === 'unavailable' ? 'opacity-60' : ''}`}
+              onClick={() => accessory.stock !== 'unavailable' && handleAccessoryToggle(accessory.name)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="font-semibold text-foreground">{accessory.name}</h3>
+                    {getStockIcon(accessory.stock)}
+                    {config.accessories.includes(accessory.name) && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </motion.button>
+                  {getStockBadge(accessory.stock, accessory.eta)}
+                </div>
+                <span className="text-primary font-medium text-sm">+AED {accessory.price}</span>
+              </div>
+            </motion.div>
           ))}
         </div>
-      </motion.div>
+      )}
     </div>
   );
 };
