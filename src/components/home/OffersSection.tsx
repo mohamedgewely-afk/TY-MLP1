@@ -78,6 +78,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
   };
 
   const visibleOffers = isMobile ? 1 : 3;
+  const maxIndex = offers.length - visibleOffers;
 
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background">
@@ -102,59 +103,28 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
         {/* Carousel */}
         <div className="relative">
           {/* Navigation Buttons */}
-          {!isMobile && (
-            <>
-              <button
-                onClick={prevOffer}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 -translate-x-4"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              
-              <button
-                onClick={nextOffer}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 translate-x-4"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </>
-          )}
+          <button
+            onClick={prevOffer}
+            disabled={currentIndex === 0}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 -translate-x-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          
+          <button
+            onClick={nextOffer}
+            disabled={currentIndex >= maxIndex}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 translate-x-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
 
-          {/* Mobile Navigation */}
-          {isMobile && (
-            <div className="flex items-center justify-between mb-4">
-              <button
-                onClick={prevOffer}
-                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <div className="flex space-x-2">
-                {offers.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentIndex 
-                        ? 'bg-primary w-6' 
-                        : 'bg-muted-foreground/30'
-                    }`}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={nextOffer}
-                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-          )}
-
-          {/* Offers Carousel */}
+          {/* Offers Grid */}
           <div className="overflow-hidden mx-8">
             <motion.div
-              className={`flex gap-6 transition-transform duration-500`}
+              className={`grid gap-6 transition-transform duration-500 ${
+                isMobile ? 'grid-cols-1' : 'grid-cols-3'
+              }`}
               style={{
                 transform: `translateX(-${currentIndex * (100 / visibleOffers)}%)`
               }}
@@ -167,12 +137,10 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -8 }}
-                  className={`group cursor-pointer flex-shrink-0 ${
-                    isMobile ? 'w-full' : 'w-1/3'
-                  }`}
+                  className="group cursor-pointer"
                   onClick={() => onOfferClick(offer)}
                 >
-                  <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white h-full">
+                  <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white">
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
                         src={offer.image}
@@ -222,6 +190,21 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                 </motion.div>
               ))}
             </motion.div>
+          </div>
+
+          {/* Indicators */}
+          <div className="flex justify-center space-x-2 mt-8">
+            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentIndex 
+                    ? 'bg-primary w-8 shadow-lg' 
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
