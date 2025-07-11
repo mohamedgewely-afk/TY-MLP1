@@ -1,99 +1,239 @@
 
-import React from "react";
-import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu, X, Search, User, Heart, Globe, ShoppingBag, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { usePersona } from "@/contexts/PersonaContext";
+import LanguageSwitcher from "./LanguageSwitcher";
+import PersonaSelector from "./home/PersonaSelector";
+import DesktopCategoryMenu from "./DesktopCategoryMenu";
+import FavoritesDrawer from "./home/FavoritesDrawer";
+import EnhancedSearch from "./search/EnhancedSearch";
 
-const Header: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+const Header = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const { currentLanguage } = useLanguage();
+  const { personaData } = usePersona();
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const navItems = [
-    { label: "New Cars", href: "/new-cars" },
-    { label: "Hybrid", href: "/hybrid" },
-    { label: "Pre-Owned", href: "/pre-owned" },
-    { label: "Offers", href: "/offers" },
-    { label: "Service", href: "/service" },
-    { label: "Configure", href: "/configure" },
+  useEffect(() => {
+    const updateFavoritesCount = () => {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setFavoritesCount(favorites.length);
+    };
+
+    updateFavoritesCount();
+    window.addEventListener('favorites-updated', updateFavoritesCount);
+    
+    return () => {
+      window.removeEventListener('favorites-updated', updateFavoritesCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+  };
+
+  const toggleFavorites = () => {
+    setIsFavoritesOpen(!isFavoritesOpen);
+  };
+
+  const isHomePage = location.pathname === '/';
+
+  const navigation = [
+    { name: "Vehicles", href: "/#vehicles" },
+    { name: "Pre-Owned", href: "/pre-owned" },
+    { name: "Service", href: "#" },
+    { name: "Offers", href: "/#offers" },
+    { name: "About", href: "#" },
   ];
 
   return (
-    <motion.header 
-      className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <div className="toyota-container py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <motion.div
-            className="flex items-center cursor-pointer"
-            onClick={() => navigate("/")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 flex items-center justify-center">
-                <img 
-                  src="https://dam.alfuttaim.com/wps/wcm/connect/a4d697d5-b0c5-4f79-a410-8266625f6b1f/brand-toyota-toyota-mark-black.svg?MOD=AJPERES&CACHEID=ROOTWORKSPACE-a4d697d5-b0c5-4f79-a410-8266625f6b1f-p5aTs4r&mformat=true"
-                  alt="Toyota Logo"
-                  className="w-10 h-10 object-contain"
-                />
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 ${
+          isHomePage && !isMobile ? 'lg:bg-transparent lg:border-transparent' : ''
+        }`}
+      >
+        <div className="toyota-container">
+          <div className="flex h-16 lg:h-20 items-center justify-between">
+            {/* Mobile Menu Button */}
+            {isMobile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMenu}
+                className="shrink-0"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* Logo */}
+            <Link 
+              to="/" 
+              className={`flex items-center space-x-2 ${isMobile ? 'flex-1 justify-center' : ''}`}
+              onClick={closeMenu}
+            >
+              <div className="font-black text-2xl lg:text-3xl text-primary">
+                TOYOTA
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TOYOTA</h1>
-                <p className="text-xs text-toyota-red font-medium">Hybrid Experience</p>
+              <div className="hidden sm:block text-xs text-muted-foreground font-medium">
+                UAE
               </div>
+            </Link>
+
+            {/* Desktop Navigation */}
+            {!isMobile && (
+              <nav className="hidden lg:flex items-center space-x-8">
+                <DesktopCategoryMenu />
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`text-sm font-medium transition-colors hover:text-primary relative group ${
+                      isHomePage ? 'text-white hover:text-primary' : 'text-foreground'
+                    }`}
+                  >
+                    {item.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+                  </Link>
+                ))}
+              </nav>
+            )}
+
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-2">
+              {/* Language Switcher - Fixed positioning for mobile */}
+              {isMobile ? (
+                <div className="relative">
+                  <LanguageSwitcher />
+                </div>
+              ) : (
+                <LanguageSwitcher />
+              )}
+
+              {/* Search */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSearch}
+                className={`relative ${isHomePage && !isMobile ? 'text-white hover:text-primary' : ''}`}
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+
+              {/* Favorites */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleFavorites}
+                className={`relative ${isHomePage && !isMobile ? 'text-white hover:text-primary' : ''}`}
+                aria-label="Favorites"
+              >
+                <Heart className="h-5 w-5" />
+                {favoritesCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-primary text-primary-foreground">
+                    {favoritesCount}
+                  </Badge>
+                )}
+              </Button>
+
+              {/* Enquire Button - Better spacing on mobile */}
+              <Button 
+                asChild 
+                size={isMobile ? "sm" : "default"}
+                className={`${isMobile ? 'ml-2' : 'ml-4'} shrink-0`}
+              >
+                <Link to="/enquire">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Enquire
+                </Link>
+              </Button>
             </div>
-          </motion.div>
-
-          {/* Desktop Navigation */}
-          {!isMobile && (
-            <nav className="hidden md:flex items-center space-x-8">
-              {navItems.map((item, index) => (
-                <motion.button
-                  key={item.href}
-                  onClick={() => navigate(item.href)}
-                  className={`text-sm font-medium transition-colors hover:text-toyota-red ${
-                    location.pathname === item.href 
-                      ? "text-toyota-red" 
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -2 }}
-                >
-                  {item.label}
-                </motion.button>
-              ))}
-            </nav>
-          )}
-
-          {/* CTA Buttons */}
-          <div className="flex items-center space-x-4">
-            <motion.button
-              onClick={() => navigate("/test-drive")}
-              className="hidden sm:inline-flex bg-toyota-red text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Test Drive
-            </motion.button>
-            <motion.button
-              onClick={() => navigate("/enquire")}
-              className="border border-toyota-red text-toyota-red px-4 py-2 rounded-lg hover:bg-toyota-red hover:text-white transition-colors text-sm font-medium"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Enquire
-            </motion.button>
           </div>
         </div>
-      </div>
-    </motion.header>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMenuOpen && isMobile && (
+            <motion.div
+              ref={menuRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden bg-white border-t shadow-lg"
+            >
+              <div className="px-4 py-6 space-y-4">
+                <PersonaSelector />
+                <nav className="space-y-4">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={closeMenu}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </nav>
+                <div className="pt-4 border-t">
+                  <Button className="w-full" asChild>
+                    <Link to="/enquire" onClick={closeMenu}>
+                      Get in Touch
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      {/* Enhanced Search Modal */}
+      <EnhancedSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+      {/* Favorites Drawer */}
+      <FavoritesDrawer isOpen={isFavoritesOpen} onClose={() => setIsFavoritesOpen(false)} />
+    </>
   );
 };
 

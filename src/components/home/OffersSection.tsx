@@ -78,7 +78,6 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
   };
 
   const visibleOffers = isMobile ? 1 : 3;
-  const maxIndex = offers.length - visibleOffers;
 
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background">
@@ -105,96 +104,98 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
           {/* Navigation Buttons */}
           <button
             onClick={prevOffer}
-            disabled={currentIndex === 0}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 -translate-x-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 -translate-x-4"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           
           <button
             onClick={nextOffer}
-            disabled={currentIndex >= maxIndex}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 translate-x-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-xl border hover:shadow-2xl transition-all duration-300 translate-x-4"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          {/* Offers Grid */}
+          {/* Offers Carousel */}
           <div className="overflow-hidden mx-8">
             <motion.div
-              className={`grid gap-6 transition-transform duration-500 ${
-                isMobile ? 'grid-cols-1' : 'grid-cols-3'
-              }`}
+              className={`flex transition-transform duration-500 ease-in-out`}
               style={{
                 transform: `translateX(-${currentIndex * (100 / visibleOffers)}%)`
               }}
             >
               {offers.map((offer, index) => (
-                <motion.div
+                <div
                   key={offer.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                  className="group cursor-pointer"
-                  onClick={() => onOfferClick(offer)}
+                  className={`flex-shrink-0 px-3 ${
+                    isMobile ? 'w-full' : 'w-1/3'
+                  }`}
                 >
-                  <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white">
-                    <div className="relative aspect-[4/3] overflow-hidden">
-                      <img
-                        src={offer.image}
-                        alt={offer.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-white/95 text-gray-900 border-0 shadow-md">
-                          {offer.category}
-                        </Badge>
-                      </div>
-                      <div className="absolute top-4 right-4">
-                        <Badge className="bg-primary text-primary-foreground border-0 shadow-md font-bold">
-                          {offer.discount}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                            {offer.title}
-                          </h3>
-                          <p className="text-muted-foreground text-sm leading-relaxed">
-                            {offer.description}
-                          </p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -8 }}
+                    className="group cursor-pointer h-full"
+                    onClick={() => onOfferClick(offer)}
+                  >
+                    <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white h-full">
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={offer.image}
+                          alt={offer.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-white/95 text-gray-900 border-0 shadow-md">
+                            {offer.category}
+                          </Badge>
                         </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground">
-                            Valid until {offer.validUntil}
+                        <div className="absolute top-4 right-4">
+                          <Badge className="bg-primary text-primary-foreground border-0 shadow-md font-bold">
+                            {offer.discount}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                              {offer.title}
+                            </h3>
+                            <p className="text-muted-foreground text-sm leading-relaxed">
+                              {offer.description}
+                            </p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-primary hover:text-primary-foreground hover:bg-primary group-hover:translate-x-1 transition-all duration-200"
-                          >
-                            Learn More
-                            <ArrowRight className="ml-1 h-3 w-3" />
-                          </Button>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                              Valid until {offer.validUntil}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-primary hover:text-primary-foreground hover:bg-primary group-hover:translate-x-1 transition-all duration-200"
+                            >
+                              Learn More
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </div>
               ))}
             </motion.div>
           </div>
 
           {/* Indicators */}
           <div className="flex justify-center space-x-2 mt-8">
-            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+            {offers.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}

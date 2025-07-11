@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -167,6 +168,19 @@ const VehicleDetails = () => {
     window.dispatchEvent(new Event('favorites-updated'));
   };
 
+  const handleDownloadBrochure = () => {
+    // Simulate brochure download
+    const link = document.createElement('a');
+    link.href = '#';
+    link.download = `${vehicle?.name}-Brochure.pdf`;
+    link.click();
+    
+    toast({
+      title: "Brochure Downloaded",
+      description: `${vehicle?.name} brochure has been downloaded.`,
+    });
+  };
+
   if (!vehicle) {
     return (
       <ToyotaLayout>
@@ -292,11 +306,50 @@ const VehicleDetails = () => {
           vehicle={vehicle}
           galleryImages={galleryImages}
           isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleDownloadBrochure} // Changed from toggleFavorite to handleDownloadBrochure
           onBookTestDrive={() => setIsBookingOpen(true)}
           onCarBuilder={() => setIsCarBuilderOpen(true)}
           monthlyEMI={monthlyEMI}
         />
+
+        {/* Conversion Points Section */}
+        <section className="py-8 bg-muted/30">
+          <div className="toyota-container">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
+              <Button 
+                onClick={() => setIsCarBuilderOpen(true)}
+                className="w-full"
+                variant="outline"
+              >
+                <PencilRuler className="h-4 w-4 mr-2" />
+                Configure Now
+              </Button>
+              <Button 
+                onClick={() => setIsBookingOpen(true)}
+                className="w-full"
+              >
+                <Car className="h-4 w-4 mr-2" />
+                Test Drive
+              </Button>
+              <Button 
+                onClick={() => setIsFinanceOpen(true)}
+                className="w-full"
+                variant="outline"
+              >
+                <Tag className="h-4 w-4 mr-2" />
+                Get Quote
+              </Button>
+              <Button 
+                onClick={handleDownloadBrochure}
+                className="w-full"
+                variant="outline"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Brochure
+              </Button>
+            </div>
+          </div>
+        </section>
 
         {/* Lazy loaded sections */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
@@ -382,6 +435,23 @@ const VehicleDetails = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Additional Conversion Point */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mt-12"
+              >
+                <Button 
+                  onClick={() => setIsCarBuilderOpen(true)}
+                  size="lg"
+                  className="px-8 py-3"
+                >
+                  <PencilRuler className="h-5 w-5 mr-2" />
+                  Build Your Perfect {vehicle.name.split(' ').pop()}
+                </Button>
+              </motion.div>
             </div>
           </section>
 
@@ -408,7 +478,7 @@ const VehicleDetails = () => {
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleDownloadBrochure} // Changed from toggleFavorite to handleDownloadBrochure
           onBookTestDrive={() => setIsBookingOpen(true)}
           onCarBuilder={() => setIsCarBuilderOpen(true)}
           onFinanceCalculator={() => setIsFinanceOpen(true)}
