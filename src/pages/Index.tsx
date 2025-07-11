@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -189,15 +190,6 @@ const Index = () => {
   // Handler for clearing all vehicles from compare list
   const handleClearCompare = () => {
     setCompareList([]);
-  };
-
-  // Handler for offer click
-  const handleOfferClick = (offer: any) => {
-    toast({
-      title: "Offer Details",
-      description: `Learn more about ${offer.title}. Valid until ${offer.validUntil}`,
-      variant: "default",
-    });
   };
 
   // Handle persona selection completion
@@ -405,7 +397,7 @@ const Index = () => {
 
       {/* Special Offers Section */}
       {visibleSections.offers && (
-        <OffersSection onOfferClick={handleOfferClick} />
+        <OffersSection />
       )}
 
       {/* Lifestyle Section */}

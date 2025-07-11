@@ -32,7 +32,6 @@ import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsT
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
-import AnimatedCounter from "@/components/ui/animated-counter";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -371,7 +370,7 @@ const VehicleDetails = () => {
                             <motion.h3 
                               className="text-2xl lg:text-3xl font-black text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-200"
                             >
-                              <AnimatedCounter value={parseFloat(feature.value.replace(/[^\d.]/g, ''))} suffix={feature.value.replace(/[\d.]/g, '')} />
+                              {feature.value}
                             </motion.h3>
                             <h4 className="text-lg lg:text-xl font-bold text-foreground mb-2">{feature.title}</h4>
                             <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{feature.description}</p>
