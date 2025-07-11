@@ -91,6 +91,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       case 2:
         return config.grade;
       case 3:
+        // Both exterior and interior colors must be selected
         return config.exteriorColor && config.interiorColor;
       case 4:
         return true; // Review step always allows proceed
@@ -199,6 +200,13 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
             {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
           </span>
         </Button>
+        
+        {/* Disabled state message */}
+        {!canProceed() && step === 3 && (
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Please select both exterior and interior colors to continue
+          </p>
+        )}
       </motion.div>
     </div>
   );

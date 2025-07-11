@@ -17,7 +17,8 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  PencilRuler
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,7 +40,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       monthlyEMI: 899,
       description: "Essential features for everyday driving",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
-      features: ["Manual A/C", "Fabric Seats", "Basic Audio", "Standard Safety"],
+      specs: {
+        "Engine": "2.5L Hybrid",
+        "Power": "218 HP",
+        "Transmission": "CVT",
+        "Drivetrain": "FWD",
+        "Fuel Economy": "25.2 km/L",
+        "Safety Rating": "5-Star NCAP"
+      },
       highlight: "Great Value"
     },
     {
@@ -48,7 +56,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       monthlyEMI: 945,
       description: "Sport-enhanced driving experience",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
-      features: ["Sport Seats", "Enhanced Audio", "Sport Suspension", "Alloy Wheels"],
+      specs: {
+        "Engine": "2.5L Hybrid",
+        "Power": "218 HP", 
+        "Transmission": "CVT",
+        "Drivetrain": "FWD",
+        "Fuel Economy": "25.2 km/L",
+        "Safety Rating": "5-Star NCAP"
+      },
       highlight: "Sport Package"
     },
     {
@@ -57,7 +72,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       monthlyEMI: 1099,
       description: "Premium comfort and convenience",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
-      features: ["Leather Seats", "Dual-Zone Climate", "Premium Audio", "Advanced Safety"],
+      specs: {
+        "Engine": "2.5L Hybrid",
+        "Power": "218 HP",
+        "Transmission": "CVT", 
+        "Drivetrain": "AWD",
+        "Fuel Economy": "24.8 km/L",
+        "Safety Rating": "5-Star NCAP"
+      },
       highlight: "Most Popular"
     },
     {
@@ -66,7 +88,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       monthlyEMI: 1249,
       description: "Luxury features and premium materials",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
-      features: ["Premium Leather", "Panoramic Sunroof", "JBL Audio", "Full Safety Suite"],
+      specs: {
+        "Engine": "3.5L V6",
+        "Power": "301 HP",
+        "Transmission": "8-Speed Auto",
+        "Drivetrain": "AWD", 
+        "Fuel Economy": "20.5 km/L",
+        "Safety Rating": "5-Star NCAP"
+      },
       highlight: "Ultimate Luxury"
     }
   ];
@@ -131,18 +160,52 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     }
   ];
 
-  const currentGrade = grades[currentGradeIndex];
+  // Filter grades based on selected engine
+  const getGradesForEngine = (engine: string) => {
+    if (engine === "3.5L V6") {
+      return grades.filter(grade => grade.name === "Limited");
+    }
+    return grades.filter(grade => grade.name !== "Limited" || grade.specs.Engine === "2.5L Hybrid");
+  };
+
+  const availableGrades = getGradesForEngine(selectedEngine);
+  const currentGrade = availableGrades[Math.min(currentGradeIndex, availableGrades.length - 1)];
 
   const nextGrade = () => {
-    const newIndex = (currentGradeIndex + 1) % grades.length;
+    const newIndex = (currentGradeIndex + 1) % availableGrades.length;
     setCurrentGradeIndex(newIndex);
-    setSelectedGrade(grades[newIndex].name);
+    setSelectedGrade(availableGrades[newIndex].name);
   };
 
   const prevGrade = () => {
-    const newIndex = (currentGradeIndex - 1 + grades.length) % grades.length;
+    const newIndex = (currentGradeIndex - 1 + availableGrades.length) % availableGrades.length;
     setCurrentGradeIndex(newIndex);
-    setSelectedGrade(grades[newIndex].name);
+    setSelectedGrade(availableGrades[newIndex].name);
+  };
+
+  const handleEngineChange = (engine: string) => {
+    setSelectedEngine(engine);
+    const newGrades = getGradesForEngine(engine);
+    setCurrentGradeIndex(0);
+    setSelectedGrade(newGrades[0].name);
+  };
+
+  const handleConfigureClick = () => {
+    // Dispatch custom event to open car builder with pre-selected values
+    const event = new CustomEvent('openCarBuilder', {
+      detail: {
+        step: 3, // Start from exterior color step
+        config: {
+          modelYear: "2025",
+          engine: selectedEngine,
+          grade: selectedGrade,
+          exteriorColor: "",
+          interiorColor: "",
+          accessories: []
+        }
+      }
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -174,6 +237,30 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
           {/* Grades Tab */}
           <TabsContent value="grades" className="space-y-6">
+            {/* Engine Selection Above Carousel */}
+            <div className="max-w-2xl mx-auto mb-8">
+              <h3 className="text-xl font-bold text-center mb-4">Choose Your Engine</h3>
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                {engines.map((engine) => (
+                  <motion.button
+                    key={engine.name}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`p-4 rounded-xl transition-all duration-200 border-2 text-left ${
+                      selectedEngine === engine.name 
+                        ? 'bg-primary/10 border-primary shadow-lg' 
+                        : 'bg-card border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => handleEngineChange(engine.name)}
+                  >
+                    <h4 className="text-lg font-bold">{engine.name}</h4>
+                    <p className="text-primary text-sm">{engine.power} • {engine.torque}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{engine.efficiency}</p>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               {/* Grade Image */}
               <motion.div
@@ -209,12 +296,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <div className="flex space-x-2">
-                      {grades.map((_, index) => (
+                      {availableGrades.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => {
                             setCurrentGradeIndex(index);
-                            setSelectedGrade(grades[index].name);
+                            setSelectedGrade(availableGrades[index].name);
                           }}
                           className={`w-2 h-2 rounded-full transition-all ${
                             index === currentGradeIndex 
@@ -266,32 +353,41 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             </div>
                           </div>
 
-                          {/* Features with Accordion */}
-                          <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="features">
+                          {/* Full Specifications */}
+                          <Accordion type="single" collapsible className="w-full mb-4">
+                            <AccordionItem value="specs">
                               <AccordionTrigger className="text-sm font-medium">
-                                Key Features
+                                Full Specifications
                               </AccordionTrigger>
                               <AccordionContent>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {currentGrade.features.map((feature) => (
-                                    <div key={feature} className="flex items-center space-x-2 text-xs">
-                                      <Check className="h-3 w-3 text-green-500" />
-                                      <span>{feature}</span>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {Object.entries(currentGrade.specs).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between items-center text-xs p-2 bg-muted/30 rounded">
+                                      <span className="font-medium">{key}</span>
+                                      <span className="text-primary font-bold">{value}</span>
                                     </div>
                                   ))}
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
                           </Accordion>
+
+                          <Button 
+                            onClick={handleConfigureClick}
+                            className="w-full"
+                            size="sm"
+                          >
+                            <PencilRuler className="h-4 w-4 mr-2" />
+                            Configure This Grade
+                          </Button>
                         </CardContent>
                       </Card>
                     </motion.div>
                   </AnimatePresence>
                 ) : (
                   // Desktop: Grid of all cards
-                  <div className="grid grid-cols-2 gap-4">
-                    {grades.map((grade, index) => (
+                  <div className="grid grid-cols-1 gap-4">
+                    {availableGrades.map((grade, index) => (
                       <motion.div
                         key={grade.name}
                         initial={{ opacity: 0, y: 20 }}
@@ -331,19 +427,27 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-1">
-                              {grade.features.slice(0, 3).map((feature) => (
-                                <div key={feature} className="flex items-center space-x-2 text-xs">
-                                  <Check className="h-3 w-3 text-green-500" />
-                                  <span>{feature}</span>
+                            {/* Full Specifications Grid */}
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                              {Object.entries(grade.specs).map(([key, value]) => (
+                                <div key={key} className="text-xs p-2 bg-muted/30 rounded">
+                                  <div className="font-medium text-muted-foreground">{key}</div>
+                                  <div className="text-primary font-bold">{value}</div>
                                 </div>
                               ))}
-                              {grade.features.length > 3 && (
-                                <div className="text-xs text-muted-foreground">
-                                  +{grade.features.length - 3} more features
-                                </div>
-                              )}
                             </div>
+
+                            <Button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfigureClick();
+                              }}
+                              className="w-full"
+                              size="sm"
+                            >
+                              <PencilRuler className="h-4 w-4 mr-2" />
+                              Configure This Grade
+                            </Button>
                           </CardContent>
                         </Card>
                       </motion.div>

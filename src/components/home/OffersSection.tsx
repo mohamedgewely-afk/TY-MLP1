@@ -148,7 +148,6 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
                       />
-                      {/* Removed gradient overlay and icons */}
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-white/95 text-gray-900 border-0 shadow-md">
                           {offer.category}

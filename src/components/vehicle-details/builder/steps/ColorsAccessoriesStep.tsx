@@ -92,7 +92,15 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
     }));
   };
 
-  // Remove auto-switch to interior - let user choose manually
+  // Auto-switch to interior after exterior selection
+  const handleExteriorSelection = (colorName: string) => {
+    setConfig((prev: any) => ({ ...prev, exteriorColor: colorName }));
+    // Auto-switch to interior tab after exterior selection
+    setTimeout(() => {
+      setActiveTab('interior');
+    }, 300);
+  };
+
   return (
     <div className="p-4 pb-8">
       <motion.h2 
@@ -104,6 +112,19 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         {t('builder.exteriorColor')} & {t('builder.interiorColor')}
       </motion.h2>
       
+      {/* Progress Indicators */}
+      <div className="flex items-center justify-center mb-6 space-x-4">
+        <div className={`flex items-center space-x-2 ${config.exteriorColor ? 'text-green-600' : 'text-muted-foreground'}`}>
+          {config.exteriorColor ? <Check className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2 border-current" />}
+          <span className="text-sm font-medium">Exterior</span>
+        </div>
+        <div className="h-px w-8 bg-muted-foreground/30" />
+        <div className={`flex items-center space-x-2 ${config.interiorColor ? 'text-green-600' : 'text-muted-foreground'}`}>
+          {config.interiorColor ? <Check className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2 border-current" />}
+          <span className="text-sm font-medium">Interior</span>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="flex space-x-1 mb-6 bg-muted rounded-lg p-1">
         <button
@@ -115,6 +136,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           }`}
         >
           {t('builder.exteriorColor')}
+          {config.exteriorColor && <Check className="h-3 w-3 ml-1 text-green-500" />}
         </button>
         <button
           onClick={() => setActiveTab('interior')}
@@ -125,6 +147,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           }`}
         >
           {t('builder.interiorColor')}
+          {config.interiorColor && <Check className="h-3 w-3 ml-1 text-green-500" />}
         </button>
         <button
           onClick={() => setActiveTab('accessories')}
@@ -141,6 +164,11 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
       {/* Exterior Colors */}
       {activeTab === 'exterior' && (
         <div className="space-y-3">
+          {!config.exteriorColor && (
+            <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+              <p className="text-sm text-orange-800 font-medium">Please select an exterior color to continue</p>
+            </div>
+          )}
           {exteriorColors.map((color, index) => (
             <motion.div
               key={color.name}
@@ -152,7 +180,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                   ? 'bg-primary/10 border-primary shadow-md' 
                   : 'bg-card border-border hover:border-primary/50'
               }`}
-              onClick={() => setConfig((prev: any) => ({ ...prev, exteriorColor: color.name }))}
+              onClick={() => handleExteriorSelection(color.name)}
             >
               <div className="flex items-center space-x-3">
                 <img 
@@ -164,7 +192,10 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-foreground">{color.name}</h3>
-                    {getStockIcon(color.stock)}
+                    <div className="flex items-center space-x-2">
+                      {getStockIcon(color.stock)}
+                      {config.exteriorColor === color.name && <Check className="h-4 w-4 text-green-500" />}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     {getStockBadge(color.stock, color.eta)}
@@ -182,6 +213,11 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
       {/* Interior Colors */}
       {activeTab === 'interior' && (
         <div className="space-y-3">
+          {!config.interiorColor && (
+            <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+              <p className="text-sm text-orange-800 font-medium">Please select an interior color to continue</p>
+            </div>
+          )}
           {interiorColors.map((color, index) => (
             <motion.div
               key={color.name}
@@ -199,7 +235,10 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-semibold text-foreground">{color.name}</h3>
-                    {getStockIcon(color.stock)}
+                    <div className="flex items-center space-x-1">
+                      {getStockIcon(color.stock)}
+                      {config.interiorColor === color.name && <Check className="h-4 w-4 text-green-500" />}
+                    </div>
                   </div>
                   {getStockBadge(color.stock, color.eta)}
                 </div>
@@ -217,6 +256,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
       {/* Accessories */}
       {activeTab === 'accessories' && (
         <div className="space-y-3">
+          <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+            <p className="text-sm text-blue-800 font-medium">Accessories are optional - you can skip this step</p>
+          </div>
           {accessories.map((accessory, index) => (
             <motion.div
               key={accessory.name}
@@ -234,10 +276,12 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-semibold text-foreground">{accessory.name}</h3>
-                    {getStockIcon(accessory.stock)}
-                    {config.accessories.includes(accessory.name) && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
+                    <div className="flex items-center space-x-1">
+                      {getStockIcon(accessory.stock)}
+                      {config.accessories.includes(accessory.name) && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
                   </div>
                   {getStockBadge(accessory.stock, accessory.eta)}
                 </div>
