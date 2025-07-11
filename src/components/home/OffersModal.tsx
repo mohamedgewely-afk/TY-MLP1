@@ -53,7 +53,7 @@ const OffersModal: React.FC<OffersModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="w-[80vw] h-[80vh] max-w-none max-h-none p-0 overflow-hidden">
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -61,10 +61,10 @@ const OffersModal: React.FC<OffersModalProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="relative"
+              className="relative h-full flex flex-col"
             >
               {/* Hero Image Section */}
-              <div className="relative h-64 lg:h-80 overflow-hidden">
+              <div className="relative h-48 md:h-64 lg:h-80 overflow-hidden flex-shrink-0">
                 <img 
                   src={offer.image} 
                   alt={offer.title}
@@ -89,16 +89,16 @@ const OffersModal: React.FC<OffersModalProps> = ({
                 </div>
                 
                 {/* Offer Title */}
-                <div className="absolute bottom-6 left-6 right-6 text-white">
+                <div className="absolute bottom-4 left-4 right-4 text-white">
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <h1 className="text-3xl lg:text-4xl font-black mb-2">{offer.title}</h1>
-                    <p className="text-lg text-white/90 mb-2">{offer.subtitle}</p>
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl font-bold text-primary bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-black mb-2">{offer.title}</h1>
+                    <p className="text-base md:text-lg text-white/90 mb-2">{offer.subtitle}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span className="text-xl md:text-2xl font-bold text-primary bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">
                         {offer.discount}
                       </span>
                       <span className="text-sm text-white/80">
@@ -110,108 +110,110 @@ const OffersModal: React.FC<OffersModalProps> = ({
                 </div>
               </div>
 
-              {/* Content Section */}
-              <div className="max-h-[40vh] overflow-y-auto p-6 lg:p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Offer Details */}
-                  <motion.div
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <h2 className="text-2xl font-bold text-foreground mb-4">Offer Details</h2>
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
-                      {offer.description}
-                    </p>
-                    
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                        <Star className="h-5 w-5 text-primary mr-2" />
-                        Key Benefits
-                      </h3>
-                      <ul className="space-y-2">
-                        {offer.benefits?.map((benefit: string, index: number) => (
-                          <li key={index} className="flex items-start text-sm text-muted-foreground">
-                            <span className="text-primary mr-2 mt-0.5">•</span>
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+              {/* Content Section - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 md:p-6 lg:p-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    {/* Offer Details */}
+                    <motion.div
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">Offer Details</h2>
+                      <p className="text-muted-foreground mb-6 leading-relaxed text-sm md:text-base">
+                        {offer.description}
+                      </p>
+                      
+                      <div className="mb-6">
+                        <h3 className="text-base md:text-lg font-semibold mb-3 flex items-center">
+                          <Star className="h-5 w-5 text-primary mr-2" />
+                          Key Benefits
+                        </h3>
+                        <ul className="space-y-2">
+                          {offer.benefits?.map((benefit: string, index: number) => (
+                            <li key={index} className="flex items-start text-sm text-muted-foreground">
+                              <span className="text-primary mr-2 mt-0.5">•</span>
+                              {benefit}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Terms & Conditions</h3>
-                      <ul className="space-y-1">
-                        {offer.terms?.map((term: string, index: number) => (
-                          <li key={index} className="text-xs text-muted-foreground">
-                            • {term}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </motion.div>
+                      <div>
+                        <h3 className="text-base md:text-lg font-semibold mb-3">Terms & Conditions</h3>
+                        <ul className="space-y-1">
+                          {offer.terms?.map((term: string, index: number) => (
+                            <li key={index} className="text-xs text-muted-foreground">
+                              • {term}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </motion.div>
 
-                  {/* Contact Form */}
-                  <motion.div
-                    initial={{ x: 20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <Card className="border-primary/20 bg-primary/5">
-                      <CardContent className="p-6">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">Get This Offer</h2>
-                        <p className="text-muted-foreground mb-6 text-sm">
-                          Fill out the form below and our sales team will contact you with more details about this exclusive offer.
-                        </p>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                    {/* Contact Form */}
+                    <motion.div
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Card className="border-primary/20 bg-primary/5 h-fit">
+                        <CardContent className="p-4 md:p-6">
+                          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">Get This Offer</h2>
+                          <p className="text-muted-foreground mb-6 text-sm">
+                            Fill out the form below and our sales team will contact you with more details about this exclusive offer.
+                          </p>
+                          
+                          <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                                <Input id="firstName" required className="mt-1" />
+                              </div>
+                              <div>
+                                <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                                <Input id="lastName" required className="mt-1" />
+                              </div>
+                            </div>
+                            
                             <div>
-                              <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
-                              <Input id="firstName" required className="mt-1" />
+                              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                              <Input id="email" type="email" required className="mt-1" />
                             </div>
+                            
                             <div>
-                              <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
-                              <Input id="lastName" required className="mt-1" />
+                              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                              <Input id="phone" type="tel" required className="mt-1" />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="model" className="text-sm font-medium">Interested Model (Optional)</Label>
+                              <Input id="model" placeholder="e.g., Camry Hybrid" className="mt-1" />
+                            </div>
+                            
+                            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 min-h-[44px]">
+                              <Phone className="h-4 w-4 mr-2" />
+                              Request Callback
+                            </Button>
+                          </form>
+                          
+                          <div className="mt-6 pt-6 border-t border-border">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
+                              <div className="flex items-center">
+                                <Phone className="h-4 w-4 mr-1" />
+                                +971 4 123 4567
+                              </div>
+                              <div className="flex items-center">
+                                <Mail className="h-4 w-4 mr-1" />
+                                offers@toyota.ae
+                              </div>
                             </div>
                           </div>
-                          
-                          <div>
-                            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-                            <Input id="email" type="email" required className="mt-1" />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
-                            <Input id="phone" type="tel" required className="mt-1" />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="model" className="text-sm font-medium">Interested Model (Optional)</Label>
-                            <Input id="model" placeholder="e.g., Camry Hybrid" className="mt-1" />
-                          </div>
-                          
-                          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 min-h-[44px]">
-                            <Phone className="h-4 w-4 mr-2" />
-                            Request Callback
-                          </Button>
-                        </form>
-                        
-                        <div className="mt-6 pt-6 border-t border-border">
-                          <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <Phone className="h-4 w-4 mr-1" />
-                              +971 4 123 4567
-                            </div>
-                            <div className="flex items-center">
-                              <Mail className="h-4 w-4 mr-1" />
-                              offers@toyota.ae
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
             </motion.div>
