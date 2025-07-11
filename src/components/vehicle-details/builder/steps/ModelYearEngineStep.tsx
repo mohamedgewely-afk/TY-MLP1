@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BuilderConfig {
   modelYear: string;
@@ -19,6 +20,7 @@ interface ModelYearEngineStepProps {
 }
 
 const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setConfig }) => {
+  const { t } = useLanguage();
   const modelYears = ["2024", "2025"];
   
   const engines = [
@@ -28,7 +30,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
       badge: "Standard"
     },
     {
-      name: "4.0L V6",
+      name: "4.0L V6", 
       price: 5000,
       badge: "Performance"
     },
@@ -40,14 +42,14 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-4">
       {/* Model Year Selection */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-3"
       >
-        <h3 className="text-lg font-bold text-foreground">Model Year</h3>
+        <h3 className="text-lg font-bold text-foreground">{t('builder.modelYear')}</h3>
         <div className="grid grid-cols-2 gap-2">
           {modelYears.map((year) => (
             <motion.button
@@ -61,61 +63,63 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                   : 'border-border hover:border-primary/50'
               }`}
             >
-              <div className="text-xl font-bold">{year}</div>
+              <div className="text-lg font-bold">{year}</div>
             </motion.button>
           ))}
         </div>
       </motion.div>
 
-      {/* Engine Selection */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-3"
-      >
-        <h3 className="text-lg font-bold text-foreground">Engine</h3>
-        <div className="space-y-2">
-          {engines.map((engine) => (
-            <motion.button
-              key={engine.name}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => setConfig(prev => ({ ...prev, engine: engine.name }))}
-              className={`w-full transition-all ${
-                config.engine === engine.name
-                  ? 'ring-2 ring-primary'
-                  : ''
-              }`}
-            >
-              <Card className={`${
-                config.engine === engine.name
-                  ? 'border-primary bg-primary/5'
-                  : 'hover:border-primary/50'
-              }`}>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold">{engine.name}</h4>
-                      <Badge 
-                        variant={engine.badge === "Eco" ? "default" : "secondary"}
-                        className={engine.badge === "Eco" ? "bg-green-500 text-white text-xs" : "text-xs"}
-                      >
-                        {engine.badge}
-                      </Badge>
-                    </div>
-                    {engine.price > 0 && (
-                      <div className="text-sm font-bold text-primary">
-                        +AED {engine.price.toLocaleString()}
+      {/* Engine Selection - Only show if model year is selected */}
+      {config.modelYear && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-3"
+        >
+          <h3 className="text-lg font-bold text-foreground">{t('builder.engine')}</h3>
+          <div className="space-y-2">
+            {engines.map((engine) => (
+              <motion.button
+                key={engine.name}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => setConfig(prev => ({ ...prev, engine: engine.name }))}
+                className={`w-full transition-all ${
+                  config.engine === engine.name
+                    ? 'ring-2 ring-primary'
+                    : ''
+                }`}
+              >
+                <Card className={`${
+                  config.engine === engine.name
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:border-primary/50'
+                }`}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold">{engine.name}</h4>
+                        <Badge 
+                          variant={engine.badge === "Eco" ? "default" : "secondary"}
+                          className={engine.badge === "Eco" ? "bg-green-500 text-white text-xs" : "text-xs"}
+                        >
+                          {engine.badge}
+                        </Badge>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
+                      {engine.price > 0 && (
+                        <div className="text-sm font-bold text-primary">
+                          +AED {engine.price.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

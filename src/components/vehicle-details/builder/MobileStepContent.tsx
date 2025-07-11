@@ -67,7 +67,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   };
 
   const getCTAText = () => {
-    if (step === 4) {
+    if (step >= 3) { // Show stock-based CTA from step 3 onwards
       const stockStatus = getStockStatus();
       switch (stockStatus) {
         case 'available':
@@ -83,6 +83,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     return t('builder.continue');
   };
 
+  // Check if current step can proceed
+  const canProceed = () => {
+    switch (step) {
+      case 1:
+        return config.modelYear && config.engine;
+      case 2:
+        return config.grade;
+      case 3:
+        return config.exteriorColor && config.interiorColor;
+      case 4:
+        return true; // Review step always allows proceed
+      default:
+        return true;
+    }
+  };
+
   const renderContent = () => {
     switch (step) {
       case 1:
@@ -93,6 +109,37 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         return <ColorsAccessoriesStep config={config} setConfig={setConfig} />;
       case 4:
         return <ReviewStep config={config} calculateTotalPrice={calculateTotalPrice} handlePayment={handlePayment} />;
+      default:
+        return null;
+    }
+  };
+
+  const getStockBadge = () => {
+    if (step < 3) return null;
+    
+    const stockStatus = getStockStatus();
+    switch (stockStatus) {
+      case 'available':
+        return (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            In Stock
+          </div>
+        );
+      case 'pipeline':
+        return (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            Pipeline - 2-3 weeks
+          </div>
+        );
+      case 'unavailable':
+        return (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            No Stock
+          </div>
+        );
       default:
         return null;
     }
@@ -112,7 +159,19 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         </div>
       </motion.div>
       
-      {/* Compact Continue Button */}
+      {/* Stock Status Badge */}
+      {getStockBadge() && (
+        <motion.div 
+          className="px-3 py-2 flex justify-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {getStockBadge()}
+        </motion.div>
+      )}
+      
+      {/* Continue Button */}
       <motion.div 
         className="sticky bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/30"
         initial={{ opacity: 0, y: 20 }}
@@ -121,7 +180,18 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       >
         <Button 
           onClick={step === 4 ? handlePayment : goNext}
-          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-2 rounded-lg font-bold text-sm shadow-lg transition-all duration-300 relative overflow-hidden min-h-[40px]"
+          disabled={!canProceed()}
+          className={`w-full text-primary-foreground py-2 rounded-lg font-bold text-sm shadow-lg transition-all duration-300 relative overflow-hidden min-h-[40px] ${
+            !canProceed() 
+              ? 'bg-muted text-muted-foreground cursor-not-allowed' 
+              : step >= 3 && getStockStatus() === 'available'
+                ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
+                : step >= 3 && getStockStatus() === 'pipeline'
+                  ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600'
+                  : step >= 3 && getStockStatus() === 'unavailable'
+                    ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'
+                    : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70'
+          }`}
           size="sm"
         >
           <span className="relative z-10 flex items-center justify-center">

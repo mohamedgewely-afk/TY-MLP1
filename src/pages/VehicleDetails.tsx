@@ -203,6 +203,7 @@ const VehicleDetails = () => {
 
   const monthlyEMI = calculateEMI(vehicle.price);
 
+  // Updated Premium Hybrid Technology section images
   const premiumFeatures = [
     { 
       icon: <Zap className="h-8 w-8" />, 
@@ -211,7 +212,7 @@ const VehicleDetails = () => {
       description: "World's most advanced hybrid system with instant electric response",
       color: "from-primary to-primary/80",
       bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
-      image: galleryImages[0]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/27becc9e-3b15-436e-a603-df509955cba9/renditions/e6cec4c7-f5aa-4560-b91f-49ed9ab26956?binary=true&mformat=true"
     },
     { 
       icon: <Shield className="h-8 w-8" />, 
@@ -220,7 +221,7 @@ const VehicleDetails = () => {
       description: "Next-generation safety with AI-powered collision prevention",
       color: "from-green-500 to-emerald-400",
       bgPattern: "bg-gradient-to-br from-green-50 to-emerald-50",
-      image: galleryImages[1]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/cbbefa79-6002-4f61-94e0-ee097a8dc6c6/items/a7ed1d12-7c0e-4377-84f1-bf4d0230ded6/renditions/4b8651e3-1a7c-4e08-aab5-aa103f6a5b4b?binary=true&mformat=true"
     },
     { 
       icon: <Gauge className="h-8 w-8" />, 
@@ -229,7 +230,7 @@ const VehicleDetails = () => {
       description: "Seamlessly blended electric and gasoline power delivery",
       color: "from-orange-500 to-red-400",
       bgPattern: "bg-gradient-to-br from-orange-50 to-red-50",
-      image: galleryImages[2]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true"
     },
     { 
       icon: <Leaf className="h-8 w-8" />, 
@@ -238,7 +239,7 @@ const VehicleDetails = () => {
       description: "Ultra-low emissions with pure electric driving capability",
       color: "from-emerald-500 to-green-400",
       bgPattern: "bg-gradient-to-br from-emerald-50 to-green-50",
-      image: galleryImages[3]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/983d786c-8ab7-4438-81ca-8b94844f99cf/renditions/cdb22d08-d63b-4ea8-b7e1-025e74f96f67?binary=true&mformat=true"
     }
   ];
 
@@ -249,7 +250,7 @@ const VehicleDetails = () => {
       description: "Seamless smartphone integration with wireless Apple CarPlay & Android Auto",
       features: ["Wireless connectivity", "Voice commands", "Remote vehicle start"],
       color: "from-primary to-primary/70",
-      image: galleryImages[4]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/50d87eac-d48e-42f3-81b6-dcaa8a7e052a/renditions/15967074-ba68-442a-b403-d7a62a10171f?binary=true&mformat=true"
     },
     {
       icon: <Wind className="h-12 w-12" />,
@@ -257,7 +258,7 @@ const VehicleDetails = () => {
       description: "Dual-zone automatic climate control with air purification system",
       features: ["HEPA filtration", "UV sterilization", "Eco-mode optimization"],
       color: "from-cyan-600 to-teal-600",
-      image: galleryImages[5]
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true"
     },
     {
       icon: <Battery className="h-12 w-12" />,

@@ -1,8 +1,10 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   Zap, Gauge, Fuel, Settings, Shield, Smartphone, 
@@ -11,6 +13,7 @@ import {
   Monitor, Wifi, Lock, MapPin, Navigation,
   Radio, Bluetooth, Camera, MicIcon
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
@@ -20,6 +23,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [selectedGrade, setSelectedGrade] = useState("XLE");
   const [currentPerformanceIndex, setCurrentPerformanceIndex] = useState(0);
+  const isMobile = useIsMobile();
 
   // Simplified Engine options
   const engines = [
@@ -33,13 +37,33 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     }
   ];
 
-  // Grade options (dependent on engine selection)
+  // Grade options with interactive images
   const getGradesForEngine = (engine: string) => {
     const baseGrades = [
-      { name: "LE", price: "+AED 0", features: ["Basic Package", "Standard Safety"] },
-      { name: "SE", price: "+AED 8,000", features: ["Sport Package", "Enhanced Audio"] },
-      { name: "XLE", price: "+AED 15,000", features: ["Premium Package", "Luxury Interior"] },
-      { name: "Limited", price: "+AED 25,000", features: ["Full Premium", "All Features"] }
+      { 
+        name: "LE", 
+        price: "+AED 0", 
+        features: ["Basic Package", "Standard Safety"],
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true"
+      },
+      { 
+        name: "SE", 
+        price: "+AED 8,000", 
+        features: ["Sport Package", "Enhanced Audio"],
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true"
+      },
+      { 
+        name: "XLE", 
+        price: "+AED 15,000", 
+        features: ["Premium Package", "Luxury Interior"],
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true"
+      },
+      { 
+        name: "Limited", 
+        price: "+AED 25,000", 
+        features: ["Full Premium", "All Features"],
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true"
+      }
     ];
     
     if (engine === "2.5L Hybrid") {
@@ -170,7 +194,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Grade Selection */}
+        {/* Grade Selection with Interactive Images */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -189,31 +213,44 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedGrade(grade.name)}
-                className={`p-4 rounded-xl border-2 transition-all text-left min-h-[120px] ${
+                className={`relative overflow-hidden rounded-xl border-2 transition-all min-h-[160px] ${
                   selectedGrade === grade.name
                     ? 'border-primary bg-primary/5 shadow-lg'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-bold text-lg">{grade.name}</h4>
-                  <Badge variant={selectedGrade === grade.name ? "default" : "secondary"} className="text-xs">
-                    {grade.price}
-                  </Badge>
+                {/* Background Image */}
+                <div className="absolute inset-0 opacity-20">
+                  <img 
+                    src={grade.image} 
+                    alt={grade.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
-                <div className="space-y-1">
-                  {grade.features.map((feature) => (
-                    <div key={feature} className="text-xs text-muted-foreground">
-                      • {feature}
-                    </div>
-                  ))}
+                
+                {/* Content */}
+                <div className="relative z-10 p-4 h-full flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-lg">{grade.name}</h4>
+                    <Badge variant={selectedGrade === grade.name ? "default" : "secondary"} className="text-xs">
+                      {grade.price}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1 text-left">
+                    {grade.features.map((feature) => (
+                      <div key={feature} className="text-xs text-muted-foreground">
+                        • {feature}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </motion.button>
             ))}
           </div>
         </motion.div>
 
-        {/* Performance Specs Carousel */}
+        {/* Performance Specs - Accordion for Mobile, Carousel for Desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -225,76 +262,116 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <h3 className="text-lg font-bold">Detailed Specifications</h3>
           </div>
           
-          <div className="relative max-w-5xl mx-auto px-4">
-            {/* Navigation Buttons */}
-            <button
-              onClick={prevPerformanceSpec}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:-translate-x-6 min-h-[44px] min-w-[44px]"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            
-            <button
-              onClick={nextPerformanceSpec}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:translate-x-6 min-h-[44px] min-w-[44px]"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-
-            {/* Spec Card */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
-                initial={{ opacity: 0, x: 100, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -100, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-                className="mx-0 lg:mx-12"
-              >
-                <Card className="overflow-hidden border bg-card shadow-xl">
-                  <CardContent className="p-4 lg:p-8">
-                    <div className="flex items-center mb-6">
-                      <div className="p-3 bg-primary/20 rounded-lg mr-4">
-                        {currentSpec.icon}
+          {isMobile ? (
+            /* Mobile Accordion */
+            <div className="max-w-2xl mx-auto px-4">
+              <Accordion type="single" collapsible defaultValue="performance">
+                {performanceSpecs.map((spec, index) => (
+                  <AccordionItem key={spec.category} value={spec.category.toLowerCase()}>
+                    <AccordionTrigger className="text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/20 rounded-lg">
+                          {spec.icon}
+                        </div>
+                        <span className="text-lg font-bold">{spec.category}</span>
                       </div>
-                      <h4 className="text-xl lg:text-3xl font-bold">{currentSpec.category}</h4>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                      {currentSpec.specs.map((spec, index) => (
-                        <motion.div
-                          key={spec.label}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.08, duration: 0.3 }}
-                          className="bg-muted/50 rounded-lg p-4"
-                        >
-                          <div className="flex items-center mb-2">
-                            {spec.icon}
-                            <span className="ml-2 text-sm font-medium">{spec.label}</span>
-                          </div>
-                          <div className="text-base lg:text-lg font-bold">{spec.value}</div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Indicators */}
-            <div className="flex justify-center space-x-3 mt-6">
-              {performanceSpecs.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentPerformanceIndex(index)}
-                  className={`h-3 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                    index === currentPerformanceIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30 w-3'
-                  }`}
-                />
-              ))}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-1 gap-4 pt-4">
+                        {spec.specs.map((specItem, specIndex) => (
+                          <motion.div
+                            key={specItem.label}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: specIndex * 0.08, duration: 0.3 }}
+                            className="bg-muted/50 rounded-lg p-4"
+                          >
+                            <div className="flex items-center mb-2">
+                              {specItem.icon}
+                              <span className="ml-2 text-sm font-medium">{specItem.label}</span>
+                            </div>
+                            <div className="text-base font-bold">{specItem.value}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
-          </div>
+          ) : (
+            /* Desktop Carousel */
+            <div className="relative max-w-5xl mx-auto px-4">
+              {/* Navigation Buttons */}
+              <button
+                onClick={prevPerformanceSpec}
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:-translate-x-6 min-h-[44px] min-w-[44px]"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              <button
+                onClick={nextPerformanceSpec}
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all lg:translate-x-6 min-h-[44px] min-w-[44px]"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+
+              {/* Spec Card */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${currentPerformanceIndex}-${selectedEngine}-${selectedGrade}`}
+                  initial={{ opacity: 0, x: 100, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -100, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="mx-0 lg:mx-12"
+                >
+                  <Card className="overflow-hidden border bg-card shadow-xl">
+                    <CardContent className="p-4 lg:p-8">
+                      <div className="flex items-center mb-6">
+                        <div className="p-3 bg-primary/20 rounded-lg mr-4">
+                          {currentSpec.icon}
+                        </div>
+                        <h4 className="text-xl lg:text-3xl font-bold">{currentSpec.category}</h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                        {currentSpec.specs.map((spec, index) => (
+                          <motion.div
+                            key={spec.label}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.08, duration: 0.3 }}
+                            className="bg-muted/50 rounded-lg p-4"
+                          >
+                            <div className="flex items-center mb-2">
+                              {spec.icon}
+                              <span className="ml-2 text-sm font-medium">{spec.label}</span>
+                            </div>
+                            <div className="text-base lg:text-lg font-bold">{spec.value}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Indicators */}
+              <div className="flex justify-center space-x-3 mt-6">
+                {performanceSpecs.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPerformanceIndex(index)}
+                    className={`h-3 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                      index === currentPerformanceIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30 w-3'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Quick Configuration Summary */}

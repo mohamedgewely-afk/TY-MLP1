@@ -92,8 +92,15 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
     }));
   };
 
+  // Auto-switch to interior when exterior is selected
+  React.useEffect(() => {
+    if (config.exteriorColor && activeTab === 'exterior') {
+      setTimeout(() => setActiveTab('interior'), 500);
+    }
+  }, [config.exteriorColor, activeTab]);
+
   return (
-    <div className="p-4 pb-24">
+    <div className="p-4 pb-8">
       <motion.h2 
         className="text-xl font-bold text-center mb-6 text-foreground"
         initial={{ opacity: 0, y: 20 }}
@@ -105,19 +112,39 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
       
       {/* Tabs */}
       <div className="flex space-x-1 mb-6 bg-muted rounded-lg p-1">
-        {(['exterior', 'interior', 'accessories'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
-              activeTab === tab
-                ? 'bg-background text-foreground shadow-sm'
+        <button
+          onClick={() => setActiveTab('exterior')}
+          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'exterior'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {t('builder.exteriorColor')}
+        </button>
+        <button
+          onClick={() => setActiveTab('interior')}
+          disabled={!config.exteriorColor}
+          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'interior'
+              ? 'bg-background text-foreground shadow-sm'
+              : !config.exteriorColor 
+                ? 'text-muted-foreground/50 cursor-not-allowed'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t(`builder.${tab === 'exterior' ? 'exteriorColor' : tab === 'interior' ? 'interiorColor' : 'accessories'}`)}
-          </button>
-        ))}
+          }`}
+        >
+          {t('builder.interiorColor')}
+        </button>
+        <button
+          onClick={() => setActiveTab('accessories')}
+          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'accessories'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {t('builder.accessories')}
+        </button>
       </div>
 
       {/* Exterior Colors */}
@@ -161,8 +188,8 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         </div>
       )}
 
-      {/* Interior Colors */}
-      {activeTab === 'interior' && (
+      {/* Interior Colors - Only show if exterior is selected */}
+      {activeTab === 'interior' && config.exteriorColor && (
         <div className="space-y-3">
           {interiorColors.map((color, index) => (
             <motion.div
