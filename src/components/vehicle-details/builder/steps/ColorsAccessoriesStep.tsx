@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock, AlertCircle } from "lucide-react";
+import { Check, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ColorsAccessoriesStepProps {
@@ -92,13 +92,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
     }));
   };
 
-  // Auto-switch to interior when exterior is selected
-  React.useEffect(() => {
-    if (config.exteriorColor && activeTab === 'exterior') {
-      setTimeout(() => setActiveTab('interior'), 500);
-    }
-  }, [config.exteriorColor, activeTab]);
-
+  // Remove auto-switch to interior - let user choose manually
   return (
     <div className="p-4 pb-8">
       <motion.h2 
@@ -124,13 +118,10 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         </button>
         <button
           onClick={() => setActiveTab('interior')}
-          disabled={!config.exteriorColor}
           className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
             activeTab === 'interior'
               ? 'bg-background text-foreground shadow-sm'
-              : !config.exteriorColor 
-                ? 'text-muted-foreground/50 cursor-not-allowed'
-                : 'text-muted-foreground hover:text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {t('builder.interiorColor')}
@@ -188,8 +179,8 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         </div>
       )}
 
-      {/* Interior Colors - Only show if exterior is selected */}
-      {activeTab === 'interior' && config.exteriorColor && (
+      {/* Interior Colors */}
+      {activeTab === 'interior' && (
         <div className="space-y-3">
           {interiorColors.map((color, index) => (
             <motion.div
