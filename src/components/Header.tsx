@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -38,13 +39,13 @@ import { vehicles } from "@/data/vehicles";
 import { cn } from "@/lib/utils";
 import { categoryState } from "@/lib/states";
 import DesktopCategoryMenu from "./DesktopCategoryMenu";
-import PersonaSelector from "./PersonaSelector";
+import PersonaSelector from "@/components/home/PersonaSelector";
 
 export default function Header() {
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { currentLanguage, handleLanguageChange } = useLanguage();
-  const { personaData, setPersonaData } = usePersona();
+  const { language, setLanguage } = useLanguage();
+  const { selectedPersona, setSelectedPersona } = usePersona();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const categorySnap = useSnapshot(categoryState);
 
@@ -54,6 +55,10 @@ export default function Header() {
 
   const handleCloseCategory = () => {
     categoryState.selectedCategory = null;
+  };
+
+  const handleLanguageChange = (lang: 'en' | 'ar') => {
+    setLanguage(lang);
   };
 
   return (
@@ -115,7 +120,7 @@ export default function Header() {
               <Button variant="ghost" size="sm" className="relative">
                 <Globe className="h-4 w-4" />
                 <span className="ml-2 text-sm font-medium min-w-[60px] text-left">
-                  {currentLanguage === 'en' ? 'English' : 'العربية'}
+                  {language === 'en' ? 'English' : 'العربية'}
                 </span>
                 <ChevronDown className="h-3 w-3 ml-1" />
               </Button>
@@ -123,20 +128,20 @@ export default function Header() {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
                 onClick={() => handleLanguageChange('en')}
-                className={`flex items-center justify-between ${currentLanguage === 'en' ? 'bg-primary/5' : ''}`}
+                className={`flex items-center justify-between ${language === 'en' ? 'bg-primary/5' : ''}`}
               >
                 <span className="font-medium text-base">English</span>
-                {currentLanguage === 'en' && <Check className="h-4 w-4 text-primary" />}
+                {language === 'en' && <Check className="h-4 w-4 text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleLanguageChange('ar')}
-                className={`flex items-center justify-between ${currentLanguage === 'ar' ? 'bg-primary/5' : ''}`}
+                className={`flex items-center justify-between ${language === 'ar' ? 'bg-primary/5' : ''}`}
                 dir="rtl"
               >
-                <span className="font-medium text-lg leading-relaxed" style={{ fontSize: '18px', lineHeight: '1.6' }}>
+                <span className="font-medium text-xl leading-relaxed px-2 py-1" style={{ fontSize: '20px', lineHeight: '1.8' }}>
                   العربية
                 </span>
-                {currentLanguage === 'ar' && <Check className="h-4 w-4 text-primary" />}
+                {language === 'ar' && <Check className="h-4 w-4 text-primary" />}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -200,20 +205,20 @@ export default function Header() {
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem
                       onClick={() => handleLanguageChange('en')}
-                      className={`flex items-center justify-between ${currentLanguage === 'en' ? 'bg-primary/5' : ''}`}
+                      className={`flex items-center justify-between ${language === 'en' ? 'bg-primary/5' : ''}`}
                     >
                       <span className="font-medium text-base">English</span>
-                      {currentLanguage === 'en' && <Check className="h-4 w-4 text-primary" />}
+                      {language === 'en' && <Check className="h-4 w-4 text-primary" />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleLanguageChange('ar')}
-                      className={`flex items-center justify-between ${currentLanguage === 'ar' ? 'bg-primary/5' : ''}`}
+                      className={`flex items-center justify-between ${language === 'ar' ? 'bg-primary/5' : ''}`}
                       dir="rtl"
                     >
-                      <span className="font-medium text-lg leading-relaxed" style={{ fontSize: '18px', lineHeight: '1.6' }}>
+                      <span className="font-medium text-xl leading-relaxed px-2 py-1" style={{ fontSize: '20px', lineHeight: '1.8' }}>
                         العربية
                       </span>
-                      {currentLanguage === 'ar' && <Check className="h-4 w-4 text-primary" />}
+                      {language === 'ar' && <Check className="h-4 w-4 text-primary" />}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
