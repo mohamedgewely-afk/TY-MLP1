@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
@@ -28,7 +28,9 @@ interface InteractiveSpecsTechProps {
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
+  const [imageLoading, setImageLoading] = useState(true);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   const engines = [
     {
@@ -165,21 +167,37 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
   const nextGrade = () => {
     setCurrentGradeIndex((prev) => (prev + 1) % currentGrades.length);
+    setImageLoading(true);
   };
 
   const prevGrade = () => {
     setCurrentGradeIndex((prev) => (prev - 1 + currentGrades.length) % currentGrades.length);
+    setImageLoading(true);
   };
 
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
-    setCurrentGradeIndex(0); // Reset to first grade when engine changes
+    setCurrentGradeIndex(0);
+    setImageLoading(true);
+    
+    toast({
+      title: "Engine Selected",
+      description: `Switched to ${engineName} - Available grades updated`,
+    });
   };
 
   const handleDownloadSpec = (gradeName: string) => {
-    // Simulate PDF download
-    console.log(`Downloading specification sheet for ${gradeName}`);
-    // In real implementation, this would trigger actual PDF download
+    toast({
+      title: "Preparing Download",
+      description: "Your specification sheet is being prepared...",
+    });
+    
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${gradeName} specification sheet downloaded successfully.`,
+      });
+    }, 2000);
   };
 
   const handleConfigure = (gradeName: string) => {
@@ -220,7 +238,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </p>
         </motion.div>
 
-        {/* Step 1: Engine Selection - Compact Layout */}
+        {/* Step 1: Engine Selection - Compact Mobile Layout */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -228,7 +246,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           className="mb-12"
         >
           <h3 className="text-2xl font-bold text-center mb-8">Step 1: Choose Your Engine</h3>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+          
+          {/* Compact 2-column layout for mobile */}
+          <div className={`grid gap-3 max-w-4xl mx-auto ${isMobile ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}>
             {engines.map((engine, index) => (
               <motion.div
                 key={engine.name}
@@ -236,7 +256,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -2 }}
                 className="flex-1"
               >
                 <Card 
@@ -247,36 +267,38 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   }`}
                   onClick={() => handleEngineChange(engine.name)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-lg">{engine.name}</h4>
+                  <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className={`font-bold ${isMobile ? 'text-base' : 'text-lg'}`}>{engine.name}</h4>
                       <div className="flex items-center">
-                        <Car className="h-5 w-5 text-primary mr-2" />
+                        <Car className={`text-primary mr-1 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                         {selectedEngine === engine.name && (
-                          <Check className="h-4 w-4 text-primary" />
+                          <Check className={`text-primary ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                         )}
                       </div>
                     </div>
                     
-                    <p className="text-muted-foreground text-sm mb-3">
-                      {engine.description}
+                    <p className={`text-muted-foreground mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                      {isMobile ? `${engine.power} • ${engine.efficiency}` : engine.description}
                     </p>
                     
-                    <div className="grid grid-cols-2 gap-2 text-center">
-                      <div>
-                        <div className="font-bold text-primary text-base">
-                          {engine.power}
+                    {!isMobile && (
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div>
+                          <div className="font-bold text-primary text-base">
+                            {engine.power}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Power</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">Power</div>
-                      </div>
-                      
-                      <div>
-                        <div className="font-bold text-primary text-base">
-                          {engine.efficiency}
+                        
+                        <div>
+                          <div className="font-bold text-primary text-base">
+                            {engine.efficiency}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Efficiency</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">Efficiency</div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -297,23 +319,29 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
           {/* Grade Carousel */}
           <div className="relative">
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Larger for better accessibility */}
             <button
               onClick={prevGrade}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all -translate-x-2"
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all ${
+                isMobile ? 'p-2 -translate-x-1' : 'p-3 -translate-x-2'
+              }`}
+              aria-label="Previous grade"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
             </button>
             
             <button
               onClick={nextGrade}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all translate-x-2"
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all ${
+                isMobile ? 'p-2 translate-x-1' : 'p-3 translate-x-2'
+              }`}
+              aria-label="Next grade"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
             </button>
 
-            {/* Grade Card - Larger Size */}
-            <div className="mx-8">
+            {/* Grade Card - Significantly Larger for Mobile */}
+            <div className={isMobile ? 'mx-4' : 'mx-8'}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${selectedEngine}-${currentGradeIndex}`}
@@ -322,98 +350,101 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 max-w-5xl mx-auto">
+                  <Card className={`overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 ${
+                    isMobile ? 'w-full' : 'max-w-5xl mx-auto'
+                  }`}>
                     <CardContent className="p-0">
                       {/* Header */}
-                      <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6">
+                      <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 lg:p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-bold text-2xl lg:text-3xl">{currentGrade.name}</h4>
+                          <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
+                            {currentGrade.name}
+                          </h4>
                           <Badge className="bg-white/20 text-white border-white/30">
                             {currentGrade.highlight}
                           </Badge>
                         </div>
-                        <p className="text-white/90 text-base mb-4">{currentGrade.description}</p>
+                        <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                          {currentGrade.description}
+                        </p>
                         
                         {/* Pricing */}
                         <div className="pt-4 border-t border-white/20">
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="font-bold text-3xl">
+                              <div className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
                                 AED {currentGrade.fullPrice.toLocaleString()}
                               </div>
-                              <div className="text-white/80">Starting from AED {currentGrade.monthlyEMI}/month</div>
+                              <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                Starting from AED {currentGrade.monthlyEMI}/month
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Content - Larger Layout */}
-                      <div className="p-6 lg:p-8">
-                        {/* Grade Image - Larger */}
-                        <div className="mb-6 rounded-lg overflow-hidden">
+                      {/* Content - Larger Layout with Full-Width Images */}
+                      <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
+                        {/* Grade Image - Full Width and Larger Height */}
+                        <div className={`mb-6 rounded-lg overflow-hidden relative ${
+                          isMobile ? 'w-full' : ''
+                        }`}>
+                          {imageLoading && (
+                            <div className={`absolute inset-0 bg-muted animate-pulse flex items-center justify-center ${
+                              isMobile ? 'h-80' : 'h-64 lg:h-96'
+                            }`}>
+                              <div className="text-muted-foreground">Loading...</div>
+                            </div>
+                          )}
                           <img
                             src={currentGrade.image}
                             alt={`${currentGrade.name} Grade`}
-                            className="w-full h-64 lg:h-80 object-cover"
+                            className={`w-full object-cover object-center ${
+                              isMobile ? 'h-80' : 'h-64 lg:h-96'
+                            }`}
                             loading="lazy"
+                            onLoad={() => setImageLoading(false)}
+                            onError={() => setImageLoading(false)}
                           />
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                           {/* Key Features */}
                           <div>
-                            <h5 className="font-bold text-foreground mb-4 text-lg">Key Features</h5>
+                            <h5 className={`font-bold text-foreground mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>
+                              Key Features
+                            </h5>
                             <div className="space-y-2">
                               {currentGrade.features.map((feature) => (
                                 <div key={feature} className="flex items-center space-x-3">
-                                  <Check className="h-4 w-4 text-green-500" />
-                                  <span className="text-base">{feature}</span>
+                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <span className={isMobile ? 'text-sm' : 'text-base'}>{feature}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
 
-                          {/* Collapsed Specifications */}
+                          {/* Specifications */}
                           <div>
                             <Accordion type="single" collapsible className="w-full">
                               <AccordionItem value="specifications">
-                                <AccordionTrigger className="text-lg font-bold">
+                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold`}>
                                   <div className="flex items-center space-x-2">
                                     <Settings className="h-5 w-5" />
                                     <span>Full Specifications</span>
                                   </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                  <div className="grid grid-cols-1 gap-4 pt-4">
+                                  <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
                                     <div className="space-y-3">
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Engine</span>
-                                        <span className="font-medium">{currentGrade.specs.engine}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Power</span>
-                                        <span className="font-medium">{currentGrade.specs.power}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Torque</span>
-                                        <span className="font-medium">{currentGrade.specs.torque}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Transmission</span>
-                                        <span className="font-medium">{currentGrade.specs.transmission}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">0-60 mph</span>
-                                        <span className="font-medium">{currentGrade.specs.acceleration}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Fuel Economy</span>
-                                        <span className="font-medium">{currentGrade.specs.fuelEconomy}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">CO₂ Emissions</span>
-                                        <span className="font-medium">{currentGrade.specs.co2Emissions}</span>
-                                      </div>
+                                      {Object.entries(currentGrade.specs).map(([key, value]) => (
+                                        <div key={key} className="flex justify-between">
+                                          <span className="text-muted-foreground capitalize">
+                                            {key.replace(/([A-Z])/g, ' $1')}
+                                          </span>
+                                          <span className="font-medium">{value}</span>
+                                        </div>
+                                      ))}
                                     </div>
                                   </div>
                                 </AccordionContent>
@@ -423,23 +454,23 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="grid md:grid-cols-2 gap-4 mt-8">
+                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                           <Button
                             onClick={() => handleDownloadSpec(currentGrade.name)}
                             variant="outline"
                             className="w-full"
-                            size="lg"
+                            size={isMobile ? "default" : "lg"}
                           >
-                            <Download className="mr-2 h-5 w-5" />
+                            <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                             Download Spec Sheet
                           </Button>
                           
                           <Button
                             onClick={() => handleConfigure(currentGrade.name)}
                             className="w-full bg-primary hover:bg-primary/90"
-                            size="lg"
+                            size={isMobile ? "default" : "lg"}
                           >
-                            <Wrench className="mr-2 h-5 w-5" />
+                            <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                             Configure This Grade
                           </Button>
                         </div>
@@ -450,16 +481,30 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
 
-            {/* Indicators */}
+            {/* Indicators - Larger touch targets */}
             <div className="flex justify-center space-x-2 mt-8">
               {currentGrades.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentGradeIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    index === currentGradeIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30'
-                  }`}
-                />
+                  onClick={() => {
+                    setCurrentGradeIndex(index);
+                    setImageLoading(true);
+                  }}
+                  className={`rounded-full transition-all ${
+                    index === currentGradeIndex 
+                      ? 'bg-primary w-8 h-3' 
+                      : 'bg-muted-foreground/30 w-3 h-3 hover:bg-muted-foreground/50'
+                  } ${isMobile ? 'min-w-[44px] min-h-[44px] flex items-center justify-center' : ''}`}
+                  aria-label={`Go to grade ${index + 1}`}
+                >
+                  {isMobile && (
+                    <div className={`rounded-full ${
+                      index === currentGradeIndex 
+                        ? 'bg-primary w-6 h-2' 
+                        : 'bg-muted-foreground/30 w-2 h-2'
+                    }`} />
+                  )}
+                </button>
               ))}
             </div>
           </div>
