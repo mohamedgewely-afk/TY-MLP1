@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Check, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { X, Phone, Mail, MapPin, Calendar, Gift, Star } from "lucide-react";
 
 interface OffersModalProps {
   isOpen: boolean;
@@ -14,211 +15,208 @@ interface OffersModalProps {
   selectedOffer?: any;
 }
 
-const OffersModal: React.FC<OffersModalProps> = ({ isOpen, onClose, selectedOffer }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    interestedVehicle: selectedOffer?.title || '',
-    message: ''
-  });
-
-  const isMobile = useIsMobile();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [id]: value
-    }));
+const OffersModal: React.FC<OffersModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  selectedOffer 
+}) => {
+  const defaultOffer = {
+    id: 1,
+    title: "0% Interest Rate",
+    subtitle: "On Selected Models",
+    description: "Get 0% interest rate financing on selected Toyota models. Perfect opportunity to drive home your dream car with no additional interest charges.",
+    discount: "0% APR",
+    validUntil: "Dec 31, 2024",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-beccb-74f1e08d092e?binary=true&mformat=true",
+    terms: [
+      "Available on selected Toyota models",
+      "Minimum down payment required",
+      "Subject to credit approval",
+      "Cannot be combined with other offers"
+    ],
+    benefits: [
+      "No interest charges for the entire loan period",
+      "Flexible payment terms up to 60 months",
+      "Quick approval process",
+      "Professional customer service"
+    ]
   };
+
+  const offer = selectedOffer || defaultOffer;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted:", formData);
-    onClose(); // Close the modal after submission
+    // Handle form submission
+    console.log("Offer inquiry submitted");
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className={`${
-          isMobile 
-            ? 'w-[95vw] h-[85vh] max-w-none' 
-            : 'w-[80vw] h-[80vh] max-w-6xl'
-        } overflow-hidden p-0`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-primary to-primary/80 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">
-                  {selectedOffer ? selectedOffer.title : 'Special Offers'}
-                </h2>
-                <p className="text-white/90">
-                  {selectedOffer 
-                    ? 'Complete the form below to claim this exclusive offer' 
-                    : 'Discover our latest promotions and deals'
-                  }
-                </p>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="relative"
+            >
+              {/* Hero Image Section */}
+              <div className="relative h-64 lg:h-80 overflow-hidden">
+                <img 
+                  src={offer.image} 
+                  alt={offer.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                
+                {/* Close Button */}
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all min-h-[44px] min-w-[44px]"
+                >
+                  <X className="h-5 w-5 text-white" />
+                </button>
+                
+                {/* Offer Badge */}
+                <div className="absolute top-4 left-4">
+                  <Badge className="bg-primary text-primary-foreground px-3 py-1">
+                    <Gift className="h-4 w-4 mr-1" />
+                    Limited Time Offer
+                  </Badge>
+                </div>
+                
+                {/* Offer Title */}
+                <div className="absolute bottom-6 left-6 right-6 text-white">
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <h1 className="text-3xl lg:text-4xl font-black mb-2">{offer.title}</h1>
+                    <p className="text-lg text-white/90 mb-2">{offer.subtitle}</p>
+                    <div className="flex items-center gap-4">
+                      <span className="text-2xl font-bold text-primary bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">
+                        {offer.discount}
+                      </span>
+                      <span className="text-sm text-white/80">
+                        <Calendar className="h-4 w-4 inline mr-1" />
+                        Valid until {offer.validUntil}
+                      </span>
+                    </div>
+                  </motion.div>
+                </div>
               </div>
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto">
-            {selectedOffer ? (
-              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} h-full`}>
-                {/* Offer Details */}
-                <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10">
-                  <div className="sticky top-0">
+              {/* Content Section */}
+              <div className="max-h-[40vh] overflow-y-auto p-6 lg:p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Offer Details */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h2 className="text-2xl font-bold text-foreground mb-4">Offer Details</h2>
+                    <p className="text-muted-foreground mb-6 leading-relaxed">
+                      {offer.description}
+                    </p>
+                    
                     <div className="mb-6">
-                      <Badge className="bg-primary text-white mb-4 px-3 py-1">
-                        {selectedOffer.category}
-                      </Badge>
-                      <h3 className="text-2xl font-bold mb-3">{selectedOffer.title}</h3>
-                      <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                        {selectedOffer.description}
-                      </p>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                        <Star className="h-5 w-5 text-primary mr-2" />
+                        Key Benefits
+                      </h3>
+                      <ul className="space-y-2">
+                        {offer.benefits?.map((benefit: string, index: number) => (
+                          <li key={index} className="flex items-start text-sm text-muted-foreground">
+                            <span className="text-primary mr-2 mt-0.5">•</span>
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
-                    {selectedOffer.features && (
-                      <div className="mb-6">
-                        <h4 className="font-semibold mb-3 text-lg">What's Included:</h4>
-                        <ul className="space-y-3">
-                          {selectedOffer.features.map((feature: string, index: number) => (
-                            <li key={index} className="flex items-start space-x-3">
-                              <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm leading-relaxed">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Terms & Conditions</h3>
+                      <ul className="space-y-1">
+                        {offer.terms?.map((term: string, index: number) => (
+                          <li key={index} className="text-xs text-muted-foreground">
+                            • {term}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </motion.div>
 
-                    <div className="bg-white p-4 rounded-lg border border-primary/20">
-                      <div className="text-center">
-                        <div className="text-3xl font-black text-primary mb-2">
-                          {selectedOffer.discount}
+                  {/* Contact Form */}
+                  <motion.div
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-6">
+                        <h2 className="text-2xl font-bold text-foreground mb-4">Get This Offer</h2>
+                        <p className="text-muted-foreground mb-6 text-sm">
+                          Fill out the form below and our sales team will contact you with more details about this exclusive offer.
+                        </p>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                              <Input id="firstName" required className="mt-1" />
+                            </div>
+                            <div>
+                              <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                              <Input id="lastName" required className="mt-1" />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                            <Input id="email" type="email" required className="mt-1" />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                            <Input id="phone" type="tel" required className="mt-1" />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="model" className="text-sm font-medium">Interested Model (Optional)</Label>
+                            <Input id="model" placeholder="e.g., Camry Hybrid" className="mt-1" />
+                          </div>
+                          
+                          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 min-h-[44px]">
+                            <Phone className="h-4 w-4 mr-2" />
+                            Request Callback
+                          </Button>
+                        </form>
+                        
+                        <div className="mt-6 pt-6 border-t border-border">
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <div className="flex items-center">
+                              <Phone className="h-4 w-4 mr-1" />
+                              +971 4 123 4567
+                            </div>
+                            <div className="flex items-center">
+                              <Mail className="h-4 w-4 mr-1" />
+                              offers@toyota.ae
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Valid until {selectedOffer.validUntil}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Enhanced Form with Better Spacing */}
-                <div className="p-6">
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-5">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium mb-2">
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base"
-                          placeholder="Enter your full name"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium mb-2">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base"
-                          placeholder="Enter your email address"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                          Phone Number *
-                        </label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base"
-                          placeholder="+971 XX XXX XXXX"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="interestedVehicle" className="block text-sm font-medium mb-2">
-                          Interested Vehicle
-                        </label>
-                        <input
-                          type="text"
-                          id="interestedVehicle"
-                          value={formData.interestedVehicle}
-                          onChange={(e) => setFormData(prev => ({ ...prev, interestedVehicle: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base"
-                          placeholder="e.g., Toyota Camry Hybrid"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="message" className="block text-sm font-medium mb-2">
-                          Additional Message
-                        </label>
-                        <textarea
-                          id="message"
-                          value={formData.message}
-                          onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                          rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base resize-none"
-                          placeholder="Any specific requirements or questions..."
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
-                      <Button 
-                        type="submit"
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 text-lg h-14"
-                      >
-                        Claim This Offer
-                      </Button>
-                      <p className="text-center text-sm text-muted-foreground mt-3">
-                        Our team will contact you within 24 hours
-                      </p>
-                    </div>
-                  </form>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 </div>
               </div>
-            ) : (
-              <div className="p-8 text-center">
-                <h3 className="text-xl font-bold mb-4">No Offer Selected</h3>
-                <p className="text-muted-foreground">Please select an offer to view details.</p>
-              </div>
-            )}
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

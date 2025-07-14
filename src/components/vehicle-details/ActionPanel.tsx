@@ -1,22 +1,11 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Calendar,
-  Heart,
-  Share2,
-  Download,
-  Settings,
-  PencilRuler,
-  Loader2
-} from "lucide-react";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { VehicleModel } from "@/types/vehicle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useToast } from "@/hooks/use-toast";
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Car, Settings, Heart, Share2, Calculator, MapPin, Plus, ChevronUp, Download } from 'lucide-react';
+import { VehicleModel } from '@/types/vehicle';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 
 interface ActionPanelProps {
   vehicle: VehicleModel;
@@ -33,203 +22,297 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   onToggleFavorite,
   onBookTestDrive,
   onCarBuilder,
-  onFinanceCalculator,
+  onFinanceCalculator
 }) => {
-  const [isDownloading, setIsDownloading] = useState(false);
   const isMobile = useIsMobile();
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
-  const handleBrochureDownload = async () => {
-    setIsDownloading(true);
-    
-    try {
-      // Simulate download process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Download Started",
-        description: `${vehicle.name} brochure is being downloaded`,
-        duration: 3000,
-      });
-      
-      // In real implementation, this would trigger actual PDF download
-      const link = document.createElement('a');
-      link.href = '#'; // Would be actual brochure PDF URL
-      link.download = `${vehicle.name}-brochure.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDownloading(false);
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${vehicle.name} - Toyota UAE`,
+          text: `Check out this amazing ${vehicle.name} starting from AED ${vehicle.price.toLocaleString()}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(window.location.href);
     }
   };
 
-  return (
-    <>
-      {/* Desktop Action Panel */}
-      {!isMobile && (
+  const handleBrochureDownload = () => {
+    toast({
+      title: "Brochure Download",
+      description: "Your brochure is being prepared and will be downloaded shortly.",
+    });
+    // Simulate brochure download
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${vehicle.name} brochure has been downloaded.`,
+      });
+    }, 2000);
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Smaller Floating Action Button - Better positioned */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-6 right-6 z-40"
+          className="fixed right-4 bottom-24 z-40"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
         >
-          <Card className="bg-white/95 backdrop-blur-md shadow-2xl border-0 overflow-hidden">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="text-center">
-                  <h3 className="font-bold text-lg mb-1">{vehicle.name}</h3>
-                  <p className="text-2xl font-black text-primary">
-                    AED {vehicle.price.toLocaleString()}
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-14 h-14 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-2xl border-2 border-white/20"
+          >
+            <motion.div
+              animate={{ rotate: isExpanded ? 45 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Plus className="h-6 w-6" />
+            </motion.div>
+          </Button>
+        </motion.div>
+
+        {/* Expanded Panel */}
+        <AnimatePresence>
+          {isExpanded && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-35"
+                onClick={() => setIsExpanded(false)}
+              />
+              
+              {/* Action Panel */}
+              <motion.div
+                initial={{ y: 300, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 300, opacity: 0 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="fixed left-4 right-4 bottom-24 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-bold text-gray-900">{vehicle.name}</h3>
+                    <span className="text-lg font-bold text-primary">
+                      AED {vehicle.price.toLocaleString()}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => setIsExpanded(false)}
+                    variant="outline"
+                    size="sm"
+                    className="p-2 rounded-full"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Main Actions */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button 
+                      onClick={() => {
+                        onBookTestDrive();
+                        setIsExpanded(false);
+                      }}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl text-sm font-medium"
+                    >
+                      <Car className="h-4 w-4 mr-2" />
+                      Test Drive
+                    </Button>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button 
+                      onClick={() => {
+                        onCarBuilder();
+                        setIsExpanded(false);
+                      }}
+                      variant="outline"
+                      className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground py-3 rounded-xl bg-white/70 text-sm font-medium"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </motion.div>
+                </div>
+
+                {/* Secondary Actions */}
+                <div className="grid grid-cols-3 gap-2">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      onClick={() => {
+                        onFinanceCalculator();
+                        setIsExpanded(false);
+                      }}
+                      variant="outline"
+                      className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                    >
+                      <Calculator className="h-4 w-4 mb-1" />
+                      Finance
+                    </Button>
+                  </motion.div>
+
+                  {/* REPLACED FAVORITE WITH BROCHURE FOR MOBILE */}
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      onClick={() => {
+                        handleBrochureDownload();
+                        setIsExpanded(false);
+                      }}
+                      variant="outline"
+                      className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                    >
+                      <Download className="h-4 w-4 mb-1" />
+                      Brochure
+                    </Button>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      onClick={handleShare}
+                      variant="outline"
+                      className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                    >
+                      <Share2 className="h-4 w-4 mb-1" />
+                      Share
+                    </Button>
+                  </motion.div>
+                </div>
+
+                {/* Quick Info */}
+                <div className="mt-4 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-muted-foreground text-center">
+                    From AED 899/month • Free delivery • 7-day return
                   </p>
-                  <p className="text-sm text-muted-foreground">Starting from AED 899/month</p>
                 </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={onBookTestDrive}
-                    className="bg-primary hover:bg-primary/90 text-white font-semibold"
-                    size="sm"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Test Drive
-                  </Button>
-
-                  <Button
-                    onClick={onCarBuilder}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white font-semibold"
-                    size="sm"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configure
-                  </Button>
-
-                  <Button
-                    onClick={onFinanceCalculator}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white font-semibold"
-                    size="sm"
-                  >
-                    <PencilRuler className="mr-2 h-4 w-4" />
-                    Finance
-                  </Button>
-
-                  {/* Enhanced Brochure Download Button */}
-                  <Button
-                    onClick={handleBrochureDownload}
-                    disabled={isDownloading}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white font-semibold"
-                    size="sm"
-                  >
-                    {isDownloading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="text-xs">Downloading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-4 w-4" />
-                        Brochure
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <Button
-                    onClick={onToggleFavorite}
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    <Heart className={`mr-2 h-4 w-4 ${isFavorite ? 'fill-current text-red-500' : ''}`} />
-                    {isFavorite ? 'Saved' : 'Save'}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Mobile Sticky Action Bar */}
-      {isMobile && (
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg"
-        >
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-bold text-lg">AED {vehicle.price.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">From AED 899/month</p>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  onClick={onToggleFavorite}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current text-red-500' : ''}`} />
-                </Button>
-                
-                <Button
-                  onClick={handleBrochureDownload}
-                  disabled={isDownloading}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  {isDownloading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Download className="h-5 w-5" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={onBookTestDrive}
-                className="bg-primary hover:bg-primary/90 text-white font-semibold h-12"
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                Book Test Drive
-              </Button>
-
-              <Button
-                onClick={onCarBuilder}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white font-semibold h-12"
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                Configure
-              </Button>
-            </div>
+  return (
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, delay: 0.5 }}
+      className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
+    >
+      <div className="toyota-container py-4">
+        {/* Price Display */}
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center space-x-4 mb-2">
+            <span className="text-3xl font-black text-primary">
+              AED {vehicle.price.toLocaleString()}
+            </span>
+            <span className="text-lg text-muted-foreground line-through">
+              AED {Math.round(vehicle.price * 1.15).toLocaleString()}
+            </span>
           </div>
-        </motion.div>
-      )}
-    </>
+          <p className="text-sm text-muted-foreground">Starting price • Finance available from AED 899/month</p>
+        </div>
+
+        {/* Action Buttons Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+          {/* Primary Actions */}
+          <motion.div 
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
+            className="lg:col-span-2"
+          >
+            <Button 
+              onClick={onBookTestDrive}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl shadow-lg"
+              size="lg"
+            >
+              <Car className="h-5 w-5 mr-2" />
+              Book Test Drive
+            </Button>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
+            className="lg:col-span-2"
+          >
+            <Button 
+              onClick={onCarBuilder}
+              variant="outline"
+              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-3 rounded-xl bg-white/50 backdrop-blur-sm"
+              size="lg"
+            >
+              <Settings className="h-5 w-5 mr-2" />
+              Build & Price
+            </Button>
+          </motion.div>
+
+          {/* Secondary Actions */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button 
+              onClick={onFinanceCalculator}
+              variant="outline"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 rounded-xl bg-white/50 backdrop-blur-sm"
+            >
+              <Calculator className="h-5 w-5 mr-1" />
+              <span className="hidden sm:inline">Finance</span>
+            </Button>
+          </motion.div>
+
+          <div className="flex space-x-2">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+              <Button 
+                onClick={onToggleFavorite}
+                variant="outline"
+                className={`w-full py-3 rounded-xl border backdrop-blur-sm ${
+                  isFavorite 
+                    ? "border-primary text-primary bg-primary/10" 
+                    : "border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50"
+                }`}
+              >
+                <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+              <Button 
+                onClick={handleShare}
+                variant="outline"
+                className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 rounded-xl bg-white/50 backdrop-blur-sm"
+              >
+                <Share2 className="h-5 w-5" />
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Quick Info */}
+        <div className="flex justify-center items-center space-x-6 mt-3 text-xs text-muted-foreground">
+          <div className="flex items-center">
+            <MapPin className="h-3 w-3 mr-1" />
+            Available at all showrooms
+          </div>
+          <div>• Free home delivery</div>
+          <div>• 7-day return policy</div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
