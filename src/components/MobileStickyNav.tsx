@@ -592,86 +592,49 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Sticky Navigation Bar */}
+      {/* Enhanced Main Sticky Nav */}
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-700/50 z-30 shadow-lg"
+        className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl z-30 pt-2 pb-6 md:hidden"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="relative flex items-center justify-between px-1">
-          {/* Left side tabs */}
-          <div className="flex flex-1">
-            <NavItem 
-              icon={<Home className="h-5 w-5" />}
-              label="Home"
-              to="/"
-              isActive={activeItem === "home"}
-            />
-            <NavItem 
-              icon={<Search className="h-5 w-5" />}
-              label="Search"
-              to="#"
-              onClick={() => handleSectionToggle("search")}
-              isActive={activeItem === "search" || activeSection === "search"}
-            />
-          </div>
-
-          {/* Central Floating Action Button */}
-          <motion.button
+        <div className="grid grid-cols-5 gap-1 px-2">
+          <NavItem 
+            icon={<Home className="h-5 w-5" />}
+            label="Home"
+            to="/"
+            isActive={activeItem === "home"}
+          />
+          <NavItem 
+            icon={<Search className="h-5 w-5" />}
+            label="Search"
+            to="#"
+            onClick={() => handleSectionToggle("search")}
+            isActive={activeItem === "search" || activeSection === "search"}
+          />
+          <NavItem 
+            icon={<Car className="h-5 w-5" />}
+            label="Models"
+            to="#"
             onClick={() => handleSectionToggle("models")}
-            className="relative -mt-8 mx-4 h-14 w-14 bg-gradient-to-r from-toyota-red to-red-600 text-white rounded-full shadow-lg flex items-center justify-center overflow-hidden"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            animate={{
-              boxShadow: [
-                "0 4px 20px rgba(220, 38, 38, 0.3)",
-                "0 4px 25px rgba(220, 38, 38, 0.5)",
-                "0 4px 20px rgba(220, 38, 38, 0.3)"
-              ]
-            }}
-            transition={{
-              boxShadow: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }
-            }}
-          >
-            {/* Shine animation overlay */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-              animate={{
-                x: ['-100%', '200%']
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "linear",
-                repeatDelay: 2
-              }}
-            />
-            <Car className="h-7 w-7 relative z-10" />
-          </motion.button>
-
-          {/* Right side tabs */}
-          <div className="flex flex-1 justify-end">
-            <NavItem 
-              icon={<ShoppingBag className="h-5 w-5" />}
-              label="Pre-Owned"
-              to="#"
-              onClick={() => handleSectionToggle("pre-owned")}
-              isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
-            />
-            <NavItem 
-              icon={<Menu className="h-5 w-5" />}
-              label="Menu"
-              to="#"
-              onClick={toggleMenu}
-              isActive={isMenuOpen}
-            />
-          </div>
+            isActive={activeItem === "models" || activeSection === "models"}
+          />
+          <NavItem 
+            icon={<ShoppingBag className="h-5 w-5" />}
+            label="Pre-Owned"
+            to="#"
+            onClick={() => handleSectionToggle("pre-owned")}
+            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+          />
+          <NavItem 
+            icon={<Menu className="h-5 w-5" />}
+            label="Menu"
+            to="#"
+            onClick={toggleMenu}
+            isActive={isMenuOpen}
+          />
         </div>
       </motion.div>
     </>
