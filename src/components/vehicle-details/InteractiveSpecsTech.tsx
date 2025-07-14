@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { 
   Gauge, 
@@ -13,11 +12,11 @@ import {
   Zap, 
   Car, 
   Settings, 
-  Star, 
-  Award,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  Download,
+  Wrench
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,49 +26,9 @@ interface InteractiveSpecsTechProps {
 }
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
-  const [selectedGrade, setSelectedGrade] = useState("XLE");
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
-  const [currentGradeIndex, setCurrentGradeIndex] = useState(2);
+  const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
   const isMobile = useIsMobile();
-
-  const grades = [
-    {
-      name: "Base",
-      fullPrice: 89900,
-      monthlyEMI: 899,
-      description: "Essential features for everyday driving",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
-      features: ["Manual A/C", "Fabric Seats", "Basic Audio", "Standard Safety"],
-      highlight: "Great Value"
-    },
-    {
-      name: "SE",
-      fullPrice: 94900,
-      monthlyEMI: 945,
-      description: "Sport-enhanced driving experience",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
-      features: ["Sport Seats", "Enhanced Audio", "Sport Suspension", "Alloy Wheels"],
-      highlight: "Sport Package"
-    },
-    {
-      name: "XLE",
-      fullPrice: 104900,
-      monthlyEMI: 1099,
-      description: "Premium comfort and convenience",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
-      features: ["Leather Seats", "Dual-Zone Climate", "Premium Audio", "Advanced Safety"],
-      highlight: "Most Popular"
-    },
-    {
-      name: "Limited",
-      fullPrice: 119900,
-      monthlyEMI: 1249,
-      description: "Luxury features and premium materials",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
-      features: ["Premium Leather", "Panoramic Sunroof", "JBL Audio", "Full Safety Suite"],
-      highlight: "Ultimate Luxury"
-    }
-  ];
 
   const engines = [
     {
@@ -77,72 +36,168 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       power: "218 HP",
       torque: "221 lb-ft",
       efficiency: "25.2 km/L",
-      description: "Advanced hybrid powertrain with seamless electric assist"
+      description: "Advanced hybrid powertrain with seamless electric assist",
+      grades: [
+        {
+          name: "Hybrid SE",
+          fullPrice: 94900,
+          monthlyEMI: 945,
+          description: "Sport-enhanced hybrid driving experience",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
+          features: ["Hybrid Drive Modes", "Sport Seats", "Enhanced Audio", "18\" Alloy Wheels"],
+          highlight: "Eco Sport",
+          specs: {
+            engine: "2.5L 4-cylinder Hybrid",
+            power: "218 HP (combined)",
+            torque: "221 lb-ft",
+            transmission: "ECVT",
+            acceleration: "7.4 seconds (0-60)",
+            fuelEconomy: "25.2 km/L",
+            co2Emissions: "102 g/km"
+          }
+        },
+        {
+          name: "Hybrid XLE",
+          fullPrice: 107900,
+          monthlyEMI: 1129,
+          description: "Premium hybrid comfort and convenience",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
+          features: ["Leather Seats", "Dual-Zone Climate", "Premium Audio", "Advanced Safety"],
+          highlight: "Most Popular",
+          specs: {
+            engine: "2.5L 4-cylinder Hybrid",
+            power: "218 HP (combined)",
+            torque: "221 lb-ft",
+            transmission: "ECVT",
+            acceleration: "7.4 seconds (0-60)",
+            fuelEconomy: "25.2 km/L",
+            co2Emissions: "102 g/km"
+          }
+        },
+        {
+          name: "Hybrid Limited",
+          fullPrice: 122900,
+          monthlyEMI: 1279,
+          description: "Luxury hybrid with premium materials",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
+          features: ["Premium Leather", "Panoramic Sunroof", "JBL Audio", "Full Safety Suite"],
+          highlight: "Ultimate Luxury",
+          specs: {
+            engine: "2.5L 4-cylinder Hybrid",
+            power: "218 HP (combined)",
+            torque: "221 lb-ft",
+            transmission: "ECVT",
+            acceleration: "7.4 seconds (0-60)",
+            fuelEconomy: "25.2 km/L",
+            co2Emissions: "102 g/km"
+          }
+        }
+      ]
     },
     {
       name: "3.5L V6",
       power: "301 HP", 
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
-      description: "Powerful V6 engine for enhanced performance"
+      description: "Powerful V6 engine for enhanced performance",
+      grades: [
+        {
+          name: "V6 SE",
+          fullPrice: 98900,
+          monthlyEMI: 989,
+          description: "Sport-enhanced V6 driving experience",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
+          features: ["Sport Seats", "Enhanced Audio", "Sport Suspension", "19\" Alloy Wheels"],
+          highlight: "Sport Package",
+          specs: {
+            engine: "3.5L V6",
+            power: "301 HP",
+            torque: "267 lb-ft",
+            transmission: "8-speed automatic",
+            acceleration: "5.8 seconds (0-60)",
+            fuelEconomy: "18.4 km/L",
+            co2Emissions: "142 g/km"
+          }
+        },
+        {
+          name: "V6 XLE",
+          fullPrice: 111900,
+          monthlyEMI: 1169,
+          description: "Premium V6 comfort and convenience",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/28f33a08-ebcf-4ead-bece-c6a87bdf8202/renditions/8e932ad8-f4b4-46af-9963-31e6afe9e75d?binary=true&mformat=true",
+          features: ["Leather Seats", "Dual-Zone Climate", "Premium Audio", "Advanced Safety"],
+          highlight: "Performance Luxury",
+          specs: {
+            engine: "3.5L V6",
+            power: "301 HP",
+            torque: "267 lb-ft",
+            transmission: "8-speed automatic",
+            acceleration: "5.8 seconds (0-60)",
+            fuelEconomy: "18.4 km/L",
+            co2Emissions: "142 g/km"
+          }
+        },
+        {
+          name: "V6 Limited",
+          fullPrice: 126900,
+          monthlyEMI: 1319,
+          description: "Ultimate V6 luxury experience",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e17fbeb2-7fd7-4ede-b289-a0132c22cc6d/items/251b16c8-aa49-4695-84a8-db323bf20983/renditions/83b86a73-7570-46fe-8d12-36ea57577738?binary=true&mformat=true",
+          features: ["Premium Leather", "Panoramic Sunroof", "JBL Audio", "Full Safety Suite"],
+          highlight: "Top Performance",
+          specs: {
+            engine: "3.5L V6",
+            power: "301 HP",
+            torque: "267 lb-ft",
+            transmission: "8-speed automatic",
+            acceleration: "5.8 seconds (0-60)",
+            fuelEconomy: "18.4 km/L",
+            co2Emissions: "142 g/km"
+          }
+        }
+      ]
     }
   ];
 
-  const specifications = [
-    {
-      category: "Performance",
-      icon: <Gauge className="h-5 w-5" />,
-      specs: [
-        { label: "Horsepower", value: "218 HP" },
-        { label: "Torque", value: "221 lb-ft" },
-        { label: "0-100 km/h", value: "7.5 seconds" },
-        { label: "Top Speed", value: "180 km/h" }
-      ]
-    },
-    {
-      category: "Efficiency",
-      icon: <Fuel className="h-5 w-5" />,
-      specs: [
-        { label: "Fuel Economy", value: "25.2 km/L" },
-        { label: "CO₂ Emissions", value: "102 g/km" },
-        { label: "Fuel Tank", value: "50 L" },
-        { label: "Range", value: "1,260 km" }
-      ]
-    },
-    {
-      category: "Safety",
-      icon: <Shield className="h-5 w-5" />,
-      specs: [
-        { label: "NCAP Rating", value: "5 Stars" },
-        { label: "Airbags", value: "10 Total" },
-        { label: "Safety Sense", value: "3.0 System" },
-        { label: "Blind Spot", value: "Monitoring" }
-      ]
-    },
-    {
-      category: "Technology",
-      icon: <Zap className="h-5 w-5" />,
-      specs: [
-        { label: "Infotainment", value: "12.3\" Display" },
-        { label: "Connectivity", value: "Wireless CarPlay" },
-        { label: "Audio", value: "JBL Premium" },
-        { label: "Navigation", value: "Built-in GPS" }
-      ]
-    }
-  ];
-
-  const currentGrade = grades[currentGradeIndex];
+  const currentEngineData = engines.find(e => e.name === selectedEngine) || engines[0];
+  const currentGrades = currentEngineData.grades;
+  const currentGrade = currentGrades[currentGradeIndex];
 
   const nextGrade = () => {
-    const newIndex = (currentGradeIndex + 1) % grades.length;
-    setCurrentGradeIndex(newIndex);
-    setSelectedGrade(grades[newIndex].name);
+    setCurrentGradeIndex((prev) => (prev + 1) % currentGrades.length);
   };
 
   const prevGrade = () => {
-    const newIndex = (currentGradeIndex - 1 + grades.length) % grades.length;
-    setCurrentGradeIndex(newIndex);
-    setSelectedGrade(grades[newIndex].name);
+    setCurrentGradeIndex((prev) => (prev - 1 + currentGrades.length) % currentGrades.length);
+  };
+
+  const handleEngineChange = (engineName: string) => {
+    setSelectedEngine(engineName);
+    setCurrentGradeIndex(0); // Reset to first grade when engine changes
+  };
+
+  const handleDownloadSpec = (gradeName: string) => {
+    // Simulate PDF download
+    console.log(`Downloading specification sheet for ${gradeName}`);
+    // In real implementation, this would trigger actual PDF download
+  };
+
+  const handleConfigure = (gradeName: string) => {
+    // Dispatch custom event to open car builder with pre-filled config
+    const event = new CustomEvent('openCarBuilder', {
+      detail: {
+        step: 2, // Start at grade selection since engine is already chosen
+        config: {
+          modelYear: '2024',
+          engine: selectedEngine,
+          grade: gradeName,
+          exteriorColor: '',
+          interiorColor: '',
+          accessories: []
+        }
+      }
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -158,323 +213,263 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Interactive Experience
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
-            Detailed Specifications
+            Choose Your Configuration
           </h2>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Explore every detail of your future vehicle with our interactive specification guide.
+            Start by selecting your preferred engine, then explore the available grades.
           </p>
         </motion.div>
 
-        <Tabs defaultValue="grades" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="grades">Select Your Grade</TabsTrigger>
-            <TabsTrigger value="engines">Choose Engine</TabsTrigger>
-            <TabsTrigger value="specs">Full Specifications</TabsTrigger>
-          </TabsList>
-
-          {/* Grades Tab */}
-          <TabsContent value="grades" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
-              {/* Grade Image */}
+        {/* Step 1: Engine Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <h3 className="text-2xl font-bold text-center mb-8">Step 1: Choose Your Engine</h3>
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} max-w-4xl mx-auto`}>
+            {engines.map((engine, index) => (
               <motion.div
-                key={currentGrade.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="relative aspect-video rounded-xl overflow-hidden bg-muted"
+                key={engine.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -4 }}
               >
-                <img
-                  src={currentGrade.image}
-                  alt={`${currentGrade.name} Grade`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <Badge className="bg-white/90 text-gray-900">
-                    {currentGrade.name} Grade
-                  </Badge>
-                </div>
-              </motion.div>
-
-              {/* Grade Selection */}
-              <div className="space-y-4">
-                {/* Navigation for Mobile */}
-                {isMobile && (
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      onClick={prevGrade}
-                      className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <div className="flex space-x-2">
-                      {grades.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setCurrentGradeIndex(index);
-                            setSelectedGrade(grades[index].name);
-                          }}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentGradeIndex 
-                              ? 'bg-primary w-6' 
-                              : 'bg-muted-foreground/30'
-                          }`}
-                        />
-                      ))}
+                <Card 
+                  className={`cursor-pointer transition-all duration-300 ${
+                    selectedEngine === engine.name
+                      ? 'border-2 border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20'
+                      : 'border border-border hover:border-primary/50 hover:shadow-md'
+                  }`}
+                  onClick={() => handleEngineChange(engine.name)}
+                >
+                  <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>{engine.name}</h4>
+                      <div className="flex items-center">
+                        <Car className="h-6 w-6 text-primary mr-2" />
+                        {selectedEngine === engine.name && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
                     </div>
-                    <button
-                      onClick={nextGrade}
-                      className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                )}
+                    
+                    <p className={`text-muted-foreground mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                      {engine.description}
+                    </p>
+                    
+                    <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                      <div className="text-center">
+                        <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                          {engine.power}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Power</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                          {engine.torque}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Torque</div>
+                      </div>
+                      
+                      <div className={`text-center ${isMobile ? 'col-span-2' : 'col-span-1'}`}>
+                        <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                          {engine.efficiency}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Efficiency</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
-                {/* Grade Cards */}
-                {isMobile ? (
-                  // Mobile: Single card with navigation
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentGrade.name}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 h-full">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-lg font-bold">{currentGrade.name}</h3>
-                            <Badge className="bg-primary/10 text-primary text-xs">
-                              {currentGrade.highlight}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {currentGrade.description}
-                          </p>
-                          
-                          <div className="text-center mb-3 p-3 bg-primary/5 rounded-lg">
-                            <div className="text-xl font-black text-primary">
-                              AED {currentGrade.fullPrice.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Starting from AED {currentGrade.monthlyEMI}/month
-                            </div>
-                          </div>
+        {/* Step 2: Grade Selection Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-8"
+        >
+          <h3 className="text-2xl font-bold text-center mb-8">
+            Step 2: Available Grades for {selectedEngine}
+          </h3>
 
-                          {/* Features with Accordion */}
+          {/* Grade Carousel */}
+          <div className="relative">
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevGrade}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all -translate-x-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <button
+              onClick={nextGrade}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all translate-x-2"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+
+            {/* Grade Card */}
+            <div className="mx-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${selectedEngine}-${currentGradeIndex}`}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 max-w-4xl mx-auto">
+                    <CardContent className="p-0">
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>{currentGrade.name}</h4>
+                          <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                            {currentGrade.highlight}
+                          </Badge>
+                        </div>
+                        <p className="text-white/90 text-sm">{currentGrade.description}</p>
+                        
+                        {/* Pricing */}
+                        <div className="mt-3 pt-3 border-t border-white/20">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                                AED {currentGrade.fullPrice.toLocaleString()}
+                              </div>
+                              <div className="text-white/80 text-sm">Starting from AED {currentGrade.monthlyEMI}/month</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4">
+                        {/* Grade Image */}
+                        <div className="mb-4 rounded-lg overflow-hidden">
+                          <img
+                            src={currentGrade.image}
+                            alt={`${currentGrade.name} Grade`}
+                            className="w-full h-48 object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {/* Key Features */}
+                        <div className="mb-4">
+                          <h5 className="font-bold text-foreground mb-3 text-sm">Key Features</h5>
+                          <div className={`grid gap-1 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                            {currentGrade.features.map((feature) => (
+                              <div key={feature} className="flex items-center space-x-2 text-sm">
+                                <Check className="h-3 w-3 text-green-500" />
+                                <span>{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Collapsed Specifications */}
+                        <div className="mb-4">
                           <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="features">
-                              <AccordionTrigger className="text-sm font-medium">
-                                Key Features
+                            <AccordionItem value="specifications">
+                              <AccordionTrigger className="text-sm font-bold">
+                                <div className="flex items-center space-x-2">
+                                  <Settings className="h-4 w-4" />
+                                  <span>Full Specifications</span>
+                                </div>
                               </AccordionTrigger>
                               <AccordionContent>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {currentGrade.features.map((feature) => (
-                                    <div key={feature} className="flex items-center space-x-2 text-xs">
-                                      <Check className="h-3 w-3 text-green-500" />
-                                      <span>{feature}</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Engine</span>
+                                      <span className="font-medium">{currentGrade.specs.engine}</span>
                                     </div>
-                                  ))}
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Power</span>
+                                      <span className="font-medium">{currentGrade.specs.power}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Torque</span>
+                                      <span className="font-medium">{currentGrade.specs.torque}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Transmission</span>
+                                      <span className="font-medium">{currentGrade.specs.transmission}</span>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">0-60 mph</span>
+                                      <span className="font-medium">{currentGrade.specs.acceleration}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Fuel Economy</span>
+                                      <span className="font-medium">{currentGrade.specs.fuelEconomy}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">CO₂ Emissions</span>
+                                      <span className="font-medium">{currentGrade.specs.co2Emissions}</span>
+                                    </div>
+                                  </div>
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
                           </Accordion>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </AnimatePresence>
-                ) : (
-                  // Desktop: Grid of all cards
-                  <div className="grid grid-cols-2 gap-4">
-                    {grades.map((grade, index) => (
-                      <motion.div
-                        key={grade.name}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ y: -4 }}
-                      >
-                        <Card className={`cursor-pointer transition-all duration-300 h-full ${
-                          selectedGrade === grade.name
-                            ? 'border-2 border-primary bg-primary/5 shadow-lg'
-                            : 'border border-border hover:border-primary/50 hover:shadow-md'
-                        }`}
-                        onClick={() => {
-                          setSelectedGrade(grade.name);
-                          setCurrentGradeIndex(index);
-                        }}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-lg font-bold">{grade.name}</h3>
-                              <Badge className="bg-primary/10 text-primary text-xs">
-                                {grade.highlight}
-                              </Badge>
-                            </div>
-                            
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {grade.description}
-                            </p>
-                            
-                            <div className="text-center mb-3 p-3 bg-primary/5 rounded-lg">
-                              <div className="text-xl font-black text-primary">
-                                AED {grade.fullPrice.toLocaleString()}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Starting from AED {grade.monthlyEMI}/month
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-1">
-                              {grade.features.slice(0, 3).map((feature) => (
-                                <div key={feature} className="flex items-center space-x-2 text-xs">
-                                  <Check className="h-3 w-3 text-green-500" />
-                                  <span>{feature}</span>
-                                </div>
-                              ))}
-                              {grade.features.length > 3 && (
-                                <div className="text-xs text-muted-foreground">
-                                  +{grade.features.length - 3} more features
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Engines Tab */}
-          <TabsContent value="engines" className="space-y-6">
-            <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {engines.map((engine, index) => (
-                <motion.div
-                  key={engine.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                >
-                  <Card className={`cursor-pointer transition-all duration-300 ${
-                    selectedEngine === engine.name
-                      ? 'border-2 border-primary bg-primary/5 shadow-lg'
-                      : 'border border-border hover:border-primary/50 hover:shadow-md'
-                  }`}
-                  onClick={() => setSelectedEngine(engine.name)}
-                  >
-                    <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>{engine.name}</h3>
-                        <Car className="h-6 w-6 text-primary" />
-                      </div>
-                      
-                      <p className={`text-muted-foreground mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                        {engine.description}
-                      </p>
-                      
-                      <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                        <div className="text-center">
-                          <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                            {engine.power}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Power</div>
                         </div>
-                        
-                        <div className="text-center">
-                          <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                            {engine.torque}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Torque</div>
-                        </div>
-                        
-                        <div className={`text-center ${isMobile ? 'col-span-2' : 'col-span-1'}`}>
-                          <div className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                            {engine.efficiency}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Efficiency</div>
+
+                        {/* Action Buttons */}
+                        <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                          <Button
+                            onClick={() => handleDownloadSpec(currentGrade.name)}
+                            variant="outline"
+                            className="w-full text-sm"
+                            size="sm"
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Spec Sheet
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleConfigure(currentGrade.name)}
+                            className="w-full bg-primary hover:bg-primary/90 text-sm"
+                            size="sm"
+                          >
+                            <Wrench className="mr-2 h-4 w-4" />
+                            Configure This Grade
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center space-x-2 mt-6">
+              {currentGrades.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentGradeIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    index === currentGradeIndex ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                  }`}
+                />
               ))}
             </div>
-          </TabsContent>
-
-          {/* Specifications Tab */}
-          <TabsContent value="specs" className="space-y-6">
-            {isMobile ? (
-              <Accordion type="single" collapsible className="w-full space-y-4">
-                {specifications.map((section, index) => (
-                  <AccordionItem key={section.category} value={section.category}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                          {section.icon}
-                        </div>
-                        <span className="font-bold text-left">{section.category}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="grid grid-cols-1 gap-3 pt-2">
-                        {section.specs.map((spec) => (
-                          <div key={spec.label} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                            <span className="font-medium text-sm">{spec.label}</span>
-                            <span className="font-bold text-primary text-sm">{spec.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {specifications.map((section, index) => (
-                  <motion.div
-                    key={section.category}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
-                  >
-                    <Card className="h-full border border-border hover:border-primary/50 hover:shadow-md transition-all duration-300">
-                      <CardContent className="p-6">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                            {section.icon}
-                          </div>
-                          <h3 className="font-bold text-lg">{section.category}</h3>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          {section.specs.map((spec) => (
-                            <div key={spec.label} className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">{spec.label}</span>
-                              <span className="font-bold text-primary text-sm">{spec.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
