@@ -397,7 +397,7 @@ const Index = () => {
 
       {/* Special Offers Section */}
       {visibleSections.offers && (
-        <OffersSection />
+        <OffersSection onOfferClick={() => {}} />
       )}
 
       {/* Lifestyle Section */}
