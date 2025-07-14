@@ -66,6 +66,26 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       category: "Graduate",
       terms: ["Graduated within 2 years", "Proof of graduation required", "Subject to credit approval"]
+    },
+    {
+      id: "5",
+      title: "Trade-In Bonus",
+      description: "Get extra value for your trade-in vehicle with our special promotion.",
+      discount: "Up to AED 4,000",
+      validUntil: "April 30, 2025",
+      image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      category: "Trade-In",
+      terms: ["Valid trade-in required", "Cannot be combined with other offers", "Market evaluation applies"]
+    },
+    {
+      id: "6",
+      title: "Military Discount",
+      description: "Special pricing for active military personnel and veterans.",
+      discount: "AED 1,500",
+      validUntil: "December 31, 2024",
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      category: "Military",
+      terms: ["Valid military ID required", "Active duty and veterans eligible", "Cannot be combined with other offers"]
     }
   ];
 
@@ -78,7 +98,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
   };
 
   const visibleOffers = isMobile ? 1 : 3;
-  const maxIndex = offers.length - visibleOffers;
+  const maxIndex = Math.max(0, offers.length - visibleOffers);
 
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background">
@@ -100,7 +120,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
           </p>
         </motion.div>
 
-        {/* Carousel */}
+        {/* Full Carousel - No Vertical Scrolling */}
         <div className="relative">
           {/* Navigation Buttons */}
           <button
@@ -119,12 +139,10 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          {/* Offers Grid */}
+          {/* Offers Carousel Container */}
           <div className="overflow-hidden mx-8">
             <motion.div
-              className={`grid gap-6 transition-transform duration-500 ${
-                isMobile ? 'grid-cols-1' : 'grid-cols-3'
-              }`}
+              className="flex transition-transform duration-500 ease-in-out"
               style={{
                 transform: `translateX(-${currentIndex * (100 / visibleOffers)}%)`
               }}
@@ -135,12 +153,14 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: (index % visibleOffers) * 0.1 }}
                   whileHover={{ y: -8 }}
-                  className="group cursor-pointer"
+                  className={`group cursor-pointer flex-shrink-0 ${
+                    isMobile ? 'w-full' : 'w-1/3'
+                  } px-3`}
                   onClick={() => onOfferClick(offer)}
                 >
-                  <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white">
+                  <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] bg-white h-full">
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
                         src={offer.image}
@@ -148,7 +168,6 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
                       />
-                      {/* Removed gradient overlay and icons */}
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-white/95 text-gray-900 border-0 shadow-md">
                           {offer.category}
@@ -161,8 +180,8 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                       </div>
                     </div>
                     
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
+                    <CardContent className="p-6 flex-1 flex flex-col">
+                      <div className="space-y-4 flex-1">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                             {offer.title}
@@ -172,7 +191,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
                           </p>
                         </div>
                         
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-auto">
                           <div className="text-sm text-muted-foreground">
                             Valid until {offer.validUntil}
                           </div>
