@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
-import EnhancedMobileCarBuilder from "./builder/EnhancedMobileCarBuilder";
-import EnhancedDesktopCarBuilder from "./builder/EnhancedDesktopCarBuilder";
+import ToyotaEnhancedMobileCarBuilder from "./builder/ToyotaEnhancedMobileCarBuilder";
+import ToyotaEnhancedDesktopCarBuilder from "./builder/ToyotaEnhancedDesktopCarBuilder";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface CarBuilderProps {
