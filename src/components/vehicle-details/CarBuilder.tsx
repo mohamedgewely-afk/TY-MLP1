@@ -1,7 +1,7 @@
-
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MobileDialog, MobileDialogContent } from "@/components/ui/mobile-dialog";
 import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
@@ -38,7 +38,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
 
-  console.log('🎯 CarBuilder Render:', { isMobile, deviceCategory, isInitialized });
+  console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -111,9 +111,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   // Show loading state until device detection completes
   if (!isInitialized) {
+    const LoadingDialog = isMobile ? MobileDialog : Dialog;
+    const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
+    
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
+      <LoadingDialog open={isOpen} onOpenChange={onClose}>
+        <LoadingContent className={isMobile ? "" : "max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden"}>
           <VisuallyHidden>
             <DialogTitle>Loading Car Builder</DialogTitle>
             <DialogDescription>Please wait while we initialize the car builder.</DialogDescription>
@@ -121,47 +124,24 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </LoadingContent>
+      </LoadingDialog>
     );
   }
 
-  // Mobile-first Dialog styles
-  const dialogStyles = isMobile 
-    ? 'max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden fixed inset-0 z-50' 
-    : 'max-w-7xl max-h-[90vh] w-full';
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className={dialogStyles}
-        aria-describedby="car-builder-description"
-        style={{
-          // Ensure proper mobile viewport handling
-          ...(isMobile && {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100vw',
-            height: '100vh',
-            maxWidth: 'none',
-            maxHeight: 'none',
-            transform: 'none',
-            borderRadius: 0,
-          })
-        }}
-      >
-        <VisuallyHidden>
-          <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-          <DialogDescription id="car-builder-description">
-            Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
-          </DialogDescription>
-        </VisuallyHidden>
-        
-        <AnimatePresence mode="wait">
-          {isMobile ? (
+  // Mobile-first approach with proper Dialog handling
+  if (isMobile) {
+    return (
+      <MobileDialog open={isOpen} onOpenChange={onClose}>
+        <MobileDialogContent>
+          <VisuallyHidden>
+            <DialogTitle>Build Your {vehicle.name}</DialogTitle>
+            <DialogDescription>
+              Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
+            </DialogDescription>
+          </VisuallyHidden>
+          
+          <AnimatePresence mode="wait">
             <MobileCarBuilder
               key="mobile"
               vehicle={vehicle}
@@ -176,21 +156,40 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               onClose={onClose}
               deviceCategory={deviceCategory}
             />
-          ) : (
-            <DesktopCarBuilder
-              key="desktop"
-              vehicle={vehicle}
-              step={step}
-              config={config}
-              setConfig={updateConfig}
-              showConfirmation={showConfirmation}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goBack={goBack}
-              goNext={goNext}
-              onClose={onClose}
-            />
-          )}
+          </AnimatePresence>
+        </MobileDialogContent>
+      </MobileDialog>
+    );
+  }
+
+  // Desktop Dialog
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent 
+        className="max-w-7xl max-h-[90vh] w-full"
+        aria-describedby="car-builder-description"
+      >
+        <VisuallyHidden>
+          <DialogTitle>Build Your {vehicle.name}</DialogTitle>
+          <DialogDescription id="car-builder-description">
+            Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
+          </DialogDescription>
+        </VisuallyHidden>
+        
+        <AnimatePresence mode="wait">
+          <DesktopCarBuilder
+            key="desktop"
+            vehicle={vehicle}
+            step={step}
+            config={config}
+            setConfig={updateConfig}
+            showConfirmation={showConfirmation}
+            calculateTotalPrice={calculateTotalPrice}
+            handlePayment={handlePayment}
+            goBack={goBack}
+            goNext={goNext}
+            onClose={onClose}
+          />
         </AnimatePresence>
       </DialogContent>
     </Dialog>

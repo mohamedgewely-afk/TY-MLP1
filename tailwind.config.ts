@@ -298,23 +298,32 @@ export default {
 					border: '1px solid rgba(255, 255, 255, 0.2)',
 				},
 				'.glass-mobile': {
-					backgroundColor: 'rgba(255, 255, 255, 0.05)',
-					backdropFilter: 'blur(8px)',
-					border: '1px solid rgba(255, 255, 255, 0.1)',
+					backgroundColor: 'rgba(255, 255, 255, 0.08)',
+					backdropFilter: 'blur(12px)',
+					border: '1px solid rgba(255, 255, 255, 0.15)',
 				},
 				'.mobile-viewport': {
 					width: '100vw',
 					height: '100vh',
+					maxWidth: '100vw',
+					maxHeight: '100vh',
 					position: 'fixed',
 					top: '0',
 					left: '0',
 					right: '0',
 					bottom: '0',
+					overflow: 'hidden',
 				},
 				'.mobile-container': {
 					maxWidth: '100%',
-					paddingLeft: 'env(safe-area-inset-left)',
-					paddingRight: 'env(safe-area-inset-right)',
+					paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
+					paddingRight: 'max(env(safe-area-inset-right), 1rem)',
+				},
+				'.mobile-safe-area': {
+					paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
+					paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+					paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
+					paddingRight: 'max(env(safe-area-inset-right), 1rem)',
 				}
 			};
 			addUtilities(newUtilities);

@@ -1,7 +1,7 @@
 
 import { useDeviceInfo } from "./use-device-info";
 
-// Backward compatibility hook that maintains the original API
+// Updated backward compatibility hook that uses the enhanced device detection
 export function useIsMobile(): boolean {
   const { isMobile } = useDeviceInfo();
   return isMobile;
