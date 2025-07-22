@@ -111,8 +111,8 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
         prevOffer();
       }
     },
-    threshold: 30,
-    debug: true
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
   });
 
   return (
@@ -154,11 +154,11 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          {/* Offers Carousel Container with Swipe */}
+          {/* Offers Carousel Container with Swipe - Fixed touch behavior */}
           <div 
             ref={swipeableRef} 
             className="overflow-hidden mx-8 touch-manipulation select-none"
-            style={{ touchAction: 'pan-x' }}
+            style={{ touchAction: 'pan-y pinch-zoom' }}
           >
             <motion.div
               className="flex transition-transform duration-500 ease-in-out"
