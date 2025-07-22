@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -107,6 +107,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([50000, 200000]);
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   
   const quickActionCards = [
     {
@@ -180,6 +181,14 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection("quick-actions");
     }
   };
+
+  const togglePlusMenu = () => {
+    if (isPlusMenuOpen) {
+      setIsPlusMenuOpen(false);
+    } else {
+      setIsPlusMenuOpen(true);
+    }
+  };
   
   if (!isMobile) return null;
 
@@ -187,14 +196,76 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     <>
       {/* Overlay */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {(isMenuOpen || isPlusMenuOpen) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsPlusMenuOpen(false);
+            }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Plus Menu */}
+      <AnimatePresence>
+        {isPlusMenuOpen && (
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed bottom-20 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-t-3xl shadow-2xl z-50 max-h-[60vh] overflow-hidden border-t-4 border-toyota-red"
+          >
+            <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50/80 to-white/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
+              <div>
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white">Quick Actions</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Fast access to key features</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsPlusMenuOpen(false)}
+                className="rounded-full h-10 w-10 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="p-6">
+              <Carousel opts={{ align: "start" }} className="w-full">
+                <CarouselContent>
+                  {quickActionCards.map((card) => (
+                    <CarouselItem key={card.id} className="basis-2/3 pl-4">
+                      <Link to={card.link} onClick={() => setIsPlusMenuOpen(false)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Card className={cn("h-32 overflow-hidden", card.color)}>
+                            <CardContent className="flex flex-col justify-between h-full p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <h3 className="font-semibold text-base">{card.title}</h3>
+                                  <p className="text-xs opacity-90">{card.description}</p>
+                                </div>
+                                <div className="opacity-80">
+                                  {card.icon}
+                                </div>
+                              </div>
+                              <div className="flex justify-end">
+                                <ChevronRight className="h-4 w-4 opacity-70" />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -600,7 +671,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-5 gap-1 px-2">
+        <div className="grid grid-cols-6 gap-1 px-2">
           <NavItem 
             icon={<Home className="h-5 w-5" />}
             label="Home"
@@ -620,6 +691,13 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             to="#"
             onClick={() => handleSectionToggle("models")}
             isActive={activeItem === "models" || activeSection === "models"}
+          />
+          <NavItem 
+            icon={<Plus className="h-5 w-5" />}
+            label="Quick"
+            to="#"
+            onClick={togglePlusMenu}
+            isActive={isPlusMenuOpen}
           />
           <NavItem 
             icon={<ShoppingBag className="h-5 w-5" />}
