@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap, Bolt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -765,11 +765,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
       {/* Enhanced Main Sticky Nav */}
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl z-30 pt-2 pb-6 md:hidden"
+        className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl z-30 py-1 md:hidden"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+        style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))' }}
       >
         <div className={`grid gap-1 px-2 ${vehicle ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <NavItem 
@@ -792,9 +792,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             <NavItem 
               icon={
                 <div className="relative">
-                  <div className="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-75"></div>
-                  <div className="relative bg-red-500 rounded-full p-1.5">
-                    <Zap className="h-3 w-3 text-white animate-bounce" fill="white" />
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
+                  <div className="relative bg-red-500 rounded-full p-2">
+                    <Bolt className="h-4 w-4 text-white animate-pulse" fill="white" strokeWidth={0} />
                   </div>
                 </div>
               }
@@ -813,7 +813,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             isActive={activeItem === "search" || activeSection === "search"}
           />
           <NavItem 
-            icon={<Menu className="h-5 w-5" />}
+            icon={<Menu className="h-5 w-5 text-red-500" />}
             label="Menu"
             to="#"
             onClick={toggleMenu}
