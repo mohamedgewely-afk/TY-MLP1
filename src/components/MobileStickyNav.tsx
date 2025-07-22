@@ -268,8 +268,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </div>
 
             <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
-              {/* Quick Actions Section */}
-              {activeSection === "quick-actions" && (
+              {/* Lightning Actions Section - Shows lightningQuickActions */}
+              {activeSection === "lightning-actions" && (
                 <motion.div 
                   className="p-6"
                   initial={{ opacity: 0, y: 20 }}
@@ -278,52 +278,29 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 >
                   <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Quick Actions</h4>
                   
-                  <Carousel opts={{ align: "start" }} className="w-full mb-6">
-                    <CarouselContent>
-                      {quickActionCards.map((card) => (
-                        <CarouselItem key={card.id} className="basis-2/3 pl-4">
-                          <Link to={card.link} onClick={() => setIsMenuOpen(false)}>
-                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                              <Card className={cn("h-32 overflow-hidden", card.color)}>
-                                <CardContent className="flex flex-col justify-between h-full p-4">
-                                  <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                      <h3 className="font-semibold text-base">{card.title}</h3>
-                                      <p className="text-xs opacity-90">{card.description}</p>
-                                    </div>
-                                    <div className="opacity-80">
-                                      {card.icon}
-                                    </div>
-                                  </div>
-                                  <div className="flex justify-end">
-                                    <ChevronRight className="h-4 w-4 opacity-70" />
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </motion.div>
-                          </Link>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      variant="outline" 
-                      className="h-12 text-left justify-start"
-                      onClick={() => handleSectionToggle("models")}
-                    >
-                      <Car className="h-4 w-4 mr-2" />
-                      Browse Models
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="h-12 text-left justify-start"
-                      onClick={() => handleSectionToggle("search")}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Find Vehicle
-                    </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    {lightningQuickActions.map((action) => (
+                      <Link key={action.id} to={action.link} onClick={() => setIsMenuOpen(false)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Card className={cn("h-32 overflow-hidden", action.color)}>
+                            <CardContent className="flex flex-col justify-between h-full p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <h3 className="font-semibold text-base">{action.title}</h3>
+                                  <p className="text-xs opacity-90">{action.description}</p>
+                                </div>
+                                <div className="opacity-80">
+                                  {action.icon}
+                                </div>
+                              </div>
+                              <div className="flex justify-end">
+                                <ChevronRight className="h-4 w-4 opacity-70" />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -631,7 +608,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 </motion.div>
               )}
 
-              {/* Menu Section */}
+              {/* Menu Section - Shows quickActionCards + quickMenuItems */}
               {activeSection === "menu" && (
                 <motion.div 
                   className="p-6"
@@ -641,6 +618,37 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 >
                   <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Toyota Services</h4>
                   
+                  {/* Quick Action Cards */}
+                  <Carousel opts={{ align: "start" }} className="w-full mb-6">
+                    <CarouselContent>
+                      {quickActionCards.map((card) => (
+                        <CarouselItem key={card.id} className="basis-2/3 pl-4">
+                          <Link to={card.link} onClick={() => setIsMenuOpen(false)}>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Card className={cn("h-32 overflow-hidden", card.color)}>
+                                <CardContent className="flex flex-col justify-between h-full p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="space-y-1">
+                                      <h3 className="font-semibold text-base">{card.title}</h3>
+                                      <p className="text-xs opacity-90">{card.description}</p>
+                                    </div>
+                                    <div className="opacity-80">
+                                      {card.icon}
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end">
+                                    <ChevronRight className="h-4 w-4 opacity-70" />
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+                  
+                  {/* Additional Menu Items */}
                   <div className="grid grid-cols-2 gap-4">
                     {quickMenuItems.map((item) => (
                       <Link key={item.title} to={item.link} onClick={() => setIsMenuOpen(false)}>
@@ -689,7 +697,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           
           {/* Lightning Quick Actions */}
           <motion.button
-            onClick={() => handleSectionToggle("quick-actions")}
+            onClick={() => handleSectionToggle("lightning-actions")}
             className="flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors relative"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -728,7 +736,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </motion.div>
             <span className={cn(
               "text-xs font-medium transition-colors truncate w-full text-center",
-              activeSection === "quick-actions" ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
+              activeSection === "lightning-actions" ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
             )}>
               Quick
             </span>
