@@ -125,7 +125,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             <DialogDescription>Please wait while we initialize the car builder.</DialogDescription>
           </VisuallyHidden>
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-toyota-red"></div>
           </div>
         </LoadingContent>
       </LoadingDialog>
@@ -145,37 +145,20 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           </VisuallyHidden>
           
           <AnimatePresence mode="wait">
-            {useEnhancedUI ? (
-              <EnhancedMobileCarBuilder
-                key="enhanced-mobile"
-                vehicle={vehicle}
-                step={step}
-                config={config}
-                setConfig={updateConfig}
-                showConfirmation={showConfirmation}
-                calculateTotalPrice={calculateTotalPrice}
-                handlePayment={handlePayment}
-                goBack={goBack}
-                goNext={goNext}
-                onClose={onClose}
-                deviceCategory={deviceCategory}
-              />
-            ) : (
-              <MobileCarBuilder
-                key="mobile"
-                vehicle={vehicle}
-                step={step}
-                config={config}
-                setConfig={updateConfig}
-                showConfirmation={showConfirmation}
-                calculateTotalPrice={calculateTotalPrice}
-                handlePayment={handlePayment}
-                goBack={goBack}
-                goNext={goNext}
-                onClose={onClose}
-                deviceCategory={deviceCategory}
-              />
-            )}
+            <ToyotaEnhancedMobileCarBuilder
+              key="toyota-mobile"
+              vehicle={vehicle}
+              step={step}
+              config={config}
+              setConfig={updateConfig}
+              showConfirmation={showConfirmation}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goBack={goBack}
+              goNext={goNext}
+              onClose={onClose}
+              deviceCategory={deviceCategory}
+            />
           </AnimatePresence>
         </MobileDialogContent>
       </MobileDialog>
@@ -197,35 +180,19 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </VisuallyHidden>
         
         <AnimatePresence mode="wait">
-          {useEnhancedUI ? (
-            <EnhancedDesktopCarBuilder
-              key="enhanced-desktop"
-              vehicle={vehicle}
-              step={step}
-              config={config}
-              setConfig={updateConfig}
-              showConfirmation={showConfirmation}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goBack={goBack}
-              goNext={goNext}
-              onClose={onClose}
-            />
-          ) : (
-            <DesktopCarBuilder
-              key="desktop"
-              vehicle={vehicle}
-              step={step}
-              config={config}
-              setConfig={updateConfig}
-              showConfirmation={showConfirmation}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goBack={goBack}
-              goNext={goNext}
-              onClose={onClose}
-            />
-          )}
+          <ToyotaEnhancedDesktopCarBuilder
+            key="toyota-desktop"
+            vehicle={vehicle}
+            step={step}
+            config={config}
+            setConfig={updateConfig}
+            showConfirmation={showConfirmation}
+            calculateTotalPrice={calculateTotalPrice}
+            handlePayment={handlePayment}
+            goBack={goBack}
+            goNext={goNext}
+            onClose={onClose}
+          />
         </AnimatePresence>
       </DialogContent>
     </Dialog>

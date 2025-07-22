@@ -1,8 +1,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import Enhanced3DGradeCards from "../Enhanced3DGradeCards";
-import { useIsMobile } from "@/hooks/use-mobile";
+import ToyotaGradeCards from "../ToyotaGradeCards";
 
 interface BuilderConfig {
   modelYear: string;
@@ -19,11 +18,9 @@ interface GradeCarouselStepProps {
 }
 
 const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
-  const isMobile = useIsMobile();
-
   return (
     <div className="space-y-4">
-      <Enhanced3DGradeCards config={config} setConfig={setConfig} />
+      <ToyotaGradeCards config={config} setConfig={setConfig} />
     </div>
   );
 };
