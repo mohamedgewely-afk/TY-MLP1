@@ -1,7 +1,9 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
+import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
@@ -27,21 +29,22 @@ interface MobileCarBuilderProps {
   goBack: () => void;
   goNext: () => void;
   onClose: () => void;
+  deviceCategory: DeviceCategory;
 }
 
-// Cinematic entrance variants
-const containerVariants = {
+// Responsive variants based on device category
+const getContainerVariants = (deviceCategory: DeviceCategory) => ({
   hidden: { 
     opacity: 0,
-    scale: 0.9,
-    rotateX: -15,
+    scale: deviceCategory === 'smallMobile' ? 0.95 : 0.9,
+    rotateX: deviceCategory === 'smallMobile' ? -10 : -15,
   },
   visible: { 
     opacity: 1,
     scale: 1,
     rotateX: 0,
     transition: {
-      duration: 0.8,
+      duration: deviceCategory === 'smallMobile' ? 0.6 : 0.8,
       ease: [0.25, 0.46, 0.45, 0.94],
       staggerChildren: 0.1
     }
@@ -51,7 +54,7 @@ const containerVariants = {
     scale: 0.95,
     transition: { duration: 0.4 }
   }
-};
+});
 
 const headerVariants = {
   hidden: { y: -60, opacity: 0 },
@@ -107,8 +110,11 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   handlePayment,
   goBack,
   goNext,
-  onClose
+  onClose,
+  deviceCategory
 }) => {
+  const { containerPadding, buttonSize, cardSpacing, textSize } = useResponsiveSize();
+
   const getCurrentVehicleImage = () => {
     const exteriorColors = [
       { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
@@ -120,35 +126,57 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
+  // Responsive image height based on device category
+  const getImageHeight = () => {
+    switch (deviceCategory) {
+      case 'smallMobile': return 'h-48';
+      case 'standardMobile': return 'h-56';
+      case 'largeMobile': return 'h-64';
+      default: return 'h-64';
+    }
+  };
+
+  // Responsive header padding and safe area
+  const getHeaderPadding = () => {
+    const basePadding = deviceCategory === 'smallMobile' ? 'p-2' : 'p-3';
+    return `${basePadding} safe-area-inset-top`;
+  };
+
   return (
     <motion.div
-      variants={containerVariants}
+      variants={getContainerVariants(deviceCategory)}
       initial="hidden"
       animate="visible"
       exit="exit"
       className="relative h-full w-full bg-background overflow-hidden flex flex-col perspective-1000"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)'
+      }}
     >
-      {/* Header with Glass Morphism */}
+      {/* Responsive Header with Glass Morphism */}
       <motion.div 
         variants={headerVariants}
-        className="relative z-10 flex items-center justify-between p-3 glass backdrop-blur-xl border-b border-border/30 flex-shrink-0"
+        className={`relative z-10 flex items-center justify-between ${getHeaderPadding()} glass backdrop-blur-xl border-b border-border/30 flex-shrink-0`}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-2 rounded-lg glass backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 min-h-[44px] min-w-[44px]"
+          className={`rounded-lg glass backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${deviceCategory === 'smallMobile' ? 'p-2' : 'p-2.5'}`}
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
         >
           {step > 1 ? (
-            <ArrowLeft className="h-5 w-5 text-foreground" />
+            <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
           ) : (
-            <X className="h-5 w-5 text-foreground" />
+            <X className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
           )}
         </motion.button>
 
-        <div className="text-center">
+        <div className="text-center flex-1 mx-4">
           <motion.h1 
-            className="text-lg font-bold text-foreground"
+            className={`${textSize.base} font-bold text-foreground`}
             animate={{ scale: [1, 1.01, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -156,13 +184,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </motion.h1>
         </div>
 
-        <div className="w-10" />
+        <div className="w-[44px]" />
       </motion.div>
 
-      {/* Vehicle Image with Glass Morphism Overlay */}
+      {/* Responsive Vehicle Image with Glass Morphism Overlay */}
       <motion.div 
         variants={imageVariants}
-        className="relative w-full h-64 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/30 flex-shrink-0"
+        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/30 flex-shrink-0`}
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
@@ -186,14 +214,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
         
         <motion.div 
-          className="absolute bottom-2 left-2 right-2 text-foreground"
+          className={`absolute ${deviceCategory === 'smallMobile' ? 'bottom-1 left-1 right-1' : 'bottom-2 left-2 right-2'} text-foreground`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
         >
-          <div className="glass backdrop-blur-xl rounded-lg p-2 border border-border/30 shadow-lg">
-            <h3 className="text-sm font-bold">{config.modelYear} {vehicle.name}</h3>
-            <p className="text-primary text-xs font-medium">{config.grade} • {config.engine}</p>
+          <div className={`glass backdrop-blur-xl rounded-lg ${deviceCategory === 'smallMobile' ? 'p-1.5' : 'p-2'} border border-border/30 shadow-lg`}>
+            <h3 className={`${textSize.sm} font-bold`}>{config.modelYear} {vehicle.name}</h3>
+            <p className={`text-primary ${textSize.xs} font-medium`}>{config.grade} • {config.engine}</p>
           </div>
         </motion.div>
       </motion.div>
@@ -209,7 +237,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Choice Collector with Glass Morphism */}
       <motion.div 
         variants={contentVariants}
-        className="px-3 py-2 flex-shrink-0 glass backdrop-blur-sm"
+        className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} flex-shrink-0 glass backdrop-blur-sm`}
       >
         <ChoiceCollector config={config} step={step} />
       </motion.div>
@@ -229,6 +257,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             calculateTotalPrice={calculateTotalPrice}
             handlePayment={handlePayment}
             goNext={goNext}
+            deviceCategory={deviceCategory}
           />
         </AnimatePresence>
       </motion.div>
@@ -237,12 +266,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       <motion.div 
         variants={contentVariants}
         className="flex-shrink-0 relative z-20 glass backdrop-blur-xl border-t border-border/30"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
           step={step}
           reserveAmount={2000}
+          deviceCategory={deviceCategory}
         />
       </motion.div>
     </motion.div>

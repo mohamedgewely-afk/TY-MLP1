@@ -1,12 +1,12 @@
-
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface CarBuilderProps {
   vehicle: VehicleModel;
@@ -35,7 +35,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
+  const { isMobile, deviceCategory } = useDeviceInfo();
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -99,7 +99,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 4) setStep(step + 1); // Updated to 4 steps
+    if (step < 4) setStep(step + 1);
   };
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
@@ -108,7 +108,22 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
+      <DialogContent 
+        className={`
+          ${isMobile 
+            ? 'max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden' 
+            : 'max-w-7xl max-h-[90vh] w-full'
+          }
+        `}
+        aria-describedby="car-builder-description"
+      >
+        <VisuallyHidden>
+          <DialogTitle>Build Your {vehicle.name}</DialogTitle>
+          <DialogDescription id="car-builder-description">
+            Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
+          </DialogDescription>
+        </VisuallyHidden>
+        
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobileCarBuilder
@@ -123,6 +138,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               goBack={goBack}
               goNext={goNext}
               onClose={onClose}
+              deviceCategory={deviceCategory}
             />
           ) : (
             <DesktopCarBuilder

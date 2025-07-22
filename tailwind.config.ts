@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -104,6 +103,12 @@ export default {
 						accent: '#FFD54F',
 					}
 				}
+			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -215,7 +220,7 @@ export default {
 	},
 	plugins: [
 		require("tailwindcss-animate"),
-		// Add a custom plugin for text shadow
+		// Add a custom plugin for text shadow and safe areas
 		function({ addUtilities }) {
 			const newUtilities = {
 				'.text-shadow-sm': {
@@ -236,6 +241,34 @@ export default {
 					'&::-webkit-scrollbar': {
 						display: 'none',
 					},
+				},
+				// Safe area utilities
+				'.safe-area-inset-top': {
+					paddingTop: 'env(safe-area-inset-top)',
+				},
+				'.safe-area-inset-bottom': {
+					paddingBottom: 'env(safe-area-inset-bottom)',
+				},
+				'.safe-area-inset-left': {
+					paddingLeft: 'env(safe-area-inset-left)',
+				},
+				'.safe-area-inset-right': {
+					paddingRight: 'env(safe-area-inset-right)',
+				},
+				'.safe-area-inset': {
+					paddingTop: 'env(safe-area-inset-top)',
+					paddingBottom: 'env(safe-area-inset-bottom)',
+					paddingLeft: 'env(safe-area-inset-left)',
+					paddingRight: 'env(safe-area-inset-right)',
+				},
+				// Touch-friendly utilities
+				'.touch-target': {
+					minHeight: '44px',
+					minWidth: '44px',
+				},
+				'.touch-target-large': {
+					minHeight: '48px',
+					minWidth: '48px',
 				},
 			};
 			addUtilities(newUtilities);
