@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 // Device category types
@@ -15,12 +14,12 @@ export interface DeviceInfo {
   isInitialized: boolean;
 }
 
-// Enhanced breakpoints with better edge case handling
+// Updated breakpoints to handle large phones properly
 const BREAKPOINTS = {
   smallMobile: { min: 0, max: 375 },
   standardMobile: { min: 375, max: 414 },
-  largeMobile: { min: 414, max: 430 },
-  tablet: { min: 430, max: 768 },
+  largeMobile: { min: 414, max: 480 }, // Extended to 480px to catch large phones
+  tablet: { min: 480, max: 768 }, // Starts at 480px now
   desktop: { min: 768, max: Infinity }
 };
 
@@ -28,7 +27,7 @@ const getDeviceCategory = (width: number): DeviceCategory => {
   // Handle exact breakpoint values properly
   if (width < 375) return 'smallMobile';
   if (width < 414) return 'standardMobile';  
-  if (width < 430) return 'largeMobile';
+  if (width < 480) return 'largeMobile'; // Updated from 430 to 480
   if (width < 768) return 'tablet';
   return 'desktop';
 };
@@ -52,10 +51,10 @@ const detectDevice = (): DeviceInfo => {
   const height = window.innerHeight;
   const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  // Enhanced notch detection
+  // Enhanced notch detection - updated for larger phones
   const hasNotch = CSS.supports('padding-top: env(safe-area-inset-top)') && 
                   (window.screen.height >= 812 || height >= 812) && 
-                  width <= 430;
+                  width <= 480; // Updated from 430 to 480
 
   const deviceCategory = getDeviceCategory(width);
   const isMobile = ['smallMobile', 'standardMobile', 'largeMobile'].includes(deviceCategory);
@@ -74,7 +73,11 @@ const detectDevice = (): DeviceInfo => {
     hasNotch,
     userAgent: navigator.userAgent.substring(0, 50),
     viewport: `${width}x${height}`,
-    pixelRatio: window.devicePixelRatio
+    pixelRatio: window.devicePixelRatio,
+    breakpointUsed: width < 375 ? 'smallMobile' : 
+                   width < 414 ? 'standardMobile' : 
+                   width < 480 ? 'largeMobile' : 
+                   width < 768 ? 'tablet' : 'desktop'
   });
 
   return {
