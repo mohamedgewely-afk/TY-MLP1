@@ -138,16 +138,8 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       
       <Footer />
       
-      {/* Enhanced Mobile Sticky Nav - Always render for mobile devices */}
-      <MobileStickyNav 
-        activeItem={activeNavItem}
-        vehicle={vehicle}
-        isFavorite={isFavorite}
-        onToggleFavorite={onToggleFavorite}
-        onBookTestDrive={onBookTestDrive}
-        onCarBuilder={onCarBuilder}
-        onFinanceCalculator={onFinanceCalculator}
-      />
+      {/* Mobile Sticky Nav - Only render for mobile devices without extra props */}
+      <MobileStickyNav />
       
       <Toaster />
     </div>
