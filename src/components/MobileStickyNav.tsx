@@ -220,7 +220,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection(null);
     } else {
       setIsMenuOpen(true);
-      setActiveSection("quick-actions");
+      setActiveSection("menu");
     }
   };
   
@@ -630,6 +630,35 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   </div>
                 </motion.div>
               )}
+
+              {/* Menu Section */}
+              {activeSection === "menu" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Toyota Services</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {quickMenuItems.map((item) => (
+                      <Link key={item.title} to={item.link} onClick={() => setIsMenuOpen(false)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Card className="h-24 overflow-hidden hover:shadow-lg transition-shadow">
+                            <CardContent className="flex flex-col justify-center items-center h-full p-3 text-center">
+                              <div className={cn("p-2 rounded-lg mb-2", item.color)}>
+                                {item.icon}
+                              </div>
+                              <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">{item.title}</h3>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
@@ -643,7 +672,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-5 gap-1 px-1">
+        <div className="grid grid-cols-6 gap-1 px-1">
           <NavItem 
             icon={<Home className="h-5 w-5" />}
             label="Home"
@@ -718,6 +747,13 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             to="#"
             onClick={() => handleSectionToggle("pre-owned")}
             isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+          />
+          <NavItem 
+            icon={<Menu className="h-5 w-5" />}
+            label="Menu"
+            to="#"
+            onClick={toggleMenu}
+            isActive={activeSection === "menu"}
           />
         </div>
       </motion.div>
