@@ -174,54 +174,81 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/50" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
 
-        {/* Media Controls - Only Pause Button */}
-        {!showVideo && (
-          <motion.div 
-            className="absolute bottom-4 left-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.6 }}
-          >
-            <button
-              onClick={toggleAutoPlay}
-              className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[40px] min-w-[40px] flex items-center justify-center"
-            >
-              {isAutoPlaying ? (
-                <Pause className="h-4 w-4 text-gray-700" />
-              ) : (
-                <Play className="h-4 w-4 text-gray-700" />
-              )}
-            </button>
-          </motion.div>
-        )}
-
-        {/* Image Indicators */}
-        {!showVideo && (
-          <motion.div 
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
-          >
-            {galleryImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentImageIndex(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex 
-                    ? 'bg-white w-8 shadow-lg' 
-                    : 'bg-white/50 w-2 hover:bg-white/70'
-                }`}
-              />
-            ))}
-          </motion.div>
-        )}
       </motion.div>
 
-      {/* Content Overlay - Moved to Bottom */}
+      {/* Content Overlay - All Controls and Content Moved to Bottom */}
       <div className="relative z-10 h-full">
         <div className="absolute bottom-0 left-0 right-0 pb-20 pt-8">
           <div className="toyota-container">
+            {/* Media Controls - Moved to Bottom */}
+            <motion.div 
+              className="flex items-center justify-center space-x-2 mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+            >
+              <button
+                onClick={toggleVideo}
+                className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+              >
+                {showVideo ? (
+                  <img src="/placeholder.svg" alt="Image" className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4 text-gray-700" />
+                )}
+              </button>
+              
+              {!showVideo && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  >
+                    <ChevronLeft className="h-4 w-4 text-gray-700" />
+                  </button>
+                  
+                  <button
+                    onClick={toggleAutoPlay}
+                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  >
+                    {isAutoPlaying ? (
+                      <Pause className="h-4 w-4 text-gray-700" />
+                    ) : (
+                      <Play className="h-4 w-4 text-gray-700" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={nextImage}
+                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  >
+                    <ChevronRight className="h-4 w-4 text-gray-700" />
+                  </button>
+                </>
+              )}
+            </motion.div>
+
+            {/* Image Indicators - Moved to Bottom */}
+            {!showVideo && (
+              <motion.div 
+                className="flex justify-center space-x-2 mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.6 }}
+              >
+                {galleryImages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex 
+                        ? 'bg-white w-8 shadow-lg' 
+                        : 'bg-white/50 w-2 hover:bg-white/70'
+                    }`}
+                  />
+                ))}
+              </motion.div>
+            )}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
