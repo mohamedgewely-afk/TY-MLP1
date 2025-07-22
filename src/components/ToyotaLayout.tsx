@@ -7,6 +7,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VehicleModel } from "@/types/vehicle";
+import { cn } from "@/lib/utils";
 
 interface ToyotaLayoutProps {
   children: React.ReactNode;
