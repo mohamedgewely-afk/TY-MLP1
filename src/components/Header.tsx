@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -8,6 +8,8 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const navItems = [
     { label: "New Cars", href: "/new-cars" },
@@ -18,12 +20,32 @@ const Header: React.FC = () => {
     { label: "Configure", href: "/configure" },
   ];
 
+  // Handle scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY) {
+        // Scrolling up
+        setIsVisible(true);
+      } else if (currentScrollY > 100 && currentScrollY > lastScrollY) {
+        // Scrolling down and past 100px
+        setIsVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   return (
     <motion.header 
       className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40"
       initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6 }}
+      animate={{ y: isVisible ? 0 : -100 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <div className="toyota-container py-4">
         <div className="flex items-center justify-between">
@@ -73,10 +95,10 @@ const Header: React.FC = () => {
           )}
 
           {/* CTA Buttons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <motion.button
               onClick={() => navigate("/test-drive")}
-              className="hidden sm:inline-flex bg-toyota-red text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+              className="hidden sm:inline-flex bg-toyota-red text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -84,7 +106,7 @@ const Header: React.FC = () => {
             </motion.button>
             <motion.button
               onClick={() => navigate("/enquire")}
-              className="border border-toyota-red text-toyota-red px-4 py-2 rounded-lg hover:bg-toyota-red hover:text-white transition-colors text-sm font-medium"
+              className="border border-toyota-red text-toyota-red px-3 py-2 rounded-lg hover:bg-toyota-red hover:text-white transition-colors text-xs font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
