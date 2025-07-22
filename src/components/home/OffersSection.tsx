@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface Offer {
   id: string;
@@ -100,6 +100,20 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
   const visibleOffers = isMobile ? 1 : 3;
   const maxIndex = Math.max(0, offers.length - visibleOffers);
 
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (currentIndex < maxIndex) {
+        nextOffer();
+      }
+    },
+    onSwipeRight: () => {
+      if (currentIndex > 0) {
+        prevOffer();
+      }
+    },
+    threshold: 50
+  });
+
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background">
       <div className="toyota-container">
@@ -120,7 +134,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
           </p>
         </motion.div>
 
-        {/* Full Carousel - No Vertical Scrolling */}
+        {/* Enhanced Carousel with Swipe Support */}
         <div className="relative">
           {/* Navigation Buttons */}
           <button
@@ -139,8 +153,8 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          {/* Offers Carousel Container */}
-          <div className="overflow-hidden mx-8">
+          {/* Offers Carousel Container with Swipe */}
+          <div ref={swipeableRef} className="overflow-hidden mx-8 touch-pan-y">
             <motion.div
               className="flex transition-transform duration-500 ease-in-out"
               style={{

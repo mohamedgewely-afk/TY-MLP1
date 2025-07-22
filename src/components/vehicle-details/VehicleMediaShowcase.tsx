@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 // Enhanced media item types
 interface MediaItem {
@@ -91,6 +91,20 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     activeFilter === 'all' ? true : m.type === activeFilter
   );
 
+  // Add swipe functionality for main media display
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: next,
+    onSwipeRight: prev,
+    threshold: 50
+  });
+
+  // Add swipe functionality for thumbnail gallery
+  const thumbnailSwipeRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: next,
+    onSwipeRight: prev,
+    threshold: 30
+  });
+
   // Handle filter change
   const handleFilterChange = (filter: 'all' | 'image' | 'video' | '360') => {
     setActiveFilter(filter);
@@ -150,86 +164,88 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
             ref={containerRef}
             className="relative h-[350px] md:h-[550px] xl:h-[650px] flex items-center justify-center overflow-hidden bg-black"
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={current}
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5 }}
-                className="w-full h-full relative"
-              >
-                {currentMedia.type === "image" ? (
-                  <img 
-                    src={currentMedia.url} 
-                    alt={currentMedia.title || `${vehicle.name} showcase`} 
-                    className="object-cover w-full h-full transition-all duration-500" 
-                  />
-                ) : currentMedia.type === "video" ? (
-                  <div className="relative w-full h-full">
-                    <video
-                      ref={videoRef}
-                      src={currentMedia.url}
-                      className="object-cover w-full h-full"
-                      poster={currentMedia.thumbnail || vehicle.image}
-                      loop
-                      muted={isMuted}
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                    />
-                    
-                    {/* Video Controls */}
-                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={togglePlay}
-                          className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
-                        >
-                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={toggleMute}
-                          className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
-                        >
-                          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                      
-                      <Badge className="bg-black/50 backdrop-blur border-white/20 text-white">
-                        <Video className="h-3 w-3 mr-1" />
-                        Video
-                      </Badge>
-                    </div>
-                  </div>
-                ) : (
-                  // 360° View placeholder
-                  <div className="relative w-full h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
+            <div ref={swipeableRef} className="w-full h-full touch-pan-y">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={current}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full relative"
+                >
+                  {currentMedia.type === "image" ? (
                     <img 
                       src={currentMedia.url} 
-                      alt={currentMedia.title || "360° View"} 
-                      className="object-cover w-full h-full opacity-80" 
+                      alt={currentMedia.title || `${vehicle.name} showcase`} 
+                      className="object-cover w-full h-full transition-all duration-500" 
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full"
+                  ) : currentMedia.type === "video" ? (
+                    <div className="relative w-full h-full">
+                      <video
+                        ref={videoRef}
+                        src={currentMedia.url}
+                        className="object-cover w-full h-full"
+                        poster={currentMedia.thumbnail || vehicle.image}
+                        loop
+                        muted={isMuted}
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
                       />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <RotateCcw className="h-8 w-8 text-white" />
+                      
+                      {/* Video Controls */}
+                      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={togglePlay}
+                            className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                          >
+                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={toggleMute}
+                            className="bg-black/50 backdrop-blur border-white/20 text-white hover:bg-black/70"
+                          >
+                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        
+                        <Badge className="bg-black/50 backdrop-blur border-white/20 text-white">
+                          <Video className="h-3 w-3 mr-1" />
+                          Video
+                        </Badge>
                       </div>
                     </div>
-                    <Badge className="absolute top-4 left-4 bg-purple-500 text-white">
-                      360° Interactive
-                    </Badge>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                  ) : (
+                    // 360° View placeholder
+                    <div className="relative w-full h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
+                      <img 
+                        src={currentMedia.url} 
+                        alt={currentMedia.title || "360° View"} 
+                        className="object-cover w-full h-full opacity-80" 
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                          className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <RotateCcw className="h-8 w-8 text-white" />
+                        </div>
+                      </div>
+                      <Badge className="absolute top-4 left-4 bg-purple-500 text-white">
+                        360° Interactive
+                      </Badge>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
             {/* Navigation Arrows */}
             <motion.div 
@@ -334,52 +350,68 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Simple Thumbnail Gallery - NO BARS */}
-            <div className="flex overflow-x-auto space-x-3 pb-2">
-              {media.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  onClick={() => setCurrent(idx)}
-                  className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all relative ${
-                    current === idx 
-                      ? 'border-toyota-red shadow-lg scale-105' 
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
-                  whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {item.type === "image" || item.type === "360" ? (
-                    <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-black relative">
-                      {item.thumbnail ? (
-                        <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="bg-gray-800 w-full h-full" />
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="h-6 w-6 text-white drop-shadow-lg" />
+            {/* Enhanced Thumbnail Gallery with Swipe */}
+            <div ref={thumbnailSwipeRef} className="touch-pan-y">
+              <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
+                {media.map((item, idx) => (
+                  <motion.div
+                    key={idx}
+                    onClick={() => setCurrent(idx)}
+                    className={`flex-shrink-0 w-24 h-16 cursor-pointer rounded-xl overflow-hidden border-2 transition-all relative ${
+                      current === idx 
+                        ? 'border-toyota-red shadow-lg scale-105' 
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    } ${activeFilter !== 'all' && item.type !== activeFilter ? "opacity-40" : ""}`}
+                    whileHover={{ scale: current === idx ? 1.05 : 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {item.type === "image" || item.type === "360" ? (
+                      <img src={item.url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-black relative">
+                        {item.thumbnail ? (
+                          <img src={item.thumbnail} alt={`Video ${idx + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="bg-gray-800 w-full h-full" />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                        </div>
                       </div>
+                    )}
+                    
+                    {/* Type indicator */}
+                    <div className="absolute top-1 right-1">
+                      {item.type === 'video' && (
+                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
+                      )}
+                      {item.type === '360' && (
+                        <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
+                      )}
                     </div>
-                  )}
-                  
-                  {/* Type indicator */}
-                  <div className="absolute top-1 right-1">
-                    {item.type === 'video' && (
-                      <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm" />
-                    )}
-                    {item.type === '360' && (
-                      <div className="w-2 h-2 bg-purple-500 rounded-full shadow-sm" />
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile Swipe Indicator */}
+            <div className="flex justify-center mt-4 md:hidden">
+              <div className="flex space-x-2">
+                {media.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === current ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>
       </div>
       
-      {/* Enhanced Fullscreen Modal */}
+      {/* Enhanced Fullscreen Modal - Keep existing code */}
       <AnimatePresence>
         {fullscreen && (
           <motion.div 
