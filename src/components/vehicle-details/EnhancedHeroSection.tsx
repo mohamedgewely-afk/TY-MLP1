@@ -171,30 +171,29 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         </AnimatePresence>
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
-
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
       </motion.div>
 
-      {/* Content Overlay - All Controls and Content Moved to Bottom */}
-      <div className="relative z-10 h-full">
-        <div className="absolute bottom-0 left-0 right-0 pb-20 pt-8">
+      {/* Content Overlay - All Content Moved to Bottom */}
+      <div className="relative z-10 h-full flex flex-col justify-end">
+        <div className={`${isMobile ? 'pb-32 pt-8' : 'pb-20 pt-8'}`}>
           <div className="toyota-container">
-            {/* Media Controls - Moved to Bottom */}
+            {/* Media Controls - At Bottom */}
             <motion.div 
-              className="flex items-center justify-center space-x-2 mb-4"
+              className="flex items-center justify-center space-x-2 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6 }}
             >
               <button
                 onClick={toggleVideo}
-                className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 {showVideo ? (
-                  <img src="/placeholder.svg" alt="Image" className="h-4 w-4" />
+                  <img src="/placeholder.svg" alt="Image" className="h-5 w-5" />
                 ) : (
-                  <Play className="h-4 w-4 text-gray-700" />
+                  <Play className="h-5 w-5 text-gray-700" />
                 )}
               </button>
               
@@ -202,36 +201,36 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 <>
                   <button
                     onClick={prevImage}
-                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    <ChevronLeft className="h-4 w-4 text-gray-700" />
+                    <ChevronLeft className="h-5 w-5 text-gray-700" />
                   </button>
                   
                   <button
                     onClick={toggleAutoPlay}
-                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     {isAutoPlaying ? (
-                      <Pause className="h-4 w-4 text-gray-700" />
+                      <Pause className="h-5 w-5 text-gray-700" />
                     ) : (
-                      <Play className="h-4 w-4 text-gray-700" />
+                      <Play className="h-5 w-5 text-gray-700" />
                     )}
                   </button>
                   
                   <button
                     onClick={nextImage}
-                    className="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    <ChevronRight className="h-4 w-4 text-gray-700" />
+                    <ChevronRight className="h-5 w-5 text-gray-700" />
                   </button>
                 </>
               )}
             </motion.div>
 
-            {/* Image Indicators - Moved to Bottom */}
+            {/* Image Indicators - At Bottom */}
             {!showVideo && (
               <motion.div 
-                className="flex justify-center space-x-2 mb-4"
+                className="flex justify-center space-x-2 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1, duration: 0.6 }}
@@ -249,14 +248,16 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 ))}
               </motion.div>
             )}
+
+            {/* Main Content - At Bottom */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center space-y-3 max-w-4xl mx-auto"
+              className="text-center space-y-4 max-w-4xl mx-auto"
             >
               {/* Badges */}
-              <div className="flex flex-wrap gap-2 justify-center mb-3">
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
                 {isBestSeller && (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
@@ -288,47 +289,50 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
               >
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-2">
+                <h1 className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl lg:text-5xl'} font-black text-white leading-tight mb-3`}>
                   {vehicle.name}
                 </h1>
               </motion.div>
 
-              {/* Key Stats - Better Price Listing */}
+              {/* Enhanced Price Stats Box */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/10"
+                className="bg-black/40 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20 shadow-2xl"
               >
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Price Section */}
-                  <div className="text-center border-r border-white/20">
-                    <div className="text-lg lg:text-xl font-black text-white mb-1">
+                {/* Main Pricing Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                  {/* Starting Price */}
+                  <div className="text-center">
+                    <div className="text-xs text-white/60 uppercase tracking-wide mb-2 font-medium">Starting From</div>
+                    <div className="text-2xl lg:text-3xl font-black text-white mb-1">
                       AED <AnimatedCounter 
                         value={vehicle.price}
                         duration={2.5}
                       />
                     </div>
-                    <div className="text-xs text-white/70">Starting Price</div>
+                    <div className="text-sm text-white/80">*Price includes VAT</div>
                   </div>
                   
                   {/* Monthly EMI */}
                   <div className="text-center">
-                    <div className="text-lg lg:text-xl font-black text-white mb-1">
+                    <div className="text-xs text-white/60 uppercase tracking-wide mb-2 font-medium">Monthly EMI</div>
+                    <div className="text-2xl lg:text-3xl font-black text-white mb-1">
                       AED <AnimatedCounter 
                         value={monthlyEMI}
                         duration={2}
                       />
-                      <span className="text-sm font-normal text-white/80 ml-1">/mo</span>
+                      <span className="text-lg font-normal text-white/80 ml-1">/mo</span>
                     </div>
-                    <div className="text-xs text-white/70">Monthly EMI</div>
+                    <div className="text-sm text-white/80">*80% financing available</div>
                   </div>
                 </div>
 
                 {/* Performance Stats */}
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/20">
+                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/20">
                   <div className="text-center">
-                    <div className="text-lg lg:text-xl font-black text-white mb-1">
+                    <div className="text-xl lg:text-2xl font-black text-white mb-1">
                       <AnimatedCounter 
                         value={isHybrid ? 25.2 : isElectric ? 450 : 22.2} 
                         decimals={1}
@@ -339,12 +343,12 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                       </span>
                     </div>
                     <div className="text-xs text-white/70">
-                      {isElectric ? "Range" : "Efficiency"}
+                      {isElectric ? "Range" : "Fuel Efficiency"}
                     </div>
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-lg lg:text-xl font-black text-white mb-1">
+                    <div className="text-xl lg:text-2xl font-black text-white mb-1">
                       <AnimatedCounter 
                         value={isHybrid ? 218 : isElectric ? 201 : 203}
                         duration={2}
@@ -361,31 +365,31 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.8 }}
-                className="flex flex-col sm:flex-row gap-3 justify-center items-center"
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
               >
                 <Button 
                   onClick={onBookTestDrive}
-                  size="sm"
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group min-h-[48px] w-full sm:w-auto"
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group min-h-[56px] w-full sm:w-auto"
                 >
-                  <Calendar className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                  <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                   Book Test Drive
                   <motion.div
                     className="ml-2"
                     animate={{ x: [0, 5, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-5 w-5" />
                   </motion.div>
                 </Button>
                 
                 <Button 
                   onClick={onCarBuilder}
                   variant="outline"
-                  size="sm"
-                  className="border-2 border-white/30 text-white hover:bg-white hover:text-gray-900 font-bold px-6 py-3 rounded-xl transition-all duration-300 group min-h-[48px] bg-white/10 backdrop-blur-sm w-full sm:w-auto"
+                  size="lg"
+                  className="border-2 border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-8 py-4 rounded-xl transition-all duration-300 group min-h-[56px] bg-white/15 backdrop-blur-sm w-full sm:w-auto"
                 >
-                  <Settings className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  <Settings className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                   Configure Your Car
                 </Button>
               </motion.div>
