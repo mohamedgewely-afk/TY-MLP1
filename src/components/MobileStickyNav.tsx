@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap, Bolt } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap, Bolt, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -377,21 +377,21 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-20 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl z-50 max-h-[75vh] overflow-hidden border-t-4 border-toyota-red"
+            className="fixed bottom-16 left-0 right-0 bg-white dark:bg-black rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-hidden border-t-4 border-red-500"
           >
             {/* Enhanced Header */}
-            <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-red-50 to-red-100 dark:from-black dark:to-gray-900">
               <div>
-                <h3 className="font-bold text-xl text-gray-900 dark:text-white">Toyota Connect</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Your gateway to Toyota</p>
+                <h3 className="font-bold text-lg text-black dark:text-red-500">Toyota Connect</h3>
+                <p className="text-sm text-red-600 dark:text-red-400">Your gateway to Toyota</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMenuOpen(false)}
-                className="rounded-full h-10 w-10 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-full h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900 text-red-600"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
 
