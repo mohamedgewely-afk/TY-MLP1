@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -53,30 +54,16 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   const heroImageRef = useRef<HTMLDivElement>(null);
   const isHeroInView = useInView(heroImageRef);
 
-  // Official Toyota UAE images - high quality DAM collection
-  const officialGalleryImages = [
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-exterior-hero.png",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-side-profile.jpg",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-rear-view.jpg",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-front-angle.jpg",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-lifestyle-1.jpg",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-lifestyle-2.jpg",
-    "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-night-view.jpg"
-  ];
-
-  // Use official images if available, fallback to provided gallery
-  const displayImages = officialGalleryImages.length > 0 ? officialGalleryImages : galleryImages;
-
   // Auto-rotate gallery images
   useEffect(() => {
     if (!isHeroInView || !isAutoPlaying || showVideo) return;
     
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
     }, 4000);
     
     return () => clearInterval(interval);
-  }, [isHeroInView, displayImages.length, isAutoPlaying, showVideo]);
+  }, [isHeroInView, galleryImages.length, isAutoPlaying, showVideo]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -102,11 +89,11 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
+    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
+    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
 
   const toggleAutoPlay = () => {
@@ -165,8 +152,8 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
           ) : (
             <motion.img
               key={currentImageIndex}
-              src={displayImages[currentImageIndex]}
-              alt={`Toyota ${vehicle.name} - Professional View ${currentImageIndex + 1}`}
+              src={galleryImages[currentImageIndex]}
+              alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
               className="absolute inset-0 w-full h-full object-cover"
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -217,7 +204,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.6 }}
             >
-              {displayImages.map((_, index) => (
+              {galleryImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}

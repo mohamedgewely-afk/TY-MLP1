@@ -17,42 +17,42 @@ interface MediaItem {
   description?: string;
 }
 
-// Official Toyota UAE media gallery
-const getOfficialToyotaMedia = (vehicle: VehicleModel): MediaItem[] => [
+// Premium Toyota media gallery with real images
+const defaultMedia: MediaItem[] = [
   { 
     type: "image", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-exterior-hero.png",
+    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
     title: "Exterior Profile",
     description: "Aerodynamic design meets premium styling"
   },
   { 
     type: "image", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-interior-dashboard.jpg",
+    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
     title: "Interior Luxury",
     description: "Sophisticated cabin with premium materials"
   },
   { 
     type: "image", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-technology-display.jpg",
+    url: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80",
     title: "Technology Hub",
     description: "Advanced infotainment and connectivity"
   },
   { 
     type: "image", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-hybrid-engine.jpg",
+    url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
     title: "Hybrid Performance",
     description: "Efficient power delivery system"
   },
   { 
     type: "video", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/videos/camry-hybrid-demo.mp4",
-    thumbnail: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-video-thumb.jpg",
+    url: "https://www.w3schools.com/html/mov_bbb.mp4",
+    thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=1200&q=80",
     title: "Dynamic Demo",
     description: "See the hybrid system in action"
   },
   { 
     type: "360", 
-    url: "https://www.toyota.ae/content/dam/tme/uae/camry/my24/camry-360-view.jpg",
+    url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=1200&q=80",
     title: "360° View",
     description: "Interactive exterior exploration"
   },
@@ -71,7 +71,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       title: "Hero Shot",
       description: `${vehicle.name} in all its glory`
     },
-    ...getOfficialToyotaMedia(vehicle),
+    ...defaultMedia,
   ];
 
   const [current, setCurrent] = useState(0);
@@ -91,18 +91,20 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     activeFilter === 'all' ? true : m.type === activeFilter
   );
 
-  // Add swipe functionality for main media display
+  // Add swipe functionality for main media display with debug
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: next,
     onSwipeRight: prev,
-    threshold: 30
+    threshold: 30,
+    debug: true // Enable debug mode
   });
 
-  // Add swipe functionality for thumbnail gallery
+  // Add swipe functionality for thumbnail gallery with debug
   const thumbnailSwipeRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: next,
     onSwipeRight: prev,
-    threshold: 25
+    threshold: 25,
+    debug: true // Enable debug mode
   });
 
   // Handle filter change
@@ -420,7 +422,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         </motion.div>
       </div>
       
-      {/* Fullscreen Modal - Keep existing code */}
+      {/* Enhanced Fullscreen Modal - Keep existing code */}
       <AnimatePresence>
         {fullscreen && (
           <motion.div 
