@@ -7,13 +7,30 @@ import MobileStickyNav from "./MobileStickyNav";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { VehicleModel } from "@/types/vehicle";
 
 interface ToyotaLayoutProps {
   children: React.ReactNode;
   activeNavItem?: string;
+  // Vehicle action props (optional, for vehicle detail pages)
+  vehicle?: VehicleModel;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onBookTestDrive?: () => void;
+  onCarBuilder?: () => void;
+  onFinanceCalculator?: () => void;
 }
 
-const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children, activeNavItem }) => {
+const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ 
+  children, 
+  activeNavItem,
+  vehicle,
+  isFavorite,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator
+}) => {
   const isMobile = useIsMobile();
   const { isRTL } = useLanguage();
 
@@ -86,7 +103,15 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({ children, activeNavItem }) 
       <Footer />
       
       {isMobile && (
-        <MobileStickyNav activeItem={activeNavItem} />
+        <MobileStickyNav 
+          activeItem={activeNavItem}
+          vehicle={vehicle}
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          onBookTestDrive={onBookTestDrive}
+          onCarBuilder={onCarBuilder}
+          onFinanceCalculator={onFinanceCalculator}
+        />
       )}
       
       <Toaster />
