@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,7 +96,7 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
     }
   }, [selectedScenario, isMobile]);
 
-  // Desktop version (unchanged for larger screens)
+  // Desktop version (restored)
   if (!isMobile) {
     return (
       <section className="py-8 md:py-16 lg:py-24 bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
@@ -121,6 +122,120 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
               Discover how your {vehicle.name} seamlessly integrates into every aspect of your life.
             </p>
           </motion.div>
+
+          {/* Desktop Interactive Section */}
+          <div className="grid lg:grid-cols-3 gap-8 lg:gap-12 xl:gap-16">
+            {/* Scenario Selector Cards */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="lg:col-span-1 space-y-4"
+            >
+              <h3 className="text-lg font-semibold text-foreground mb-6">
+                Choose Your Adventure
+              </h3>
+              {lifestyleScenarios.map((scenario, index) => (
+                <motion.button
+                  key={scenario.id}
+                  onClick={() => setSelectedScenario(index)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
+                    index === selectedScenario
+                      ? `bg-gradient-to-r ${scenario.gradient} text-white shadow-xl`
+                      : "bg-card border border-border hover:bg-muted/50 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className={`w-8 h-8 rounded-lg ${
+                      index === selectedScenario ? 'bg-white/20' : scenario.accentColor
+                    } flex items-center justify-center ${
+                      index === selectedScenario ? 'text-white' : 'text-white'
+                    }`}>
+                      {scenario.icon}
+                    </div>
+                    <h4 className={`font-semibold ${
+                      index === selectedScenario ? 'text-white' : 'text-foreground'
+                    }`}>
+                      {scenario.title}
+                    </h4>
+                    {index === selectedScenario && (
+                      <ChevronRight className="h-4 w-4 ml-auto text-white/80" />
+                    )}
+                  </div>
+                  <p className={`text-sm ${
+                    index === selectedScenario ? 'text-white/90' : 'text-muted-foreground'
+                  }`}>
+                    {scenario.description}
+                  </p>
+                </motion.button>
+              ))}
+            </motion.div>
+
+            {/* Content Display */}
+            <div className="lg:col-span-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedScenario}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative"
+                >
+                  <Card className="overflow-hidden border-0 shadow-2xl">
+                    <div className="relative">
+                      <div className="aspect-[16/10] overflow-hidden">
+                        <img
+                          src={currentScenario.image}
+                          alt={currentScenario.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-br ${currentScenario.gradient} opacity-20`} />
+                      </div>
+                      
+                      {/* Floating Badge */}
+                      <div className="absolute top-6 left-6">
+                        <Badge className={`${currentScenario.accentColor} text-white border-0 px-3 py-1.5`}>
+                          <Star className="h-3 w-3 mr-1.5" />
+                          Featured
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-6 lg:p-8">
+                      <div className="flex items-center space-x-4 mb-6">
+                        <div className={`w-12 h-12 rounded-xl ${currentScenario.accentColor} flex items-center justify-center text-white shadow-lg`}>
+                          {currentScenario.icon}
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-foreground">{currentScenario.title}</h3>
+                          <p className="text-muted-foreground">{currentScenario.description}</p>
+                        </div>
+                      </div>
+
+                      {/* Features Grid */}
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {currentScenario.features.map((feature, idx) => (
+                          <motion.div
+                            key={feature}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 * idx }}
+                            className="flex items-center space-x-3 p-4 bg-muted/50 rounded-lg"
+                          >
+                            <div className={`w-2 h-2 rounded-full ${currentScenario.accentColor}`} />
+                            <span className="text-sm font-medium text-foreground">{feature}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </section>
     );
