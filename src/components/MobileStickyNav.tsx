@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Zap } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Zap, FileText, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -108,6 +108,49 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([50000, 200000]);
   
+  const lightningQuickActions = [
+    {
+      id: "test-drive",
+      title: "Test Drive",
+      icon: <Car className="h-6 w-6" />,
+      color: "bg-gradient-to-br from-toyota-red to-red-600 text-white",
+      link: "/test-drive",
+      description: "Book your test drive"
+    },
+    {
+      id: "configure",
+      title: "Configure",
+      icon: <Settings className="h-6 w-6" />,
+      color: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
+      link: "/configure",
+      description: "Build your Toyota"
+    },
+    {
+      id: "finance",
+      title: "Finance",
+      icon: <DollarSign className="h-6 w-6" />,
+      color: "bg-gradient-to-br from-green-500 to-green-600 text-white",
+      link: "/finance",
+      description: "Financing options"
+    },
+    {
+      id: "brochure",
+      title: "Brochure",
+      icon: <FileText className="h-6 w-6" />,
+      color: "bg-gradient-to-br from-purple-500 to-purple-600 text-white",
+      link: "/brochure",
+      description: "Download brochure"
+    },
+    {
+      id: "share",
+      title: "Share",
+      icon: <Share2 className="h-6 w-6" />,
+      color: "bg-gradient-to-br from-amber-500 to-amber-600 text-white",
+      link: "#",
+      description: "Share this vehicle"
+    },
+  ];
+
   const quickActionCards = [
     {
       id: "test-drive",
@@ -180,6 +223,16 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection("quick-actions");
     }
   };
+
+  const handleLightningToggle = () => {
+    if (activeSection === "lightning") {
+      setActiveSection(null);
+      setIsMenuOpen(false);
+    } else {
+      setActiveSection("lightning");
+      setIsMenuOpen(true);
+    }
+  };
   
   if (!isMobile) return null;
 
@@ -225,6 +278,35 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </div>
 
             <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
+              {/* Lightning Quick Actions Section */}
+              {activeSection === "lightning" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Quick Actions</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {lightningQuickActions.map((action) => (
+                      <Link key={action.id} to={action.link} onClick={() => setIsMenuOpen(false)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Card className={cn("h-24 overflow-hidden", action.color)}>
+                            <CardContent className="flex flex-col justify-center items-center h-full p-3 text-center">
+                              <div className="mb-2">
+                                {action.icon}
+                              </div>
+                              <h3 className="font-semibold text-sm">{action.title}</h3>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Quick Actions Section */}
               {activeSection === "quick-actions" && (
                 <motion.div 
@@ -600,78 +682,89 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-center justify-center px-1 relative">
-          {/* Left tabs */}
-          <div className="flex items-center justify-around flex-1">
-            <NavItem 
-              icon={<Home className="h-5 w-5" />}
-              label="Home"
-              to="/"
-              isActive={activeItem === "home"}
-            />
-            <NavItem 
-              icon={<Search className="h-5 w-5" />}
-              label="Search"
-              to="#"
-              onClick={() => handleSectionToggle("search")}
-              isActive={activeItem === "search" || activeSection === "search"}
-            />
-          </div>
+        <div className="grid grid-cols-6 gap-1 px-1">
+          <NavItem 
+            icon={<Home className="h-5 w-5" />}
+            label="Home"
+            to="/"
+            isActive={activeItem === "home"}
+          />
+          <NavItem 
+            icon={<Search className="h-5 w-5" />}
+            label="Search"
+            to="#"
+            onClick={() => handleSectionToggle("search")}
+            isActive={activeItem === "search" || activeSection === "search"}
+          />
           
-          {/* Central floating action button */}
+          {/* Lightning Quick Actions */}
           <motion.button
-            onClick={toggleMenu}
-            className="relative mx-1 h-14 w-14 bg-gradient-to-r from-toyota-red to-red-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 overflow-hidden"
+            onClick={() => handleSectionToggle("lightning")}
+            className="flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors relative"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            animate={{
-              boxShadow: [
-                "0 4px 15px rgba(235, 64, 52, 0.3)",
-                "0 6px 20px rgba(235, 64, 52, 0.5)",
-                "0 4px 15px rgba(235, 64, 52, 0.3)"
-              ]
-            }}
-            transition={{
-              boxShadow: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }
-            }}
           >
-            {/* Shine animation overlay */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              className="relative h-11 w-11 bg-gradient-to-r from-toyota-red to-red-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden mb-1"
               animate={{
-                x: [-100, 100],
-                opacity: [0, 1, 0]
+                boxShadow: [
+                  "0 4px 15px rgba(235, 64, 52, 0.3)",
+                  "0 6px 20px rgba(235, 64, 52, 0.5)",
+                  "0 4px 15px rgba(235, 64, 52, 0.3)"
+                ]
               }}
               transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
               }}
-            />
-            <Zap className="h-6 w-6 text-white relative z-10" />
+            >
+              {/* Shine animation overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                animate={{
+                  x: [-100, 100],
+                  opacity: [0, 1, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <Zap className="h-5 w-5 text-white relative z-10" />
+            </motion.div>
+            <span className={cn(
+              "text-xs font-medium transition-colors truncate w-full text-center",
+              activeSection === "lightning" ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
+            )}>
+              Quick
+            </span>
           </motion.button>
 
-          {/* Right tabs */}
-          <div className="flex items-center justify-around flex-1">
-            <NavItem 
-              icon={<Car className="h-5 w-5" />}
-              label="Models"
-              to="#"
-              onClick={() => handleSectionToggle("models")}
-              isActive={activeItem === "models" || activeSection === "models"}
-            />
-            <NavItem 
-              icon={<Menu className="h-5 w-5" />}
-              label="Menu"
-              to="#"
-              onClick={toggleMenu}
-              isActive={isMenuOpen}
-            />
-          </div>
+          <NavItem 
+            icon={<Car className="h-5 w-5" />}
+            label="Models"
+            to="#"
+            onClick={() => handleSectionToggle("models")}
+            isActive={activeItem === "models" || activeSection === "models"}
+          />
+          <NavItem 
+            icon={<ShoppingBag className="h-5 w-5" />}
+            label="Pre-Owned"
+            to="#"
+            onClick={() => handleSectionToggle("pre-owned")}
+            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+          />
+          <NavItem 
+            icon={<Menu className="h-5 w-5" />}
+            label="Menu"
+            to="#"
+            onClick={toggleMenu}
+            isActive={isMenuOpen}
+          />
         </div>
       </motion.div>
     </>
