@@ -179,8 +179,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: nextGrade,
     onSwipeRight: prevGrade,
-    threshold: 30,
-    debug: true
+    threshold: 50,
+    debug: false
   });
 
   const handleEngineChange = (engineName: string) => {
@@ -352,7 +352,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <div 
               ref={swipeableRef}
               className={`${isMobile ? 'mx-4 touch-manipulation' : 'mx-8'}`}
-              style={{ touchAction: 'pan-x' }}
+              style={{ 
+                touchAction: 'pan-y pinch-zoom'
+              }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -524,7 +526,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             {isMobile && (
               <div className="flex justify-center mt-4">
                 <div className="flex items-center space-x-2 bg-muted rounded-full px-4 py-2">
-                  <span className="text-xs text-muted-foreground">Swipe to navigate grades</span>
+                  <span className="text-xs text-muted-foreground">Swipe horizontally to navigate grades</span>
                 </div>
               </div>
             )}

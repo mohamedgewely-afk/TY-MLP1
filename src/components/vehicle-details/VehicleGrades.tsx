@@ -118,8 +118,8 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: nextGrade,
     onSwipeRight: prevGrade,
-    threshold: 30,
-    debug: true
+    threshold: 50,
+    debug: false
   });
 
   const toggleCompareSelection = (index: number) => {
@@ -199,7 +199,9 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
             <div 
               ref={swipeableRef} 
               className="touch-manipulation select-none overflow-hidden"
-              style={{ touchAction: 'pan-x' }}
+              style={{ 
+                touchAction: 'pan-y pinch-zoom'
+              }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -291,7 +293,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                       />
                     ))}
                   </div>
-                  <span className="text-xs text-muted-foreground ml-3">Swipe to navigate</span>
+                  <span className="text-xs text-muted-foreground ml-3">Swipe horizontally to navigate</span>
                 </div>
               </div>
             </div>

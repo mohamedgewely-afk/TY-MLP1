@@ -17,7 +17,7 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
     onSwipeRight,
     onSwipeUp,
     onSwipeDown,
-    threshold = 30, // Reduced from 50 for better sensitivity
+    threshold = 30,
     preventDefaultTouchmoveEvent = false,
     debug = false
   } = options;
@@ -25,6 +25,7 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const elementRef = useRef<T>(null);
   const swipeInProgressRef = useRef(false);
+  const preventScrollRef = useRef(false);
 
   useEffect(() => {
     const element = elementRef.current;
@@ -39,15 +40,12 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
         time: Date.now()
       };
       swipeInProgressRef.current = false;
+      preventScrollRef.current = false;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!touchStartRef.current) return;
       
-      if (preventDefaultTouchmoveEvent) {
-        e.preventDefault();
-      }
-
       const currentTouch = e.touches[0];
       const deltaX = currentTouch.clientX - touchStartRef.current.x;
       const deltaY = currentTouch.clientY - touchStartRef.current.y;
@@ -58,11 +56,24 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
         console.log('🔄 Touch move:', { deltaX, deltaY, absDeltaX, absDeltaY });
       }
 
-      // Determine swipe direction early and prevent scrolling if needed
-      if (absDeltaX > absDeltaY && absDeltaX > threshold / 2) {
-        // Horizontal swipe detected, prevent vertical scrolling
+      // Only prevent default if we're certain this is a horizontal swipe
+      // and the horizontal movement is significantly greater than vertical
+      if (absDeltaX > threshold && absDeltaX > absDeltaY * 2) {
+        // Clear horizontal swipe detected
+        if (!preventScrollRef.current) {
+          preventScrollRef.current = true;
+          swipeInProgressRef.current = true;
+          if (debug) console.log('🚫 Preventing scroll - horizontal swipe detected');
+        }
         e.preventDefault();
-        swipeInProgressRef.current = true;
+      } else if (absDeltaY > threshold && absDeltaY > absDeltaX * 2) {
+        // Clear vertical swipe - allow normal scrolling
+        if (debug) console.log('✅ Allowing scroll - vertical movement detected');
+      }
+
+      // Apply global preventDefault only if explicitly requested and we're in a horizontal swipe
+      if (preventDefaultTouchmoveEvent && preventScrollRef.current) {
+        e.preventDefault();
       }
     };
 
@@ -89,7 +100,8 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
           absDeltaY, 
           timeDiff,
           threshold,
-          swipeInProgress: swipeInProgressRef.current
+          swipeInProgress: swipeInProgressRef.current,
+          preventScroll: preventScrollRef.current
         });
       }
 
@@ -98,43 +110,48 @@ export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: Sw
         if (debug) console.log('❌ Swipe ignored due to timing');
         touchStartRef.current = null;
         swipeInProgressRef.current = false;
+        preventScrollRef.current = false;
         return;
       }
 
-      // Determine if it's a horizontal or vertical swipe
-      if (absDeltaX > absDeltaY) {
-        // Horizontal swipe
-        if (absDeltaX > threshold) {
-          if (deltaX > 0) {
-            if (debug) console.log('➡️ Swipe right detected');
-            onSwipeRight?.();
-          } else {
-            if (debug) console.log('⬅️ Swipe left detected');
-            onSwipeLeft?.();
+      // Only trigger swipe callbacks if this was clearly a swipe gesture
+      if (preventScrollRef.current || swipeInProgressRef.current) {
+        // Determine if it's a horizontal or vertical swipe
+        if (absDeltaX > absDeltaY) {
+          // Horizontal swipe
+          if (absDeltaX > threshold) {
+            if (deltaX > 0) {
+              if (debug) console.log('➡️ Swipe right detected');
+              onSwipeRight?.();
+            } else {
+              if (debug) console.log('⬅️ Swipe left detected');
+              onSwipeLeft?.();
+            }
+          } else if (debug) {
+            console.log('❌ Horizontal swipe below threshold');
           }
-        } else if (debug) {
-          console.log('❌ Horizontal swipe below threshold');
-        }
-      } else {
-        // Vertical swipe
-        if (absDeltaY > threshold) {
-          if (deltaY > 0) {
-            if (debug) console.log('⬇️ Swipe down detected');
-            onSwipeDown?.();
-          } else {
-            if (debug) console.log('⬆️ Swipe up detected');
-            onSwipeUp?.();
+        } else {
+          // Vertical swipe
+          if (absDeltaY > threshold) {
+            if (deltaY > 0) {
+              if (debug) console.log('⬇️ Swipe down detected');
+              onSwipeDown?.();
+            } else {
+              if (debug) console.log('⬆️ Swipe up detected');
+              onSwipeUp?.();
+            }
+          } else if (debug) {
+            console.log('❌ Vertical swipe below threshold');
           }
-        } else if (debug) {
-          console.log('❌ Vertical swipe below threshold');
         }
       }
 
       touchStartRef.current = null;
       swipeInProgressRef.current = false;
+      preventScrollRef.current = false;
     };
 
-    // Use passive: false for touchmove to allow preventDefault
+    // Use passive: false only for touchmove to allow conditional preventDefault
     element.addEventListener('touchstart', handleTouchStart, { passive: true });
     element.addEventListener('touchmove', handleTouchMove, { passive: false });
     element.addEventListener('touchend', handleTouchEnd, { passive: true });
