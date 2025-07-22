@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -35,7 +36,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
-  const { isMobile, deviceCategory } = useDeviceInfo();
+  const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
+
+  console.log('🎯 CarBuilder Render:', { isMobile, deviceCategory, isInitialized });
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -106,16 +109,49 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     setConfig(value);
   }, []);
 
+  // Show loading state until device detection completes
+  if (!isInitialized) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
+          <VisuallyHidden>
+            <DialogTitle>Loading Car Builder</DialogTitle>
+            <DialogDescription>Please wait while we initialize the car builder.</DialogDescription>
+          </VisuallyHidden>
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Mobile-first Dialog styles
+  const dialogStyles = isMobile 
+    ? 'max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden fixed inset-0 z-50' 
+    : 'max-w-7xl max-h-[90vh] w-full';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className={`
-          ${isMobile 
-            ? 'max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden' 
-            : 'max-w-7xl max-h-[90vh] w-full'
-          }
-        `}
+        className={dialogStyles}
         aria-describedby="car-builder-description"
+        style={{
+          // Ensure proper mobile viewport handling
+          ...(isMobile && {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            transform: 'none',
+            borderRadius: 0,
+          })
+        }}
       >
         <VisuallyHidden>
           <DialogTitle>Build Your {vehicle.name}</DialogTitle>

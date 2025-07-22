@@ -36,66 +36,66 @@ interface MobileCarBuilderProps {
 const getContainerVariants = (deviceCategory: DeviceCategory) => ({
   hidden: { 
     opacity: 0,
-    scale: deviceCategory === 'smallMobile' ? 0.95 : 0.9,
-    rotateX: deviceCategory === 'smallMobile' ? -10 : -15,
+    scale: deviceCategory === 'smallMobile' ? 0.98 : 0.96,
+    y: deviceCategory === 'smallMobile' ? 20 : 30,
   },
   visible: { 
     opacity: 1,
     scale: 1,
-    rotateX: 0,
+    y: 0,
     transition: {
-      duration: deviceCategory === 'smallMobile' ? 0.6 : 0.8,
+      duration: deviceCategory === 'smallMobile' ? 0.4 : 0.5,
       ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.1
+      staggerChildren: 0.08
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.4 }
+    scale: 0.98,
+    transition: { duration: 0.3 }
   }
 });
 
 const headerVariants = {
-  hidden: { y: -60, opacity: 0 },
+  hidden: { y: -40, opacity: 0 },
   visible: { 
     y: 0, 
     opacity: 1,
     transition: { 
-      duration: 0.6, 
+      duration: 0.4, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.2
+      delay: 0.1
     }
   }
 };
 
 const imageVariants = {
   hidden: { 
-    scale: 1.3, 
+    scale: 1.2, 
     opacity: 0,
-    filter: "blur(10px)"
+    filter: "blur(8px)"
   },
   visible: { 
-    scale: 1.1, 
+    scale: 1.05, 
     opacity: 1,
     filter: "blur(0px)",
     transition: { 
-      duration: 1.2, 
+      duration: 0.8, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.4
+      delay: 0.2
     }
   }
 };
 
 const contentVariants = {
-  hidden: { y: 30, opacity: 0 },
+  hidden: { y: 20, opacity: 0 },
   visible: { 
     y: 0, 
     opacity: 1,
     transition: { 
-      duration: 0.6, 
+      duration: 0.4, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.6
+      delay: 0.3
     }
   }
 };
@@ -129,17 +129,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   // Responsive image height based on device category
   const getImageHeight = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'h-48';
-      case 'standardMobile': return 'h-56';
-      case 'largeMobile': return 'h-64';
-      default: return 'h-64';
+      case 'smallMobile': return 'h-44';
+      case 'standardMobile': return 'h-52';
+      case 'largeMobile': return 'h-60';
+      default: return 'h-56';
     }
   };
 
-  // Responsive header padding and safe area
-  const getHeaderPadding = () => {
-    const basePadding = deviceCategory === 'smallMobile' ? 'p-2' : 'p-3';
-    return `${basePadding} safe-area-inset-top`;
+  // Enhanced touch-friendly button sizing
+  const getTouchButtonSize = () => {
+    const baseSize = 'touch-target'; // min-h-[44px] min-w-[44px]
+    const padding = deviceCategory === 'smallMobile' ? 'p-2' : 'p-2.5';
+    return `${baseSize} ${padding}`;
   };
 
   return (
@@ -148,24 +149,28 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col perspective-1000"
+      className="relative h-full w-full bg-background overflow-hidden flex flex-col"
       style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)'
+        height: '100vh',
+        width: '100vw',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 50,
       }}
     >
-      {/* Responsive Header with Glass Morphism */}
+      {/* Enhanced Header with Safe Area */}
       <motion.div 
         variants={headerVariants}
-        className={`relative z-10 flex items-center justify-between ${getHeaderPadding()} glass backdrop-blur-xl border-b border-border/30 flex-shrink-0`}
+        className={`relative z-20 flex items-center justify-between glass backdrop-blur-xl border-b border-border/20 flex-shrink-0 safe-area-inset-top ${containerPadding} py-2`}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className={`rounded-lg glass backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${deviceCategory === 'smallMobile' ? 'p-2' : 'p-2.5'}`}
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
+          className={`rounded-xl glass backdrop-blur-xl border border-border/20 hover:bg-secondary/20 transition-all duration-200 ${getTouchButtonSize()} flex items-center justify-center`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           {step > 1 ? (
             <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
@@ -174,35 +179,36 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           )}
         </motion.button>
 
-        <div className="text-center flex-1 mx-4">
+        <div className="text-center flex-1 mx-3">
           <motion.h1 
-            className={`${textSize.base} font-bold text-foreground`}
-            animate={{ scale: [1, 1.01, 1] }}
+            className={`${textSize.base} font-bold text-foreground truncate`}
+            animate={{ scale: [1, 1.005, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             Build Your {vehicle.name}
           </motion.h1>
         </div>
 
-        <div className="w-[44px]" />
+        <div className={getTouchButtonSize().split(' ').find(c => c.includes('w-')) || 'w-11'} />
       </motion.div>
 
-      {/* Responsive Vehicle Image with Glass Morphism Overlay */}
+      {/* Enhanced Vehicle Image with Better Mobile Handling */}
       <motion.div 
         variants={imageVariants}
-        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/30 flex-shrink-0`}
+        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/15 to-card/15 overflow-hidden border-b border-border/20 flex-shrink-0`}
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 animate-pulse" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain scale-110 relative z-10"
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1.1, opacity: 1 }}
+          className="w-full h-full object-contain scale-105 relative z-10"
+          initial={{ scale: 1.15, opacity: 0 }}
+          animate={{ scale: 1.05, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
+          loading="lazy"
           onLoad={(e) => {
             const skeleton = (e.currentTarget.previousElementSibling as HTMLElement);
             if (skeleton) {
@@ -211,38 +217,38 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           }}
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/5 via-transparent to-transparent" />
         
         <motion.div 
-          className={`absolute ${deviceCategory === 'smallMobile' ? 'bottom-1 left-1 right-1' : 'bottom-2 left-2 right-2'} text-foreground`}
-          initial={{ opacity: 0, y: 20 }}
+          className={`absolute bottom-2 left-2 right-2 text-foreground`}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
         >
-          <div className={`glass backdrop-blur-xl rounded-lg ${deviceCategory === 'smallMobile' ? 'p-1.5' : 'p-2'} border border-border/30 shadow-lg`}>
-            <h3 className={`${textSize.sm} font-bold`}>{config.modelYear} {vehicle.name}</h3>
-            <p className={`text-primary ${textSize.xs} font-medium`}>{config.grade} • {config.engine}</p>
+          <div className={`glass backdrop-blur-xl rounded-lg p-2 border border-border/20 shadow-lg`}>
+            <h3 className={`${textSize.sm} font-bold truncate`}>{config.modelYear} {vehicle.name}</h3>
+            <p className={`text-primary ${textSize.xs} font-medium truncate`}>{config.grade} • {config.engine}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* Progress Bar with Glass Effect */}
+      {/* Enhanced Progress Bar */}
       <motion.div 
         variants={contentVariants}
-        className="flex-shrink-0 glass backdrop-blur-sm border-b border-border/20"
+        className="flex-shrink-0 glass backdrop-blur-sm border-b border-border/10"
       >
         <MobileProgress currentStep={step} totalSteps={4} />
       </motion.div>
 
-      {/* Choice Collector with Glass Morphism */}
+      {/* Choice Collector */}
       <motion.div 
         variants={contentVariants}
-        className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} flex-shrink-0 glass backdrop-blur-sm`}
+        className={`${containerPadding} py-2 flex-shrink-0 glass backdrop-blur-sm border-b border-border/5`}
       >
         <ChoiceCollector config={config} step={step} />
       </motion.div>
 
-      {/* Step Content */}
+      {/* Step Content with Enhanced Mobile Layout */}
       <motion.div 
         variants={contentVariants}
         className="flex-1 overflow-hidden"
@@ -262,11 +268,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Price Summary with Glass Morphism */}
+      {/* Enhanced Summary with Safe Area */}
       <motion.div 
         variants={contentVariants}
-        className="flex-shrink-0 relative z-20 glass backdrop-blur-xl border-t border-border/30"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="flex-shrink-0 relative z-20 glass backdrop-blur-xl border-t border-border/20 safe-area-inset-bottom"
       >
         <MobileSummary 
           config={config}

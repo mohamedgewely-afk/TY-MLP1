@@ -12,6 +12,7 @@ export interface DeviceInfo {
   screenSize: { width: number; height: number };
   touchDevice: boolean;
   hasNotch: boolean;
+  isInitialized: boolean;
 }
 
 // Breakpoints for different device categories
@@ -23,16 +24,64 @@ const BREAKPOINTS = {
   desktop: { min: 768, max: Infinity }
 };
 
+// Initial mobile-first state to prevent hydration mismatches
+const getInitialState = (): DeviceInfo => {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    return {
+      isMobile: true, // Default to mobile for SSR
+      isTablet: false,
+      isDesktop: false,
+      deviceCategory: 'standardMobile',
+      screenSize: { width: 375, height: 667 },
+      touchDevice: true,
+      hasNotch: false,
+      isInitialized: false
+    };
+  }
+
+  // Get actual dimensions immediately if available
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Detect notch/dynamic island (iPhone X and newer)
+  const hasNotch = CSS.supports('padding-top: env(safe-area-inset-top)') && 
+                  window.screen.height >= 812 && 
+                  width <= 430;
+
+  let deviceCategory: DeviceCategory = 'desktop';
+  
+  if (width <= BREAKPOINTS.smallMobile.max) {
+    deviceCategory = 'smallMobile';
+  } else if (width <= BREAKPOINTS.standardMobile.max) {
+    deviceCategory = 'standardMobile';
+  } else if (width <= BREAKPOINTS.largeMobile.max) {
+    deviceCategory = 'largeMobile';
+  } else if (width <= BREAKPOINTS.tablet.max) {
+    deviceCategory = 'tablet';
+  }
+
+  const isMobile = deviceCategory === 'smallMobile' || deviceCategory === 'standardMobile' || deviceCategory === 'largeMobile';
+  const isTablet = deviceCategory === 'tablet';
+  const isDesktop = deviceCategory === 'desktop';
+
+  console.log('🔍 Device Detection:', { width, deviceCategory, isMobile, touchDevice });
+
+  return {
+    isMobile,
+    isTablet,
+    isDesktop,
+    deviceCategory,
+    screenSize: { width, height },
+    touchDevice,
+    hasNotch,
+    isInitialized: true
+  };
+};
+
 export function useDeviceInfo(): DeviceInfo {
-  const [deviceInfo, setDeviceInfo] = React.useState<DeviceInfo>({
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
-    deviceCategory: 'desktop',
-    screenSize: { width: 0, height: 0 },
-    touchDevice: false,
-    hasNotch: false
-  });
+  const [deviceInfo, setDeviceInfo] = React.useState<DeviceInfo>(getInitialState);
 
   React.useEffect(() => {
     const updateDeviceInfo = () => {
@@ -57,9 +106,11 @@ export function useDeviceInfo(): DeviceInfo {
         deviceCategory = 'tablet';
       }
 
-      const isMobile = deviceCategory.includes('Mobile');
+      const isMobile = deviceCategory === 'smallMobile' || deviceCategory === 'standardMobile' || deviceCategory === 'largeMobile';
       const isTablet = deviceCategory === 'tablet';
       const isDesktop = deviceCategory === 'desktop';
+
+      console.log('📱 Device Update:', { width, deviceCategory, isMobile, touchDevice });
 
       setDeviceInfo({
         isMobile,
@@ -68,14 +119,19 @@ export function useDeviceInfo(): DeviceInfo {
         deviceCategory,
         screenSize: { width, height },
         touchDevice,
-        hasNotch
+        hasNotch,
+        isInitialized: true
       });
     };
 
+    // Initial update
     updateDeviceInfo();
     
     const handleResize = () => updateDeviceInfo();
-    const handleOrientationChange = () => setTimeout(updateDeviceInfo, 100);
+    const handleOrientationChange = () => {
+      // Small delay to ensure dimensions are updated after orientation change
+      setTimeout(updateDeviceInfo, 150);
+    };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleOrientationChange);

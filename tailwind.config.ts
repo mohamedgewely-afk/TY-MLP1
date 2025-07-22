@@ -109,6 +109,11 @@ export default {
 				'safe-bottom': 'env(safe-area-inset-bottom)',
 				'safe-left': 'env(safe-area-inset-left)',
 				'safe-right': 'env(safe-area-inset-right)',
+				'mobile-xs': '0.125rem',
+				'mobile-sm': '0.25rem',
+				'mobile-md': '0.375rem',
+				'mobile-lg': '0.5rem',
+				'mobile-xl': '0.75rem',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -189,6 +194,20 @@ export default {
 					'50%': {
 						transform: 'scale(1.05)'
 					}
+				},
+				'mobile-slide-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(15px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'mobile-fade': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
 				}
 			},
 			animation: {
@@ -200,7 +219,9 @@ export default {
 				'shimmer': 'shimmer 2s infinite',
 				'rotate-slow': 'rotate-slow 8s linear infinite',
 				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
-				'scale-pulse': 'scale-pulse 3s ease-in-out infinite'
+				'scale-pulse': 'scale-pulse 3s ease-in-out infinite',
+				'mobile-slide-up': 'mobile-slide-up 0.3s ease-out',
+				'mobile-fade': 'mobile-fade 0.2s ease-out'
 			},
 			boxShadow: {
 				'persona': '0 10px 25px -5px rgba(var(--persona-primary-rgb), 0.3)',
@@ -220,7 +241,6 @@ export default {
 	},
 	plugins: [
 		require("tailwindcss-animate"),
-		// Add a custom plugin for text shadow and safe areas
 		function({ addUtilities }) {
 			const newUtilities = {
 				'.text-shadow-sm': {
@@ -242,7 +262,6 @@ export default {
 						display: 'none',
 					},
 				},
-				// Safe area utilities
 				'.safe-area-inset-top': {
 					paddingTop: 'env(safe-area-inset-top)',
 				},
@@ -261,7 +280,6 @@ export default {
 					paddingLeft: 'env(safe-area-inset-left)',
 					paddingRight: 'env(safe-area-inset-right)',
 				},
-				// Touch-friendly utilities
 				'.touch-target': {
 					minHeight: '44px',
 					minWidth: '44px',
@@ -270,6 +288,34 @@ export default {
 					minHeight: '48px',
 					minWidth: '48px',
 				},
+				'.touch-target-xl': {
+					minHeight: '52px',
+					minWidth: '52px',
+				},
+				'.glass': {
+					backgroundColor: 'rgba(255, 255, 255, 0.1)',
+					backdropFilter: 'blur(10px)',
+					border: '1px solid rgba(255, 255, 255, 0.2)',
+				},
+				'.glass-mobile': {
+					backgroundColor: 'rgba(255, 255, 255, 0.05)',
+					backdropFilter: 'blur(8px)',
+					border: '1px solid rgba(255, 255, 255, 0.1)',
+				},
+				'.mobile-viewport': {
+					width: '100vw',
+					height: '100vh',
+					position: 'fixed',
+					top: '0',
+					left: '0',
+					right: '0',
+					bottom: '0',
+				},
+				'.mobile-container': {
+					maxWidth: '100%',
+					paddingLeft: 'env(safe-area-inset-left)',
+					paddingRight: 'env(safe-area-inset-right)',
+				}
 			};
 			addUtilities(newUtilities);
 		}
