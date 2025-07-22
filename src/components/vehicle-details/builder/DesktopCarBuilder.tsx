@@ -1,6 +1,7 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, Sparkles, Zap } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
@@ -54,132 +55,235 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   };
 
   const showSpecs = step > 3 && (config.modelYear && config.grade);
-
-  const reserveAmount = 5000; // Standard reservation amount
+  const reserveAmount = 5000;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden flex"
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="relative h-full w-full overflow-hidden flex"
     >
-      {/* Left Side - Interactive Car Image (50% width) */}
-      <div className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30">
-        {/* Header overlay on image */}
+      {/* Left Side - Cinematic Car Showcase (55% width) */}
+      <motion.div 
+        className="w-[55%] h-full relative bg-gradient-to-br from-muted/40 via-card/30 to-muted/50 overflow-hidden"
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+      >
+        {/* Premium header overlay */}
         <motion.div 
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm"
-          initial={{ y: -50, opacity: 0 }}
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-8 bg-gradient-to-b from-background/90 via-background/70 to-transparent backdrop-blur-xl"
+          initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
         >
+          {/* Luxury accent border */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          
           <motion.button
             onClick={step > 1 ? goBack : onClose}
-            className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
+            className="p-4 rounded-2xl bg-secondary/80 backdrop-blur-lg border border-border/50 hover:bg-secondary/90 transition-all duration-300 shadow-xl hover:shadow-2xl group"
+            whileHover={{ scale: 1.05, rotateZ: step > 1 ? 0 : 45 }}
             whileTap={{ scale: 0.95 }}
           >
             {step > 1 ? (
-              <ArrowLeft className="h-6 w-6 text-foreground" />
+              <ArrowLeft className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
             ) : (
-              <X className="h-6 w-6 text-foreground" />
+              <X className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
             )}
           </motion.button>
 
-          <div className="text-center">
+          <motion.div 
+            className="text-center"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
             <motion.h1 
-              className="text-2xl font-bold text-foreground"
-              animate={{ scale: [1, 1.01, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="text-3xl font-black text-foreground flex items-center gap-3 mb-2"
+              animate={{ 
+                textShadow: [
+                  "0 0 0px rgba(239,68,68,0.5)", 
+                  "0 0 20px rgba(239,68,68,0.3)", 
+                  "0 0 0px rgba(239,68,68,0.5)"
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
             >
-              Build Your {vehicle.name}
+              <Sparkles className="h-7 w-7 text-primary" />
+              Build Your {vehicle.name.split(' ').pop()}
+              <Zap className="h-7 w-7 text-primary" />
             </motion.h1>
-            <p className="text-sm text-primary font-medium">Step {step} of 7</p>
-          </div>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 1, delay: 0.7 }}
+              className="h-1 bg-gradient-to-r from-primary via-primary/80 to-primary rounded-full"
+            />
+            <p className="text-primary text-lg font-bold mt-2">Step {step} of 4</p>
+          </motion.div>
 
-          <div className="w-12" />
+          <div className="w-16" />
         </motion.div>
 
-        {/* Full height interactive car image */}
+        {/* Cinematic car showcase */}
         <motion.div 
           className="relative w-full h-full overflow-hidden"
           layoutId="vehicle-image"
           key={config.exteriorColor + config.grade + config.modelYear + config.engine}
         >
+          {/* Dynamic background patterns */}
+          <motion.div 
+            className="absolute inset-0"
+            animate={{ 
+              background: [
+                "radial-gradient(circle at 30% 40%, rgba(239,68,68,0.15), transparent 50%)",
+                "radial-gradient(circle at 70% 60%, rgba(239,68,68,0.15), transparent 50%)",
+                "radial-gradient(circle at 30% 40%, rgba(239,68,68,0.15), transparent 50%)"
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+          
           <motion.img 
             src={getCurrentVehicleImage()}
             alt="Vehicle Preview"
-            className="w-full h-full object-cover scale-110"
-            initial={{ scale: 1.2, opacity: 0 }}
-            animate={{ scale: 1.1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-full h-full object-cover scale-110 relative z-10"
+            initial={{ scale: 1.3, opacity: 0, rotateY: 20 }}
+            animate={{ scale: 1.1, opacity: 1, rotateY: 0 }}
+            transition={{ 
+              duration: 1.2, 
+              ease: [0.22, 1, 0.36, 1],
+              delay: 0.6
+            }}
+            style={{ 
+              filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.4))',
+              transformStyle: 'preserve-3d'
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20" />
           
-          {/* Vehicle Info Overlay - Bottom */}
+          {/* Elegant overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/30 via-transparent to-background/30" />
+          
+          {/* Premium vehicle info overlay */}
           <motion.div 
-            className="absolute bottom-8 left-8 right-8 text-foreground"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            className="absolute bottom-12 left-12 right-12 text-foreground"
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
           >
-            <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-6 border border-border max-w-md">
-              <h3 className="text-2xl font-bold mb-2">{config.modelYear} {vehicle.name}</h3>
-              <p className="text-primary text-lg font-medium">{config.grade} • {config.engine}</p>
-              <p className="text-muted-foreground text-base">{config.exteriorColor} Exterior</p>
-              <div className="mt-4 text-3xl font-black text-primary">
-                AED {calculateTotalPrice().toLocaleString()}
+            <motion.div 
+              className="bg-gradient-to-r from-card/95 via-card/98 to-card/95 backdrop-blur-2xl rounded-3xl p-8 border border-primary/20 shadow-2xl max-w-lg"
+              whileHover={{ scale: 1.02, y: -5 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-3xl font-black text-foreground mb-2">{config.modelYear} {vehicle.name}</h3>
+                  <p className="text-primary text-xl font-bold">{config.grade} • {config.engine}</p>
+                  <p className="text-muted-foreground text-lg">{config.exteriorColor} Exterior</p>
+                </div>
+                
+                <motion.div
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="border-t border-primary/20 pt-4"
+                >
+                  <div className="text-4xl font-black text-primary mb-1">
+                    AED {calculateTotalPrice().toLocaleString()}
+                  </div>
+                  <div className="text-muted-foreground text-sm">Total Configuration Price</div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Right Side - Configuration Panel (50% width) */}
-      <div className="w-1/2 h-full flex flex-col bg-background border-l border-border">
-        {/* Progress */}
-        <div className="px-6 py-4 border-b border-border">
-          <MobileProgress currentStep={step} totalSteps={7} />
-        </div>
+      {/* Right Side - Elegant Configuration Panel (45% width) */}
+      <motion.div 
+        className="w-[45%] h-full flex flex-col bg-gradient-to-br from-background via-card/50 to-background border-l border-primary/20 shadow-2xl"
+        initial={{ x: 100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
+      >
+        {/* Luxury progress section */}
+        <motion.div 
+          className="px-8 py-6 border-b border-primary/10 bg-gradient-to-r from-card/30 to-card/50"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <MobileProgress currentStep={step} totalSteps={4} />
+        </motion.div>
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Choice Collector & Specs */}
-          <div className="px-6 py-4 border-b border-border">
+          <motion.div 
+            className="px-8 py-6 border-b border-primary/10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
             <ChoiceCollector config={config} step={step} />
             {showSpecs && (
-              <CollapsibleSpecs config={config} />
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                transition={{ duration: 0.5 }}
+              >
+                <CollapsibleSpecs config={config} />
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
-          {/* Step Content */}
-          <div className="flex-1 overflow-hidden">
+          {/* Step Content with Enhanced Animations */}
+          <div className="flex-1 overflow-hidden relative">
             <AnimatePresence mode="wait">
-              <MobileStepContent
+              <motion.div
                 key={step}
-                step={step}
-                config={config}
-                setConfig={setConfig}
-                vehicle={vehicle}
-                calculateTotalPrice={calculateTotalPrice}
-                handlePayment={handlePayment}
-                goNext={goNext}
-              />
+                initial={{ opacity: 0, x: 50, scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -50, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.6, 
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                className="h-full"
+              >
+                <MobileStepContent
+                  step={step}
+                  config={config}
+                  setConfig={setConfig}
+                  vehicle={vehicle}
+                  calculateTotalPrice={calculateTotalPrice}
+                  handlePayment={handlePayment}
+                  goNext={goNext}
+                />
+              </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Summary */}
-          <div className="border-t border-border">
+          {/* Premium Summary */}
+          <motion.div 
+            className="border-t border-primary/20 bg-gradient-to-r from-card/50 to-card/30"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
             <MobileSummary 
               config={config}
               totalPrice={calculateTotalPrice()}
               step={step}
               reserveAmount={reserveAmount}
             />
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
