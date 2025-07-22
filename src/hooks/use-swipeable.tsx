@@ -7,6 +7,7 @@ interface SwipeableOptions {
   onSwipeUp?: () => void;
   onSwipeDown?: () => void;
   threshold?: number;
+  preventDefaultTouchmoveEvent?: boolean;
 }
 
 export const useSwipeable = (options: SwipeableOptions) => {
@@ -15,7 +16,8 @@ export const useSwipeable = (options: SwipeableOptions) => {
     onSwipeRight,
     onSwipeUp,
     onSwipeDown,
-    threshold = 50
+    threshold = 50,
+    preventDefaultTouchmoveEvent = false
   } = options;
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -30,6 +32,12 @@ export const useSwipeable = (options: SwipeableOptions) => {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY
       };
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (preventDefaultTouchmoveEvent) {
+        e.preventDefault();
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
@@ -71,13 +79,15 @@ export const useSwipeable = (options: SwipeableOptions) => {
     };
 
     element.addEventListener('touchstart', handleTouchStart, { passive: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: !preventDefaultTouchmoveEvent });
     element.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold]);
+  }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold, preventDefaultTouchmoveEvent]);
 
   return elementRef;
 };

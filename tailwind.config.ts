@@ -230,6 +230,13 @@ export default {
 				'.text-shadow-none': {
 					textShadow: 'none',
 				},
+				'.scrollbar-hide': {
+					'-ms-overflow-style': 'none',
+					'scrollbar-width': 'none',
+					'&::-webkit-scrollbar': {
+						display: 'none',
+					},
+				},
 			};
 			addUtilities(newUtilities);
 		}
