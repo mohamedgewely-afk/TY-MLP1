@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
@@ -30,6 +29,74 @@ interface MobileCarBuilderProps {
   onClose: () => void;
 }
 
+// Cinematic entrance variants
+const containerVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.9,
+    rotateX: -15,
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    rotateX: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      staggerChildren: 0.1
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: { duration: 0.4 }
+  }
+};
+
+const headerVariants = {
+  hidden: { y: -60, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.6, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.2
+    }
+  }
+};
+
+const imageVariants = {
+  hidden: { 
+    scale: 1.3, 
+    opacity: 0,
+    filter: "blur(10px)"
+  },
+  visible: { 
+    scale: 1.1, 
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: { 
+      duration: 1.2, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.4
+    }
+  }
+};
+
+const contentVariants = {
+  hidden: { y: 30, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.6, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.6
+    }
+  }
+};
+
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   vehicle,
   step,
@@ -55,23 +122,21 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="relative h-full w-full bg-background overflow-hidden flex flex-col perspective-1000"
     >
-      {/* Header with Back Button */}
+      {/* Header with Glass Morphism */}
       <motion.div 
-        className="relative z-10 flex items-center justify-between p-3 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        variants={headerVariants}
+        className="relative z-10 flex items-center justify-between p-3 glass backdrop-blur-xl border-b border-border/30 flex-shrink-0"
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-2 rounded-lg bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200 min-h-[44px] min-w-[44px]"
-          whileHover={{ scale: 1.05 }}
+          className="p-2 rounded-lg glass backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 min-h-[44px] min-w-[44px]"
+          whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
         >
           {step > 1 ? (
@@ -94,9 +159,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="w-10" />
       </motion.div>
 
-      {/* Vehicle Image - Larger */}
+      {/* Vehicle Image with Glass Morphism Overlay */}
       <motion.div 
-        className="relative w-full h-64 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border flex-shrink-0"
+        variants={imageVariants}
+        className="relative w-full h-64 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/30 flex-shrink-0"
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
       >
@@ -125,25 +191,34 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
         >
-          <div className="bg-card/60 backdrop-blur-md rounded-lg p-2 border border-border shadow-md">
+          <div className="glass backdrop-blur-xl rounded-lg p-2 border border-border/30 shadow-lg">
             <h3 className="text-sm font-bold">{config.modelYear} {vehicle.name}</h3>
             <p className="text-primary text-xs font-medium">{config.grade} • {config.engine}</p>
           </div>
         </motion.div>
       </motion.div>
 
-      {/* Minimal Progress Bar */}
-      <div className="flex-shrink-0">
+      {/* Progress Bar with Glass Effect */}
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 glass backdrop-blur-sm border-b border-border/20"
+      >
         <MobileProgress currentStep={step} totalSteps={4} />
-      </div>
+      </motion.div>
 
-      {/* Choice Collector */}
-      <div className="px-3 py-2 flex-shrink-0">
+      {/* Choice Collector with Glass Morphism */}
+      <motion.div 
+        variants={contentVariants}
+        className="px-3 py-2 flex-shrink-0 glass backdrop-blur-sm"
+      >
         <ChoiceCollector config={config} step={step} />
-      </div>
+      </motion.div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-hidden">
+      <motion.div 
+        variants={contentVariants}
+        className="flex-1 overflow-hidden"
+      >
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
@@ -156,17 +231,20 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             goNext={goNext}
           />
         </AnimatePresence>
-      </div>
+      </motion.div>
 
-      {/* Price Summary */}
-      <div className="flex-shrink-0 relative z-20">
+      {/* Price Summary with Glass Morphism */}
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 relative z-20 glass backdrop-blur-xl border-t border-border/30"
+      >
         <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
           step={step}
           reserveAmount={2000}
         />
-      </div>
+      </motion.div>
     </motion.div>
   );
 };

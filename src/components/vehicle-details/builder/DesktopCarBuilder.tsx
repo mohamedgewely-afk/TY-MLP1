@@ -30,6 +30,97 @@ interface DesktopCarBuilderProps {
   onClose: () => void;
 }
 
+// Cinematic entrance variants for desktop
+const containerVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.95,
+    rotateY: -5,
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    rotateY: 0,
+    transition: {
+      duration: 1,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      staggerChildren: 0.15
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.98,
+    transition: { duration: 0.5 }
+  }
+};
+
+const leftPanelVariants = {
+  hidden: { 
+    x: -100, 
+    opacity: 0,
+    rotateY: 15
+  },
+  visible: { 
+    x: 0, 
+    opacity: 1,
+    rotateY: 0,
+    transition: { 
+      duration: 0.8, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.2
+    }
+  }
+};
+
+const rightPanelVariants = {
+  hidden: { 
+    x: 100, 
+    opacity: 0,
+    rotateY: -15
+  },
+  visible: { 
+    x: 0, 
+    opacity: 1,
+    rotateY: 0,
+    transition: { 
+      duration: 0.8, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.4
+    }
+  }
+};
+
+const headerVariants = {
+  hidden: { y: -80, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.7, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.1
+    }
+  }
+};
+
+const imageVariants = {
+  hidden: { 
+    scale: 1.4, 
+    opacity: 0,
+    filter: "blur(15px)"
+  },
+  visible: { 
+    scale: 1.1, 
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: { 
+      duration: 1.5, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.6
+    }
+  }
+};
+
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   vehicle,
   step,
@@ -54,30 +145,30 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   };
 
   const showSpecs = step > 3 && (config.modelYear && config.grade);
-
-  const reserveAmount = 5000; // Standard reservation amount
+  const reserveAmount = 5000;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden flex"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="relative h-full w-full bg-background overflow-hidden flex perspective-1000"
     >
-      {/* Left Side - Interactive Car Image (50% width) */}
-      <div className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30">
-        {/* Header overlay on image */}
+      {/* Left Side - Interactive Car Image with Glass Morphism */}
+      <motion.div 
+        variants={leftPanelVariants}
+        className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30"
+      >
+        {/* Header overlay on image with Glass Morphism */}
         <motion.div 
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4 }}
+          variants={headerVariants}
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 glass backdrop-blur-xl border-b border-border/20"
         >
           <motion.button
             onClick={step > 1 ? goBack : onClose}
-            className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
+            className="p-3 rounded-xl glass backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300"
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
             {step > 1 ? (
@@ -103,6 +194,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
         {/* Full height interactive car image */}
         <motion.div 
+          variants={imageVariants}
           className="relative w-full h-full overflow-hidden"
           layoutId="vehicle-image"
           key={config.exteriorColor + config.grade + config.modelYear + config.engine}
@@ -117,14 +209,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20" />
           
-          {/* Vehicle Info Overlay - Bottom */}
+          {/* Vehicle Info Overlay with Glass Morphism */}
           <motion.div 
             className="absolute bottom-8 left-8 right-8 text-foreground"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.8 }}
           >
-            <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-6 border border-border max-w-md">
+            <div className="glass backdrop-blur-xl rounded-2xl p-6 border border-border/30 max-w-md shadow-2xl">
               <h3 className="text-2xl font-bold mb-2">{config.modelYear} {vehicle.name}</h3>
               <p className="text-primary text-lg font-medium">{config.grade} • {config.engine}</p>
               <p className="text-muted-foreground text-base">{config.exteriorColor} Exterior</p>
@@ -134,19 +226,22 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </div>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Right Side - Configuration Panel (50% width) */}
-      <div className="w-1/2 h-full flex flex-col bg-background border-l border-border">
-        {/* Progress */}
-        <div className="px-6 py-4 border-b border-border">
+      {/* Right Side - Configuration Panel with Glass Morphism */}
+      <motion.div 
+        variants={rightPanelVariants}
+        className="w-1/2 h-full flex flex-col glass backdrop-blur-xl border-l border-border/30"
+      >
+        {/* Progress with Glass Effect */}
+        <div className="px-6 py-4 glass backdrop-blur-sm border-b border-border/20">
           <MobileProgress currentStep={step} totalSteps={7} />
         </div>
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Choice Collector & Specs */}
-          <div className="px-6 py-4 border-b border-border">
+          {/* Choice Collector & Specs with Glass Morphism */}
+          <div className="px-6 py-4 glass backdrop-blur-sm border-b border-border/20">
             <ChoiceCollector config={config} step={step} />
             {showSpecs && (
               <CollapsibleSpecs config={config} />
@@ -169,8 +264,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </AnimatePresence>
           </div>
 
-          {/* Summary */}
-          <div className="border-t border-border">
+          {/* Summary with Glass Morphism */}
+          <div className="glass backdrop-blur-xl border-t border-border/30">
             <MobileSummary 
               config={config}
               totalPrice={calculateTotalPrice()}
@@ -179,7 +274,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             />
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
