@@ -223,16 +223,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection("quick-actions");
     }
   };
-
-  const handleLightningToggle = () => {
-    if (activeSection === "lightning") {
-      setActiveSection(null);
-      setIsMenuOpen(false);
-    } else {
-      setActiveSection("lightning");
-      setIsMenuOpen(true);
-    }
-  };
   
   if (!isMobile) return null;
 
@@ -278,35 +268,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </div>
 
             <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
-              {/* Lightning Quick Actions Section */}
-              {activeSection === "lightning" && (
-                <motion.div 
-                  className="p-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Quick Actions</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {lightningQuickActions.map((action) => (
-                      <Link key={action.id} to={action.link} onClick={() => setIsMenuOpen(false)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <Card className={cn("h-24 overflow-hidden", action.color)}>
-                            <CardContent className="flex flex-col justify-center items-center h-full p-3 text-center">
-                              <div className="mb-2">
-                                {action.icon}
-                              </div>
-                              <h3 className="font-semibold text-sm">{action.title}</h3>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      </Link>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
               {/* Quick Actions Section */}
               {activeSection === "quick-actions" && (
                 <motion.div 
@@ -682,7 +643,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-6 gap-1 px-1">
+        <div className="grid grid-cols-5 gap-1 px-1">
           <NavItem 
             icon={<Home className="h-5 w-5" />}
             label="Home"
@@ -699,7 +660,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           
           {/* Lightning Quick Actions */}
           <motion.button
-            onClick={() => handleSectionToggle("lightning")}
+            onClick={() => handleSectionToggle("quick-actions")}
             className="flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors relative"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -738,7 +699,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </motion.div>
             <span className={cn(
               "text-xs font-medium transition-colors truncate w-full text-center",
-              activeSection === "lightning" ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
+              activeSection === "quick-actions" ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
             )}>
               Quick
             </span>
@@ -757,13 +718,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             to="#"
             onClick={() => handleSectionToggle("pre-owned")}
             isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
-          />
-          <NavItem 
-            icon={<Menu className="h-5 w-5" />}
-            label="Menu"
-            to="#"
-            onClick={toggleMenu}
-            isActive={isMenuOpen}
           />
         </div>
       </motion.div>
