@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
+import EnhancedMobileCarBuilder from "./builder/EnhancedMobileCarBuilder";
+import EnhancedDesktopCarBuilder from "./builder/EnhancedDesktopCarBuilder";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface CarBuilderProps {
@@ -37,6 +39,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
+  const [useEnhancedUI, setUseEnhancedUI] = useState(true);
 
   console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
 
@@ -133,7 +136,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   if (isMobile) {
     return (
       <MobileDialog open={isOpen} onOpenChange={onClose}>
-        <MobileDialogContent>
+        <MobileDialogContent className="p-0">
           <VisuallyHidden>
             <DialogTitle>Build Your {vehicle.name}</DialogTitle>
             <DialogDescription>
@@ -142,20 +145,37 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           </VisuallyHidden>
           
           <AnimatePresence mode="wait">
-            <MobileCarBuilder
-              key="mobile"
-              vehicle={vehicle}
-              step={step}
-              config={config}
-              setConfig={updateConfig}
-              showConfirmation={showConfirmation}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goBack={goBack}
-              goNext={goNext}
-              onClose={onClose}
-              deviceCategory={deviceCategory}
-            />
+            {useEnhancedUI ? (
+              <EnhancedMobileCarBuilder
+                key="enhanced-mobile"
+                vehicle={vehicle}
+                step={step}
+                config={config}
+                setConfig={updateConfig}
+                showConfirmation={showConfirmation}
+                calculateTotalPrice={calculateTotalPrice}
+                handlePayment={handlePayment}
+                goBack={goBack}
+                goNext={goNext}
+                onClose={onClose}
+                deviceCategory={deviceCategory}
+              />
+            ) : (
+              <MobileCarBuilder
+                key="mobile"
+                vehicle={vehicle}
+                step={step}
+                config={config}
+                setConfig={updateConfig}
+                showConfirmation={showConfirmation}
+                calculateTotalPrice={calculateTotalPrice}
+                handlePayment={handlePayment}
+                goBack={goBack}
+                goNext={goNext}
+                onClose={onClose}
+                deviceCategory={deviceCategory}
+              />
+            )}
           </AnimatePresence>
         </MobileDialogContent>
       </MobileDialog>
@@ -166,7 +186,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-7xl max-h-[90vh] w-full"
+        className="max-w-7xl max-h-[90vh] w-full p-0 border-0 overflow-hidden"
         aria-describedby="car-builder-description"
       >
         <VisuallyHidden>
@@ -177,19 +197,35 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </VisuallyHidden>
         
         <AnimatePresence mode="wait">
-          <DesktopCarBuilder
-            key="desktop"
-            vehicle={vehicle}
-            step={step}
-            config={config}
-            setConfig={updateConfig}
-            showConfirmation={showConfirmation}
-            calculateTotalPrice={calculateTotalPrice}
-            handlePayment={handlePayment}
-            goBack={goBack}
-            goNext={goNext}
-            onClose={onClose}
-          />
+          {useEnhancedUI ? (
+            <EnhancedDesktopCarBuilder
+              key="enhanced-desktop"
+              vehicle={vehicle}
+              step={step}
+              config={config}
+              setConfig={updateConfig}
+              showConfirmation={showConfirmation}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goBack={goBack}
+              goNext={goNext}
+              onClose={onClose}
+            />
+          ) : (
+            <DesktopCarBuilder
+              key="desktop"
+              vehicle={vehicle}
+              step={step}
+              config={config}
+              setConfig={updateConfig}
+              showConfirmation={showConfirmation}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goBack={goBack}
+              goNext={goNext}
+              onClose={onClose}
+            />
+          )}
         </AnimatePresence>
       </DialogContent>
     </Dialog>
