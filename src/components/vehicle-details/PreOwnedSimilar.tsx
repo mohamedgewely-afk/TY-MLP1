@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import { 
-  Calendar, Gauge, Fuel, MapPin, Star, ArrowRight, Award,
-  Clock, CheckCircle, Shield, ChevronLeft, ChevronRight
+  Calendar, Gauge, Fuel, MapPin, ArrowRight, Award,
+  CheckCircle, Shield, ChevronLeft, ChevronRight, ShoppingCart
 } from "lucide-react";
 
 interface PreOwnedSimilarProps {
@@ -28,7 +28,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       mileage: "45,000 km",
       price: Math.round(currentVehicle.price * 0.7),
       originalPrice: Math.round(currentVehicle.price * 0.85),
-      rating: 4.8,
       location: "Dubai, UAE",
       certification: "Toyota Certified",
       warranty: "12 months",
@@ -44,7 +43,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       mileage: "62,000 km",
       price: Math.round(currentVehicle.price * 0.6),
       originalPrice: Math.round(currentVehicle.price * 0.75),
-      rating: 4.6,
       location: "Abu Dhabi, UAE",
       certification: "Toyota Certified",
       warranty: "12 months",
@@ -60,7 +58,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       mileage: "78,000 km",
       price: Math.round(currentVehicle.price * 0.5),
       originalPrice: Math.round(currentVehicle.price * 0.65),
-      rating: 4.5,
       location: "Sharjah, UAE",
       certification: "Toyota Certified",
       warranty: "6 months",
@@ -76,7 +73,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       mileage: "95,000 km",
       price: Math.round(currentVehicle.price * 0.4),
       originalPrice: Math.round(currentVehicle.price * 0.55),
-      rating: 4.3,
       location: "Ajman, UAE",
       certification: "Toyota Certified",
       warranty: "6 months",
@@ -187,12 +183,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                         {selectedVehicle.certification}
                       </Badge>
                     </div>
-                    <div className="absolute top-4 right-4">
-                      <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                        <span className="text-sm font-semibold">{selectedVehicle.rating}</span>
-                      </div>
-                    </div>
                     
                     {/* Auto-play indicator */}
                     {isAutoPlaying && !isPaused && (
@@ -273,7 +263,8 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
                       <Button variant="outline" size="default">
-                        <Clock className="h-4 w-4" />
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Buy Now
                       </Button>
                     </div>
                   </CardContent>
