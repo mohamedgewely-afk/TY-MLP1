@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Crown, Shield, ArrowUpDown } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface VehicleGrade {
   id: string;
@@ -115,6 +115,21 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
     }
   };
 
+  const gradeSwipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (selectedGrade < grades.length - 1) {
+        setSelectedGrade(prev => prev + 1);
+      }
+    },
+    onSwipeRight: () => {
+      if (selectedGrade > 0) {
+        setSelectedGrade(prev => prev - 1);
+      }
+    },
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
+
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-muted/30 to-background">
       <div className="toyota-container">
@@ -151,7 +166,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
         </motion.div>
 
         {!compareMode ? (
-          /* Grade Selection View */
+          /* Grade Selection View with Swipe */
           <div className="space-y-8">
             {/* Grade Tabs */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -180,83 +195,99 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
               ))}
             </div>
 
-            {/* Selected Grade Details */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedGrade}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.5 }}
-                className="grid lg:grid-cols-2 gap-8 lg:gap-12"
-              >
-                {/* Image */}
-                <div className="relative">
-                  <motion.img
-                    src={grades[selectedGrade].image}
-                    alt={grades[selectedGrade].name}
-                    className="w-full h-80 lg:h-96 object-cover rounded-2xl"
-                    layoutId={`grade-image-${selectedGrade}`}
-                  />
-                  <Badge className={`absolute top-4 left-4 bg-gradient-to-r ${grades[selectedGrade].color} text-white`}>
-                    {grades[selectedGrade].badge}
-                  </Badge>
-                </div>
-
-                {/* Details */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-2xl lg:text-3xl font-bold mb-2">
-                      {vehicle.name} {grades[selectedGrade].name}
-                    </h3>
-                    <p className="text-2xl font-bold text-primary">
-                      From AED {grades[selectedGrade].price.toLocaleString()}
-                    </p>
+            {/* Selected Grade Details with Swipe Support */}
+            <div ref={gradeSwipeableRef}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedGrade}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.5 }}
+                  className="grid lg:grid-cols-2 gap-8 lg:gap-12"
+                >
+                  {/* Image */}
+                  <div className="relative">
+                    <motion.img
+                      src={grades[selectedGrade].image}
+                      alt={grades[selectedGrade].name}
+                      className="w-full h-80 lg:h-96 object-cover rounded-2xl"
+                      layoutId={`grade-image-${selectedGrade}`}
+                    />
+                    <Badge className={`absolute top-4 left-4 bg-gradient-to-r ${grades[selectedGrade].color} text-white`}>
+                      {grades[selectedGrade].badge}
+                    </Badge>
                   </div>
 
-                  {/* Specs */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(grades[selectedGrade].specs).map(([key, value]) => (
-                      <div key={key} className="bg-muted rounded-lg p-3">
-                        <div className="text-sm text-muted-foreground capitalize">
-                          {key.replace(/([A-Z])/g, ' $1')}
+                  {/* Details */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-2xl lg:text-3xl font-bold mb-2">
+                        {vehicle.name} {grades[selectedGrade].name}
+                      </h3>
+                      <p className="text-2xl font-bold text-primary">
+                        From AED {grades[selectedGrade].price.toLocaleString()}
+                      </p>
+                    </div>
+
+                    {/* Specs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {Object.entries(grades[selectedGrade].specs).map(([key, value]) => (
+                        <div key={key} className="bg-muted rounded-lg p-3">
+                          <div className="text-sm text-muted-foreground capitalize">
+                            {key.replace(/([A-Z])/g, ' $1')}
+                          </div>
+                          <div className="font-semibold">{value}</div>
                         </div>
-                        <div className="font-semibold">{value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Features */}
-                  <div>
-                    <h4 className="font-semibold mb-3">Key Features</h4>
-                    <div className="space-y-2">
-                      {grades[selectedGrade].features.map((feature, idx) => (
-                        <motion.div
-                          key={feature}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="flex items-center space-x-3"
-                        >
-                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
-                        </motion.div>
                       ))}
                     </div>
-                  </div>
 
-                  {/* CTA */}
-                  <div className="flex space-x-4 pt-4">
-                    <Button size="lg" className="flex-1">
-                      Configure {grades[selectedGrade].name}
-                    </Button>
-                    <Button variant="outline" size="lg">
-                      Test Drive
-                    </Button>
+                    {/* Features */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Key Features</h4>
+                      <div className="space-y-2">
+                        {grades[selectedGrade].features.map((feature, idx) => (
+                          <motion.div
+                            key={feature}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="flex items-center space-x-3"
+                          >
+                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span className="text-sm">{feature}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="flex space-x-4 pt-4">
+                      <Button size="lg" className="flex-1">
+                        Configure {grades[selectedGrade].name}
+                      </Button>
+                      <Button variant="outline" size="lg">
+                        Test Drive
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Swipe Indicator for Mobile */}
+            <div className="flex justify-center mt-4 md:hidden">
+              <div className="flex space-x-2">
+                {grades.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === selectedGrade ? "bg-primary w-6" : "bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           /* Compare Mode */
