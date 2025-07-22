@@ -693,7 +693,13 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             isActive={activeItem === "models" || activeSection === "models"}
           />
           <NavItem 
-            icon={<Plus className="h-5 w-5" />}
+            icon={
+              <div className="relative">
+                <div className="bg-black rounded-full p-1.5">
+                  <Plus className="h-4 w-4 text-white" />
+                </div>
+              </div>
+            }
             label="Quick"
             to="#"
             onClick={togglePlusMenu}
