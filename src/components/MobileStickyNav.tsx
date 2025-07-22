@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap, Bolt, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useToast } from "@/hooks/use-toast";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
@@ -116,14 +116,36 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   onCarBuilder,
   onFinanceCalculator
 }) => {
-  const isMobile = useIsMobile();
+  const { isMobile, isTablet, deviceCategory, screenSize, isInitialized } = useDeviceInfo();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([50000, 200000]);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  const [debugVisible, setDebugVisible] = useState(false);
   const { toast } = useToast();
+
+  // Debug device detection on real devices
+  useEffect(() => {
+    console.log('🔍 MobileStickyNav Device Debug:', {
+      isMobile,
+      isTablet,
+      deviceCategory,
+      screenSize,
+      isInitialized,
+      userAgent: navigator.userAgent.substring(0, 100),
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      shouldShow: isMobile && isInitialized,
+      timestamp: new Date().toISOString()
+    });
+
+    // Add visual debug indicator for real device testing
+    if (process.env.NODE_ENV === 'development') {
+      setDebugVisible(true);
+      setTimeout(() => setDebugVisible(false), 5000);
+    }
+  }, [isMobile, isTablet, deviceCategory, screenSize, isInitialized]);
   
   const quickActionCards = [
     {
@@ -235,10 +257,32 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     }, 2000);
   };
 
-  if (!isMobile) return null;
+  if (!isInitialized) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white/50 backdrop-blur-sm border-t border-gray-200 z-30 md:hidden animate-pulse">
+        <div className="flex items-center justify-center h-full">
+          <div className="w-6 h-6 bg-gray-300 rounded animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isMobile) {
+    console.log('🚫 MobileStickyNav: Not showing on desktop/tablet');
+    return null;
+  }
 
   return (
     <>
+      {/* Debug Indicator for Real Device Testing */}
+      {debugVisible && (
+        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-xs p-2 z-[9999] animate-fade-in">
+          <div className="text-center font-mono">
+            DEBUG: {deviceCategory} | {screenSize.width}x{screenSize.height} | Mobile: {isMobile ? '✅' : '❌'}
+          </div>
+        </div>
+      )}
+
       {/* Overlay */}
       <AnimatePresence>
         {(isMenuOpen || isActionsExpanded) && (
@@ -763,15 +807,31 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Main Sticky Nav */}
+      {/* Enhanced Main Sticky Nav with Force Visibility */}
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl z-30 py-1 md:hidden"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))' }}
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-[100]",
+          "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
+          "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
+          "py-1 md:hidden",
+          // Force visibility with important modifiers
+          "!block !visible !opacity-100",
+          // Enhanced safe area support
+          "pb-safe-area-inset-bottom"
+        )}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+        style={{ 
+          paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
+          minHeight: '64px',
+          zIndex: 100
+        }}
       >
-        <div className={`grid gap-1 px-2 ${vehicle ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <div className={cn(
+          "grid gap-1 px-2 min-h-[56px] items-center",
+          vehicle ? 'grid-cols-5' : 'grid-cols-4'
+        )}>
           <NavItem 
             icon={<Car className="h-5 w-5" />}
             label="Models"
@@ -837,10 +897,11 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, badge }) => {
   const content = (
     <>
-      <div className="flex flex-col items-center justify-center relative">
+      <div className="flex flex-col items-center justify-center relative min-h-[44px] w-full">
         <motion.div 
           className={cn(
-            "p-2 rounded-xl transition-all relative",
+            "p-2 rounded-xl transition-all relative touch-target",
+            "min-w-[44px] min-h-[44px] flex items-center justify-center",
             isActive 
               ? "text-toyota-red bg-red-50 dark:bg-red-950 scale-110" 
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
@@ -861,7 +922,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
           )}
         </motion.div>
         <span className={cn(
-          "text-xs text-center transition-all font-medium mt-1",
+          "text-xs text-center transition-all font-medium mt-1 leading-tight",
           isActive 
             ? "text-toyota-red" 
             : "text-gray-500 dark:text-gray-400"
@@ -885,7 +946,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
     return (
       <button 
         onClick={onClick} 
-        className="relative flex items-center justify-center px-1 py-2"
+        className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         {content}
       </button>
@@ -895,7 +957,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
   return (
     <Link 
       to={to} 
-      className="relative flex items-center justify-center px-1 py-2"
+      className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       {content}
     </Link>

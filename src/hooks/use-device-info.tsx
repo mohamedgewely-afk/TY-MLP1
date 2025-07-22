@@ -93,34 +93,78 @@ export function useDeviceInfo(): DeviceInfo {
   const [deviceInfo, setDeviceInfo] = React.useState<DeviceInfo>(() => detectDevice());
 
   React.useEffect(() => {
-    // Immediate detection on mount
+    // Immediate detection on mount with enhanced mobile debugging
     const initialDetection = detectDevice();
     setDeviceInfo(initialDetection);
 
+    // Add mobile-specific debugging for sticky nav issues
+    if (initialDetection.isMobile) {
+      console.log('📱 Mobile Device Detected - Sticky Nav Should Show:', {
+        ...initialDetection,
+        stickyNavShouldShow: true,
+        viewportMeta: document.querySelector('meta[name="viewport"]')?.getAttribute('content'),
+        bodyClasses: document.body.className,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const updateDeviceInfo = () => {
       const newInfo = detectDevice();
-      setDeviceInfo(newInfo);
+      setDeviceInfo(prev => {
+        // Only update if there's a meaningful change
+        if (prev.deviceCategory !== newInfo.deviceCategory || 
+            prev.screenSize.width !== newInfo.screenSize.width ||
+            prev.isInitialized !== newInfo.isInitialized) {
+          console.log('🔄 Device Info Updated:', newInfo);
+          return newInfo;
+        }
+        return prev;
+      });
     };
 
-    // Debounced resize handler
+    // Optimized resize handler with throttling
     let timeoutId: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(updateDeviceInfo, 100);
+    let lastWidth = window.innerWidth;
+    
+    const throttledResize = () => {
+      const currentWidth = window.innerWidth;
+      // Only trigger if width actually changed significantly
+      if (Math.abs(currentWidth - lastWidth) > 10) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          updateDeviceInfo();
+          lastWidth = currentWidth;
+        }, 150);
+      }
     };
 
-    // Orientation change with delay
+    // Orientation change with enhanced mobile handling
     const handleOrientationChange = () => {
-      setTimeout(updateDeviceInfo, 200);
+      // Wait for viewport to stabilize after orientation change
+      setTimeout(() => {
+        const newInfo = detectDevice();
+        console.log('🔄 Orientation Changed:', newInfo);
+        setDeviceInfo(newInfo);
+      }, 300);
     };
 
-    window.addEventListener('resize', debouncedResize);
-    window.addEventListener('orientationchange', handleOrientationChange);
+    // Mobile-specific visibility change handling
+    const handleVisibilityChange = () => {
+      if (!document.hidden && deviceInfo.isMobile) {
+        // Re-check device info when page becomes visible (helps with mobile browser issues)
+        setTimeout(updateDeviceInfo, 100);
+      }
+    };
+
+    window.addEventListener('resize', throttledResize, { passive: true });
+    window.addEventListener('orientationchange', handleOrientationChange, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true });
     
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', debouncedResize);
+      window.removeEventListener('resize', throttledResize);
       window.removeEventListener('orientationchange', handleOrientationChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

@@ -1,11 +1,10 @@
-
 import React, { useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Toaster } from "@/components/ui/toaster";
 import MobileStickyNav from "./MobileStickyNav";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VehicleModel } from "@/types/vehicle";
 
@@ -31,10 +30,19 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
   onCarBuilder,
   onFinanceCalculator
 }) => {
-  const isMobile = useIsMobile();
+  const { isMobile, isInitialized, deviceCategory } = useDeviceInfo();
   const { isRTL } = useLanguage();
 
   useEffect(() => {
+    // Enhanced mobile layout debugging
+    console.log('📱 ToyotaLayout Mobile Debug:', {
+      isMobile,
+      isInitialized,
+      deviceCategory,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      userAgent: navigator.userAgent.substring(0, 50)
+    });
+
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -85,10 +93,27 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
         }
       }, 30000);
     });
-  }, [isRTL]);
+  }, [isRTL, isMobile, isInitialized]);
+
+  // Add viewport meta validation
+  useEffect(() => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) {
+      console.warn('⚠️ Missing viewport meta tag - adding dynamically');
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+    }
+  }, []);
 
   return (
-    <div className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`}>
+    <div className={cn(
+      "min-h-screen flex flex-col bg-white dark:bg-gray-900",
+      isRTL ? 'rtl' : 'ltr',
+      // Add mobile-specific body classes
+      isMobile && "touch-manipulation overscroll-none"
+    )}>
       {/* Language Switcher - Fixed Position */}
       <div className={`fixed top-4 ${isRTL ? 'left-4' : 'right-4'} z-50`}>
         <LanguageSwitcher />
@@ -96,13 +121,18 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       
       <Header />
       
-      <main className="flex-1">
+      <main className={cn(
+        "flex-1",
+        // Add bottom padding for mobile sticky nav when it's present
+        isMobile && isInitialized && "pb-16 safe-area-pb"
+      )}>
         {children}
       </main>
       
       <Footer />
       
-      {isMobile && (
+      {/* Enhanced Mobile Sticky Nav with guaranteed rendering */}
+      {isInitialized && (
         <MobileStickyNav 
           activeItem={activeNavItem}
           vehicle={vehicle}
