@@ -91,18 +91,20 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     activeFilter === 'all' ? true : m.type === activeFilter
   );
 
-  // Add swipe functionality for main media display
+  // Add swipe functionality for main media display with debug
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: next,
     onSwipeRight: prev,
-    threshold: 50
+    threshold: 30,
+    debug: true // Enable debug mode
   });
 
-  // Add swipe functionality for thumbnail gallery
+  // Add swipe functionality for thumbnail gallery with debug
   const thumbnailSwipeRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: next,
     onSwipeRight: prev,
-    threshold: 30
+    threshold: 25,
+    debug: true // Enable debug mode
   });
 
   // Handle filter change
@@ -164,7 +166,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
             ref={containerRef}
             className="relative h-[350px] md:h-[550px] xl:h-[650px] flex items-center justify-center overflow-hidden bg-black"
           >
-            <div ref={swipeableRef} className="w-full h-full touch-pan-y">
+            <div 
+              ref={swipeableRef} 
+              className="w-full h-full touch-manipulation select-none"
+              style={{ touchAction: 'pan-x' }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={current}
@@ -351,7 +357,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
             </div>
             
             {/* Enhanced Thumbnail Gallery with Swipe */}
-            <div ref={thumbnailSwipeRef} className="touch-pan-y">
+            <div 
+              ref={thumbnailSwipeRef} 
+              className="touch-manipulation select-none"
+              style={{ touchAction: 'pan-x' }}
+            >
               <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
                 {media.map((item, idx) => (
                   <motion.div
@@ -394,8 +404,8 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </div>
             </div>
 
-            {/* Mobile Swipe Indicator */}
-            <div className="flex justify-center mt-4 md:hidden">
+            {/* Enhanced Mobile Swipe Indicator */}
+            <div className="flex flex-col items-center space-y-2 mt-4 md:hidden">
               <div className="flex space-x-2">
                 {media.map((_, index) => (
                   <div
@@ -406,6 +416,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   />
                 ))}
               </div>
+              <span className="text-xs text-muted-foreground">Swipe to browse media</span>
             </div>
           </div>
         </motion.div>

@@ -118,7 +118,8 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: nextGrade,
     onSwipeRight: prevGrade,
-    threshold: 50
+    threshold: 30,
+    debug: true
   });
 
   const toggleCompareSelection = (index: number) => {
@@ -195,7 +196,11 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
             </div>
 
             {/* Selected Grade Details - With Swipe Support */}
-            <div ref={swipeableRef} className="touch-pan-y">
+            <div 
+              ref={swipeableRef} 
+              className="touch-manipulation select-none overflow-hidden"
+              style={{ touchAction: 'pan-x' }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={selectedGrade}
@@ -273,17 +278,20 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                 </motion.div>
               </AnimatePresence>
 
-              {/* Swipe Indicator for Mobile */}
+              {/* Enhanced Mobile Swipe Indicator */}
               <div className="flex justify-center mt-6 md:hidden">
-                <div className="flex space-x-2">
-                  {grades.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === selectedGrade ? 'bg-primary w-6' : 'bg-muted-foreground/30'
-                      }`}
-                    />
-                  ))}
+                <div className="flex items-center space-x-2 bg-muted rounded-full px-4 py-2">
+                  <div className="flex space-x-2">
+                    {grades.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          index === selectedGrade ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-3">Swipe to navigate</span>
                 </div>
               </div>
             </div>

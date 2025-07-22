@@ -111,7 +111,8 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
         prevOffer();
       }
     },
-    threshold: 50
+    threshold: 30,
+    debug: true
   });
 
   return (
@@ -154,7 +155,11 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
           </button>
 
           {/* Offers Carousel Container with Swipe */}
-          <div ref={swipeableRef} className="overflow-hidden mx-8 touch-pan-y">
+          <div 
+            ref={swipeableRef} 
+            className="overflow-hidden mx-8 touch-manipulation select-none"
+            style={{ touchAction: 'pan-x' }}
+          >
             <motion.div
               className="flex transition-transform duration-500 ease-in-out"
               style={{
@@ -226,19 +231,24 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
             </motion.div>
           </div>
 
-          {/* Indicators */}
-          <div className="flex justify-center space-x-2 mt-8">
-            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'bg-primary w-8 shadow-lg' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                }`}
-              />
-            ))}
+          {/* Enhanced Indicators with Swipe Hint */}
+          <div className="flex flex-col items-center space-y-2 mt-8">
+            <div className="flex space-x-2">
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentIndex 
+                      ? 'bg-primary w-8 shadow-lg' 
+                      : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                  }`}
+                />
+              ))}
+            </div>
+            <div className="md:hidden">
+              <span className="text-xs text-muted-foreground">Swipe to browse offers</span>
+            </div>
           </div>
         </div>
       </div>
