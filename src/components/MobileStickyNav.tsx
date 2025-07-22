@@ -7,8 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { vehicles } from "@/data/vehicles";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VehicleModel } from "@/types/vehicle";
 
-const MobileStickyNav = () => {
+interface MobileStickyNavProps {
+  activeItem?: string;
+  vehicle?: VehicleModel;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onBookTestDrive?: () => void;
+  onCarBuilder?: () => void;
+  onFinanceCalculator?: () => void;
+}
+
+const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
+  activeItem,
+  vehicle,
+  isFavorite,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator
+}) => {
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [viewportHeight, setViewportHeight] = useState(0);
   const isMobile = useIsMobile();
@@ -50,7 +69,15 @@ const MobileStickyNav = () => {
     { name: "Sports", vehicles: vehicles.filter(v => v.category === "Sports"), icon: "🏎️", color: "bg-red-500" }
   ];
 
-  const quickActions = [
+  // Context-aware quick actions - prioritize vehicle-specific actions when available
+  const quickActions = vehicle ? [
+    { icon: Calendar, label: "Test Drive", action: onBookTestDrive, color: "text-green-600" },
+    { icon: Car, label: "Build & Price", action: onCarBuilder, color: "text-blue-600" },
+    { icon: Calculator, label: "Finance", action: onFinanceCalculator, color: "text-purple-600" },
+    { icon: Heart, label: isFavorite ? "Remove Favorite" : "Add Favorite", action: onToggleFavorite, color: isFavorite ? "text-red-600" : "text-pink-600" },
+    { icon: MessageCircle, label: "Chat Support", href: "/support", color: "text-purple-600" },
+    { icon: Phone, label: "Call Us", href: "tel:800-TOYOTA", color: "text-red-600" }
+  ] : [
     { icon: Calculator, label: "Finance Calculator", href: "/finance", color: "text-blue-600" },
     { icon: Calendar, label: "Book Test Drive", href: "/test-drive", color: "text-green-600" },
     { icon: MessageCircle, label: "Chat Support", href: "/support", color: "text-purple-600" },
@@ -113,9 +140,37 @@ const MobileStickyNav = () => {
 
             {/* Panel Content with Proper Scrolling */}
             <div className="flex-1 overflow-y-auto pb-safe" style={{ height: `${getPanelHeight() - 60}px` }}>
-              {/* Models Panel */}
+              {/* Models Panel - Enhanced with current vehicle context */}
               {activePanel === "models" && (
                 <div className="p-4 space-y-6">
+                  {/* Current Vehicle Highlight */}
+                  {vehicle && (
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 mb-6">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <img
+                          src={vehicle.image}
+                          alt={vehicle.name}
+                          className="w-20 h-15 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-primary">Currently Viewing</h4>
+                          <h5 className="text-lg font-bold">{vehicle.name}</h5>
+                          <p className="text-sm text-muted-foreground">
+                            From AED {vehicle.price.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button size="sm" onClick={onBookTestDrive} className="flex-1">
+                          Test Drive
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={onCarBuilder} className="flex-1">
+                          Build & Price
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {categories.map((category) => (
                     <div key={category.name} className="space-y-3">
                       <div className="flex items-center space-x-3">
@@ -126,22 +181,22 @@ const MobileStickyNav = () => {
                         <Badge variant="secondary">{category.vehicles.length}</Badge>
                       </div>
                       <div className="grid grid-cols-1 gap-3 ml-11">
-                        {category.vehicles.slice(0, 4).map((vehicle) => (
+                        {category.vehicles.slice(0, 4).map((categoryVehicle) => (
                           <Link
-                            key={vehicle.name}
-                            to={`/vehicle/${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            key={categoryVehicle.name}
+                            to={`/vehicle/${categoryVehicle.name.toLowerCase().replace(/\s+/g, '-')}`}
                             className="flex items-center space-x-3 p-3 rounded-xl bg-card hover:bg-accent transition-colors"
                             onClick={closePanel}
                           >
                             <img
-                              src={vehicle.image}
-                              alt={vehicle.name}
+                              src={categoryVehicle.image}
+                              alt={categoryVehicle.name}
                               className="w-16 h-12 object-cover rounded-lg"
                             />
                             <div className="flex-1 min-w-0">
-                              <h5 className="font-medium truncate">{vehicle.name}</h5>
+                              <h5 className="font-medium truncate">{categoryVehicle.name}</h5>
                               <p className="text-sm text-muted-foreground">
-                                From AED {vehicle.price.toLocaleString()}
+                                From AED {categoryVehicle.price.toLocaleString()}
                               </p>
                             </div>
                           </Link>
@@ -176,21 +231,21 @@ const MobileStickyNav = () => {
 
                   <div className="space-y-3">
                     <h5 className="font-medium">Popular Pre-Owned Models</h5>
-                    {vehicles.slice(0, 6).map((vehicle) => (
-                      <div key={vehicle.name} className="flex items-center justify-between p-3 bg-card rounded-xl">
+                    {vehicles.slice(0, 6).map((preOwnedVehicle) => (
+                      <div key={preOwnedVehicle.name} className="flex items-center justify-between p-3 bg-card rounded-xl">
                         <div className="flex items-center space-x-3">
                           <img
-                            src={vehicle.image}
-                            alt={vehicle.name}
+                            src={preOwnedVehicle.image}
+                            alt={preOwnedVehicle.name}
                             className="w-12 h-9 object-cover rounded-lg"
                           />
                           <div>
-                            <p className="font-medium text-sm">{vehicle.name}</p>
+                            <p className="font-medium text-sm">{preOwnedVehicle.name}</p>
                             <p className="text-xs text-muted-foreground">2022-2023 Models Available</p>
                           </div>
                         </div>
                         <p className="text-sm font-semibold text-primary">
-                          From AED {Math.round(vehicle.price * 0.7).toLocaleString()}
+                          From AED {Math.round(preOwnedVehicle.price * 0.7).toLocaleString()}
                         </p>
                       </div>
                     ))}
@@ -204,22 +259,37 @@ const MobileStickyNav = () => {
                 </div>
               )}
 
-              {/* Actions Panel */}
+              {/* Enhanced Actions Panel - Context-aware */}
               {activePanel === "actions" && (
                 <div className="p-4">
+                  {vehicle && (
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 mb-6">
+                      <h4 className="font-semibold mb-2">{vehicle.name} Actions</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Quick actions for your selected vehicle
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     {quickActions.map((action) => (
-                      <Link
+                      <div
                         key={action.label}
-                        to={action.href}
-                        className="flex flex-col items-center space-y-2 p-4 bg-card rounded-xl hover:bg-accent transition-colors"
-                        onClick={closePanel}
+                        className="flex flex-col items-center space-y-2 p-4 bg-card rounded-xl hover:bg-accent transition-colors cursor-pointer"
+                        onClick={() => {
+                          if (action.action) {
+                            action.action();
+                            closePanel();
+                          } else if (action.href) {
+                            window.location.href = action.href;
+                          }
+                        }}
                       >
                         <div className={`w-12 h-12 bg-secondary rounded-full flex items-center justify-center ${action.color}`}>
                           <action.icon className="h-6 w-6" />
                         </div>
                         <span className="text-sm font-medium text-center">{action.label}</span>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
