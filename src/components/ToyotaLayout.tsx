@@ -138,7 +138,7 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       
       <Footer />
       
-      {/* Enhanced Mobile Sticky Nav - Context-aware */}
+      {/* Enhanced Mobile Sticky Nav - Always render for mobile devices */}
       <MobileStickyNav 
         activeItem={activeNavItem}
         vehicle={vehicle}

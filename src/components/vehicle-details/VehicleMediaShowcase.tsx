@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon, Video, Play, Pause, Volume2, VolumeX, RotateCcw, Download, Share2, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSwipeable } from "@/hooks/use-swipeable";
 
 // Enhanced media item types
 interface MediaItem {
@@ -91,34 +91,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     activeFilter === 'all' ? true : m.type === activeFilter
   );
 
-  // Add swipe functionality for main media display
-  const mediaSwipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: next,
-    onSwipeRight: prev,
-    threshold: 50,
-    preventDefaultTouchmoveEvent: false
-  });
-
-  // Add swipe functionality for thumbnails
-  const thumbnailSwipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => {
-      // Find next available media based on current selection
-      const currentIndex = media.findIndex((_, idx) => idx === current);
-      if (currentIndex < media.length - 1) {
-        setCurrent(currentIndex + 1);
-      }
-    },
-    onSwipeRight: () => {
-      // Find previous available media based on current selection
-      const currentIndex = media.findIndex((_, idx) => idx === current);
-      if (currentIndex > 0) {
-        setCurrent(currentIndex - 1);
-      }
-    },
-    threshold: 30,
-    preventDefaultTouchmoveEvent: false
-  });
-
   // Handle filter change
   const handleFilterChange = (filter: 'all' | 'image' | 'video' | '360') => {
     setActiveFilter(filter);
@@ -173,14 +145,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* Enhanced Media Display with Swipe */}
+          {/* Enhanced Media Display */}
           <div 
-            ref={(el) => {
-              containerRef.current = el;
-              if (mediaSwipeableRef.current !== el) {
-                mediaSwipeableRef.current = el;
-              }
-            }}
+            ref={containerRef}
             className="relative h-[350px] md:h-[550px] xl:h-[650px] flex items-center justify-center overflow-hidden bg-black"
           >
             <AnimatePresence mode="wait">
@@ -367,11 +334,8 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               </Badge>
             </div>
             
-            {/* Enhanced Thumbnail Gallery with Swipe */}
-            <div 
-              ref={thumbnailSwipeableRef}
-              className="flex overflow-x-auto space-x-3 pb-2"
-            >
+            {/* Simple Thumbnail Gallery - NO BARS */}
+            <div className="flex overflow-x-auto space-x-3 pb-2">
               {media.map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -410,20 +374,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   </div>
                 </motion.div>
               ))}
-            </div>
-
-            {/* Swipe Indicator for Mobile */}
-            <div className="flex justify-center mt-4 md:hidden">
-              <div className="flex space-x-1">
-                {media.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                      index === current ? "bg-primary w-4" : "bg-muted"
-                    }`}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         </motion.div>

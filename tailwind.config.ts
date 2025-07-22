@@ -1,12 +1,12 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
-const config = {
+const config: Config = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
   theme: {
@@ -52,8 +52,7 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "toyota-red": "#EE2737",
-        "toyota-darkred": "#CC1F2B",
+        "toyota-red": "#eb0a1e",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -69,44 +68,102 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-in": {
+          "0%": {
+            opacity: '0',
+          },
+          "100%": {
+            opacity: '1',
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-in-out forwards",
       },
       spacing: {
-        'safe': 'env(safe-area-inset-bottom)',
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
-      },
-      padding: {
-        'safe': 'env(safe-area-inset-bottom)',
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
-      },
-      margin: {
-        'safe': 'env(safe-area-inset-bottom)',
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
-      },
-      height: {
-        'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        'dvh': '100dvh',
+        'safe-area-inset-top': 'env(safe-area-inset-top)',
+        'safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
+        'safe-area-inset-left': 'env(safe-area-inset-left)',
+        'safe-area-inset-right': 'env(safe-area-inset-right)',
       },
       minHeight: {
-        'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        'dvh': '100dvh',
+        'touch-target': '44px',
       },
-      maxHeight: {
-        'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        'dvh': '100dvh',
+      minWidth: {
+        'touch-target': '44px',
       },
+      zIndex: {
+        'sticky-nav': '100',
+        'mobile-dialog': '9999',
+      },
+      screens: {
+        'xs': '320px',
+        'sm-mobile': '375px',
+        'mobile': '414px',
+        'lg-mobile': '430px',
+        'xl-mobile': '500px',
+      }
     },
   },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities, theme }: any) {
+      const newUtilities = {
+        '.pb-safe-area': {
+          paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
+        },
+        '.pb-safe-area-inset-bottom': {
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        },
+        '.pt-safe-area-inset-top': {
+          paddingTop: 'env(safe-area-inset-top)'
+        },
+        '.touch-target': {
+          minHeight: '44px',
+          minWidth: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        },
+        '.touch-manipulation': {
+          touchAction: 'manipulation'
+        },
+        '.overscroll-none': {
+          overscrollBehavior: 'none'
+        },
+        '.force-visible': {
+          display: 'block !important',
+          visibility: 'visible !important',
+          opacity: '1 !important'
+        },
+        '.mobile-sticky-nav': {
+          position: 'fixed',
+          bottom: '0',
+          left: '0',
+          right: '0',
+          zIndex: '100',
+          display: 'block !important',
+          visibility: 'visible !important',
+          opacity: '1 !important'
+        },
+        '@media (max-width: 500px)': {
+          '.force-mobile-nav': {
+            display: 'block !important',
+            visibility: 'visible !important',
+            opacity: '1 !important'
+          }
+        },
+        '@media (min-width: 501px)': {
+          '.hide-on-tablet-desktop': {
+            display: 'none !important'
+          }
+        }
+      }
+      addUtilities(newUtilities)
+    }
+  ],
+};
 
-export default config
+export default config;
