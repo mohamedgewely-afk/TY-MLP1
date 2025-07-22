@@ -20,6 +20,7 @@ import {
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
@@ -175,6 +176,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     setImageLoading(true);
   };
 
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: nextGrade,
+    onSwipeRight: prevGrade,
+    threshold: 30,
+    debug: true
+  });
+
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
     setCurrentGradeIndex(0);
@@ -306,7 +314,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Selection Carousel - Larger Tiles */}
+        {/* Step 2: Grade Selection Carousel - Enhanced with Swipe Support */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -317,7 +325,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Step 2: Available Grades for {selectedEngine}
           </h3>
 
-          {/* Grade Carousel */}
+          {/* Grade Carousel - Now with Swipe Support */}
           <div className="relative">
             {/* Navigation Buttons - Larger for better accessibility */}
             <button
@@ -340,8 +348,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <ChevronRight className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
             </button>
 
-            {/* Grade Card - Significantly Larger for Mobile */}
-            <div className={isMobile ? 'mx-4' : 'mx-8'}>
+            {/* Grade Card - With Swipe Support */}
+            <div 
+              ref={swipeableRef}
+              className={`${isMobile ? 'mx-4 touch-manipulation' : 'mx-8'}`}
+              style={{ touchAction: 'pan-x' }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${selectedEngine}-${currentGradeIndex}`}
@@ -481,7 +493,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
 
-            {/* Indicators - Larger touch targets */}
+            {/* Indicators - Enhanced for better touch targets */}
             <div className="flex justify-center space-x-2 mt-8">
               {currentGrades.map((_, index) => (
                 <button
@@ -507,6 +519,15 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 </button>
               ))}
             </div>
+
+            {/* Enhanced Mobile Swipe Indicator */}
+            {isMobile && (
+              <div className="flex justify-center mt-4">
+                <div className="flex items-center space-x-2 bg-muted rounded-full px-4 py-2">
+                  <span className="text-xs text-muted-foreground">Swipe to navigate grades</span>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
