@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 import { vehicles } from "@/data/vehicles";
+import { VehicleModel } from "@/types/vehicle";
 import { 
   Carousel, 
   CarouselContent, 
@@ -16,6 +18,13 @@ import { Button } from "@/components/ui/button";
 interface MobileStickyNavProps {
   activeItem?: string;
   onMenuToggle?: () => void;
+  // Vehicle action props (optional, for vehicle detail pages)
+  vehicle?: VehicleModel;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onBookTestDrive?: () => void;
+  onCarBuilder?: () => void;
+  onFinanceCalculator?: () => void;
 }
 
 const vehicleCategories = [
@@ -99,7 +108,13 @@ const preOwnedVehicles = [
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ 
   activeItem = "home", 
-  onMenuToggle 
+  onMenuToggle,
+  vehicle,
+  isFavorite = false,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator
 }) => {
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -107,6 +122,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([50000, 200000]);
+  const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  const { toast } = useToast();
   
   const quickActionCards = [
     {
@@ -180,21 +197,167 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection("quick-actions");
     }
   };
-  
+
+  const handleShare = async () => {
+    if (!vehicle) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${vehicle.name} - Toyota UAE`,
+          text: `Check out this amazing ${vehicle.name} starting from AED ${vehicle.price.toLocaleString()}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
+  const handleBrochureDownload = () => {
+    if (!vehicle) return;
+    
+    toast({
+      title: "Brochure Download",
+      description: "Your brochure is being prepared and will be downloaded shortly.",
+    });
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${vehicle.name} brochure has been downloaded.`,
+      });
+    }, 2000);
+  };
+
   if (!isMobile) return null;
 
   return (
     <>
       {/* Overlay */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {(isMenuOpen || isActionsExpanded) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsActionsExpanded(false);
+            }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Vehicle Actions Panel (for vehicle detail pages) */}
+      <AnimatePresence>
+        {isActionsExpanded && vehicle && (
+          <motion.div
+            initial={{ y: 300, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 300, opacity: 0 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="fixed left-4 right-4 bottom-24 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-gray-900">{vehicle.name}</h3>
+                <span className="text-lg font-bold text-primary">
+                  AED {vehicle.price.toLocaleString()}
+                </span>
+              </div>
+              <Button
+                onClick={() => setIsActionsExpanded(false)}
+                variant="outline"
+                size="sm"
+                className="p-2 rounded-full"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Main Actions */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  onClick={() => {
+                    onBookTestDrive?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl text-sm font-medium"
+                >
+                  <Car className="h-4 w-4 mr-2" />
+                  Test Drive
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  onClick={() => {
+                    onCarBuilder?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground py-3 rounded-xl bg-white/70 text-sm font-medium"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Secondary Actions */}
+            <div className="grid grid-cols-3 gap-2">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => {
+                    onFinanceCalculator?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Calculator className="h-4 w-4 mb-1" />
+                  Finance
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => {
+                    handleBrochureDownload();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Download className="h-4 w-4 mb-1" />
+                  Brochure
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={handleShare}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Share2 className="h-4 w-4 mb-1" />
+                  Share
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Quick Info */}
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <p className="text-xs text-muted-foreground text-center">
+                From AED 899/month • Free delivery • 7-day return
+              </p>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -600,7 +763,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-5 gap-1 px-2">
+        <div className={`grid gap-1 px-2 ${vehicle ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <NavItem 
             icon={<Home className="h-5 w-5" />}
             label="Home"
@@ -621,6 +784,18 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             onClick={() => handleSectionToggle("models")}
             isActive={activeItem === "models" || activeSection === "models"}
           />
+          
+          {/* Vehicle Actions Item (only shown on vehicle detail pages) */}
+          {vehicle && (
+            <NavItem 
+              icon={<Plus className="h-5 w-5" />}
+              label="Actions"
+              to="#"
+              onClick={() => setIsActionsExpanded(!isActionsExpanded)}
+              isActive={isActionsExpanded}
+            />
+          )}
+
           <NavItem 
             icon={<ShoppingBag className="h-5 w-5" />}
             label="Pre-Owned"

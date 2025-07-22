@@ -414,8 +414,18 @@ const VehicleDetails = () => {
         />
       </div>
 
-      {/* Mobile Sticky Navigation */}
-      {isMobile && <MobileStickyNav activeItem="vehicle" />}
+      {/* Mobile Sticky Navigation - Updated with vehicle action props */}
+      {isMobile && (
+        <MobileStickyNav 
+          activeItem="vehicle"
+          vehicle={vehicle}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => setIsCarBuilderOpen(true)}
+          onFinanceCalculator={() => setIsFinanceOpen(true)}
+        />
+      )}
 
       {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
       <OffersModal 
