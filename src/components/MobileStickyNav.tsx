@@ -621,7 +621,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           {/* Central floating action button */}
           <motion.button
             onClick={toggleMenu}
-            className="relative mx-2 h-14 w-14 bg-gradient-to-r from-toyota-red to-red-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 overflow-hidden"
+            className="relative mx-1 h-14 w-14 bg-gradient-to-r from-toyota-red to-red-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 overflow-hidden"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             animate={{
@@ -665,11 +665,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               isActive={activeItem === "models" || activeSection === "models"}
             />
             <NavItem 
-              icon={<ShoppingBag className="h-5 w-5" />}
-              label="Pre-Owned"
+              icon={<Menu className="h-5 w-5" />}
+              label="Menu"
               to="#"
-              onClick={() => handleSectionToggle("pre-owned")}
-              isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+              onClick={toggleMenu}
+              isActive={isMenuOpen}
             />
           </div>
         </div>

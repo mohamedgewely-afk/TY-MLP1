@@ -55,22 +55,37 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col"
+      initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
+      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+      exit={{ opacity: 0, scale: 0.95, rotateY: 15 }}
+      transition={{ 
+        duration: 0.6, 
+        ease: [0.23, 1, 0.32, 1],
+        staggerChildren: 0.1
+      }}
+      className="relative h-full w-full bg-gradient-to-br from-background/95 via-background to-background/95 backdrop-blur-xl overflow-hidden flex flex-col"
+      style={{
+        backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+      }}
     >
       {/* Header with Back Button */}
       <motion.div 
-        className="relative z-10 flex items-center justify-between p-3 bg-card/95 backdrop-blur-xl border-b border-border flex-shrink-0"
+        className="relative z-10 flex items-center justify-between p-3 bg-white/10 backdrop-blur-2xl border-b border-white/20 flex-shrink-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        }}
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
       >
         <motion.button
           onClick={step > 1 ? goBack : onClose}
-          className="p-2 rounded-lg bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200 min-h-[44px] min-w-[44px]"
+          className="p-2 rounded-xl bg-white/10 backdrop-blur-2xl border border-white/20 hover:bg-white/20 transition-all duration-200 min-h-[44px] min-w-[44px]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.2)',
+          }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -96,9 +111,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
       {/* Vehicle Image - Larger */}
       <motion.div 
-        className="relative w-full h-64 bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border flex-shrink-0"
+        className="relative w-full h-64 bg-gradient-to-br from-black/5 via-white/5 to-black/5 overflow-hidden border-b border-white/20 flex-shrink-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.05) 100%)',
+        }}
         layoutId="vehicle-image"
         key={config.exteriorColor + config.grade + config.modelYear + config.engine}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
         
@@ -125,7 +146,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
         >
-          <div className="bg-card/60 backdrop-blur-md rounded-lg p-2 border border-border shadow-md">
+          <div 
+            className="bg-white/10 backdrop-blur-2xl rounded-xl p-3 border border-white/20 shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+            }}
+          >
             <h3 className="text-sm font-bold">{config.modelYear} {vehicle.name}</h3>
             <p className="text-primary text-xs font-medium">{config.grade} • {config.engine}</p>
           </div>
@@ -159,14 +186,27 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       </div>
 
       {/* Price Summary */}
-      <div className="flex-shrink-0 relative z-20">
-        <MobileSummary 
-          config={config}
-          totalPrice={calculateTotalPrice()}
-          step={step}
-          reserveAmount={2000}
-        />
-      </div>
+      <motion.div 
+        className="flex-shrink-0 relative z-20"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <div 
+          className="bg-white/10 backdrop-blur-2xl border-t border-white/20"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 -8px 32px 0 rgba(31, 38, 135, 0.2)',
+          }}
+        >
+          <MobileSummary 
+            config={config}
+            totalPrice={calculateTotalPrice()}
+            step={step}
+            reserveAmount={2000}
+          />
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
