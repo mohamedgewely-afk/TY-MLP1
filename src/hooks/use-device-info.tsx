@@ -1,7 +1,8 @@
+
 import * as React from "react"
 
-// Device category types
-export type DeviceCategory = 'smallMobile' | 'standardMobile' | 'largeMobile' | 'tablet' | 'desktop';
+// Device category types - expanded for better large phone support
+export type DeviceCategory = 'smallMobile' | 'standardMobile' | 'largeMobile' | 'extraLargeMobile' | 'tablet' | 'desktop';
 
 export interface DeviceInfo {
   isMobile: boolean;
@@ -12,24 +13,52 @@ export interface DeviceInfo {
   touchDevice: boolean;
   hasNotch: boolean;
   isInitialized: boolean;
+  deviceModel?: string;
+  isIPhone?: boolean;
 }
 
-// Updated breakpoints to handle large phones properly
+// Enhanced breakpoints to cover ALL modern phones including iPhone 14 Pro Max
 const BREAKPOINTS = {
-  smallMobile: { min: 0, max: 375 },
-  standardMobile: { min: 375, max: 414 },
-  largeMobile: { min: 414, max: 480 }, // Extended to 480px to catch large phones
-  tablet: { min: 480, max: 768 }, // Starts at 480px now
-  desktop: { min: 768, max: Infinity }
+  smallMobile: { min: 0, max: 375 },        // iPhone SE, older phones
+  standardMobile: { min: 375, max: 414 },   // iPhone 12 mini, 13 mini
+  largeMobile: { min: 414, max: 430 },      // iPhone 12, 13, 14 Pro
+  extraLargeMobile: { min: 430, max: 500 }, // iPhone 14 Pro Max, Plus models
+  tablet: { min: 500, max: 768 },           // iPad mini, small tablets
+  desktop: { min: 768, max: Infinity }      // Desktop and large tablets
 };
 
 const getDeviceCategory = (width: number): DeviceCategory => {
-  // Handle exact breakpoint values properly
   if (width < 375) return 'smallMobile';
   if (width < 414) return 'standardMobile';  
-  if (width < 480) return 'largeMobile'; // Updated from 430 to 480
+  if (width < 430) return 'largeMobile';
+  if (width < 500) return 'extraLargeMobile'; // New category for large phones
   if (width < 768) return 'tablet';
   return 'desktop';
+};
+
+// Enhanced iPhone detection
+const detectiPhone = (): { isIPhone: boolean; deviceModel: string } => {
+  if (typeof window === 'undefined') return { isIPhone: false, deviceModel: 'unknown' };
+  
+  const userAgent = navigator.userAgent;
+  const isIPhone = /iPhone/.test(userAgent);
+  
+  let deviceModel = 'unknown';
+  if (isIPhone) {
+    // Detect iPhone model based on screen dimensions and user agent
+    const { width, height } = window.screen;
+    const viewport = Math.min(window.innerWidth, window.innerHeight);
+    
+    if (viewport <= 320) deviceModel = 'iPhone SE/5s';
+    else if (viewport <= 375 && height <= 667) deviceModel = 'iPhone 6/7/8';
+    else if (viewport <= 375 && height > 800) deviceModel = 'iPhone 12 mini/13 mini';
+    else if (viewport <= 390) deviceModel = 'iPhone 12/13 Pro';
+    else if (viewport <= 414) deviceModel = 'iPhone 6 Plus/7 Plus/8 Plus';
+    else if (viewport <= 430) deviceModel = 'iPhone 14 Pro Max/15 Pro Max';
+    else deviceModel = `iPhone (${viewport}px)`;
+  }
+  
+  return { isIPhone, deviceModel };
 };
 
 const detectDevice = (): DeviceInfo => {
@@ -43,26 +72,31 @@ const detectDevice = (): DeviceInfo => {
       screenSize: { width: 375, height: 667 },
       touchDevice: true,
       hasNotch: false,
-      isInitialized: false
+      isInitialized: false,
+      isIPhone: false,
+      deviceModel: 'unknown'
     };
   }
 
   const width = window.innerWidth;
   const height = window.innerHeight;
   const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const { isIPhone, deviceModel } = detectiPhone();
   
-  // Enhanced notch detection - updated for larger phones
+  // Enhanced notch detection for all large phones
   const hasNotch = CSS.supports('padding-top: env(safe-area-inset-top)') && 
                   (window.screen.height >= 812 || height >= 812) && 
-                  width <= 480; // Updated from 430 to 480
+                  width <= 500; // Extended to 500px
 
   const deviceCategory = getDeviceCategory(width);
-  const isMobile = ['smallMobile', 'standardMobile', 'largeMobile'].includes(deviceCategory);
+  
+  // Enhanced mobile detection - includes extraLargeMobile
+  const isMobile = ['smallMobile', 'standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory);
   const isTablet = deviceCategory === 'tablet';
   const isDesktop = deviceCategory === 'desktop';
 
   // Enhanced debugging for real device testing
-  console.log('📱 Device Detection Details:', {
+  console.log('📱 Enhanced Device Detection:', {
     width,
     height,
     deviceCategory,
@@ -71,13 +105,18 @@ const detectDevice = (): DeviceInfo => {
     isDesktop,
     touchDevice,
     hasNotch,
-    userAgent: navigator.userAgent.substring(0, 50),
+    isIPhone,
+    deviceModel,
+    userAgent: navigator.userAgent.substring(0, 60),
     viewport: `${width}x${height}`,
+    screen: `${window.screen.width}x${window.screen.height}`,
     pixelRatio: window.devicePixelRatio,
     breakpointUsed: width < 375 ? 'smallMobile' : 
                    width < 414 ? 'standardMobile' : 
-                   width < 480 ? 'largeMobile' : 
-                   width < 768 ? 'tablet' : 'desktop'
+                   width < 430 ? 'largeMobile' : 
+                   width < 500 ? 'extraLargeMobile' :
+                   width < 768 ? 'tablet' : 'desktop',
+    shouldShowMobileNav: isMobile ? '✅' : '❌'
   });
 
   return {
@@ -88,7 +127,9 @@ const detectDevice = (): DeviceInfo => {
     screenSize: { width, height },
     touchDevice,
     hasNotch,
-    isInitialized: true
+    isInitialized: true,
+    isIPhone,
+    deviceModel
   };
 };
 
@@ -102,11 +143,15 @@ export function useDeviceInfo(): DeviceInfo {
 
     // Add mobile-specific debugging for sticky nav issues
     if (initialDetection.isMobile) {
-      console.log('📱 Mobile Device Detected - Sticky Nav Should Show:', {
+      console.log('📱 Mobile Device Confirmed - Sticky Nav Should Show:', {
         ...initialDetection,
         stickyNavShouldShow: true,
-        viewportMeta: document.querySelector('meta[name="viewport"]')?.getAttribute('content'),
-        bodyClasses: document.body.className,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.warn('⚠️ Device NOT detected as mobile:', {
+        ...initialDetection,
+        possibleIssue: 'Large phone might be categorized as tablet',
         timestamp: new Date().toISOString()
       });
     }
@@ -131,7 +176,6 @@ export function useDeviceInfo(): DeviceInfo {
     
     const throttledResize = () => {
       const currentWidth = window.innerWidth;
-      // Only trigger if width actually changed significantly
       if (Math.abs(currentWidth - lastWidth) > 10) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
@@ -141,9 +185,7 @@ export function useDeviceInfo(): DeviceInfo {
       }
     };
 
-    // Orientation change with enhanced mobile handling
     const handleOrientationChange = () => {
-      // Wait for viewport to stabilize after orientation change
       setTimeout(() => {
         const newInfo = detectDevice();
         console.log('🔄 Orientation Changed:', newInfo);
@@ -151,10 +193,8 @@ export function useDeviceInfo(): DeviceInfo {
       }, 300);
     };
 
-    // Mobile-specific visibility change handling
     const handleVisibilityChange = () => {
       if (!document.hidden && deviceInfo.isMobile) {
-        // Re-check device info when page becomes visible (helps with mobile browser issues)
         setTimeout(updateDeviceInfo, 100);
       }
     };
@@ -180,17 +220,13 @@ export function useResponsiveSize() {
   
   return React.useMemo(() => ({
     containerPadding: deviceCategory === 'smallMobile' ? 'px-3 safe-area-inset' : 
-                     deviceCategory === 'standardMobile' ? 'px-4 safe-area-inset' : 
-                     deviceCategory === 'largeMobile' ? 'px-4 safe-area-inset' : 'px-6',
+                     ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 'px-6',
     
     buttonSize: deviceCategory === 'smallMobile' ? 'text-sm py-3 px-4 touch-target' :
-                deviceCategory === 'standardMobile' ? 'text-sm py-3.5 px-4 touch-target' :
-                deviceCategory === 'largeMobile' ? 'text-base py-3.5 px-5 touch-target' :
+                ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
                 'text-base py-4 px-6',
     
-    cardSpacing: deviceCategory === 'smallMobile' ? 'gap-3' :
-                 deviceCategory === 'standardMobile' ? 'gap-4' :
-                 'gap-6',
+    cardSpacing: ['smallMobile', 'standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 'gap-6',
     
     textSize: {
       xs: deviceCategory === 'smallMobile' ? 'text-xs' : 'text-sm',

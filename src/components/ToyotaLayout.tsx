@@ -31,16 +31,19 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
   onCarBuilder,
   onFinanceCalculator
 }) => {
-  const { isMobile, isInitialized, deviceCategory } = useDeviceInfo();
+  const { isMobile, isInitialized, deviceCategory, screenSize, deviceModel } = useDeviceInfo();
   const { isRTL } = useLanguage();
 
   useEffect(() => {
-    // Enhanced mobile layout debugging
-    console.log('📱 ToyotaLayout Mobile Debug:', {
+    // Enhanced mobile layout debugging with device model info
+    console.log('📱 ToyotaLayout Enhanced Mobile Debug:', {
       isMobile,
       isInitialized,
       deviceCategory,
+      deviceModel,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
+      screenSize,
+      shouldShowMobileNav: isMobile || window.innerWidth <= 500,
       userAgent: navigator.userAgent.substring(0, 50)
     });
 
@@ -94,7 +97,7 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
         }
       }, 30000);
     });
-  }, [isRTL, isMobile, isInitialized]);
+  }, [isRTL, isMobile, isInitialized, deviceModel]);
 
   // Add viewport meta validation
   useEffect(() => {
@@ -108,12 +111,15 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
     }
   }, []);
 
+  // Enhanced mobile detection for sticky nav
+  const shouldShowMobileNav = isInitialized && (isMobile || window.innerWidth <= 500);
+
   return (
     <div className={cn(
       "min-h-screen flex flex-col bg-white dark:bg-gray-900",
       isRTL ? 'rtl' : 'ltr',
       // Add mobile-specific body classes
-      isMobile && "touch-manipulation overscroll-none"
+      shouldShowMobileNav && "touch-manipulation overscroll-none"
     )}>
       {/* Language Switcher - Fixed Position */}
       <div className={`fixed top-4 ${isRTL ? 'left-4' : 'right-4'} z-50`}>
@@ -125,25 +131,23 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       <main className={cn(
         "flex-1",
         // Add bottom padding for mobile sticky nav when it's present
-        isMobile && isInitialized && "pb-16 safe-area-pb"
+        shouldShowMobileNav && "pb-16 safe-area-pb"
       )}>
         {children}
       </main>
       
       <Footer />
       
-      {/* Enhanced Mobile Sticky Nav with guaranteed rendering */}
-      {isInitialized && (
-        <MobileStickyNav 
-          activeItem={activeNavItem}
-          vehicle={vehicle}
-          isFavorite={isFavorite}
-          onToggleFavorite={onToggleFavorite}
-          onBookTestDrive={onBookTestDrive}
-          onCarBuilder={onCarBuilder}
-          onFinanceCalculator={onFinanceCalculator}
-        />
-      )}
+      {/* Enhanced Mobile Sticky Nav - Always render for mobile devices */}
+      <MobileStickyNav 
+        activeItem={activeNavItem}
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
+        onBookTestDrive={onBookTestDrive}
+        onCarBuilder={onCarBuilder}
+        onFinanceCalculator={onFinanceCalculator}
+      />
       
       <Toaster />
     </div>

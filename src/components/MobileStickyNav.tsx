@@ -116,7 +116,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   onCarBuilder,
   onFinanceCalculator
 }) => {
-  const { isMobile, isTablet, deviceCategory, screenSize, isInitialized } = useDeviceInfo();
+  const { isMobile, isTablet, deviceCategory, screenSize, isInitialized, deviceModel, isIPhone } = useDeviceInfo();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -124,29 +124,38 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [priceRange, setPriceRange] = useState([50000, 200000]);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
+  const [forceVisible, setForceVisible] = useState(false);
   const { toast } = useToast();
 
-  // Debug device detection on real devices
+  // Enhanced device detection debugging and force visibility
   useEffect(() => {
-    console.log('🔍 MobileStickyNav Device Debug:', {
+    const viewportWidth = window.innerWidth;
+    const shouldForceVisible = viewportWidth <= 500; // Force visible for all screens <= 500px
+    
+    console.log('🔍 MobileStickyNav Enhanced Debug:', {
       isMobile,
       isTablet,
       deviceCategory,
       screenSize,
       isInitialized,
+      deviceModel,
+      isIPhone,
+      viewportWidth,
+      shouldForceVisible,
       userAgent: navigator.userAgent.substring(0, 100),
-      viewport: `${window.innerWidth}x${window.innerHeight}`,
-      shouldShow: isMobile && isInitialized,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      finalDecision: (isMobile || shouldForceVisible) ? 'SHOW STICKY NAV ✅' : 'HIDE STICKY NAV ❌'
     });
+
+    setForceVisible(shouldForceVisible);
 
     // Add visual debug indicator for real device testing
     if (process.env.NODE_ENV === 'development') {
       setDebugVisible(true);
-      setTimeout(() => setDebugVisible(false), 5000);
+      setTimeout(() => setDebugVisible(false), 8000); // Show for 8 seconds
     }
-  }, [isMobile, isTablet, deviceCategory, screenSize, isInitialized]);
-  
+  }, [isMobile, isTablet, deviceCategory, screenSize, isInitialized, deviceModel, isIPhone]);
+
   const quickActionCards = [
     {
       id: "test-drive",
@@ -257,28 +266,26 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     }, 2000);
   };
 
-  if (!isInitialized) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white/50 backdrop-blur-sm border-t border-gray-200 z-30 md:hidden animate-pulse">
-        <div className="flex items-center justify-center h-full">
-          <div className="w-6 h-6 bg-gray-300 rounded animate-pulse"></div>
-        </div>
-      </div>
-    );
-  }
+  const shouldShowNav = isInitialized && (isMobile || forceVisible);
 
-  if (!isMobile) {
-    console.log('🚫 MobileStickyNav: Not showing on desktop/tablet');
+  if (!shouldShowNav) {
+    console.log('🚫 MobileStickyNav: Not showing - shouldShowNav:', shouldShowNav, {
+      isInitialized,
+      isMobile,
+      forceVisible,
+      deviceCategory,
+      screenSize: screenSize.width
+    });
     return null;
   }
 
   return (
     <>
-      {/* Debug Indicator for Real Device Testing */}
+      {/* Enhanced Debug Indicator for Real Device Testing */}
       {debugVisible && (
         <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-xs p-2 z-[9999] animate-fade-in">
           <div className="text-center font-mono">
-            DEBUG: {deviceCategory} | {screenSize.width}x{screenSize.height} | Mobile: {isMobile ? '✅' : '❌'}
+            DEBUG: {deviceCategory} | {screenSize.width}x{screenSize.height} | {deviceModel} | Mobile: {isMobile ? '✅' : '❌'} | Forced: {forceVisible ? '✅' : '❌'}
           </div>
         </div>
       )}
@@ -807,17 +814,19 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Main Sticky Nav with Force Visibility */}
+      {/* Enhanced Main Sticky Nav with Force Visibility and No md:hidden */}
       <motion.div 
         className={cn(
           "fixed bottom-0 left-0 right-0 z-[100]",
           "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
           "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
-          "py-1 md:hidden",
-          // Force visibility with important modifiers
+          "py-1",
+          // Force visibility with important modifiers for ALL mobile devices
           "!block !visible !opacity-100",
           // Enhanced safe area support
-          "pb-safe-area-inset-bottom"
+          "pb-safe-area-inset-bottom",
+          // Add mobile-first display utility
+          "block"
         )}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -825,7 +834,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         style={{ 
           paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
           minHeight: '64px',
-          zIndex: 100
+          zIndex: 100,
+          // Force display for troubleshooting
+          display: 'block !important',
+          visibility: 'visible !important',
+          opacity: '1 !important'
         }}
       >
         <div className={cn(

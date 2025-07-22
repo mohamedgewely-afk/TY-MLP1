@@ -97,15 +97,20 @@ const config: Config = {
       zIndex: {
         'sticky-nav': '100',
         'mobile-dialog': '9999',
+      },
+      screens: {
+        'xs': '320px',
+        'sm-mobile': '375px',
+        'mobile': '414px',
+        'lg-mobile': '430px',
+        'xl-mobile': '500px',
       }
     },
   },
   plugins: [
     require("tailwindcss-animate"),
-    // Add mobile-specific utilities
     function({ addUtilities, theme }: any) {
       const newUtilities = {
-        // Safe area utilities
         '.pb-safe-area': {
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
         },
@@ -115,7 +120,6 @@ const config: Config = {
         '.pt-safe-area-inset-top': {
           paddingTop: 'env(safe-area-inset-top)'
         },
-        // Touch target utilities
         '.touch-target': {
           minHeight: '44px',
           minWidth: '44px',
@@ -123,29 +127,38 @@ const config: Config = {
           alignItems: 'center',
           justifyContent: 'center'
         },
-        // Mobile-specific utilities
         '.touch-manipulation': {
           touchAction: 'manipulation'
         },
         '.overscroll-none': {
           overscrollBehavior: 'none'
         },
-        // Force visibility utilities for debugging
         '.force-visible': {
           display: 'block !important',
           visibility: 'visible !important',
           opacity: '1 !important'
         },
-        // Mobile sticky nav specific
         '.mobile-sticky-nav': {
           position: 'fixed',
           bottom: '0',
           left: '0',
           right: '0',
           zIndex: '100',
-          display: 'block',
-          visibility: 'visible',
-          opacity: '1'
+          display: 'block !important',
+          visibility: 'visible !important',
+          opacity: '1 !important'
+        },
+        '@media (max-width: 500px)': {
+          '.force-mobile-nav': {
+            display: 'block !important',
+            visibility: 'visible !important',
+            opacity: '1 !important'
+          }
+        },
+        '@media (min-width: 501px)': {
+          '.hide-on-tablet-desktop': {
+            display: 'none !important'
+          }
         }
       }
       addUtilities(newUtilities)
