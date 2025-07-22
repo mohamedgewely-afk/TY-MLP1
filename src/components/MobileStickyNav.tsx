@@ -814,19 +814,21 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Main Sticky Nav with Force Visibility and No md:hidden */}
+      {/* Enhanced Main Sticky Nav with Force Visibility */}
       <motion.div 
         className={cn(
           "fixed bottom-0 left-0 right-0 z-[100]",
           "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
           "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
           "py-1",
-          // Force visibility with important modifiers for ALL mobile devices
+          // Force visibility classes with important modifiers
           "!block !visible !opacity-100",
           // Enhanced safe area support
           "pb-safe-area-inset-bottom",
-          // Add mobile-first display utility
-          "block"
+          // Mobile-first display utility
+          "block",
+          // Force visibility for mobile screens up to 500px
+          "mobile-force-visible"
         )}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -835,10 +837,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
           minHeight: '64px',
           zIndex: 100,
-          // Force display for troubleshooting
-          display: 'block !important',
-          visibility: 'visible !important',
-          opacity: '1 !important'
         }}
       >
         <div className={cn(
