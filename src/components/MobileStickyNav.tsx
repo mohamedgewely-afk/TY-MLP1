@@ -213,6 +213,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "Vehicle link has been copied to clipboard.",
+      });
     }
   };
 
@@ -245,6 +249,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => {
               setIsMenuOpen(false);
+              setActiveSection(null);
               setIsActionsExpanded(false);
             }}
           />
@@ -259,7 +264,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 300, opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed left-4 right-4 bottom-24 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+            className="fixed left-4 right-4 bottom-24 z-50 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
@@ -341,7 +346,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
-                  onClick={handleShare}
+                  onClick={() => {
+                    handleShare();
+                    setIsActionsExpanded(false);
+                  }}
                   variant="outline"
                   className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
                 >

@@ -403,7 +403,7 @@ const VehicleDetails = () => {
           <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
 
-        {/* Action Panel */}
+        {/* Action Panel - Desktop Only */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
