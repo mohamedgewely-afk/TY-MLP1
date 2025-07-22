@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
@@ -133,6 +134,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   goNext,
   onClose
 }) => {
+  const { deviceCategory } = useDeviceInfo();
+  
   const getCurrentVehicleImage = () => {
     const exteriorColors = [
       { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
@@ -260,6 +263,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 calculateTotalPrice={calculateTotalPrice}
                 handlePayment={handlePayment}
                 goNext={goNext}
+                deviceCategory={deviceCategory}
               />
             </AnimatePresence>
           </div>
@@ -271,6 +275,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               totalPrice={calculateTotalPrice()}
               step={step}
               reserveAmount={reserveAmount}
+              deviceCategory={deviceCategory}
             />
           </div>
         </div>
