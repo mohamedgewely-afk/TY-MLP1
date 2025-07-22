@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Zap, FileText, DollarSign } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Zap, FileText, DollarSign, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -107,6 +107,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([50000, 200000]);
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   
   const lightningQuickActions = [
     {
@@ -223,6 +224,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setActiveSection("menu");
     }
   };
+
+  const togglePlusMenu = () => {
+    setIsPlusMenuOpen(!isPlusMenuOpen);
+  };
   
   if (!isMobile) return null;
 
@@ -230,13 +235,16 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     <>
       {/* Overlay */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {(isMenuOpen || isPlusMenuOpen) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsPlusMenuOpen(false);
+            }}
           />
         )}
       </AnimatePresence>
@@ -765,6 +773,61 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           />
         </div>
       </motion.div>
+
+      {/* Separate Plus Icon Floating Action Button */}
+      <motion.button
+        onClick={togglePlusMenu}
+        className="fixed bottom-32 right-6 z-50 w-14 h-14 bg-gradient-to-r from-toyota-red to-red-600 rounded-full shadow-lg flex items-center justify-center"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        animate={{
+          rotate: isPlusMenuOpen ? 45 : 0
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        <Plus className="h-6 w-6 text-white" />
+      </motion.button>
+
+      {/* Plus Menu Content */}
+      <AnimatePresence>
+        {isPlusMenuOpen && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 20 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="fixed bottom-48 right-6 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border p-4 min-w-[280px]"
+          >
+            <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Quick Actions</h4>
+            
+            <div className="space-y-3">
+              {quickActionCards.map((action) => (
+                <Link 
+                  key={action.id} 
+                  to={action.link} 
+                  onClick={() => setIsPlusMenuOpen(false)}
+                  className="block"
+                >
+                  <motion.div 
+                    className={cn("flex items-center space-x-3 p-3 rounded-lg", action.color)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="opacity-90">
+                      {action.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="font-semibold text-sm">{action.title}</h5>
+                      <p className="text-xs opacity-80">{action.description}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 opacity-70" />
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
