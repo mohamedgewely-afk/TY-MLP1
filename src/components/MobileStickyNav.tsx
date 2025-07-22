@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -771,20 +771,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className={`grid gap-1 px-2 ${vehicle ? 'grid-cols-6' : 'grid-cols-5'}`}>
-          <NavItem 
-            icon={<Home className="h-5 w-5" />}
-            label="Home"
-            to="/"
-            isActive={activeItem === "home"}
-          />
-          <NavItem 
-            icon={<Search className="h-5 w-5" />}
-            label="Search"
-            to="#"
-            onClick={() => handleSectionToggle("search")}
-            isActive={activeItem === "search" || activeSection === "search"}
-          />
+        <div className={`grid gap-1 px-2 ${vehicle ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <NavItem 
             icon={<Car className="h-5 w-5" />}
             label="Models"
@@ -792,11 +779,25 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             onClick={() => handleSectionToggle("models")}
             isActive={activeItem === "models" || activeSection === "models"}
           />
+          <NavItem 
+            icon={<ShoppingBag className="h-5 w-5" />}
+            label="Pre-Owned"
+            to="#"
+            onClick={() => handleSectionToggle("pre-owned")}
+            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+          />
           
           {/* Vehicle Actions Item (only shown on vehicle detail pages) */}
           {vehicle && (
             <NavItem 
-              icon={<Plus className="h-5 w-5" />}
+              icon={
+                <div className="relative">
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-75"></div>
+                  <div className="relative bg-red-500 rounded-full p-1.5">
+                    <Zap className="h-3 w-3 text-white animate-bounce" fill="white" />
+                  </div>
+                </div>
+              }
               label="Actions"
               to="#"
               onClick={() => setIsActionsExpanded(!isActionsExpanded)}
@@ -805,11 +806,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           )}
 
           <NavItem 
-            icon={<ShoppingBag className="h-5 w-5" />}
-            label="Pre-Owned"
+            icon={<Search className="h-5 w-5" />}
+            label="Search"
             to="#"
-            onClick={() => handleSectionToggle("pre-owned")}
-            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+            onClick={() => handleSectionToggle("search")}
+            isActive={activeItem === "search" || activeSection === "search"}
           />
           <NavItem 
             icon={<Menu className="h-5 w-5" />}
