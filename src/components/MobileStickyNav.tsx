@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders } from "lucide-react";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -600,41 +600,78 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-5 gap-1 px-2">
-          <NavItem 
-            icon={<Home className="h-5 w-5" />}
-            label="Home"
-            to="/"
-            isActive={activeItem === "home"}
-          />
-          <NavItem 
-            icon={<Search className="h-5 w-5" />}
-            label="Search"
-            to="#"
-            onClick={() => handleSectionToggle("search")}
-            isActive={activeItem === "search" || activeSection === "search"}
-          />
-          <NavItem 
-            icon={<Car className="h-5 w-5" />}
-            label="Models"
-            to="#"
-            onClick={() => handleSectionToggle("models")}
-            isActive={activeItem === "models" || activeSection === "models"}
-          />
-          <NavItem 
-            icon={<ShoppingBag className="h-5 w-5" />}
-            label="Pre-Owned"
-            to="#"
-            onClick={() => handleSectionToggle("pre-owned")}
-            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
-          />
-          <NavItem 
-            icon={<Menu className="h-5 w-5" />}
-            label="Menu"
-            to="#"
+        <div className="flex items-center justify-center px-1 relative">
+          {/* Left tabs */}
+          <div className="flex items-center justify-around flex-1">
+            <NavItem 
+              icon={<Home className="h-5 w-5" />}
+              label="Home"
+              to="/"
+              isActive={activeItem === "home"}
+            />
+            <NavItem 
+              icon={<Search className="h-5 w-5" />}
+              label="Search"
+              to="#"
+              onClick={() => handleSectionToggle("search")}
+              isActive={activeItem === "search" || activeSection === "search"}
+            />
+          </div>
+          
+          {/* Central floating action button */}
+          <motion.button
             onClick={toggleMenu}
-            isActive={isMenuOpen}
-          />
+            className="relative mx-2 h-14 w-14 bg-gradient-to-r from-toyota-red to-red-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{
+              boxShadow: [
+                "0 4px 15px rgba(235, 64, 52, 0.3)",
+                "0 6px 20px rgba(235, 64, 52, 0.5)",
+                "0 4px 15px rgba(235, 64, 52, 0.3)"
+              ]
+            }}
+            transition={{
+              boxShadow: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }
+            }}
+          >
+            {/* Shine animation overlay */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{
+                x: [-100, 100],
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <Zap className="h-6 w-6 text-white relative z-10" />
+          </motion.button>
+
+          {/* Right tabs */}
+          <div className="flex items-center justify-around flex-1">
+            <NavItem 
+              icon={<Car className="h-5 w-5" />}
+              label="Models"
+              to="#"
+              onClick={() => handleSectionToggle("models")}
+              isActive={activeItem === "models" || activeSection === "models"}
+            />
+            <NavItem 
+              icon={<ShoppingBag className="h-5 w-5" />}
+              label="Pre-Owned"
+              to="#"
+              onClick={() => handleSectionToggle("pre-owned")}
+              isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+            />
+          </div>
         </div>
       </motion.div>
     </>
