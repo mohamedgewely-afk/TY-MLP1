@@ -8,6 +8,7 @@ import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface BuilderConfig {
   modelYear: string;
@@ -131,6 +132,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return `${baseClass} ${sizeClass}`;
   };
 
+  // Add swipe functionality for steps
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => {
+      if (step < 4) goNext();
+    },
+    onSwipeRight: () => {
+      if (step > 1) goBack();
+    },
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
+
   return (
     <motion.div
       variants={getContainerVariants(deviceCategory)}
@@ -138,6 +151,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       animate="visible"
       exit="exit"
       className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport"
+      ref={swipeableRef}
     >
       {/* Enhanced Header with Better Safe Area Support */}
       <motion.div 

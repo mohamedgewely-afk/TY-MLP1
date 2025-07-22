@@ -316,7 +316,7 @@ const VehicleDetails = () => {
           {/* Media Showcase Section */}
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* Why Choose Section */}
+          {/* Why Choose Section - WITH SWIPE SUPPORT */}
           <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
             <div className="toyota-container relative z-10">
               <motion.div
@@ -345,7 +345,7 @@ const VehicleDetails = () => {
                 </p>
               </motion.div>
 
-              {/* Features Grid - More compact for mobile */}
+              {/* Features Grid - More compact for mobile with swipe support */}
               <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'}`}>
                 <div className={`${isMobile ? 'flex space-x-4 pb-4' : 'contents'}`} style={{ width: isMobile ? `${premiumFeatures.length * 260}px` : 'auto' }}>
                   {premiumFeatures.map((feature, index) => (
@@ -397,7 +397,7 @@ const VehicleDetails = () => {
             <VehicleGallery vehicle={vehicle} />
           </section>
           
-          {/* Enhanced Lifestyle Gallery */}
+          {/* Enhanced Lifestyle Gallery - WITH SWIPE */}
           <EnhancedLifestyleGallery vehicle={vehicle} />
           
           <section className="py-8 lg:py-16 bg-muted/30">
@@ -421,7 +421,6 @@ const VehicleDetails = () => {
           onFinanceCalculator={() => setIsFinanceOpen(true)}
         />
       </div>
-
 
       {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
       <OffersModal 

@@ -12,6 +12,7 @@ import {
   CarouselPrevious, 
   CarouselNext 
 } from "@/components/ui/carousel";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface LifestyleGalleryProps {
   vehicle: VehicleModel;
@@ -28,6 +29,8 @@ const realLifestyleImages = [
 ];
 
 const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
+  const [api, setApi] = React.useState<any>();
+
   const lifestyleCards = [
     {
       title: "Family Adventures",
@@ -67,6 +70,14 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
     },
   ];
 
+  // Add swipe functionality for carousel
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => api?.scrollNext(),
+    onSwipeRight: () => api?.scrollPrev(),
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
+
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="toyota-container">
@@ -84,61 +95,64 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
           </p>
         </motion.div>
 
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {lifestyleCards.map((card, index) => (
-              <CarouselItem key={card.title} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.08 }}
-                >
-                  <Card className="overflow-hidden hover:shadow-xl transition-all duration-500 h-full group">
-                    <div className="h-60 overflow-hidden relative">
-                      <img
-                        src={card.image}
-                        alt={card.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <motion.div
-                          className="bg-white/90 backdrop-blur-sm text-gray-900 px-6 py-3 rounded-full font-semibold"
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          {card.title}
-                        </motion.div>
+        <div ref={swipeableRef}>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+            setApi={setApi}
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {lifestyleCards.map((card, index) => (
+                <CarouselItem key={card.title} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.08 }}
+                  >
+                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-500 h-full group">
+                      <div className="h-60 overflow-hidden relative">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <motion.div
+                            className="bg-white/90 backdrop-blur-sm text-gray-900 px-6 py-3 rounded-full font-semibold"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {card.title}
+                          </motion.div>
+                        </div>
                       </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{card.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">{card.description}</p>
-                      <Button
-                        variant="link"
-                        className="p-0 text-toyota-red hover:text-toyota-darkred group-hover:translate-x-1 transition-transform duration-300"
-                        asChild
-                      >
-                        <a href={card.link} className="flex items-center">
-                          Learn More <ArrowRight className="h-4 w-4 ml-1" />
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="flex justify-center mt-8 gap-2">
-            <CarouselPrevious className="relative inset-auto" />
-            <CarouselNext className="relative inset-auto" />
-          </div>
-        </Carousel>
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{card.title}</h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">{card.description}</p>
+                        <Button
+                          variant="link"
+                          className="p-0 text-toyota-red hover:text-toyota-darkred group-hover:translate-x-1 transition-transform duration-300"
+                          asChild
+                        >
+                          <a href={card.link} className="flex items-center">
+                            Learn More <ArrowRight className="h-4 w-4 ml-1" />
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="flex justify-center mt-8 gap-2">
+              <CarouselPrevious className="relative inset-auto" />
+              <CarouselNext className="relative inset-auto" />
+            </div>
+          </Carousel>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

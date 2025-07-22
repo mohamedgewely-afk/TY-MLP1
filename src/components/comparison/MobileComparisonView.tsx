@@ -7,6 +7,7 @@ import CompareControlsBar from "./CompareControlsBar";
 import { hasDifferences } from "./ComparisonSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface MobileComparisonViewProps {
   vehicles: VehicleModel[];
@@ -33,6 +34,22 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
 }) => {
   const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+
+  // Add swipe functionality for vehicle selection
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => {
+      if (selectedVehicleIndex < vehicles.length - 1) {
+        setSelectedVehicleIndex(prev => prev + 1);
+      }
+    },
+    onSwipeRight: () => {
+      if (selectedVehicleIndex > 0) {
+        setSelectedVehicleIndex(prev => prev - 1);
+      }
+    },
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
 
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-hidden flex flex-col">
@@ -102,8 +119,8 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
         </div>
       </div>
 
-      {/* Content Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Content Area - Scrollable with Swipe */}
+      <div className="flex-1 overflow-y-auto" ref={swipeableRef}>
         <AnimatePresence mode="wait">
           {viewMode === 'overview' ? (
             <motion.div

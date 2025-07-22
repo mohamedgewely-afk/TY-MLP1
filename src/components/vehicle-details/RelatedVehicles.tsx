@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
 import { vehicles } from "@/data/vehicles";
 import { Link } from "react-router-dom";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface RelatedVehiclesProps {
   currentVehicle: VehicleModel;
@@ -46,6 +47,14 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
     }
   };
 
+  // Add swipe functionality
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => scroll("right"),
+    onSwipeRight: () => scroll("left"),
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
+
   return (
     <div className="toyota-container py-12">
       <div className="flex justify-between items-center mb-6">
@@ -73,9 +82,14 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
       </div>
       
       <div 
+        ref={(el) => {
+          scrollContainerRef.current = el;
+          if (swipeableRef.current !== el) {
+            swipeableRef.current = el;
+          }
+        }}
         className="relative overflow-x-auto pb-4 hide-scrollbar"
         style={{ scrollbarWidth: 'none' }}
-        ref={scrollContainerRef}
       >
         <div className="flex space-x-6">
           {enhancedVehicles.map((vehicle) => (

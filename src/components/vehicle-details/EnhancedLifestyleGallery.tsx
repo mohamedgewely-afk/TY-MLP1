@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, MapPin, Users, Calendar, 
   Mountain, Waves, Coffee, Car, Heart, Star
 } from "lucide-react";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface EnhancedLifestyleGalleryProps {
   vehicle: VehicleModel;
@@ -66,6 +67,14 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
 
   const currentScenario = lifestyleScenarios[selectedScenario];
 
+  // Add swipe functionality
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => setSelectedScenario(prev => prev < lifestyleScenarios.length - 1 ? prev + 1 : 0),
+    onSwipeRight: () => setSelectedScenario(prev => prev > 0 ? prev - 1 : lifestyleScenarios.length - 1),
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
+
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
       <div className="toyota-container relative z-10">
@@ -94,7 +103,7 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
         </motion.div>
 
         {/* Interactive Lifestyle Experience */}
-        <div className="relative">
+        <div className="relative" ref={swipeableRef}>
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedScenario}
@@ -185,7 +194,7 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
             </motion.div>
           </AnimatePresence>
 
-          {/* Small Navigation Arrows */}
+          {/* Navigation Arrows */}
           <button
             onClick={() => setSelectedScenario(prev => prev > 0 ? prev - 1 : lifestyleScenarios.length - 1)}
             className="absolute left-2 top-48 p-2 rounded-full bg-white/90 shadow-md border transition-all hover:bg-white hover:shadow-lg hover:scale-110"
