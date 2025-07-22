@@ -59,62 +59,24 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   return (
     <motion.div
-      initial={{ 
-        opacity: 0, 
-        scale: 0.95, 
-        rotateY: -10,
-        filter: "blur(10px)"
-      }}
-      animate={{ 
-        opacity: 1, 
-        scale: 1, 
-        rotateY: 0,
-        filter: "blur(0px)"
-      }}
-      exit={{ 
-        opacity: 0, 
-        scale: 0.98, 
-        rotateY: 10,
-        filter: "blur(5px)"
-      }}
-      transition={{ 
-        duration: 0.8, 
-        ease: [0.23, 1, 0.32, 1],
-        staggerChildren: 0.1
-      }}
-      className="relative h-full w-full bg-gradient-to-br from-background/95 via-background to-background/95 backdrop-blur-xl overflow-hidden flex"
-      style={{
-        backgroundImage: 'radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="relative h-full w-full bg-background overflow-hidden flex"
     >
       {/* Left Side - Interactive Car Image (50% width) */}
-      <motion.div 
-        className="w-1/2 h-full relative bg-gradient-to-br from-black/5 via-white/5 to-black/5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.05) 100%)',
-        }}
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
+      <div className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30">
         {/* Header overlay on image */}
         <motion.div 
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 backdrop-blur-2xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-          }}
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm"
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          transition={{ duration: 0.4 }}
         >
           <motion.button
             onClick={step > 1 ? goBack : onClose}
-            className="p-3 rounded-xl bg-white/10 backdrop-blur-2xl border border-white/20 hover:bg-white/20 transition-all duration-200"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-              boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.2)',
-            }}
+            className="p-3 rounded-xl bg-secondary/50 backdrop-blur-xl border border-border hover:bg-secondary/70 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -162,13 +124,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <div 
-              className="bg-white/10 backdrop-blur-2xl rounded-2xl p-6 border border-white/20 max-w-md"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
-              }}
-            >
+            <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-6 border border-border max-w-md">
               <h3 className="text-2xl font-bold mb-2">{config.modelYear} {vehicle.name}</h3>
               <p className="text-primary text-lg font-medium">{config.grade} • {config.engine}</p>
               <p className="text-muted-foreground text-base">{config.exteriorColor} Exterior</p>
@@ -178,48 +134,24 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </div>
           </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Right Side - Configuration Panel (50% width) */}
-      <motion.div 
-        className="w-1/2 h-full flex flex-col bg-white/5 backdrop-blur-2xl border-l border-white/20"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-        }}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
+      <div className="w-1/2 h-full flex flex-col bg-background border-l border-border">
         {/* Progress */}
-        <motion.div 
-          className="px-6 py-4 border-b border-white/20"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-          }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
+        <div className="px-6 py-4 border-b border-border">
           <MobileProgress currentStep={step} totalSteps={7} />
-        </motion.div>
+        </div>
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Choice Collector & Specs */}
-          <motion.div 
-            className="px-6 py-4 border-b border-white/20"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-          >
+          <div className="px-6 py-4 border-b border-border">
             <ChoiceCollector config={config} step={step} />
             {showSpecs && (
               <CollapsibleSpecs config={config} />
             )}
-          </motion.div>
+          </div>
 
           {/* Step Content */}
           <div className="flex-1 overflow-hidden">
@@ -238,24 +170,16 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           </div>
 
           {/* Summary */}
-          <motion.div 
-            className="border-t border-white/20"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-            }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
+          <div className="border-t border-border">
             <MobileSummary 
               config={config}
               totalPrice={calculateTotalPrice()}
               step={step}
               reserveAmount={reserveAmount}
             />
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };
