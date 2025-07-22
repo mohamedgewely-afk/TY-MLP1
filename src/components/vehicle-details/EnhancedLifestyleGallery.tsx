@@ -68,7 +68,7 @@ const EnhancedLifestyleGallery: React.FC<EnhancedLifestyleGalleryProps> = ({ veh
   const currentScenario = lifestyleScenarios[selectedScenario];
 
   // Add swipe functionality
-  const swipeableRef = useSwipeable({
+  const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => setSelectedScenario(prev => prev < lifestyleScenarios.length - 1 ? prev + 1 : 0),
     onSwipeRight: () => setSelectedScenario(prev => prev > 0 ? prev - 1 : lifestyleScenarios.length - 1),
     threshold: 50,

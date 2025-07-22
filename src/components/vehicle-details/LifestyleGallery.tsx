@@ -71,7 +71,7 @@ const LifestyleGallery: React.FC<LifestyleGalleryProps> = ({ vehicle }) => {
   ];
 
   // Add swipe functionality for carousel
-  const swipeableRef = useSwipeable({
+  const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => api?.scrollNext(),
     onSwipeRight: () => api?.scrollPrev(),
     threshold: 50,

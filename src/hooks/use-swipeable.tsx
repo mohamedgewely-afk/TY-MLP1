@@ -10,7 +10,7 @@ interface SwipeableOptions {
   preventDefaultTouchmoveEvent?: boolean;
 }
 
-export const useSwipeable = (options: SwipeableOptions) => {
+export const useSwipeable = <T extends HTMLElement = HTMLDivElement>(options: SwipeableOptions) => {
   const {
     onSwipeLeft,
     onSwipeRight,
@@ -21,7 +21,7 @@ export const useSwipeable = (options: SwipeableOptions) => {
   } = options;
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const elementRef = useRef<HTMLElement>(null);
+  const elementRef = useRef<T>(null);
 
   useEffect(() => {
     const element = elementRef.current;

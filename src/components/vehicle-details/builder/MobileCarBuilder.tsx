@@ -133,7 +133,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   };
 
   // Add swipe functionality for steps
-  const swipeableRef = useSwipeable({
+  const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
       if (step < 4) goNext();
     },

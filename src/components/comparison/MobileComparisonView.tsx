@@ -36,7 +36,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
 
   // Add swipe functionality for vehicle selection
-  const swipeableRef = useSwipeable({
+  const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
       if (selectedVehicleIndex < vehicles.length - 1) {
         setSelectedVehicleIndex(prev => prev + 1);
