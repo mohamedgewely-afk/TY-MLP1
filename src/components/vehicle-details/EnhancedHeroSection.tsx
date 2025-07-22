@@ -170,231 +170,178 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+        {/* Minimal Gradient - Only at bottom */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
       </motion.div>
 
-      {/* Content Overlay - All Content Moved to Bottom */}
-      <div className="relative z-10 h-full flex flex-col justify-end">
-        <div className={`${isMobile ? 'pb-32 pt-8' : 'pb-20 pt-8'}`}>
-          <div className="toyota-container">
-            {/* Media Controls - At Bottom */}
+      {/* Minimal Content Overlay - Only at very bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
+        <div className="toyota-container pb-6">
+          {/* Media Controls - Top of content */}
+          <motion.div 
+            className="flex items-center justify-center space-x-2 mb-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+          >
+            <button
+              onClick={toggleAutoPlay}
+              className="p-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 shadow-lg"
+            >
+              {isAutoPlaying ? (
+                <Pause className="h-4 w-4 text-white" />
+              ) : (
+                <Play className="h-4 w-4 text-white" />
+              )}
+            </button>
+          </motion.div>
+
+          {/* Image Indicators */}
+          {!showVideo && (
             <motion.div 
-              className="flex items-center justify-center space-x-2 mb-6"
+              className="flex justify-center space-x-1 mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
+              transition={{ delay: 1, duration: 0.6 }}
             >
-              <button
-                onClick={toggleVideo}
-                className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
-              >
-                {showVideo ? (
-                  <img src="/placeholder.svg" alt="Image" className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5 text-gray-700" />
-                )}
-              </button>
-              
-              {!showVideo && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  >
-                    <ChevronLeft className="h-5 w-5 text-gray-700" />
-                  </button>
-                  
-                  <button
-                    onClick={toggleAutoPlay}
-                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  >
-                    {isAutoPlaying ? (
-                      <Pause className="h-5 w-5 text-gray-700" />
-                    ) : (
-                      <Play className="h-5 w-5 text-gray-700" />
-                    )}
-                  </button>
-                  
-                  <button
-                    onClick={nextImage}
-                    className="p-3 rounded-full bg-white/90 backdrop-blur-sm border border-white/20 hover:bg-white transition-all duration-200 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  >
-                    <ChevronRight className="h-5 w-5 text-gray-700" />
-                  </button>
-                </>
-              )}
+              {galleryImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex 
+                      ? 'bg-white w-6' 
+                      : 'bg-white/40 w-1.5 hover:bg-white/60'
+                  }`}
+                />
+              ))}
             </motion.div>
+          )}
 
-            {/* Image Indicators - At Bottom */}
-            {!showVideo && (
-              <motion.div 
-                className="flex justify-center space-x-2 mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1, duration: 0.6 }}
-              >
-                {galleryImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === currentImageIndex 
-                        ? 'bg-white w-8 shadow-lg' 
-                        : 'bg-white/50 w-2 hover:bg-white/70'
-                    }`}
-                  />
-                ))}
-              </motion.div>
+          {/* Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="flex flex-wrap gap-2 justify-center mb-3"
+          >
+            {isBestSeller && (
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 text-xs">
+                <Award className="h-3 w-3 mr-1" />
+                Best Seller
+              </Badge>
             )}
+            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-2 py-1 text-xs">
+              <Shield className="h-3 w-3 mr-1" />
+              5-Star Safety
+            </Badge>
+          </motion.div>
 
-            {/* Main Content - At Bottom */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center space-y-4 max-w-4xl mx-auto"
-            >
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2 justify-center mb-4">
-                {isBestSeller && (
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  >
-                    <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 text-xs">
-                      <Award className="h-3 w-3 mr-1" />
-                      Best Seller
-                    </Badge>
-                  </motion.div>
-                )}
-                
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-                >
-                  <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1 text-xs">
-                    <Shield className="h-3 w-3 mr-1" />
-                    5-Star Safety
-                  </Badge>
-                </motion.div>
+          {/* Vehicle Title */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="text-center mb-3"
+          >
+            <h1 className="text-2xl md:text-3xl font-black text-white leading-tight">
+              {vehicle.name}
+            </h1>
+          </motion.div>
+
+          {/* Compact Price Box */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="bg-black/50 backdrop-blur-md rounded-xl p-4 mb-4 border border-white/20 max-w-sm mx-auto"
+          >
+            {/* Main Pricing - Horizontal Layout */}
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-center flex-1">
+                <div className="text-xs text-white/60 uppercase tracking-wide font-medium">Starting From</div>
+                <div className="text-xl font-black text-white">
+                  AED <AnimatedCounter value={vehicle.price} duration={2.5} />
+                </div>
+                <div className="text-xs text-white/80">*Price includes VAT</div>
               </div>
-
-              {/* Title */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              >
-                <h1 className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl lg:text-5xl'} font-black text-white leading-tight mb-3`}>
-                  {vehicle.name}
-                </h1>
-              </motion.div>
-
-              {/* Enhanced Price Stats Box */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="bg-black/40 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20 shadow-2xl"
-              >
-                {/* Main Pricing Section */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                  {/* Starting Price */}
-                  <div className="text-center">
-                    <div className="text-xs text-white/60 uppercase tracking-wide mb-2 font-medium">Starting From</div>
-                    <div className="text-2xl lg:text-3xl font-black text-white mb-1">
-                      AED <AnimatedCounter 
-                        value={vehicle.price}
-                        duration={2.5}
-                      />
-                    </div>
-                    <div className="text-sm text-white/80">*Price includes VAT</div>
-                  </div>
-                  
-                  {/* Monthly EMI */}
-                  <div className="text-center">
-                    <div className="text-xs text-white/60 uppercase tracking-wide mb-2 font-medium">Monthly EMI</div>
-                    <div className="text-2xl lg:text-3xl font-black text-white mb-1">
-                      AED <AnimatedCounter 
-                        value={monthlyEMI}
-                        duration={2}
-                      />
-                      <span className="text-lg font-normal text-white/80 ml-1">/mo</span>
-                    </div>
-                    <div className="text-sm text-white/80">*80% financing available</div>
-                  </div>
+              
+              <div className="w-px h-12 bg-white/20 mx-3"></div>
+              
+              <div className="text-center flex-1">
+                <div className="text-xs text-white/60 uppercase tracking-wide font-medium">Monthly EMI</div>
+                <div className="text-xl font-black text-white">
+                  AED <AnimatedCounter value={monthlyEMI} duration={2} />
+                  <span className="text-sm font-normal text-white/80">/mo</span>
                 </div>
+                <div className="text-xs text-white/80">*80% financing</div>
+              </div>
+            </div>
 
-                {/* Performance Stats */}
-                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/20">
-                  <div className="text-center">
-                    <div className="text-xl lg:text-2xl font-black text-white mb-1">
-                      <AnimatedCounter 
-                        value={isHybrid ? 25.2 : isElectric ? 450 : 22.2} 
-                        decimals={1}
-                        duration={2}
-                      />
-                      <span className="text-sm font-normal text-white/80 ml-1">
-                        {isElectric ? "km" : "km/L"}
-                      </span>
-                    </div>
-                    <div className="text-xs text-white/70">
-                      {isElectric ? "Range" : "Fuel Efficiency"}
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-xl lg:text-2xl font-black text-white mb-1">
-                      <AnimatedCounter 
-                        value={isHybrid ? 218 : isElectric ? 201 : 203}
-                        duration={2}
-                      />
-                      <span className="text-sm font-normal text-white/80 ml-1">HP</span>
-                    </div>
-                    <div className="text-xs text-white/70">Total Power</div>
-                  </div>
+            {/* Performance Stats - Horizontal */}
+            <div className="flex justify-between items-center pt-3 border-t border-white/20">
+              <div className="text-center">
+                <div className="text-lg font-black text-white">
+                  <AnimatedCounter 
+                    value={isHybrid ? 25.2 : isElectric ? 450 : 22.2} 
+                    decimals={1}
+                    duration={2}
+                  />
+                  <span className="text-sm font-normal text-white/80 ml-1">
+                    {isElectric ? "km" : "km/L"}
+                  </span>
                 </div>
-              </motion.div>
+                <div className="text-xs text-white/70">
+                  {isElectric ? "Range" : "Fuel Efficiency"}
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-lg font-black text-white">
+                  <AnimatedCounter 
+                    value={isHybrid ? 218 : isElectric ? 201 : 203}
+                    duration={2}
+                  />
+                  <span className="text-sm font-normal text-white/80 ml-1">HP</span>
+                </div>
+                <div className="text-xs text-white/70">Total Power</div>
+              </div>
+            </div>
+          </motion.div>
 
-              {/* Action Buttons */}
+          {/* Action Buttons - Compact */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="flex flex-col gap-2"
+          >
+            <Button 
+              onClick={onBookTestDrive}
+              size="lg"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
+            >
+              <Calendar className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+              Book Test Drive
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.8 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                className="ml-2"
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Button 
-                  onClick={onBookTestDrive}
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group min-h-[56px] w-full sm:w-auto"
-                >
-                  <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Book Test Drive
-                  <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="h-5 w-5" />
-                  </motion.div>
-                </Button>
-                
-                <Button 
-                  onClick={onCarBuilder}
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-8 py-4 rounded-xl transition-all duration-300 group min-h-[56px] bg-white/15 backdrop-blur-sm w-full sm:w-auto"
-                >
-                  <Settings className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                  Configure Your Car
-                </Button>
+                <ArrowRight className="h-4 w-4" />
               </motion.div>
-            </motion.div>
-          </div>
+            </Button>
+            
+            <Button 
+              onClick={onCarBuilder}
+              variant="outline"
+              size="lg"
+              className="border-2 border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-6 py-3 rounded-xl transition-all duration-300 group bg-white/10 backdrop-blur-sm w-full"
+            >
+              <Settings className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+              Configure Your Car
+            </Button>
+          </motion.div>
         </div>
       </div>
     </section>
