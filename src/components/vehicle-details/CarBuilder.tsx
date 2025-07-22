@@ -108,11 +108,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden" aria-describedby="car-builder-description">
-        <div className="sr-only">
-          <h2 id="car-builder-title">Build Your {vehicle.name}</h2>
-          <p id="car-builder-description">Customize your vehicle by selecting options through multiple steps including model year, engine, grade, colors, and accessories.</p>
-        </div>
+      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobileCarBuilder
