@@ -23,41 +23,6 @@ interface BuilderConfig {
   accessories: string[];
 }
 
-// Cinematic entrance backdrop
-const CinematicBackdrop = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 1.2, ease: "easeInOut" }}
-    className="fixed inset-0 bg-gradient-to-br from-black/95 via-primary/20 to-black/95 backdrop-blur-xl z-40"
-  >
-    {/* Animated particles */}
-    {[...Array(20)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute w-1 h-1 bg-primary/30 rounded-full"
-        initial={{ 
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          scale: 0
-        }}
-        animate={{ 
-          scale: [0, 1, 0],
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-        }}
-        transition={{ 
-          duration: 3,
-          repeat: Infinity,
-          delay: i * 0.1,
-          ease: "easeInOut"
-        }}
-      />
-    ))}
-  </motion.div>
-);
-
 const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => {
   const [step, setStep] = useState(1);
   const [config, setConfig] = useState<BuilderConfig>({
@@ -134,7 +99,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 4) setStep(step + 1); // Updated to 4 steps
   };
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
@@ -143,106 +108,36 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-transparent overflow-hidden">
+      <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden">
         <AnimatePresence mode="wait">
-          {isOpen && (
-            <>
-              {/* Cinematic Backdrop */}
-              <CinematicBackdrop />
-              
-              {/* Main Builder Content with Cinematic Entrance */}
-              <motion.div
-                key="builder-content"
-                initial={{ 
-                  scale: 0.8, 
-                  opacity: 0,
-                  rotateY: 45,
-                  z: -1000
-                }}
-                animate={{ 
-                  scale: 1, 
-                  opacity: 1,
-                  rotateY: 0,
-                  z: 0
-                }}
-                exit={{ 
-                  scale: 0.8, 
-                  opacity: 0,
-                  rotateY: -45,
-                  z: 1000
-                }}
-                transition={{ 
-                  duration: 1.2, 
-                  ease: [0.22, 1, 0.36, 1],
-                  delay: 0.3
-                }}
-                className="relative z-50 h-full w-full"
-                style={{ 
-                  transformStyle: 'preserve-3d',
-                  perspective: '1000px'
-                }}
-              >
-                {/* Elegant Glass Effect Container */}
-                <motion.div
-                  initial={{ backdropFilter: "blur(0px)" }}
-                  animate={{ backdropFilter: "blur(20px)" }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  className="h-full w-full bg-gradient-to-br from-background/95 via-background/90 to-background/95 shadow-2xl relative overflow-hidden"
-                >
-                  {/* Toyota Brand Accent */}
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 1, delay: 0.8 }}
-                    className="absolute top-0 left-0 h-1 bg-gradient-to-r from-primary via-primary/80 to-primary"
-                  />
-                  
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div className="w-full h-full bg-[radial-gradient(circle_at_25%_25%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
-                    <div className="w-full h-full bg-[radial-gradient(circle_at_75%_75%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
-                  </div>
-
-                  {/* Builder Interface */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 1 }}
-                    className="relative z-10 h-full"
-                  >
-                    {isMobile ? (
-                      <MobileCarBuilder
-                        key="mobile"
-                        vehicle={vehicle}
-                        step={step}
-                        config={config}
-                        setConfig={updateConfig}
-                        showConfirmation={showConfirmation}
-                        calculateTotalPrice={calculateTotalPrice}
-                        handlePayment={handlePayment}
-                        goBack={goBack}
-                        goNext={goNext}
-                        onClose={onClose}
-                      />
-                    ) : (
-                      <DesktopCarBuilder
-                        key="desktop"
-                        vehicle={vehicle}
-                        step={step}
-                        config={config}
-                        setConfig={updateConfig}
-                        showConfirmation={showConfirmation}
-                        calculateTotalPrice={calculateTotalPrice}
-                        handlePayment={handlePayment}
-                        goBack={goBack}
-                        goNext={goNext}
-                        onClose={onClose}
-                      />
-                    )}
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-            </>
+          {isMobile ? (
+            <MobileCarBuilder
+              key="mobile"
+              vehicle={vehicle}
+              step={step}
+              config={config}
+              setConfig={updateConfig}
+              showConfirmation={showConfirmation}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goBack={goBack}
+              goNext={goNext}
+              onClose={onClose}
+            />
+          ) : (
+            <DesktopCarBuilder
+              key="desktop"
+              vehicle={vehicle}
+              step={step}
+              config={config}
+              setConfig={updateConfig}
+              showConfirmation={showConfirmation}
+              calculateTotalPrice={calculateTotalPrice}
+              handlePayment={handlePayment}
+              goBack={goBack}
+              goNext={goNext}
+              onClose={onClose}
+            />
           )}
         </AnimatePresence>
       </DialogContent>

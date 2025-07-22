@@ -33,63 +33,6 @@ import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifes
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 
-// Toyota Loading Component
-const ToyotaLoader = ({ isLoading }: { isLoading: boolean }) => (
-  <AnimatePresence>
-    {isLoading && (
-      <motion.div
-        initial={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        transition={{ duration: 0.8, ease: "easeInOut" }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md"
-      >
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 1.2, opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative"
-        >
-          {/* Toyota Logo with Pulsing Effect */}
-          <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, 360]
-            }}
-            transition={{ 
-              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 4, repeat: Infinity, ease: "linear" }
-            }}
-            className="w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-2xl"
-          >
-            <span className="text-primary-foreground font-black text-2xl">T</span>
-          </motion.div>
-          
-          {/* Loading Rings */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary/30"
-          />
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-2 rounded-full border-2 border-transparent border-b-primary/50"
-          />
-          
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="mt-6 text-foreground font-medium tracking-wider"
-          >
-            Loading Experience...
-          </motion.p>
-        </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
@@ -102,7 +45,6 @@ const VehicleDetails = () => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { personaData } = usePersona();
   const navigate = useNavigate();
@@ -132,11 +74,7 @@ const VehicleDetails = () => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
     
-    // Simulate loading with Toyota experience
-    setTimeout(() => {
-      setIsLoading(false);
-      window.scrollTo(0, 0);
-    }, 2000);
+    window.scrollTo(0, 0);
   }, [vehicleName]);
 
   // Add event listener for car builder
@@ -156,6 +94,7 @@ const VehicleDetails = () => {
     };
   }, []);
 
+  // Updated Toyota Camry Hybrid official images - spread throughout
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -166,6 +105,7 @@ const VehicleDetails = () => {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0d?binary=true&mformat=true"
   ];
 
+  // Auto-rotate gallery images with smoother transitions
   useEffect(() => {
     if (!isHeroInView) return;
     
@@ -176,6 +116,7 @@ const VehicleDetails = () => {
     return () => clearInterval(interval);
   }, [isHeroInView, galleryImages.length]);
 
+  // Enhanced touch handlers for swipe functionality
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -228,19 +169,19 @@ const VehicleDetails = () => {
   if (!vehicle) {
     return (
       <ToyotaLayout>
-        <ToyotaLoader isLoading={true} />
-        <motion.div 
-          className="toyota-container py-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.2 }}
-        >
-          <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
-          <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
-          <Button asChild>
-            <Link to="/">Return to Home</Link>
-          </Button>
-        </motion.div>
+        <div className="toyota-container py-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
+            <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
+            <Button asChild>
+              <Link to="/">Return to Home</Link>
+            </Button>
+          </motion.div>
+        </div>
       </ToyotaLayout>
     );
   }
@@ -251,16 +192,18 @@ const VehicleDetails = () => {
     vehicle.name === "Toyota Land Cruiser" || 
     vehicle.name === "Toyota RAV4 Hybrid";
 
+  // Calculate monthly EMI (simplified calculation)
   const calculateEMI = (price: number) => {
-    const principal = price * 0.8;
-    const rate = 0.035 / 12;
-    const tenure = 60;
+    const principal = price * 0.8; // 80% financing
+    const rate = 0.035 / 12; // 3.5% annual rate
+    const tenure = 60; // 5 years
     const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
     return Math.round(emi);
   };
 
   const monthlyEMI = calculateEMI(vehicle.price);
 
+  // Updated Premium Hybrid Technology section images
   const premiumFeatures = [
     { 
       icon: <Zap className="h-8 w-8" />, 
@@ -342,61 +285,31 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout>
-      <ToyotaLoader isLoading={isLoading} />
-      
-      <motion.div 
-        className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoading ? 0 : 1 }}
-        transition={{ duration: 0.8, delay: 2 }}
-      >
-        <motion.div style={{ y, opacity, scale }}>
-          <EnhancedHeroSection
-            vehicle={vehicle}
-            galleryImages={galleryImages}
-            isFavorite={isFavorite}
-            onToggleFavorite={toggleFavorite}
-            onBookTestDrive={() => setIsBookingOpen(true)}
-            onCarBuilder={() => setIsCarBuilderOpen(true)}
-            monthlyEMI={monthlyEMI}
-          />
-        </motion.div>
+      <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
+        {/* Enhanced Hero Section with Swipe Controls */}
+        <EnhancedHeroSection
+          vehicle={vehicle}
+          galleryImages={galleryImages}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => setIsCarBuilderOpen(true)}
+          monthlyEMI={monthlyEMI}
+        />
 
+        {/* Lazy loaded sections */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <InteractiveSpecsTech vehicle={vehicle} />
-          </motion.div>
+          {/* Interactive Specifications & Technology Suite */}
+          <InteractiveSpecsTech vehicle={vehicle} />
 
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-          >
-            <OffersSection onOfferClick={handleOfferClick} />
-          </motion.div>
+          {/* Offers Section - WITH CLICK HANDLER */}
+          <OffersSection onOfferClick={handleOfferClick} />
 
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-          >
-            <VehicleMediaShowcase vehicle={vehicle} />
-          </motion.div>
+          {/* Media Showcase Section */}
+          <VehicleMediaShowcase vehicle={vehicle} />
 
-          <motion.section 
-            className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1 }}
-          >
+          {/* Why Choose Section */}
+          <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
             <div className="toyota-container relative z-10">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -424,6 +337,7 @@ const VehicleDetails = () => {
                 </p>
               </motion.div>
 
+              {/* Features Grid - More compact for mobile */}
               <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'}`}>
                 <div className={`${isMobile ? 'flex space-x-4 pb-4' : 'contents'}`} style={{ width: isMobile ? `${premiumFeatures.length * 260}px` : 'auto' }}>
                   {premiumFeatures.map((feature, index) => (
@@ -468,56 +382,28 @@ const VehicleDetails = () => {
                 </div>
               </div>
             </div>
-          </motion.section>
+          </section>
 
-          <motion.section 
-            className="py-8 lg:py-16 bg-muted/30"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
+          {/* Other Sections - Optimized spacing */}
+          <section className="py-8 lg:py-16 bg-muted/30">
             <VehicleGallery vehicle={vehicle} />
-          </motion.section>
+          </section>
           
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <EnhancedLifestyleGallery vehicle={vehicle} />
-          </motion.div>
+          {/* Enhanced Lifestyle Gallery */}
+          <EnhancedLifestyleGallery vehicle={vehicle} />
           
-          <motion.section 
-            className="py-8 lg:py-16 bg-muted/30"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
+          <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
-          </motion.section>
+          </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <PreOwnedSimilar currentVehicle={vehicle} />
-          </motion.div>
+          {/* Pre-Owned Similar Models Carousel */}
+          <PreOwnedSimilar currentVehicle={vehicle} />
 
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <VehicleFAQ vehicle={vehicle} />
-          </motion.div>
+          {/* FAQ Section */}
+          <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
 
+        {/* Action Panel */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
@@ -526,10 +412,12 @@ const VehicleDetails = () => {
           onCarBuilder={() => setIsCarBuilderOpen(true)}
           onFinanceCalculator={() => setIsFinanceOpen(true)}
         />
-      </motion.div>
+      </div>
 
+      {/* Mobile Sticky Navigation */}
       {isMobile && <MobileStickyNav activeItem="vehicle" />}
 
+      {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
       <OffersModal 
         isOpen={isOffersModalOpen} 
         onClose={() => {
@@ -539,6 +427,7 @@ const VehicleDetails = () => {
         selectedOffer={selectedOffer}
       />
 
+      {/* Existing Modals */}
       <BookTestDrive 
         isOpen={isBookingOpen} 
         onClose={() => setIsBookingOpen(false)} 
