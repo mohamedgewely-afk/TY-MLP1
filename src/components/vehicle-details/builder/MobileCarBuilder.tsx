@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
@@ -9,6 +8,7 @@ import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
 import { useSwipeable } from "@/hooks/use-swipeable";
+import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
 
 interface BuilderConfig {
   modelYear: string;
@@ -33,59 +33,95 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-// Enhanced responsive variants
+// Enhanced luxury entrance variants
 const getContainerVariants = (deviceCategory: DeviceCategory) => ({
   hidden: { 
     opacity: 0,
-    scale: 0.98,
-    y: 10,
+    scale: 0.95,
+    y: 20,
+    rotateX: 5,
+    filter: "blur(10px)"
   },
   visible: { 
     opacity: 1,
     scale: 1,
     y: 0,
+    rotateX: 0,
+    filter: "blur(0px)",
     transition: {
-      duration: 0.3,
+      duration: 0.8,
       ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.05
+      staggerChildren: 0.1
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.98,
-    transition: { duration: 0.2 }
+    scale: 0.95,
+    y: -20,
+    filter: "blur(5px)",
+    transition: { duration: 0.4 }
   }
 });
 
+// Premium header animation with cinematic entrance
 const headerVariants = {
-  hidden: { y: -30, opacity: 0 },
+  hidden: { 
+    y: -60, 
+    opacity: 0,
+    rotateX: 45,
+    filter: "blur(10px)"
+  },
   visible: { 
     y: 0, 
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    rotateX: 0,
+    filter: "blur(0px)",
+    transition: { 
+      duration: 0.6, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.2
+    }
   }
 };
 
+// Enhanced image reveal with luxury effects
 const imageVariants = {
   hidden: { 
-    scale: 1.1, 
+    scale: 1.2, 
     opacity: 0,
-    filter: "blur(4px)"
+    filter: "blur(20px)",
+    rotateY: 15
   },
   visible: { 
     scale: 1, 
     opacity: 1,
     filter: "blur(0px)",
-    transition: { duration: 0.6, ease: "easeOut" }
+    rotateY: 0,
+    transition: { 
+      duration: 1.2, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.4
+    }
   }
 };
 
+// Premium content stagger animation
 const contentVariants = {
-  hidden: { y: 15, opacity: 0 },
+  hidden: { 
+    y: 30, 
+    opacity: 0,
+    scale: 0.95,
+    filter: "blur(5px)"
+  },
   visible: { 
     y: 0, 
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { 
+      duration: 0.5, 
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }
   }
 };
 
@@ -103,6 +139,26 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   deviceCategory
 }) => {
   const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding } = useResponsiveSize();
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Enhanced haptic feedback integration
+  useEffect(() => {
+    if (backButtonRef.current) {
+      addLuxuryHapticToButton(backButtonRef.current, {
+        type: 'luxuryPress',
+        onPress: true,
+        onHover: true
+      });
+    }
+    if (closeButtonRef.current) {
+      addLuxuryHapticToButton(closeButtonRef.current, {
+        type: 'luxuryPress',
+        onPress: true,
+        onHover: true
+      });
+    }
+  }, []);
 
   const getCurrentVehicleImage = () => {
     const exteriorColors = [
@@ -132,17 +188,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return `${baseClass} ${sizeClass}`;
   };
 
-  // Add swipe functionality for steps
+  // Enhanced swipe with luxury haptic feedback
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
-      if (step < 4) goNext();
+      if (step < 4) {
+        contextualHaptic.swipeNavigation();
+        goNext();
+      }
     },
     onSwipeRight: () => {
-      if (step > 1) goBack();
+      if (step > 1) {
+        contextualHaptic.swipeNavigation();
+        goBack();
+      }
     },
     threshold: 50,
     preventDefaultTouchmoveEvent: false
   });
+
+  // Premium button click handlers with haptic feedback
+  const handleBackClick = () => {
+    contextualHaptic.stepProgress();
+    if (step > 1) {
+      goBack();
+    } else {
+      onClose();
+    }
+  };
 
   return (
     <motion.div
@@ -150,19 +222,23 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport"
+      className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport perspective-1000"
       ref={swipeableRef}
     >
-      {/* Enhanced Header with Better Safe Area Support */}
+      {/* Enhanced Header with Luxury Glass Morphism */}
       <motion.div 
         variants={headerVariants}
-        className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top`}
+        className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top luxury-entrance`}
       >
         <motion.button
-          onClick={step > 1 ? goBack : onClose}
-          className={getTouchButtonClass()}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          ref={step > 1 ? backButtonRef : closeButtonRef}
+          onClick={handleBackClick}
+          className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
         >
           {step > 1 ? (
             <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
@@ -171,49 +247,109 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           )}
         </motion.button>
 
-        <div className="text-center flex-1 mx-3">
+        <motion.div 
+          className="text-center flex-1 mx-3"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
           <motion.h1 
-            className={`${textSize.base} font-bold text-foreground truncate`}
+            className={`${textSize.base} font-bold text-foreground truncate luxury-text`}
+            animate={{ 
+              scale: [1, 1.02, 1],
+              textShadow: [
+                '0 2px 4px rgba(0,0,0,0.1)',
+                '0 4px 8px rgba(0,0,0,0.15)',
+                '0 2px 4px rgba(0,0,0,0.1)'
+              ]
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           >
             Build Your {vehicle.name}
           </motion.h1>
-        </div>
+        </motion.div>
 
         <div className="w-11" />
       </motion.div>
 
-      {/* Enhanced Vehicle Image */}
+      {/* Enhanced Vehicle Image with Luxury Effects */}
       <motion.div 
         variants={imageVariants}
-        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/10 flex-shrink-0`}
+        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/10 flex-shrink-0 premium-card`}
         key={config.exteriorColor + config.grade}
       >
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain relative z-10"
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full h-full object-contain relative z-10 gpu-accelerated"
+          initial={{ scale: 1.3, opacity: 0, filter: "blur(20px)" }}
+          animate={{ 
+            scale: 1, 
+            opacity: 1, 
+            filter: "blur(0px)"
+          }}
+          transition={{ 
+            duration: 1.2, 
+            ease: [0.25, 0.46, 0.45, 0.94],
+            delay: 0.6
+          }}
           loading="lazy"
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
+        {/* Premium gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
+        
+        {/* Floating particles effect */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/10 rounded-full floating-particles"
+              style={{
+                top: `${20 + i * 10}%`,
+                left: `${10 + i * 15}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                rotate: [0, 360],
+                opacity: [0.3, 0.8, 0.3]
+              }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.2
+              }}
+            />
+          ))}
+        </div>
         
         <motion.div 
           className={`absolute bottom-2 left-2 right-2`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
+          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
         >
-          <div className={`glass-mobile backdrop-blur-xl rounded-lg ${mobilePadding.xs} border border-border/20 shadow-lg`}>
-            <h3 className={`${textSize.sm} font-bold truncate`}>{config.modelYear} {vehicle.name}</h3>
-            <p className={`text-primary ${textSize.xs} font-medium truncate`}>{config.grade} • {config.engine}</p>
-          </div>
+          <motion.div 
+            className={`glass-mobile backdrop-blur-xl rounded-lg ${mobilePadding.xs} border border-border/20 shadow-lg premium-card`}
+            whileHover={{ scale: 1.02, y: -2 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className={`${textSize.sm} font-bold truncate premium-gradient-text`}>
+              {config.modelYear} {vehicle.name}
+            </h3>
+            <p className={`text-primary ${textSize.xs} font-medium truncate`}>
+              {config.grade} • {config.engine}
+            </p>
+          </motion.div>
         </motion.div>
       </motion.div>
 
-      {/* Progress Bar */}
+      {/* Enhanced Progress Bar */}
       <motion.div 
         variants={contentVariants}
         className="flex-shrink-0 glass-mobile backdrop-blur-sm border-b border-border/10"
@@ -221,7 +357,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <MobileProgress currentStep={step} totalSteps={4} />
       </motion.div>
 
-      {/* Choice Collector */}
+      {/* Enhanced Choice Collector */}
       <motion.div 
         variants={contentVariants}
         className={`${containerPadding} py-2 flex-shrink-0 glass-mobile backdrop-blur-sm border-b border-border/5`}
@@ -229,7 +365,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <ChoiceCollector config={config} step={step} />
       </motion.div>
 
-      {/* Step Content */}
+      {/* Enhanced Step Content */}
       <motion.div 
         variants={contentVariants}
         className="flex-1 overflow-hidden"
@@ -249,7 +385,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Summary with Enhanced Safe Area */}
+      {/* Enhanced Summary with Luxury Effects */}
       <motion.div 
         variants={contentVariants}
         className="flex-shrink-0 relative z-30 glass-mobile backdrop-blur-xl border-t border-border/20 safe-area-inset-bottom"

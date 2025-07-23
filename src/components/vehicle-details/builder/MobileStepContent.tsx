@@ -1,15 +1,15 @@
-
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import ModelYearEngineStep from "./steps/ModelYearEngineStep";
 import GradeCarouselStep from "./steps/GradeCarouselStep";
 import ColorsAccessoriesStep from "./steps/ColorsAccessoriesStep";
 import ReviewStep from "./steps/ReviewStep";
+import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
 
 interface BuilderConfig {
   modelYear: string;
@@ -43,6 +43,18 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 }) => {
   const { t } = useLanguage();
   const { containerPadding, buttonSize, textSize } = useResponsiveSize();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Enhanced haptic feedback for CTA button
+  useEffect(() => {
+    if (buttonRef.current) {
+      addLuxuryHapticToButton(buttonRef.current, {
+        type: 'luxuryPress',
+        onPress: true,
+        onHover: true
+      });
+    }
+  }, [step]);
 
   // Determine stock status based on selected colors
   const getStockStatus = () => {
@@ -160,60 +172,165 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     }
   };
 
+  // Enhanced button click handler with haptic feedback
+  const handleButtonClick = () => {
+    if (step === 4) {
+      contextualHaptic.configComplete();
+      handlePayment();
+    } else {
+      contextualHaptic.stepProgress();
+      goNext();
+    }
+  };
+
   return (
     <div className="relative flex flex-col h-full">
       <motion.div
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -100 }}
-        transition={{ duration: 0.4, type: "spring", stiffness: 120, damping: 20 }}
+        initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
+        animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, x: -100, filter: "blur(5px)" }}
+        transition={{ 
+          duration: 0.6, 
+          type: "spring", 
+          stiffness: 100, 
+          damping: 20,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}
         className="flex-1 overflow-hidden"
       >
-        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} overflow-y-auto`}>
-          {renderContent()}
+        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} overflow-y-auto premium-scrollbar`}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            {renderContent()}
+          </motion.div>
         </div>
       </motion.div>
       
-      {/* Stock Status Badge */}
-      {getStockBadge() && (
-        <motion.div 
-          className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} flex justify-center`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {getStockBadge()}
-        </motion.div>
-      )}
+      {/* Enhanced Stock Status Badge */}
+      <AnimatePresence>
+        {getStockBadge() && (
+          <motion.div 
+            className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} flex justify-center`}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="pulse-glow"
+            >
+              {getStockBadge()}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
-      {/* Continue Button */}
+      {/* Enhanced Continue Button with Luxury Effects */}
       <motion.div 
         className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-2' : 'py-3'} bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/30`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <Button 
-          onClick={step === 4 ? handlePayment : goNext}
-          disabled={!canProceed()}
-          className={`w-full text-primary-foreground rounded-lg font-bold shadow-lg transition-all duration-300 relative overflow-hidden ${getButtonHeight()} ${
-            !canProceed() 
-              ? 'bg-muted text-muted-foreground cursor-not-allowed' 
-              : step >= 3 && getStockStatus() === 'available'
-                ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
-                : step >= 3 && getStockStatus() === 'pipeline'
-                  ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600'
-                  : step >= 3 && getStockStatus() === 'unavailable'
-                    ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'
-                    : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70'
-          } ${buttonSize}`}
-          size="sm"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <span className="relative z-10 flex items-center justify-center">
-            <span className={textSize.sm}>{getCTAText()}</span>
-            {step < 4 && <ArrowRight className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />}
-          </span>
-        </Button>
+          <Button 
+            ref={buttonRef}
+            onClick={handleButtonClick}
+            disabled={!canProceed()}
+            className={`w-full text-primary-foreground rounded-lg font-bold shadow-lg transition-all duration-300 relative overflow-hidden luxury-button ${getButtonHeight()} ${
+              !canProceed() 
+                ? 'bg-muted text-muted-foreground cursor-not-allowed' 
+                : step >= 3 && getStockStatus() === 'available'
+                  ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 premium-gradient'
+                  : step >= 3 && getStockStatus() === 'pipeline'
+                    ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 premium-gradient'
+                    : step >= 3 && getStockStatus() === 'unavailable'
+                      ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 premium-gradient'
+                      : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 premium-gradient'
+            } ${buttonSize} gradient-shift`}
+            size="sm"
+          >
+            {/* Premium button glow effect */}
+            <motion.div
+              className="absolute inset-0 rounded-lg opacity-0 bg-gradient-to-r from-white/20 to-white/5"
+              animate={{ 
+                opacity: [0, 0.3, 0],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            
+            {/* Enhanced button content */}
+            <motion.span 
+              className="relative z-10 flex items-center justify-center"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <motion.span 
+                className={textSize.sm}
+                animate={canProceed() ? { 
+                  textShadow: [
+                    '0 1px 2px rgba(0,0,0,0.1)',
+                    '0 2px 4px rgba(0,0,0,0.2)',
+                    '0 1px 2px rgba(0,0,0,0.1)'
+                  ]
+                } : {}}
+                transition={{ 
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                {getCTAText()}
+              </motion.span>
+              
+              {step < 4 && (
+                <motion.div
+                  animate={{ 
+                    x: [0, 4, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <ArrowRight className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                </motion.div>
+              )}
+              
+              {step === 4 && (
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 360],
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Sparkles className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                </motion.div>
+              )}
+            </motion.span>
+          </Button>
+        </motion.div>
       </motion.div>
     </div>
   );
