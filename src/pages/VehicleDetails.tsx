@@ -2,7 +2,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { VehicleModel } from '@/types/vehicle';
-import { ToyotaLayout } from '@/components/ToyotaLayout';
+import ToyotaLayout from '@/components/ToyotaLayout';
 import ActionPanel from '@/components/vehicle-details/ActionPanel';
 import VehicleFeatures from '@/components/vehicle-details/VehicleFeatures';
 import CombinedSpecsAndTech from '@/components/vehicle-details/CombinedSpecsAndTech';
@@ -64,40 +64,86 @@ const VehicleDetails: React.FC = () => {
       { question: 'What is the seating capacity?', answer: '5' },
     ],
     relatedVehicles: [
-      { id: '2', name: 'Toyota Corolla', image: '', mmeUrl: '', configureUrl: '', price: 20000, category: 'sedan' },
-      { id: '3', name: 'Toyota RAV4', image: '', mmeUrl: '', configureUrl: '', price: 28000, category: 'suv' },
+      { 
+        id: '2', 
+        name: 'Toyota Corolla', 
+        image: '', 
+        mmeUrl: '', 
+        configureUrl: '', 
+        price: 20000, 
+        category: 'sedan',
+        features: ['Toyota Safety Sense 2.0', 'Fuel Efficient Engine']
+      },
+      { 
+        id: '3', 
+        name: 'Toyota RAV4', 
+        image: '', 
+        mmeUrl: '', 
+        configureUrl: '', 
+        price: 28000, 
+        category: 'suv',
+        features: ['AWD Available', 'Spacious Interior']
+      },
     ],
     preOwnedSimilar: [
-      { id: '4', name: 'Used Camry', image: '', mmeUrl: '', configureUrl: '', price: 18000, category: 'sedan', year: 2020 },
-      { id: '5', name: 'Used Accord', image: '', mmeUrl: '', configureUrl: '', price: 20000, category: 'sedan', year: 2021 },
+      { 
+        id: '4', 
+        name: 'Used Camry', 
+        image: '', 
+        mmeUrl: '', 
+        configureUrl: '', 
+        price: 18000, 
+        category: 'sedan', 
+        year: 2020,
+        features: ['Low Mileage', 'Well Maintained']
+      },
+      { 
+        id: '5', 
+        name: 'Used Accord', 
+        image: '', 
+        mmeUrl: '', 
+        configureUrl: '', 
+        price: 20000, 
+        category: 'sedan', 
+        year: 2021,
+        features: ['Honda Reliability', 'Good Condition']
+      },
     ],
   };
 
+  const [isFavorite, setIsFavorite] = React.useState(false);
   const [isCarBuilderOpen, setIsCarBuilderOpen] = React.useState(false);
   const [isTestDriveOpen, setIsTestDriveOpen] = React.useState(false);
   const [isEnquireOpen, setIsEnquireOpen] = React.useState(false);
 
-  const handleConfigureClick = () => {
-    setIsCarBuilderOpen(true);
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
   };
 
-  const handleTestDriveClick = () => {
+  const handleBookTestDrive = () => {
     setIsTestDriveOpen(true);
   };
 
-  const handleEnquireClick = () => {
-    setIsEnquireOpen(true);
+  const handleCarBuilder = () => {
+    setIsCarBuilderOpen(true);
+  };
+
+  const handleFinanceCalculator = () => {
+    // Handle finance calculator
+    console.log('Finance calculator clicked');
   };
 
   return (
-    <ToyotaLayout>
+    <ToyotaLayout
+      vehicle={vehicle}
+      isFavorite={isFavorite}
+      onToggleFavorite={handleToggleFavorite}
+      onBookTestDrive={handleBookTestDrive}
+      onCarBuilder={handleCarBuilder}
+      onFinanceCalculator={handleFinanceCalculator}
+    >
       <div className="min-h-screen bg-background">
-        <EnhancedHeroSection
-          vehicle={vehicle}
-          onConfigureClick={handleConfigureClick}
-          onTestDriveClick={handleTestDriveClick}
-          onEnquireClick={handleEnquireClick}
-        />
+        <EnhancedHeroSection vehicle={vehicle} />
         
         <div className="container mx-auto px-4 py-8 space-y-12">
           <VehicleFeatures vehicle={vehicle} />
@@ -118,13 +164,16 @@ const VehicleDetails: React.FC = () => {
           
           <RelatedVehicles currentVehicle={vehicle} />
           
-          <PreOwnedSimilar vehicle={vehicle} />
+          <PreOwnedSimilar currentVehicle={vehicle} />
         </div>
         
         <ActionPanel
-          onConfigureClick={handleConfigureClick}
-          onTestDriveClick={handleTestDriveClick}
-          onEnquireClick={handleEnquireClick}
+          vehicle={vehicle}
+          isFavorite={isFavorite}
+          onToggleFavorite={handleToggleFavorite}
+          onBookTestDrive={handleBookTestDrive}
+          onCarBuilder={handleCarBuilder}
+          onFinanceCalculator={handleFinanceCalculator}
         />
       </div>
     </ToyotaLayout>

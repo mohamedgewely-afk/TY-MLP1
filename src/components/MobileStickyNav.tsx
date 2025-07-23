@@ -16,7 +16,6 @@ import { VehicleModel } from '@/types/vehicle';
 import { contextualHaptic } from '@/utils/haptic';
 
 interface MobileStickyNavProps {
-  activeItem?: string; // Add activeItem prop
   vehicle?: VehicleModel;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -26,7 +25,6 @@ interface MobileStickyNavProps {
 }
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
-  activeItem = 'home',
   vehicle,
   isFavorite = false,
   onToggleFavorite,
@@ -51,10 +49,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   };
 
   const defaultNavItems = [
-    { id: 'home', icon: Home, label: 'Home' },
-    { id: 'search', icon: Search, label: 'Search' },
-    { id: 'favorites', icon: Heart, label: 'Favorites' },
-    { id: 'profile', icon: User, label: 'Profile' },
+    { id: 'home', icon: Home, label: 'Home', active: false, onClick: () => {} },
+    { id: 'search', icon: Search, label: 'Search', active: false, onClick: () => {} },
+    { id: 'favorites', icon: Heart, label: 'Favorites', active: false, onClick: () => {} },
+    { id: 'profile', icon: User, label: 'Profile', active: false, onClick: () => {} },
   ];
 
   const vehicleNavItems = [
@@ -69,18 +67,21 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       id: 'testdrive', 
       icon: Calendar, 
       label: 'Test Drive',
+      active: false,
       onClick: () => handleNavClick('testdrive')
     },
     { 
       id: 'builder', 
       icon: Car, 
       label: 'Build',
+      active: false,
       onClick: () => handleNavClick('builder')
     },
     { 
       id: 'finance', 
       icon: Calculator, 
       label: 'Finance',
+      active: false,
       onClick: () => handleNavClick('finance')
     },
   ];
@@ -89,7 +90,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   return (
     <>
-      {/* Luxury Mobile Navigation */}
+      {/* Enhanced Luxury Mobile Navigation */}
       <motion.div 
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
         initial={{ y: 100, opacity: 0 }}
@@ -101,100 +102,101 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           delay: 0.2
         }}
       >
-        {/* Luxury Background with Enhanced Glass Effect */}
+        {/* Enhanced Premium Glass Effect */}
         <div className="relative">
-          {/* Premium gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-3xl" />
+          {/* Deep luxury gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-black/40 backdrop-blur-3xl" />
           
-          {/* Luxury glass morphism effect */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/10 to-white/5 backdrop-blur-2xl border-t border-white/20" />
+          {/* Premium glass morphism with refined elegance */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-white/15 to-white/8 backdrop-blur-2xl border-t border-white/30" />
           
-          {/* Subtle shimmer effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+          {/* Luxury shimmer animation */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
           
-          {/* Premium shadow and glow */}
-          <div className="absolute -top-4 left-0 right-0 h-4 bg-gradient-to-t from-black/30 to-transparent blur-sm" />
+          {/* Enhanced premium shadow and glow */}
+          <div className="absolute -top-6 left-0 right-0 h-6 bg-gradient-to-t from-black/40 to-transparent blur-lg" />
           
-          {/* Navigation Content */}
-          <div className="relative px-4 py-3 pb-safe">
+          {/* Refined Navigation Content */}
+          <div className="relative px-6 py-4 pb-safe">
             <div className="flex items-center justify-around">
               {navItems.map((item, index) => {
-                const isActive = activeItem === item.id || item.active;
+                const isActive = item.active;
                 
                 return (
                   <motion.button
                     key={item.id}
-                    className={`relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 ${
+                    className={`relative flex flex-col items-center justify-center p-4 rounded-3xl transition-all duration-500 ${
                       isActive
-                        ? 'bg-gradient-to-t from-toyota-red/20 to-toyota-red/10 backdrop-blur-xl shadow-lg'
-                        : 'hover:bg-white/10 backdrop-blur-md'
+                        ? 'bg-gradient-to-t from-toyota-red/25 to-toyota-red/15 backdrop-blur-xl shadow-2xl border border-toyota-red/30'
+                        : 'hover:bg-white/15 backdrop-blur-md hover:scale-105'
                     }`}
                     onClick={item.onClick}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
+                    initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
                     transition={{ 
-                      delay: index * 0.1,
+                      delay: index * 0.08,
                       type: "spring",
-                      stiffness: 400,
+                      stiffness: 450,
                       damping: 25
                     }}
                     whileHover={{ 
-                      scale: 1.05,
+                      scale: 1.08,
+                      y: -2,
                       transition: { duration: 0.2 }
                     }}
                     whileTap={{ 
-                      scale: 0.95,
+                      scale: 0.92,
                       transition: { duration: 0.1 }
                     }}
                   >
-                    {/* Luxury icon background */}
-                    <div className={`relative mb-1 ${
+                    {/* Enhanced luxury icon container */}
+                    <div className={`relative mb-2 ${
                       isActive 
-                        ? 'text-toyota-red drop-shadow-lg' 
-                        : 'text-white/80 hover:text-white'
+                        ? 'text-toyota-red drop-shadow-2xl' 
+                        : 'text-white/90 hover:text-white'
                     }`}>
-                      {/* Subtle glow effect for active state */}
+                      {/* Premium glow effect for active state */}
                       {isActive && (
-                        <div className="absolute inset-0 bg-toyota-red/30 rounded-lg blur-md" />
+                        <div className="absolute inset-0 bg-toyota-red/40 rounded-xl blur-xl" />
                       )}
                       
-                      <item.icon className="relative h-6 w-6 transition-all duration-300" />
+                      <item.icon className="relative h-7 w-7 transition-all duration-300 filter drop-shadow-sm" />
                       
-                      {/* Active indicator dot */}
+                      {/* Enhanced active indicator */}
                       {isActive && (
                         <motion.div
-                          className="absolute -top-1 -right-1 w-2 h-2 bg-toyota-red rounded-full shadow-lg"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
+                          className="absolute -top-2 -right-2 w-3 h-3 bg-gradient-to-br from-toyota-red to-toyota-red/80 rounded-full shadow-xl border border-white/20"
+                          initial={{ scale: 0, rotate: 180 }}
+                          animate={{ scale: 1, rotate: 0 }}
                           transition={{ 
                             type: "spring",
-                            stiffness: 500,
-                            damping: 30
+                            stiffness: 600,
+                            damping: 25
                           }}
                         />
                       )}
                     </div>
                     
-                    {/* Premium typography */}
-                    <span className={`text-xs font-medium transition-all duration-300 ${
+                    {/* Refined premium typography */}
+                    <span className={`text-xs font-semibold tracking-wide transition-all duration-300 ${
                       isActive
                         ? 'text-toyota-red drop-shadow-sm'
-                        : 'text-white/70 hover:text-white'
+                        : 'text-white/80 hover:text-white'
                     }`}>
                       {item.label}
                     </span>
                     
-                    {/* Subtle animation for active state */}
+                    {/* Enhanced luxury active indicator */}
                     {isActive && (
                       <motion.div
-                        className="absolute bottom-0 left-1/2 w-1 h-1 bg-toyota-red rounded-full"
+                        className="absolute bottom-1 left-1/2 w-2 h-0.5 bg-gradient-to-r from-toyota-red/60 to-toyota-red rounded-full"
                         initial={{ scale: 0, x: "-50%" }}
                         animate={{ scale: 1, x: "-50%" }}
                         transition={{ 
                           type: "spring",
-                          stiffness: 400,
-                          damping: 25,
-                          delay: 0.1
+                          stiffness: 500,
+                          damping: 30,
+                          delay: 0.15
                         }}
                       />
                     )}
@@ -203,21 +205,21 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               })}
             </div>
             
-            {/* Enhanced Home Indicator */}
+            {/* Premium Home Indicator */}
             <motion.div 
-              className="flex justify-center mt-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              className="flex justify-center mt-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
             >
-              <div className="w-32 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full" />
+              <div className="w-36 h-1.5 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full shadow-lg" />
             </motion.div>
           </div>
         </div>
       </motion.div>
       
-      {/* Luxury spacing for content */}
-      <div className="h-20 md:hidden" />
+      {/* Enhanced spacing for content */}
+      <div className="h-24 md:hidden" />
     </>
   );
 };
