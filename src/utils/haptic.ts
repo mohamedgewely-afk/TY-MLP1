@@ -1,3 +1,4 @@
+
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
@@ -182,7 +183,7 @@ export const gestureHaptics = {
 
 // Animation-synchronized haptic feedback
 export const animationHaptics = {
-  fadeIn: () => hapticFeedback.selection(),
+  fadeIn: () => throttledHaptic('selection'),
   scaleUp: () => hapticFeedback.luxuryPress(),
   slideTransition: () => hapticFeedback.elegantSwipe(),
   morphing: () => hapticFeedback.luxuryTransition(),

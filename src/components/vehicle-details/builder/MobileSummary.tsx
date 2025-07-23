@@ -30,7 +30,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
   step,
   reserveAmount,
   deviceCategory,
-  showPaymentButton = true
+  showPaymentButton = false
 }) => {
   const { containerPadding, buttonSize, textSize } = useResponsiveSize();
   const monthlyPayment = Math.round((totalPrice * 0.8 * 0.035) / 12);
