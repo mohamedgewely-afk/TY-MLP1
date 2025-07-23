@@ -1,18 +1,14 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X, ArrowLeft } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
-import { useToast } from "@/hooks/use-toast";
-import { DeviceCategory } from "@/hooks/use-device-info";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { hapticFeedback } from "@/utils/haptic";
+import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
-import OrderConfirmation from "./OrderConfirmation";
-import SwipeableStepWrapper from "./steps/SwipeableStepWrapper";
+import ChoiceCollector from "./ChoiceCollector";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface BuilderConfig {
   modelYear: string;
@@ -37,6 +33,62 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
+// Enhanced responsive variants
+const getContainerVariants = (deviceCategory: DeviceCategory) => ({
+  hidden: { 
+    opacity: 0,
+    scale: 0.98,
+    y: 10,
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      staggerChildren: 0.05
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.98,
+    transition: { duration: 0.2 }
+  }
+});
+
+const headerVariants = {
+  hidden: { y: -30, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { duration: 0.3, ease: "easeOut" }
+  }
+};
+
+const imageVariants = {
+  hidden: { 
+    scale: 1.1, 
+    opacity: 0,
+    filter: "blur(4px)"
+  },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const contentVariants = {
+  hidden: { y: 15, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { duration: 0.3, ease: "easeOut" }
+  }
+};
+
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   vehicle,
   step,
@@ -50,195 +102,167 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   onClose,
   deviceCategory
 }) => {
-  const { toast } = useToast();
-  const { t } = useLanguage();
-  const [isSwipeEnabled, setIsSwipeEnabled] = useState(true);
-
-  // Enhanced gesture controls
-  const handleSwipeLeft = () => {
-    if (isSwipeEnabled && step < 4) {
-      hapticFeedback.light();
-      goNext();
-    }
-  };
-
-  const handleSwipeRight = () => {
-    if (isSwipeEnabled && step > 1) {
-      hapticFeedback.light();
-      goBack();
-    }
-  };
-
-  const handleReset = () => {
-    hapticFeedback.medium();
-    setConfig({
-      modelYear: "2025",
-      engine: "3.5L V6",
-      grade: "Base",
-      exteriorColor: "Pearl White",
-      interiorColor: "Black Leather",
-      accessories: []
-    });
-    toast({
-      title: "Configuration Reset",
-      description: "All selections have been reset to default values.",
-    });
-  };
-
-  // Handle exit with haptic feedback
-  const handleExit = () => {
-    hapticFeedback.light();
-    onClose();
-  };
+  const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding } = useResponsiveSize();
 
   const getCurrentVehicleImage = () => {
-    const colorImages = {
-      "Pearl White": "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80",
-      "Midnight Black": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
-      "Silver Metallic": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80",
-      "Ruby Red": "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80",
-      "Ocean Blue": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
-      "Storm Gray": "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80"
-    };
-    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.image;
+    const exteriorColors = [
+      { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
+      { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
+      { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" }
+    ];
+    
+    const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
+    return colorData?.image || exteriorColors[0].image;
   };
 
-  if (showConfirmation) {
-    return (
-      <OrderConfirmation 
-        isOpen={showConfirmation}
-        vehicle={vehicle} 
-        config={config} 
-        totalPrice={calculateTotalPrice()} 
-        getCurrentVehicleImage={getCurrentVehicleImage}
-        onClose={onClose}
-      />
-    );
-  }
+  // Enhanced responsive image height
+  const getImageHeight = () => {
+    switch (deviceCategory) {
+      case 'smallMobile': return 'h-40';
+      case 'standardMobile': return 'h-48';
+      case 'largeMobile': return 'h-52';
+      default: return 'h-48';
+    }
+  };
+
+  // Touch-optimized button sizing
+  const getTouchButtonClass = () => {
+    const baseClass = 'touch-target rounded-xl glass-mobile backdrop-blur-xl border border-border/20 hover:bg-secondary/20 transition-all duration-200 flex items-center justify-center';
+    const sizeClass = deviceCategory === 'smallMobile' ? 'p-2 min-h-[44px] min-w-[44px]' : 'p-2.5 min-h-[48px] min-w-[48px]';
+    return `${baseClass} ${sizeClass}`;
+  };
+
+  // Add swipe functionality for steps
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (step < 4) goNext();
+    },
+    onSwipeRight: () => {
+      if (step > 1) goBack();
+    },
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false
+  });
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-background via-background/98 to-muted/30 relative overflow-hidden">
-      {/* Background Gradient Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/2 via-transparent to-primary/3 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background/80 to-transparent pointer-events-none" />
-      
-      {/* Enhanced Header */}
+    <motion.div
+      variants={getContainerVariants(deviceCategory)}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport"
+      ref={swipeableRef}
+    >
+      {/* Enhanced Header with Better Safe Area Support */}
       <motion.div 
-        className="sticky top-0 z-50 bg-gradient-to-r from-background/95 via-background/98 to-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        variants={headerVariants}
+        className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top`}
       >
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleExit}
-              className="hover:bg-muted/50 transition-colors duration-200"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">Build Your {vehicle.name}</h1>
-              <p className="text-sm text-muted-foreground">Step {step} of 4</p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="opacity-70 hover:opacity-100 transition-opacity duration-200"
+        <motion.button
+          onClick={step > 1 ? goBack : onClose}
+          className={getTouchButtonClass()}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {step > 1 ? (
+            <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+          ) : (
+            <X className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+          )}
+        </motion.button>
+
+        <div className="text-center flex-1 mx-3">
+          <motion.h1 
+            className={`${textSize.base} font-bold text-foreground truncate`}
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
+            Build Your {vehicle.name}
+          </motion.h1>
         </div>
+
+        <div className="w-11" />
+      </motion.div>
+
+      {/* Enhanced Vehicle Image */}
+      <motion.div 
+        variants={imageVariants}
+        className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/10 flex-shrink-0`}
+        key={config.exteriorColor + config.grade}
+      >
+        <motion.img 
+          src={getCurrentVehicleImage()}
+          alt="Vehicle Preview"
+          className="w-full h-full object-contain relative z-10"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          loading="lazy"
+        />
         
+        <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
+        
+        <motion.div 
+          className={`absolute bottom-2 left-2 right-2`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
+          <div className={`glass-mobile backdrop-blur-xl rounded-lg ${mobilePadding.xs} border border-border/20 shadow-lg`}>
+            <h3 className={`${textSize.sm} font-bold truncate`}>{config.modelYear} {vehicle.name}</h3>
+            <p className={`text-primary ${textSize.xs} font-medium truncate`}>{config.grade} • {config.engine}</p>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Progress Bar */}
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 glass-mobile backdrop-blur-sm border-b border-border/10"
+      >
         <MobileProgress currentStep={step} totalSteps={4} />
       </motion.div>
 
-      {/* Enhanced Content Area with Swipe Support */}
-      <div className="flex-1 relative overflow-hidden">
-        <SwipeableStepWrapper
-          onSwipeLeft={handleSwipeLeft}
-          onSwipeRight={handleSwipeRight}
-          className="h-full"
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ 
-                duration: 0.4, 
-                type: "spring",
-                stiffness: 120,
-                damping: 20
-              }}
-              className="h-full"
-              style={{
-                willChange: 'transform, opacity',
-                backfaceVisibility: 'hidden',
-                transform: 'translateZ(0)'
-              }}
-            >
-              <MobileStepContent
-                step={step}
-                config={config}
-                setConfig={setConfig}
-                vehicle={vehicle}
-                calculateTotalPrice={calculateTotalPrice}
-                handlePayment={handlePayment}
-                goNext={goNext}
-                deviceCategory={deviceCategory}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </SwipeableStepWrapper>
-      </div>
-
-      {/* Enhanced Summary */}
+      {/* Choice Collector */}
       <motion.div 
-        className="sticky bottom-0 z-50 bg-gradient-to-t from-background/98 via-background/95 to-background/90 backdrop-blur-xl border-t border-border/50 shadow-lg"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
+        variants={contentVariants}
+        className={`${containerPadding} py-2 flex-shrink-0 glass-mobile backdrop-blur-sm border-b border-border/5`}
       >
-        <MobileSummary
+        <ChoiceCollector config={config} step={step} />
+      </motion.div>
+
+      {/* Step Content */}
+      <motion.div 
+        variants={contentVariants}
+        className="flex-1 overflow-hidden"
+      >
+        <AnimatePresence mode="wait">
+          <MobileStepContent
+            key={step}
+            step={step}
+            config={config}
+            setConfig={setConfig}
+            vehicle={vehicle}
+            calculateTotalPrice={calculateTotalPrice}
+            handlePayment={handlePayment}
+            goNext={goNext}
+            deviceCategory={deviceCategory}
+          />
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Summary with Enhanced Safe Area */}
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 relative z-30 glass-mobile backdrop-blur-xl border-t border-border/20 safe-area-inset-bottom"
+      >
+        <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
           step={step}
-          reserveAmount={5000}
+          reserveAmount={2000}
           deviceCategory={deviceCategory}
         />
       </motion.div>
-
-      {/* Gesture Indicators */}
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 opacity-30 pointer-events-none">
-        {step > 1 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center text-xs text-muted-foreground"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Swipe</span>
-          </motion.div>
-        )}
-        {step < 4 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center text-xs text-muted-foreground"
-          >
-            <span>Swipe</span>
-            <ChevronRight className="h-4 w-4" />
-          </motion.div>
-        )}
-      </div>
-    </div>
+    </motion.div>
   );
 };
 

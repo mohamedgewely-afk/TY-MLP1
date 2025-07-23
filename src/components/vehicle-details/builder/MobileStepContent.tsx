@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,9 @@ import { VehicleModel } from "@/types/vehicle";
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
-import { hapticFeedback } from "@/utils/haptic";
 import ModelYearEngineStep from "./steps/ModelYearEngineStep";
 import GradeCarouselStep from "./steps/GradeCarouselStep";
-import EnhancedColorsAccessoriesStep from "./steps/EnhancedColorsAccessoriesStep";
+import ColorsAccessoriesStep from "./steps/ColorsAccessoriesStep";
 import ReviewStep from "./steps/ReviewStep";
 
 interface BuilderConfig {
@@ -44,6 +44,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   const { t } = useLanguage();
   const { containerPadding, buttonSize, textSize } = useResponsiveSize();
 
+  // Determine stock status based on selected colors
   const getStockStatus = () => {
     const exteriorColors = [
       { name: "Pearl White", stock: 'available' },
@@ -86,6 +87,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     return t('builder.continue');
   };
 
+  // Check if current step can proceed
   const canProceed = () => {
     switch (step) {
       case 1:
@@ -108,7 +110,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       case 2:
         return <GradeCarouselStep config={config} setConfig={setConfig} />;
       case 3:
-        return <EnhancedColorsAccessoriesStep config={config} setConfig={setConfig} />;
+        return <ColorsAccessoriesStep config={config} setConfig={setConfig} />;
       case 4:
         return <ReviewStep config={config} calculateTotalPrice={calculateTotalPrice} handlePayment={handlePayment} />;
       default:
@@ -158,15 +160,6 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     }
   };
 
-  const handleButtonClick = () => {
-    hapticFeedback.light();
-    if (step === 4) {
-      handlePayment();
-    } else {
-      goNext();
-    }
-  };
-
   return (
     <div className="relative flex flex-col h-full">
       <motion.div
@@ -175,11 +168,6 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.4, type: "spring", stiffness: 120, damping: 20 }}
         className="flex-1 overflow-hidden"
-        style={{
-          willChange: 'transform, opacity',
-          backfaceVisibility: 'hidden',
-          transform: 'translateZ(0)'
-        }}
       >
         <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} overflow-y-auto`}>
           {renderContent()}
@@ -198,7 +186,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         </motion.div>
       )}
       
-      {/* Enhanced Continue Button */}
+      {/* Continue Button */}
       <motion.div 
         className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-2' : 'py-3'} bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/30`}
         initial={{ opacity: 0, y: 20 }}
@@ -206,33 +194,21 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <Button 
-          onClick={handleButtonClick}
+          onClick={step === 4 ? handlePayment : goNext}
           disabled={!canProceed()}
-          className={`w-full text-primary-foreground rounded-xl font-bold shadow-lg transition-all duration-300 relative overflow-hidden ${getButtonHeight()} ${
+          className={`w-full text-primary-foreground rounded-lg font-bold shadow-lg transition-all duration-300 relative overflow-hidden ${getButtonHeight()} ${
             !canProceed() 
               ? 'bg-muted text-muted-foreground cursor-not-allowed' 
               : step >= 3 && getStockStatus() === 'available'
-                ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-green-500/25'
+                ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
                 : step >= 3 && getStockStatus() === 'pipeline'
-                  ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-orange-500/25'
+                  ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600'
                   : step >= 3 && getStockStatus() === 'unavailable'
-                    ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-red-500/25'
-                    : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-primary/25'
+                    ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'
+                    : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70'
           } ${buttonSize}`}
           size="sm"
         >
-          <motion.div 
-            className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full"
-            animate={{
-              translateX: canProceed() ? ['-100%', '100%'] : '-100%'
-            }}
-            transition={{
-              duration: 2,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatDelay: 3
-            }}
-          />
           <span className="relative z-10 flex items-center justify-center">
             <span className={textSize.sm}>{getCTAText()}</span>
             {step < 4 && <ArrowRight className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />}
