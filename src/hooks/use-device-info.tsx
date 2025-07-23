@@ -227,37 +227,37 @@ export function useResponsiveSize() {
                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
                 'text-base py-4 px-6',
     
-    cardSpacing: ['smallMobile', 'standardMobile'].includes(deviceCategory) ? 'gap-3' :
-                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 'gap-6',
+    cardSpacing: ['smallMobile', 'standardMobile'].includes(deviceCategory) ? 'gap-2' :
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-3' : 'gap-4',
     
     textSize: {
       xs: deviceCategory === 'smallMobile' ? 'text-xs' : 
-          deviceCategory === 'standardMobile' ? 'text-sm' : 'text-sm',
+          deviceCategory === 'standardMobile' ? 'text-xs' : 'text-sm',
       sm: deviceCategory === 'smallMobile' ? 'text-sm' : 
-          deviceCategory === 'standardMobile' ? 'text-base' : 'text-base',
+          deviceCategory === 'standardMobile' ? 'text-sm' : 'text-base',
       base: deviceCategory === 'smallMobile' ? 'text-base' : 
-            deviceCategory === 'standardMobile' ? 'text-lg' : 'text-lg',
+            deviceCategory === 'standardMobile' ? 'text-base' : 'text-lg',
       lg: deviceCategory === 'smallMobile' ? 'text-lg' : 
-          deviceCategory === 'standardMobile' ? 'text-xl' : 'text-xl',
+          deviceCategory === 'standardMobile' ? 'text-lg' : 'text-xl',
       xl: deviceCategory === 'smallMobile' ? 'text-xl' : 
-          deviceCategory === 'standardMobile' ? 'text-2xl' : 'text-2xl'
+          deviceCategory === 'standardMobile' ? 'text-xl' : 'text-2xl'
     },
 
     mobilePadding: {
-      xs: deviceCategory === 'smallMobile' ? 'p-1.5' : 
+      xs: deviceCategory === 'smallMobile' ? 'p-1' : 
+          deviceCategory === 'standardMobile' ? 'p-1.5' : 'p-2',
+      sm: deviceCategory === 'smallMobile' ? 'p-1.5' : 
           deviceCategory === 'standardMobile' ? 'p-2' : 'p-3',
-      sm: deviceCategory === 'smallMobile' ? 'p-2' : 
+      md: deviceCategory === 'smallMobile' ? 'p-2' : 
           deviceCategory === 'standardMobile' ? 'p-3' : 'p-4',
-      md: deviceCategory === 'smallMobile' ? 'p-3' : 
-          deviceCategory === 'standardMobile' ? 'p-4' : 'p-6',
-      lg: deviceCategory === 'smallMobile' ? 'p-4' : 
-          deviceCategory === 'standardMobile' ? 'p-6' : 'p-8'
+      lg: deviceCategory === 'smallMobile' ? 'p-3' : 
+          deviceCategory === 'standardMobile' ? 'p-4' : 'p-6'
     },
 
-    // Enhanced responsive utilities
-    imageHeight: deviceCategory === 'smallMobile' ? 'h-36' :
-                 deviceCategory === 'standardMobile' ? 'h-40' :
-                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'h-48' : 'h-52',
+    // Enhanced responsive utilities with better text handling
+    imageHeight: deviceCategory === 'smallMobile' ? 'h-32' :
+                 deviceCategory === 'standardMobile' ? 'h-36' :
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'h-40' : 'h-44',
     
     touchTarget: deviceCategory === 'smallMobile' ? 'min-h-[44px] min-w-[44px]' :
                  deviceCategory === 'standardMobile' ? 'min-h-[48px] min-w-[48px]' :
@@ -265,6 +265,23 @@ export function useResponsiveSize() {
     
     maxWidth: deviceCategory === 'smallMobile' ? 'max-w-xs' :
               deviceCategory === 'standardMobile' ? 'max-w-sm' :
-              ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'max-w-md' : 'max-w-lg'
+              ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'max-w-md' : 'max-w-lg',
+    
+    // Enhanced mobile-specific utilities
+    mobileSpacing: {
+      xs: deviceCategory === 'smallMobile' ? 'gap-1' : 
+          deviceCategory === 'standardMobile' ? 'gap-1.5' : 'gap-2',
+      sm: deviceCategory === 'smallMobile' ? 'gap-1.5' : 
+          deviceCategory === 'standardMobile' ? 'gap-2' : 'gap-3',
+      md: deviceCategory === 'smallMobile' ? 'gap-2' : 
+          deviceCategory === 'standardMobile' ? 'gap-3' : 'gap-4'
+    },
+    
+    responsiveText: {
+      truncate: 'truncate min-w-0',
+      ellipsis: 'overflow-hidden text-ellipsis whitespace-nowrap',
+      wrap: 'break-words hyphens-auto',
+      noWrap: 'whitespace-nowrap'
+    }
   }), [deviceCategory]);
 }
