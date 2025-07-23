@@ -1,4 +1,3 @@
-
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
@@ -75,14 +74,6 @@ export const hapticFeedback = {
     }
   },
 
-  progressiveIntensity: (intensity: number) => {
-    if ('vibrate' in navigator) {
-      const basePattern = 30;
-      const adjustedIntensity = Math.min(Math.max(intensity, 0.1), 3);
-      navigator.vibrate(basePattern * adjustedIntensity);
-    }
-  },
-
   // New luxury patterns for enhanced experience
   cinematicEntry: () => {
     if ('vibrate' in navigator) {
@@ -103,14 +94,25 @@ export const hapticFeedback = {
   }
 };
 
-export const addHapticToButton = (element: HTMLElement, type: keyof typeof hapticFeedback = 'light') => {
+// Separate function for progressive intensity that requires a parameter
+export const progressiveIntensityHaptic = (intensity: number) => {
+  if ('vibrate' in navigator) {
+    const basePattern = 30;
+    const adjustedIntensity = Math.min(Math.max(intensity, 0.1), 3);
+    navigator.vibrate(basePattern * adjustedIntensity);
+  }
+};
+
+type HapticKeys = keyof typeof hapticFeedback;
+
+export const addHapticToButton = (element: HTMLElement, type: HapticKeys = 'light') => {
   element.addEventListener('touchstart', () => {
     hapticFeedback[type]();
   }, { passive: true });
 };
 
 export const addLuxuryHapticToButton = (element: HTMLElement, options: {
-  type?: keyof typeof hapticFeedback;
+  type?: HapticKeys;
   onPress?: boolean;
   onRelease?: boolean;
   onHover?: boolean;
@@ -140,7 +142,7 @@ export const addLuxuryHapticToButton = (element: HTMLElement, options: {
 let lastHapticTime = 0;
 const HAPTIC_THROTTLE = 50; // ms
 
-export const throttledHaptic = (type: keyof typeof hapticFeedback) => {
+export const throttledHaptic = (type: HapticKeys) => {
   const now = Date.now();
   if (now - lastHapticTime > HAPTIC_THROTTLE) {
     hapticFeedback[type]();
