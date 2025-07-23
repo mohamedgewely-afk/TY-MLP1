@@ -1,3 +1,4 @@
+
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
@@ -138,15 +139,15 @@ export const addLuxuryHapticToButton = (element: HTMLElement, options: {
 
 // Context-aware haptic feedback
 export const contextualHaptic = {
-  stepProgress: () => hapticFeedback.premiumConfirm(),
-  optionSelect: () => hapticFeedback.luxuryPress(),
-  swipeNavigation: () => hapticFeedback.elegantSwipe(),
-  configComplete: () => hapticFeedback.luxuryComplete(),
-  invalidAction: () => hapticFeedback.premiumError(),
-  hoverFeedback: () => hapticFeedback.sophisticatedHover(),
-  cinematicEntry: () => hapticFeedback.cinematicEntry(),
-  luxuryTransition: () => hapticFeedback.luxuryTransition(),
-  premiumSelection: () => hapticFeedback.premiumSelection()
+  stepProgress: () => throttledHaptic('premiumConfirm'),
+  optionSelect: () => throttledHaptic('luxuryPress'),
+  swipeNavigation: () => throttledHaptic('elegantSwipe'),
+  configComplete: () => throttledHaptic('luxuryComplete'),
+  invalidAction: () => throttledHaptic('premiumError'),
+  hoverFeedback: () => throttledHaptic('sophisticatedHover'),
+  cinematicEntry: () => throttledHaptic('cinematicEntry'),
+  luxuryTransition: () => throttledHaptic('luxuryTransition'),
+  premiumSelection: () => throttledHaptic('premiumSelection')
 };
 
 // Performance optimized haptic with throttling
