@@ -34,7 +34,7 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-// Enhanced luxury entrance variants
+// Enhanced luxury entrance variants with faster animations
 const getContainerVariants = (deviceCategory: DeviceCategory) => ({
   hidden: { 
     opacity: 0,
@@ -50,9 +50,9 @@ const getContainerVariants = (deviceCategory: DeviceCategory) => ({
     rotateX: 0,
     filter: "blur(0px)",
     transition: {
-      duration: 0.8,
+      duration: 0.4,
       ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.1
+      staggerChildren: 0.05
     }
   },
   exit: {
@@ -60,11 +60,11 @@ const getContainerVariants = (deviceCategory: DeviceCategory) => ({
     scale: 0.95,
     y: -20,
     filter: "blur(5px)",
-    transition: { duration: 0.4 }
+    transition: { duration: 0.2 }
   }
 });
 
-// Premium header animation with cinematic entrance
+// Premium header animation with faster cinematic entrance
 const headerVariants = {
   hidden: { 
     y: -60, 
@@ -78,14 +78,14 @@ const headerVariants = {
     rotateX: 0,
     filter: "blur(0px)",
     transition: { 
-      duration: 0.6, 
+      duration: 0.3, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.2
+      delay: 0.1
     }
   }
 };
 
-// Enhanced image reveal with luxury effects
+// Enhanced image reveal with faster luxury effects
 const imageVariants = {
   hidden: { 
     scale: 1.2, 
@@ -99,14 +99,14 @@ const imageVariants = {
     filter: "blur(0px)",
     rotateY: 0,
     transition: { 
-      duration: 1.2, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.4
+      delay: 0.2
     }
   }
 };
 
-// Premium content stagger animation
+// Premium content stagger animation with faster timing
 const contentVariants = {
   hidden: { 
     y: 30, 
@@ -120,7 +120,7 @@ const contentVariants = {
     scale: 1,
     filter: "blur(0px)",
     transition: { 
-      duration: 0.5, 
+      duration: 0.25, 
       ease: [0.25, 0.46, 0.45, 0.94]
     }
   }
@@ -189,7 +189,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  // Enhanced responsive image height
   const getImageHeight = () => {
     switch (deviceCategory) {
       case 'smallMobile': return 'h-40';
@@ -199,7 +198,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     }
   };
 
-  // Touch-optimized button sizing
   const getTouchButtonClass = () => {
     const baseClass = 'touch-target rounded-xl glass-mobile backdrop-blur-xl border border-border/20 hover:bg-secondary/20 transition-all duration-200 flex items-center justify-center';
     const sizeClass = deviceCategory === 'smallMobile' ? 'p-2 min-h-[44px] min-w-[44px]' : 'p-2.5 min-h-[48px] min-w-[48px]';
@@ -253,7 +251,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport perspective-1000"
       ref={swipeableRef}
     >
-      {/* Enhanced Header with Reset and Exit buttons */}
+      {/* Enhanced Header with Exit button only */}
       <motion.div 
         variants={headerVariants}
         className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top luxury-entrance`}
@@ -267,7 +265,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.4 }}
+            transition={{ delay: 0.15, duration: 0.2 }}
           >
             {step > 1 ? (
               <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
@@ -275,26 +273,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               <X className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
             )}
           </motion.button>
-
-          <motion.button
-            ref={resetButtonRef}
-            onClick={handleResetClick}
-            className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-          >
-            <RotateCcw className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
-          </motion.button>
         </div>
 
         <motion.div 
           className="text-center flex-1 mx-3"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.2, duration: 0.25 }}
         >
           <motion.h1 
             className={`${textSize.base} font-bold text-foreground truncate luxury-text`}
@@ -307,7 +292,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               ]
             }}
             transition={{ 
-              duration: 3,
+              duration: 2,
               repeat: Infinity,
               ease: "easeInOut"
             }}
@@ -324,7 +309,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
+          transition={{ delay: 0.25, duration: 0.2 }}
         >
           <LogOut className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
         </motion.button>
@@ -347,9 +332,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             filter: "blur(0px)"
           }}
           transition={{ 
-            duration: 1.2, 
+            duration: 0.4, 
             ease: [0.25, 0.46, 0.45, 0.94],
-            delay: 0.6
+            delay: 0.3
           }}
           loading="lazy"
         />
@@ -376,7 +361,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 duration: 3 + i * 0.5,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: i * 0.2
+                delay: i * 0.1
               }}
             />
           ))}
@@ -386,7 +371,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           className={`absolute bottom-2 left-2 right-2`}
           initial={{ opacity: 0, y: 20, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
         >
           <motion.div 
             className={`glass-mobile backdrop-blur-xl rounded-lg ${mobilePadding.xs} border border-border/20 shadow-lg premium-card`}
@@ -453,6 +438,20 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           showPaymentButton={step !== 4}
         />
       </motion.div>
+
+      {/* Floating Reset Button - positioned at bottom-left */}
+      <motion.button
+        ref={resetButtonRef}
+        onClick={handleResetClick}
+        className={`fixed bottom-20 left-4 z-40 ${getTouchButtonClass()} luxury-button cursor-magnetic shadow-2xl`}
+        whileHover={{ scale: 1.1, y: -4 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5, duration: 0.3 }}
+      >
+        <RotateCcw className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+      </motion.button>
     </motion.div>
   );
 };

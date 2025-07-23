@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
@@ -33,7 +34,7 @@ interface DesktopCarBuilderProps {
   onReset: () => void;
 }
 
-// Premium cinematic entrance variants for desktop
+// Premium cinematic entrance variants for desktop with faster animations
 const containerVariants = {
   hidden: { 
     opacity: 0,
@@ -47,20 +48,20 @@ const containerVariants = {
     rotateY: 0,
     filter: "blur(0px)",
     transition: {
-      duration: 1.2,
+      duration: 0.6,
       ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.2
+      staggerChildren: 0.1
     }
   },
   exit: {
     opacity: 0,
     scale: 0.95,
     filter: "blur(10px)",
-    transition: { duration: 0.6 }
+    transition: { duration: 0.3 }
   }
 };
 
-// Enhanced left panel with 3D depth
+// Enhanced left panel with faster 3D depth
 const leftPanelVariants = {
   hidden: { 
     x: -150, 
@@ -74,14 +75,14 @@ const leftPanelVariants = {
     rotateY: 0,
     filter: "blur(0px)",
     transition: { 
-      duration: 1.0, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.3
+      delay: 0.15
     }
   }
 };
 
-// Enhanced right panel with premium entrance
+// Enhanced right panel with faster premium entrance
 const rightPanelVariants = {
   hidden: { 
     x: 150, 
@@ -95,14 +96,14 @@ const rightPanelVariants = {
     rotateY: 0,
     filter: "blur(0px)",
     transition: { 
-      duration: 1.0, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.5
+      delay: 0.25
     }
   }
 };
 
-// Premium header animation with floating effect
+// Premium header animation with faster floating effect
 const headerVariants = {
   hidden: { 
     y: -100, 
@@ -116,14 +117,14 @@ const headerVariants = {
     scale: 1,
     filter: "blur(0px)",
     transition: { 
-      duration: 0.8, 
+      duration: 0.4, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.2
+      delay: 0.1
     }
   }
 };
 
-// Enhanced image reveal with cinematic effects
+// Enhanced image reveal with faster cinematic effects
 const imageVariants = {
   hidden: { 
     scale: 1.6, 
@@ -137,9 +138,9 @@ const imageVariants = {
     filter: "blur(0px)",
     rotateY: 0,
     transition: { 
-      duration: 2.0, 
+      duration: 0.8, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.8
+      delay: 0.4
     }
   }
 };
@@ -259,7 +260,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         variants={leftPanelVariants}
         className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30 overflow-hidden"
       >
-        {/* Premium Header with Reset button */}
+        {/* Premium Header with back/close button only */}
         <motion.div 
           variants={headerVariants}
           className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 glass-desktop backdrop-blur-xl border-b border-border/20"
@@ -277,7 +278,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.25 }}
             >
               {step > 1 ? (
                 <ArrowLeft className="h-6 w-6 text-foreground" />
@@ -285,30 +286,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 <X className="h-6 w-6 text-foreground" />
               )}
             </motion.button>
-
-            <motion.button
-              ref={resetButtonRef}
-              onClick={handleResetClick}
-              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
-              whileHover={{ 
-                scale: 1.1, 
-                y: -4,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <RotateCcw className="h-6 w-6 text-foreground" />
-            </motion.button>
           </div>
 
           <motion.div 
             className="text-center"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
           >
             <motion.h1 
               className="text-3xl font-bold text-foreground luxury-text"
@@ -321,7 +305,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 ]
               }}
               transition={{ 
-                duration: 4,
+                duration: 2,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -331,7 +315,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <motion.p 
               className="text-sm text-primary font-medium"
               animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              transition={{ duration: 1, repeat: Infinity }}
             >
               Step {step} of 4
             </motion.p>
@@ -358,13 +342,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               filter: "blur(0px)"
             }}
             transition={{ 
-              duration: 1.5, 
+              duration: 0.6, 
               ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.8
+              delay: 0.4
             }}
             whileHover={{
               scale: 1.15,
-              transition: { duration: 0.8 }
+              transition: { duration: 0.4 }
             }}
           />
           
@@ -388,10 +372,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   scale: [0.5, 1, 0.5]
                 }}
                 transition={{
-                  duration: 4 + i * 0.3,
+                  duration: 2 + i * 0.15,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: i * 0.1
+                  delay: i * 0.05
                 }}
               />
             ))}
@@ -402,7 +386,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             className="absolute bottom-8 left-8 right-8 text-foreground"
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
           >
             <motion.div 
               className="glass-desktop backdrop-blur-xl rounded-2xl p-8 border border-border/30 max-w-md shadow-2xl premium-card"
@@ -411,14 +395,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 y: -8,
                 boxShadow: "0 25px 50px rgba(0,0,0,0.25)"
               }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.2 }}
             >
               <motion.h3 
                 className="text-2xl font-bold mb-2 premium-gradient-text"
                 animate={{ 
                   backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
                 }}
-                transition={{ duration: 3, repeat: Infinity }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
                 {config.modelYear} {vehicle.name}
               </motion.h3>
@@ -435,7 +419,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   ]
                 }}
                 transition={{ 
-                  duration: 2,
+                  duration: 1,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -454,12 +438,32 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       >
         {/* Enhanced Progress with Premium Effects */}
         <motion.div 
-          className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20"
+          className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20 flex items-center justify-between"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.4, duration: 0.25 }}
         >
-          <MobileProgress currentStep={step} totalSteps={4} />
+          <div className="flex-1">
+            <MobileProgress currentStep={step} totalSteps={4} />
+          </div>
+          
+          {/* Reset Button - relocated to right panel header */}
+          <motion.button
+            ref={resetButtonRef}
+            onClick={handleResetClick}
+            className="ml-4 p-3 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+            whileHover={{ 
+              scale: 1.1, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+            }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.25 }}
+          >
+            <RotateCcw className="h-5 w-5 text-foreground" />
+          </motion.button>
         </motion.div>
 
         {/* Enhanced Content Area */}
@@ -469,14 +473,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.0, duration: 0.5 }}
+            transition={{ delay: 0.5, duration: 0.25 }}
           >
             <ChoiceCollector config={config} step={step} />
             {showSpecs && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.25 }}
               >
                 <CollapsibleSpecs config={config} />
               </motion.div>
@@ -488,7 +492,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             className="flex-1 overflow-hidden"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
           >
             <AnimatePresence mode="wait">
               <MobileStepContent
@@ -510,7 +514,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             className="glass-desktop backdrop-blur-xl border-t border-border/30"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
           >
             <MobileSummary 
               config={config}
