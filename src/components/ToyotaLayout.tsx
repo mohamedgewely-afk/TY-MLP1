@@ -138,9 +138,8 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       
       <Footer />
       
-      {/* Enhanced Mobile Sticky Nav - Always render for mobile devices */}
+      {/* Enhanced Mobile Sticky Nav - Remove activeItem prop */}
       <MobileStickyNav 
-        activeItem={activeNavItem}
         vehicle={vehicle}
         isFavorite={isFavorite}
         onToggleFavorite={onToggleFavorite}

@@ -111,10 +111,20 @@ const VehicleDetails: React.FC = () => {
     ],
   };
 
+  // Gallery images for hero section
+  const galleryImages = [
+    'https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg',
+    'https://example.com/camry-image2.jpg',
+    'https://example.com/camry-image3.jpg',
+  ];
+
   const [isFavorite, setIsFavorite] = React.useState(false);
   const [isCarBuilderOpen, setIsCarBuilderOpen] = React.useState(false);
   const [isTestDriveOpen, setIsTestDriveOpen] = React.useState(false);
   const [isEnquireOpen, setIsEnquireOpen] = React.useState(false);
+
+  // Calculate monthly EMI (mock calculation)
+  const monthlyEMI = Math.round(vehicle.price * 0.015);
 
   const handleToggleFavorite = () => {
     setIsFavorite(!isFavorite);
@@ -143,7 +153,15 @@ const VehicleDetails: React.FC = () => {
       onFinanceCalculator={handleFinanceCalculator}
     >
       <div className="min-h-screen bg-background">
-        <EnhancedHeroSection vehicle={vehicle} />
+        <EnhancedHeroSection 
+          vehicle={vehicle}
+          galleryImages={galleryImages}
+          isFavorite={isFavorite}
+          onToggleFavorite={handleToggleFavorite}
+          onBookTestDrive={handleBookTestDrive}
+          onCarBuilder={handleCarBuilder}
+          monthlyEMI={monthlyEMI}
+        />
         
         <div className="container mx-auto px-4 py-8 space-y-12">
           <VehicleFeatures vehicle={vehicle} />
