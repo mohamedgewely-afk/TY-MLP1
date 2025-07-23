@@ -1,3 +1,4 @@
+
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
