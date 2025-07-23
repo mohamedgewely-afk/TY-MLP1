@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ interface ReviewStepProps {
   totalPrice: number;
   getCurrentVehicleImage: () => string;
   onPayment: () => void;
+  showPaymentButton?: boolean;
   handleTouchStart: (e: React.TouchEvent) => void;
   handleTouchMove: (e: React.TouchEvent) => void;
   handleTouchEnd: () => void;
@@ -58,6 +58,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   totalPrice,
   getCurrentVehicleImage,
   onPayment,
+  showPaymentButton = true,
   handleTouchStart,
   handleTouchMove,
   handleTouchEnd
@@ -73,7 +74,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         className="text-4xl font-black text-center bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
       >
         Review Your Build
       </motion.h3>
@@ -107,9 +108,9 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 opacity: [0, 1, 0],
               }}
               transition={{
-                duration: 1,
+                duration: 2,
                 repeat: Infinity,
-                delay: Math.random() * 1,
+                delay: Math.random() * 2,
               }}
             />
           ))}
@@ -127,7 +128,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 className="flex justify-between py-3 border-b border-white/10"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
+                transition={{ delay: 0.3 }}
               >
                 <span className="font-medium">{vehicle.name} {config.modelYear} {config.grade}</span>
                 <span className="font-bold">AED {(vehicle.price + (config.grade === "SE" ? 2000 : config.grade === "XLE" ? 4000 : config.grade === "Limited" ? 6000 : config.grade === "Platinum" ? 10000 : 0)).toLocaleString()}</span>
@@ -137,7 +138,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 className="flex justify-between py-2 border-b border-white/10"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.4 }}
               >
                 <span>Exterior: {config.exteriorColor}</span>
                 <span>+AED {exteriorColors.find(c => c.name === config.exteriorColor)?.price || 0}</span>
@@ -147,7 +148,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 className="flex justify-between py-2 border-b border-white/10"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25 }}
+                transition={{ delay: 0.5 }}
               >
                 <span>Interior: {config.interiorColor}</span>
                 <span>+AED {interiorColors.find(c => c.name === config.interiorColor)?.price || 0}</span>
@@ -162,7 +163,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                       className="flex justify-between py-2 border-b border-white/10"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.05 }}
+                      transition={{ delay: 0.6 + index * 0.1 }}
                     >
                       <span>{accessory}</span>
                       <span>+AED {accessoryData.price}</span>
@@ -174,7 +175,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                   className="flex justify-between py-2 border-b border-white/10"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
+                  transition={{ delay: 0.6 }}
                 >
                   <span>No accessories selected</span>
                   <span>AED 0</span>
@@ -188,14 +189,14 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           className="bg-gradient-to-r from-primary/20 to-primary/10 backdrop-blur-xl p-6 rounded-3xl border border-primary/30"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
+          transition={{ delay: 0.8, type: "spring", stiffness: 100 }}
         >
           <div className="flex justify-between items-center">
             <span className="text-xl font-bold">Total Price</span>
             <motion.span 
               className="text-3xl font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
               animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
               AED {totalPrice.toLocaleString()}
             </motion.span>
@@ -205,27 +206,29 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           </p>
         </motion.div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Button 
-            onClick={onPayment}
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white py-4 text-lg rounded-xl shadow-2xl border-0"
-            size="lg"
+        {showPaymentButton && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
           >
-            <motion.div 
-              className="flex items-center justify-center space-x-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Button 
+              onClick={onPayment}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white py-4 text-lg rounded-xl shadow-2xl border-0"
+              size="lg"
             >
-              <CreditCard className="h-5 w-5" />
-              <span>Complete Your Order</span>
-              <ArrowRight className="h-5 w-5" />
-            </motion.div>
-          </Button>
-        </motion.div>
+              <motion.div 
+                className="flex items-center justify-center space-x-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <CreditCard className="h-5 w-5" />
+                <span>Complete Your Order</span>
+                <ArrowRight className="h-5 w-5" />
+              </motion.div>
+            </Button>
+          </motion.div>
+        )}
       </div>
     </div>
   );

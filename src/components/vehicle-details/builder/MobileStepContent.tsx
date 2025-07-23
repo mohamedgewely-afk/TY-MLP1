@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VehicleModel } from "@/types/vehicle";
@@ -115,10 +114,6 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           <ModelYearEngineStep
             config={config}
             setConfig={setConfig}
-            goNext={goNext}
-            handleTouchStart={handleTouchStart}
-            handleTouchMove={handleTouchMove}
-            handleTouchEnd={handleTouchEnd}
           />
         );
       case 2:
@@ -126,10 +121,6 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           <GradeCarouselStep
             config={config}
             setConfig={setConfig}
-            goNext={goNext}
-            handleTouchStart={handleTouchStart}
-            handleTouchMove={handleTouchMove}
-            handleTouchEnd={handleTouchEnd}
           />
         );
       case 3:
@@ -137,10 +128,6 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
           <ColorsAccessoriesStep
             config={config}
             setConfig={setConfig}
-            goNext={goNext}
-            handleTouchStart={handleTouchStart}
-            handleTouchMove={handleTouchMove}
-            handleTouchEnd={handleTouchEnd}
           />
         );
       case 4:
@@ -151,9 +138,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
             totalPrice={calculateTotalPrice()}
             getCurrentVehicleImage={getCurrentVehicleImage}
             onPayment={handlePayment}
-            handleTouchStart={handleTouchStart}
-            handleTouchMove={handleTouchMove}
-            handleTouchEnd={handleTouchEnd}
+            showPaymentButton={false}
           />
         );
       default:
