@@ -1,6 +1,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useResponsiveSize } from "@/hooks/use-device-info";
 
 interface MobileProgressProps {
   currentStep: number;
@@ -11,8 +12,10 @@ const MobileProgress: React.FC<MobileProgressProps> = ({
   currentStep, 
   totalSteps = 7 
 }) => {
+  const { containerPadding, mobilePadding } = useResponsiveSize();
+  
   return (
-    <div className="px-4 py-2">
+    <div className={`${containerPadding} py-2`}>
       <div className="w-full bg-muted/30 rounded-full h-1 overflow-hidden">
         <motion.div
           className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"

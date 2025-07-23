@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 // Device category types - expanded for better large phone support
@@ -17,21 +16,21 @@ export interface DeviceInfo {
   isIPhone?: boolean;
 }
 
-// Enhanced breakpoints to cover ALL modern phones including iPhone 14 Pro Max
+// Enhanced breakpoints to cover ALL modern phones including iPhone 14 Pro Max and larger devices
 const BREAKPOINTS = {
-  smallMobile: { min: 0, max: 375 },        // iPhone SE, older phones
-  standardMobile: { min: 375, max: 414 },   // iPhone 12 mini, 13 mini
-  largeMobile: { min: 414, max: 430 },      // iPhone 12, 13, 14 Pro
-  extraLargeMobile: { min: 430, max: 500 }, // iPhone 14 Pro Max, Plus models
-  tablet: { min: 500, max: 768 },           // iPad mini, small tablets
+  smallMobile: { min: 0, max: 360 },        // Very small phones
+  standardMobile: { min: 360, max: 390 },   // iPhone 12 mini, 13 mini, standard phones
+  largeMobile: { min: 390, max: 430 },      // iPhone 12, 13, 14 Pro, most modern phones
+  extraLargeMobile: { min: 430, max: 600 }, // iPhone 14 Pro Max, Plus models, fold phones
+  tablet: { min: 600, max: 768 },           // iPad mini, small tablets, large fold phones
   desktop: { min: 768, max: Infinity }      // Desktop and large tablets
 };
 
 const getDeviceCategory = (width: number): DeviceCategory => {
-  if (width < 375) return 'smallMobile';
-  if (width < 414) return 'standardMobile';  
+  if (width < 360) return 'smallMobile';
+  if (width < 390) return 'standardMobile';  
   if (width < 430) return 'largeMobile';
-  if (width < 500) return 'extraLargeMobile'; // New category for large phones
+  if (width < 600) return 'extraLargeMobile'; // Expanded for very large phones
   if (width < 768) return 'tablet';
   return 'desktop';
 };
@@ -214,33 +213,58 @@ export function useDeviceInfo(): DeviceInfo {
   return deviceInfo;
 }
 
-// Helper hook for responsive sizing with enhanced mobile support
+// Enhanced helper hook for responsive sizing with better mobile support
 export function useResponsiveSize() {
   const { deviceCategory } = useDeviceInfo();
   
   return React.useMemo(() => ({
-    containerPadding: deviceCategory === 'smallMobile' ? 'px-3 safe-area-inset' : 
-                     ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 'px-6',
+    containerPadding: deviceCategory === 'smallMobile' ? 'px-2 safe-area-inset' : 
+                     deviceCategory === 'standardMobile' ? 'px-3 safe-area-inset' :
+                     ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 'px-6',
     
-    buttonSize: deviceCategory === 'smallMobile' ? 'text-sm py-3 px-4 touch-target' :
-                ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
+    buttonSize: deviceCategory === 'smallMobile' ? 'text-xs py-2.5 px-3 touch-target' :
+                deviceCategory === 'standardMobile' ? 'text-sm py-3 px-4 touch-target' :
+                ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
                 'text-base py-4 px-6',
     
-    cardSpacing: ['smallMobile', 'standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 'gap-6',
+    cardSpacing: ['smallMobile', 'standardMobile'].includes(deviceCategory) ? 'gap-3' :
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 'gap-6',
     
     textSize: {
-      xs: deviceCategory === 'smallMobile' ? 'text-xs' : 'text-sm',
-      sm: deviceCategory === 'smallMobile' ? 'text-sm' : 'text-base',
-      base: deviceCategory === 'smallMobile' ? 'text-base' : 'text-lg',
-      lg: deviceCategory === 'smallMobile' ? 'text-lg' : 'text-xl',
-      xl: deviceCategory === 'smallMobile' ? 'text-xl' : 'text-2xl'
+      xs: deviceCategory === 'smallMobile' ? 'text-xs' : 
+          deviceCategory === 'standardMobile' ? 'text-sm' : 'text-sm',
+      sm: deviceCategory === 'smallMobile' ? 'text-sm' : 
+          deviceCategory === 'standardMobile' ? 'text-base' : 'text-base',
+      base: deviceCategory === 'smallMobile' ? 'text-base' : 
+            deviceCategory === 'standardMobile' ? 'text-lg' : 'text-lg',
+      lg: deviceCategory === 'smallMobile' ? 'text-lg' : 
+          deviceCategory === 'standardMobile' ? 'text-xl' : 'text-xl',
+      xl: deviceCategory === 'smallMobile' ? 'text-xl' : 
+          deviceCategory === 'standardMobile' ? 'text-2xl' : 'text-2xl'
     },
 
     mobilePadding: {
-      xs: deviceCategory === 'smallMobile' ? 'p-2' : 'p-3',
-      sm: deviceCategory === 'smallMobile' ? 'p-3' : 'p-4',
-      md: deviceCategory === 'smallMobile' ? 'p-4' : 'p-6',
-      lg: deviceCategory === 'smallMobile' ? 'p-6' : 'p-8'
-    }
+      xs: deviceCategory === 'smallMobile' ? 'p-1.5' : 
+          deviceCategory === 'standardMobile' ? 'p-2' : 'p-3',
+      sm: deviceCategory === 'smallMobile' ? 'p-2' : 
+          deviceCategory === 'standardMobile' ? 'p-3' : 'p-4',
+      md: deviceCategory === 'smallMobile' ? 'p-3' : 
+          deviceCategory === 'standardMobile' ? 'p-4' : 'p-6',
+      lg: deviceCategory === 'smallMobile' ? 'p-4' : 
+          deviceCategory === 'standardMobile' ? 'p-6' : 'p-8'
+    },
+
+    // Enhanced responsive utilities
+    imageHeight: deviceCategory === 'smallMobile' ? 'h-36' :
+                 deviceCategory === 'standardMobile' ? 'h-40' :
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'h-48' : 'h-52',
+    
+    touchTarget: deviceCategory === 'smallMobile' ? 'min-h-[44px] min-w-[44px]' :
+                 deviceCategory === 'standardMobile' ? 'min-h-[48px] min-w-[48px]' :
+                 'min-h-[52px] min-w-[52px]',
+    
+    maxWidth: deviceCategory === 'smallMobile' ? 'max-w-xs' :
+              deviceCategory === 'standardMobile' ? 'max-w-sm' :
+              ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'max-w-md' : 'max-w-lg'
   }), [deviceCategory]);
 }
