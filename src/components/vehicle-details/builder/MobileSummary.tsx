@@ -30,7 +30,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
   step,
   reserveAmount,
   deviceCategory,
-  showPaymentButton = false
+  showPaymentButton = true
 }) => {
   const { containerPadding, buttonSize, textSize } = useResponsiveSize();
   const monthlyPayment = Math.round((totalPrice * 0.8 * 0.035) / 12);
@@ -66,7 +66,6 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
     <motion.div
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
       className={`bg-card/95 backdrop-blur-xl border-t border-border ${containerPadding}`}
     >
       <Card className="border-0 shadow-none bg-transparent">
@@ -86,7 +85,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
             </div>
           </div>
           
-          {showPaymentButton && (
+          {showPaymentButton && step === 4 && (
             <Button className={`w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg font-semibold shadow-lg ${getButtonHeight()} ${buttonSize}`}>
               <CreditCard className={`mr-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
               <span className={textSize.sm}>Reserve Now</span>

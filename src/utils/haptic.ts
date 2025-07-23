@@ -1,3 +1,5 @@
+
+
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
@@ -74,6 +76,14 @@ export const hapticFeedback = {
     }
   },
 
+  progressiveIntensity: (intensity: number) => {
+    if ('vibrate' in navigator) {
+      const basePattern = 30;
+      const adjustedIntensity = Math.min(Math.max(intensity, 0.1), 3);
+      navigator.vibrate(basePattern * adjustedIntensity);
+    }
+  },
+
   // New luxury patterns for enhanced experience
   cinematicEntry: () => {
     if ('vibrate' in navigator) {
@@ -94,25 +104,15 @@ export const hapticFeedback = {
   }
 };
 
-// Separate function for progressive intensity that requires a parameter
-export const progressiveIntensityHaptic = (intensity: number) => {
-  if ('vibrate' in navigator) {
-    const basePattern = 30;
-    const adjustedIntensity = Math.min(Math.max(intensity, 0.1), 3);
-    navigator.vibrate(basePattern * adjustedIntensity);
-  }
-};
-
-type HapticKeys = keyof typeof hapticFeedback;
-
-export const addHapticToButton = (element: HTMLElement, type: HapticKeys = 'light') => {
+export const addHapticToButton = (element: HTMLElement, type: keyof typeof hapticFeedback = 'light') => {
   element.addEventListener('touchstart', () => {
     hapticFeedback[type]();
   }, { passive: true });
 };
 
+// Enhanced haptic integration with animation states
 export const addLuxuryHapticToButton = (element: HTMLElement, options: {
-  type?: HapticKeys;
+  type?: keyof typeof hapticFeedback;
   onPress?: boolean;
   onRelease?: boolean;
   onHover?: boolean;
@@ -142,7 +142,7 @@ export const addLuxuryHapticToButton = (element: HTMLElement, options: {
 let lastHapticTime = 0;
 const HAPTIC_THROTTLE = 50; // ms
 
-export const throttledHaptic = (type: HapticKeys) => {
+export const throttledHaptic = (type: keyof typeof hapticFeedback) => {
   const now = Date.now();
   if (now - lastHapticTime > HAPTIC_THROTTLE) {
     hapticFeedback[type]();
@@ -185,7 +185,7 @@ export const gestureHaptics = {
 
 // Animation-synchronized haptic feedback
 export const animationHaptics = {
-  fadeIn: () => throttledHaptic('selection'),
+  fadeIn: () => hapticFeedback.selection(),
   scaleUp: () => hapticFeedback.luxuryPress(),
   slideTransition: () => hapticFeedback.elegantSwipe(),
   morphing: () => hapticFeedback.luxuryTransition(),
