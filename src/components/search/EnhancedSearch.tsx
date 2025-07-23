@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Search, Camera, Brain, Sliders, X } from 'lucide-react';
 import VisualSearch from './VisualSearch';
 import { useAIRecommendations } from '@/hooks/use-ai-recommendations';
 import { VehicleModel } from '@/types/vehicle';
-import { hapticFeedback } from '@/utils/haptic';
+import { contextualHaptic } from '@/utils/haptic';
 
 interface EnhancedSearchProps {
   onResults: (results: VehicleModel[]) => void;
@@ -26,7 +25,7 @@ const EnhancedSearch: React.FC<EnhancedSearchProps> = ({ onResults, onClose }) =
   const { recommendations, isLoading, generateRecommendations } = useAIRecommendations();
 
   const handleAISearch = () => {
-    hapticFeedback.medium();
+    contextualHaptic.buttonPress();
     generateRecommendations({
       dailyCommute: preferences.usage,
       weekendActivities: ['leisure'],
@@ -38,7 +37,7 @@ const EnhancedSearch: React.FC<EnhancedSearchProps> = ({ onResults, onClose }) =
   };
 
   const handleModeSelect = (mode: 'ai' | 'visual') => {
-    hapticFeedback.selection();
+    contextualHaptic.selectionChange();
     setSearchMode(mode);
   };
 
