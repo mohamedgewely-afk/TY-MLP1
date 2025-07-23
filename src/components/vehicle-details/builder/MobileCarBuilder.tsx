@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
+import { X, ArrowLeft, RotateCcw } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
@@ -144,7 +144,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
-  const exitButtonRef = useRef<HTMLButtonElement>(null);
 
   // Enhanced haptic feedback integration
   useEffect(() => {
@@ -165,13 +164,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     if (resetButtonRef.current) {
       addLuxuryHapticToButton(resetButtonRef.current, {
         type: 'premiumError',
-        onPress: true,
-        onHover: true
-      });
-    }
-    if (exitButtonRef.current) {
-      addLuxuryHapticToButton(exitButtonRef.current, {
-        type: 'luxuryPress',
         onPress: true,
         onHover: true
       });
@@ -237,11 +229,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     onReset();
   };
 
-  const handleExitClick = () => {
-    contextualHaptic.exitAction();
-    onClose();
-  };
-
   return (
     <motion.div
       variants={getContainerVariants(deviceCategory)}
@@ -251,7 +238,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport perspective-1000"
       ref={swipeableRef}
     >
-      {/* Enhanced Header with Exit button only */}
+      {/* Enhanced Header with Reset button back in original position */}
       <motion.div 
         variants={headerVariants}
         className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top luxury-entrance`}
@@ -302,8 +289,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.div>
 
         <motion.button
-          ref={exitButtonRef}
-          onClick={handleExitClick}
+          ref={resetButtonRef}
+          onClick={handleResetClick}
           className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -311,7 +298,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.25, duration: 0.2 }}
         >
-          <LogOut className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+          <RotateCcw className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
         </motion.button>
       </motion.div>
 
@@ -424,7 +411,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Enhanced Summary - hide duplicate payment button on step 4 */}
+      {/* Enhanced Summary - show payment button only on step 4 */}
       <motion.div 
         variants={contentVariants}
         className="flex-shrink-0 relative z-30 glass-mobile backdrop-blur-xl border-t border-border/20 safe-area-inset-bottom"
@@ -435,23 +422,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           step={step}
           reserveAmount={2000}
           deviceCategory={deviceCategory}
-          showPaymentButton={step !== 4}
+          showPaymentButton={step === 4}
         />
       </motion.div>
-
-      {/* Floating Reset Button - positioned at bottom-left */}
-      <motion.button
-        ref={resetButtonRef}
-        onClick={handleResetClick}
-        className={`fixed bottom-20 left-4 z-40 ${getTouchButtonClass()} luxury-button cursor-magnetic shadow-2xl`}
-        whileHover={{ scale: 1.1, y: -4 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.3 }}
-      >
-        <RotateCcw className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
-      </motion.button>
     </motion.div>
   );
 };

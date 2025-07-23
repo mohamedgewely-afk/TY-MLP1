@@ -58,7 +58,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   totalPrice,
   getCurrentVehicleImage,
   onPayment,
-  showPaymentButton = true,
+  showPaymentButton = false,
   handleTouchStart,
   handleTouchMove,
   handleTouchEnd

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
@@ -228,7 +227,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const showSpecs = step > 3 && (config.modelYear && config.grade);
   const reserveAmount = 5000;
 
-  // Premium button click handlers
   const handleBackClick = () => {
     contextualHaptic.stepProgress();
     if (step > 1) {
@@ -260,7 +258,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         variants={leftPanelVariants}
         className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30 overflow-hidden"
       >
-        {/* Premium Header with back/close button only */}
+        {/* Premium Header with back/close and reset buttons */}
         <motion.div 
           variants={headerVariants}
           className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 glass-desktop backdrop-blur-xl border-b border-border/20"
@@ -285,6 +283,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               ) : (
                 <X className="h-6 w-6 text-foreground" />
               )}
+            </motion.button>
+            
+            <motion.button
+              ref={resetButtonRef}
+              onClick={handleResetClick}
+              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+              whileHover={{ 
+                scale: 1.1, 
+                y: -4,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.25 }}
+            >
+              <RotateCcw className="h-6 w-6 text-foreground" />
             </motion.button>
           </div>
 
@@ -436,34 +451,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         variants={rightPanelVariants}
         className="w-1/2 h-full flex flex-col glass-desktop backdrop-blur-xl border-l border-border/30"
       >
-        {/* Enhanced Progress with Premium Effects */}
+        {/* Enhanced Progress */}
         <motion.div 
-          className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20 flex items-center justify-between"
+          className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.25 }}
         >
-          <div className="flex-1">
-            <MobileProgress currentStep={step} totalSteps={4} />
-          </div>
-          
-          {/* Reset Button - relocated to right panel header */}
-          <motion.button
-            ref={resetButtonRef}
-            onClick={handleResetClick}
-            className="ml-4 p-3 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
-            whileHover={{ 
-              scale: 1.1, 
-              y: -4,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
-            }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.25 }}
-          >
-            <RotateCcw className="h-5 w-5 text-foreground" />
-          </motion.button>
+          <MobileProgress currentStep={step} totalSteps={4} />
         </motion.div>
 
         {/* Enhanced Content Area */}
@@ -509,7 +504,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </AnimatePresence>
           </motion.div>
 
-          {/* Enhanced Summary - hide duplicate payment button on step 4 */}
+          {/* Enhanced Summary - show payment button only on step 4 */}
           <motion.div 
             className="glass-desktop backdrop-blur-xl border-t border-border/30"
             initial={{ opacity: 0, y: 30 }}
@@ -522,7 +517,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               step={step}
               reserveAmount={reserveAmount}
               deviceCategory={deviceCategory}
-              showPaymentButton={step !== 4}
+              showPaymentButton={step === 4}
             />
           </motion.div>
         </div>
