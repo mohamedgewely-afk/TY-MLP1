@@ -7,8 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
-import ToyotaEnhancedMobileCarBuilder from "./builder/ToyotaEnhancedMobileCarBuilder";
-import ToyotaEnhancedDesktopCarBuilder from "./builder/ToyotaEnhancedDesktopCarBuilder";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface CarBuilderProps {
@@ -39,7 +37,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
-  const [useEnhancedUI, setUseEnhancedUI] = useState(true);
 
   console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
 
@@ -125,7 +122,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             <DialogDescription>Please wait while we initialize the car builder.</DialogDescription>
           </VisuallyHidden>
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-toyota-red"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </LoadingContent>
       </LoadingDialog>
@@ -136,7 +133,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   if (isMobile) {
     return (
       <MobileDialog open={isOpen} onOpenChange={onClose}>
-        <MobileDialogContent className="p-0">
+        <MobileDialogContent>
           <VisuallyHidden>
             <DialogTitle>Build Your {vehicle.name}</DialogTitle>
             <DialogDescription>
@@ -145,8 +142,8 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           </VisuallyHidden>
           
           <AnimatePresence mode="wait">
-            <ToyotaEnhancedMobileCarBuilder
-              key="toyota-mobile"
+            <MobileCarBuilder
+              key="mobile"
               vehicle={vehicle}
               step={step}
               config={config}
@@ -169,7 +166,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-7xl max-h-[90vh] w-full p-0 border-0 overflow-hidden"
+        className="max-w-7xl max-h-[90vh] w-full"
         aria-describedby="car-builder-description"
       >
         <VisuallyHidden>
@@ -180,8 +177,8 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </VisuallyHidden>
         
         <AnimatePresence mode="wait">
-          <ToyotaEnhancedDesktopCarBuilder
-            key="toyota-desktop"
+          <DesktopCarBuilder
+            key="desktop"
             vehicle={vehicle}
             step={step}
             config={config}
