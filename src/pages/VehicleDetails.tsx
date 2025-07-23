@@ -32,6 +32,7 @@ import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsT
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
+import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -307,6 +308,9 @@ const VehicleDetails = () => {
 
         {/* Lazy loaded sections */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
+          {/* Virtual Showroom Section - NEW */}
+          <VirtualShowroom vehicle={vehicle} />
+
           {/* Interactive Specifications & Technology Suite */}
           <InteractiveSpecsTech vehicle={vehicle} />
 
