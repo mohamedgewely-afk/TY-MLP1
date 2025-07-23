@@ -70,12 +70,26 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     onClose();
   };
 
+  const getCurrentVehicleImage = () => {
+    const colorImages = {
+      "Pearl White": "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80",
+      "Midnight Black": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
+      "Silver Metallic": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80",
+      "Ruby Red": "https://images.unsplash.com/photo-1494976688153-c785a34b9f61?auto=format&fit=crop&w=800&q=80",
+      "Ocean Blue": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
+      "Storm Gray": "https://images.unsplash.com/photo-1570409073740-2f53eca0f9dd?auto=format&fit=crop&w=800&q=80"
+    };
+    return colorImages[config.exteriorColor as keyof typeof colorImages] || vehicle.image;
+  };
+
   if (showConfirmation) {
     return (
       <OrderConfirmation 
+        isOpen={showConfirmation}
         vehicle={vehicle} 
         config={config} 
         totalPrice={calculateTotalPrice()} 
+        getCurrentVehicleImage={getCurrentVehicleImage}
         onClose={onClose}
       />
     );
@@ -171,7 +185,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   vehicle={vehicle}
                   calculateTotalPrice={calculateTotalPrice}
                   handlePayment={handlePayment}
-                  goBack={goBack}
                   goNext={goNext}
                 />
               </motion.div>
@@ -193,13 +206,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 vehicle={vehicle}
                 config={config}
                 totalPrice={calculateTotalPrice()}
-                currentStep={step}
-                onStepClick={(stepNumber) => {
-                  // Allow jumping to completed steps
-                  if (stepNumber < step) {
-                    // Implementation for step jumping would go here
-                  }
-                }}
               />
             </div>
           </div>
