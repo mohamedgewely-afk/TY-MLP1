@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
@@ -30,6 +30,7 @@ interface MobileCarBuilderProps {
   goBack: () => void;
   goNext: () => void;
   onClose: () => void;
+  onReset: () => void;
   deviceCategory: DeviceCategory;
 }
 
@@ -136,11 +137,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   goBack,
   goNext,
   onClose,
+  onReset,
   deviceCategory
 }) => {
   const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding } = useResponsiveSize();
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const resetButtonRef = useRef<HTMLButtonElement>(null);
+  const exitButtonRef = useRef<HTMLButtonElement>(null);
 
   // Enhanced haptic feedback integration
   useEffect(() => {
@@ -153,6 +157,20 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     }
     if (closeButtonRef.current) {
       addLuxuryHapticToButton(closeButtonRef.current, {
+        type: 'luxuryPress',
+        onPress: true,
+        onHover: true
+      });
+    }
+    if (resetButtonRef.current) {
+      addLuxuryHapticToButton(resetButtonRef.current, {
+        type: 'premiumError',
+        onPress: true,
+        onHover: true
+      });
+    }
+    if (exitButtonRef.current) {
+      addLuxuryHapticToButton(exitButtonRef.current, {
         type: 'luxuryPress',
         onPress: true,
         onHover: true
@@ -216,6 +234,16 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     }
   };
 
+  const handleResetClick = () => {
+    contextualHaptic.resetAction();
+    onReset();
+  };
+
+  const handleExitClick = () => {
+    contextualHaptic.exitAction();
+    onClose();
+  };
+
   return (
     <motion.div
       variants={getContainerVariants(deviceCategory)}
@@ -225,27 +253,42 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport perspective-1000"
       ref={swipeableRef}
     >
-      {/* Enhanced Header with Luxury Glass Morphism */}
+      {/* Enhanced Header with Reset and Exit buttons */}
       <motion.div 
         variants={headerVariants}
         className={`relative z-30 flex items-center justify-between glass-mobile backdrop-blur-xl border-b border-border/20 flex-shrink-0 ${containerPadding} py-3 safe-area-inset-top luxury-entrance`}
       >
-        <motion.button
-          ref={step > 1 ? backButtonRef : closeButtonRef}
-          onClick={handleBackClick}
-          className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        >
-          {step > 1 ? (
-            <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
-          ) : (
-            <X className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
-          )}
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            ref={step > 1 ? backButtonRef : closeButtonRef}
+            onClick={handleBackClick}
+            className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+          >
+            {step > 1 ? (
+              <ArrowLeft className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+            ) : (
+              <X className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+            )}
+          </motion.button>
+
+          <motion.button
+            ref={resetButtonRef}
+            onClick={handleResetClick}
+            className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+          >
+            <RotateCcw className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+          </motion.button>
+        </div>
 
         <motion.div 
           className="text-center flex-1 mx-3"
@@ -273,7 +316,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </motion.h1>
         </motion.div>
 
-        <div className="w-11" />
+        <motion.button
+          ref={exitButtonRef}
+          onClick={handleExitClick}
+          className={`${getTouchButtonClass()} luxury-button cursor-magnetic`}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+        >
+          <LogOut className={`${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'} text-foreground`} />
+        </motion.button>
       </motion.div>
 
       {/* Enhanced Vehicle Image with Luxury Effects */}
@@ -385,7 +439,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Enhanced Summary with Luxury Effects */}
+      {/* Enhanced Summary - hide duplicate payment button on step 4 */}
       <motion.div 
         variants={contentVariants}
         className="flex-shrink-0 relative z-30 glass-mobile backdrop-blur-xl border-t border-border/20 safe-area-inset-bottom"
@@ -396,6 +450,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           step={step}
           reserveAmount={2000}
           deviceCategory={deviceCategory}
+          showPaymentButton={step !== 4}
         />
       </motion.div>
     </motion.div>

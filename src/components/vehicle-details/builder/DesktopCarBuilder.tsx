@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, RotateCcw } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
@@ -30,6 +30,7 @@ interface DesktopCarBuilderProps {
   goBack: () => void;
   goNext: () => void;
   onClose: () => void;
+  onReset: () => void;
 }
 
 // Premium cinematic entrance variants for desktop
@@ -153,11 +154,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   handlePayment,
   goBack,
   goNext,
-  onClose
+  onClose,
+  onReset
 }) => {
   const { deviceCategory } = useDeviceInfo();
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const resetButtonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Desktop-specific haptic feedback
@@ -172,6 +175,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     if (closeButtonRef.current) {
       addLuxuryHapticToButton(closeButtonRef.current, {
         type: 'luxuryPress',
+        onPress: true,
+        onHover: true
+      });
+    }
+    if (resetButtonRef.current) {
+      addLuxuryHapticToButton(resetButtonRef.current, {
+        type: 'premiumError',
         onPress: true,
         onHover: true
       });
@@ -227,6 +237,11 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     }
   };
 
+  const handleResetClick = () => {
+    contextualHaptic.resetAction();
+    onReset();
+  };
+
   return (
     <motion.div
       ref={containerRef}
@@ -244,31 +259,50 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         variants={leftPanelVariants}
         className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30 overflow-hidden"
       >
-        {/* Premium Header with Glass Morphism */}
+        {/* Premium Header with Reset button */}
         <motion.div 
           variants={headerVariants}
           className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 glass-desktop backdrop-blur-xl border-b border-border/20"
         >
-          <motion.button
-            ref={step > 1 ? backButtonRef : closeButtonRef}
-            onClick={handleBackClick}
-            className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
-            whileHover={{ 
-              scale: 1.1, 
-              y: -4,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
-            }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            {step > 1 ? (
-              <ArrowLeft className="h-6 w-6 text-foreground" />
-            ) : (
-              <X className="h-6 w-6 text-foreground" />
-            )}
-          </motion.button>
+          <div className="flex items-center gap-4">
+            <motion.button
+              ref={step > 1 ? backButtonRef : closeButtonRef}
+              onClick={handleBackClick}
+              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+              whileHover={{ 
+                scale: 1.1, 
+                y: -4,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              {step > 1 ? (
+                <ArrowLeft className="h-6 w-6 text-foreground" />
+              ) : (
+                <X className="h-6 w-6 text-foreground" />
+              )}
+            </motion.button>
+
+            <motion.button
+              ref={resetButtonRef}
+              onClick={handleResetClick}
+              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+              whileHover={{ 
+                scale: 1.1, 
+                y: -4,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              <RotateCcw className="h-6 w-6 text-foreground" />
+            </motion.button>
+          </div>
 
           <motion.div 
             className="text-center"
@@ -303,7 +337,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </motion.p>
           </motion.div>
 
-          <div className="w-16" />
+          <div className="w-32" />
         </motion.div>
 
         {/* Enhanced Full Height Interactive Car Image */}
@@ -471,7 +505,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </AnimatePresence>
           </motion.div>
 
-          {/* Enhanced Summary with Premium Effects */}
+          {/* Enhanced Summary - hide duplicate payment button on step 4 */}
           <motion.div 
             className="glass-desktop backdrop-blur-xl border-t border-border/30"
             initial={{ opacity: 0, y: 30 }}
@@ -484,6 +518,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               step={step}
               reserveAmount={reserveAmount}
               deviceCategory={deviceCategory}
+              showPaymentButton={step !== 4}
             />
           </motion.div>
         </div>

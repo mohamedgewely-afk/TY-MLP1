@@ -16,9 +16,15 @@ interface ReviewStepProps {
   };
   calculateTotalPrice: () => number;
   handlePayment: () => void;
+  showPaymentButton?: boolean;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ config, calculateTotalPrice, handlePayment }) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ 
+  config, 
+  calculateTotalPrice, 
+  handlePayment,
+  showPaymentButton = true
+}) => {
   const configItems = [
     { label: "Model Year", value: config.modelYear },
     { label: "Engine", value: config.engine },
@@ -95,21 +101,23 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ config, calculateTotalPrice, ha
           </CardContent>
         </Card>
 
-        {/* Payment Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Button 
-            onClick={handlePayment}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg"
-            size="lg"
+        {/* Payment Button - only show if showPaymentButton is true */}
+        {showPaymentButton && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
           >
-            <CreditCard className="mr-3 h-5 w-5" />
-            Proceed to Payment
-          </Button>
-        </motion.div>
+            <Button 
+              onClick={handlePayment}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg"
+              size="lg"
+            >
+              <CreditCard className="mr-3 h-5 w-5" />
+              Proceed to Payment
+            </Button>
+          </motion.div>
+        )}
       </div>
     </div>
   );

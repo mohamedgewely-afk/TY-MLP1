@@ -1,7 +1,9 @@
+
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MobileDialog, MobileDialogContent } from "@/components/ui/mobile-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
@@ -26,6 +28,7 @@ interface BuilderConfig {
 
 const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => {
   const [step, setStep] = useState(1);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [config, setConfig] = useState<BuilderConfig>({
     modelYear: "2025",
     engine: "3.5L V6",
@@ -39,6 +42,24 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
 
   console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
+
+  const handleReset = useCallback(() => {
+    setConfig({
+      modelYear: "2025",
+      engine: "3.5L V6",
+      grade: "Base",
+      exteriorColor: "Pearl White",
+      interiorColor: "Black Leather",
+      accessories: []
+    });
+    setStep(1);
+    setShowConfirmation(false);
+    setShowResetDialog(false);
+    toast({
+      title: "Configuration Reset",
+      description: "Your vehicle configuration has been reset to default values.",
+    });
+  }, [toast]);
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -129,70 +150,87 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     );
   }
 
-  // Mobile-first approach with proper Dialog handling
-  if (isMobile) {
-    return (
-      <MobileDialog open={isOpen} onOpenChange={onClose}>
-        <MobileDialogContent>
-          <VisuallyHidden>
-            <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-            <DialogDescription>
-              Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
-            </DialogDescription>
-          </VisuallyHidden>
-          
-          <AnimatePresence mode="wait">
-            <MobileCarBuilder
-              key="mobile"
-              vehicle={vehicle}
-              step={step}
-              config={config}
-              setConfig={updateConfig}
-              showConfirmation={showConfirmation}
-              calculateTotalPrice={calculateTotalPrice}
-              handlePayment={handlePayment}
-              goBack={goBack}
-              goNext={goNext}
-              onClose={onClose}
-              deviceCategory={deviceCategory}
-            />
-          </AnimatePresence>
-        </MobileDialogContent>
-      </MobileDialog>
-    );
-  }
-
-  // Desktop Dialog
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="max-w-7xl max-h-[90vh] w-full"
-        aria-describedby="car-builder-description"
-      >
-        <VisuallyHidden>
-          <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-          <DialogDescription id="car-builder-description">
-            Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
-          </DialogDescription>
-        </VisuallyHidden>
-        
-        <AnimatePresence mode="wait">
-          <DesktopCarBuilder
-            key="desktop"
-            vehicle={vehicle}
-            step={step}
-            config={config}
-            setConfig={updateConfig}
-            showConfirmation={showConfirmation}
-            calculateTotalPrice={calculateTotalPrice}
-            handlePayment={handlePayment}
-            goBack={goBack}
-            goNext={goNext}
-            onClose={onClose}
-          />
-        </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+    <>
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reset your vehicle configuration? This will clear all your selections and return to the first step.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Main Builder Dialog */}
+      {isMobile ? (
+        <MobileDialog open={isOpen} onOpenChange={onClose}>
+          <MobileDialogContent>
+            <VisuallyHidden>
+              <DialogTitle>Build Your {vehicle.name}</DialogTitle>
+              <DialogDescription>
+                Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
+              </DialogDescription>
+            </VisuallyHidden>
+            
+            <AnimatePresence mode="wait">
+              <MobileCarBuilder
+                key="mobile"
+                vehicle={vehicle}
+                step={step}
+                config={config}
+                setConfig={updateConfig}
+                showConfirmation={showConfirmation}
+                calculateTotalPrice={calculateTotalPrice}
+                handlePayment={handlePayment}
+                goBack={goBack}
+                goNext={goNext}
+                onClose={onClose}
+                onReset={() => setShowResetDialog(true)}
+                deviceCategory={deviceCategory}
+              />
+            </AnimatePresence>
+          </MobileDialogContent>
+        </MobileDialog>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent 
+            className="max-w-7xl max-h-[90vh] w-full"
+            aria-describedby="car-builder-description"
+          >
+            <VisuallyHidden>
+              <DialogTitle>Build Your {vehicle.name}</DialogTitle>
+              <DialogDescription id="car-builder-description">
+                Customize your {vehicle.name} by selecting model year, engine, grade, colors, and accessories.
+              </DialogDescription>
+            </VisuallyHidden>
+            
+            <AnimatePresence mode="wait">
+              <DesktopCarBuilder
+                key="desktop"
+                vehicle={vehicle}
+                step={step}
+                config={config}
+                setConfig={updateConfig}
+                showConfirmation={showConfirmation}
+                calculateTotalPrice={calculateTotalPrice}
+                handlePayment={handlePayment}
+                goBack={goBack}
+                goNext={goNext}
+                onClose={onClose}
+                onReset={() => setShowResetDialog(true)}
+              />
+            </AnimatePresence>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 };
 

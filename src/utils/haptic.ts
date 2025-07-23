@@ -160,7 +160,9 @@ export const contextualHaptic = {
   hoverFeedback: () => throttledHaptic('sophisticatedHover'),
   cinematicEntry: () => throttledHaptic('cinematicEntry'),
   luxuryTransition: () => throttledHaptic('luxuryTransition'),
-  premiumSelection: () => throttledHaptic('premiumSelection')
+  premiumSelection: () => throttledHaptic('premiumSelection'),
+  resetAction: () => throttledHaptic('premiumError'),
+  exitAction: () => throttledHaptic('luxuryPress')
 };
 
 // Enhanced haptic effects for luxury experience
