@@ -1,4 +1,3 @@
-
 export const hapticFeedback = {
   // Basic feedback patterns
   light: () => {
@@ -109,7 +108,6 @@ export const addHapticToButton = (element: HTMLElement, type: keyof typeof hapti
   }, { passive: true });
 };
 
-// Enhanced haptic integration with animation states
 export const addLuxuryHapticToButton = (element: HTMLElement, options: {
   type?: keyof typeof hapticFeedback;
   onPress?: boolean;
