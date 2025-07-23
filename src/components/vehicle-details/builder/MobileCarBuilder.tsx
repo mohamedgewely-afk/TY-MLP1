@@ -7,6 +7,7 @@ import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
+import BuilderNavigation from "./BuilderNavigation";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
 
