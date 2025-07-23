@@ -32,13 +32,35 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     
-    /* Toyota Brand Colors */
-    --toyota-red: 351 83% 48%;
+    /* Toyota Brand Colors - Reduced Intensity */
+    --toyota-red: 0 85% 48%;
+    --toyota-red-light: 0 80% 55%;
+    --toyota-red-dark: 0 90% 42%;
+    --toyota-red-subtle: 0 60% 60%;
     --toyota-silver: 0 0% 78%;
     --toyota-black: 0 0% 10%;
     --toyota-white: 0 0% 100%;
     --toyota-blue: 207 100% 40%;
     --toyota-gray: 0 0% 45%;
+    
+    /* Advanced luxury gradients */
+    --gradient-luxury: linear-gradient(135deg, hsl(var(--toyota-red-subtle)) 0%, hsl(var(--toyota-red)) 100%);
+    --gradient-shimmer: linear-gradient(45deg, hsl(var(--background)) 0%, hsl(var(--muted)) 50%, hsl(var(--background)) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
+    --gradient-premium: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 100%);
+    --gradient-metallic: linear-gradient(135deg, #e4e7eb 0%, #c5c9d1 25%, #a6acb8 50%, #8b919e 100%);
+    
+    /* Sophisticated shadows and lighting */
+    --shadow-luxury: 0 32px 64px -12px rgba(0, 0, 0, 0.18);
+    --shadow-glow: 0 0 50px rgba(238, 75, 43, 0.08);
+    --shadow-elevation: 0 12px 40px rgba(0, 0, 0, 0.08);
+    --shadow-micro: 0 2px 8px rgba(0, 0, 0, 0.06);
+    
+    /* 60fps optimized animations */
+    --animation-luxury: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+    --animation-micro: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-entrance: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    --animation-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -62,7 +84,10 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 351 83% 48%;
     
-    --toyota-red: 351 83% 48%;
+    --toyota-red: 0 85% 48%;
+    --toyota-red-light: 0 80% 55%;
+    --toyota-red-dark: 0 90% 42%;
+    --toyota-red-subtle: 0 60% 60%;
     --toyota-silver: 0 0% 78%;
     --toyota-black: 0 0% 10%;
     --toyota-white: 0 0% 100%;
@@ -85,6 +110,14 @@
 .toyota-red { color: hsl(var(--toyota-red)); }
 .bg-toyota-red { background-color: hsl(var(--toyota-red)); }
 .border-toyota-red { border-color: hsl(var(--toyota-red)); }
+
+.toyota-red-subtle { color: hsl(var(--toyota-red-subtle)); }
+.bg-toyota-red-subtle { background-color: hsl(var(--toyota-red-subtle)); }
+.border-toyota-red-subtle { border-color: hsl(var(--toyota-red-subtle)); }
+
+.toyota-red-light { color: hsl(var(--toyota-red-light)); }
+.bg-toyota-red-light { background-color: hsl(var(--toyota-red-light)); }
+.border-toyota-red-light { border-color: hsl(var(--toyota-red-light)); }
 
 .toyota-silver { color: hsl(var(--toyota-silver)); }
 .bg-toyota-silver { background-color: hsl(var(--toyota-silver)); }
@@ -129,6 +162,25 @@
 .toyota-gradient-silver { background: linear-gradient(135deg, hsl(var(--toyota-silver)), hsl(var(--toyota-silver) / 0.8)); }
 .toyota-gradient-primary { background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8)); }
 .toyota-gradient-secondary { background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary) / 0.8)); }
+
+/* Luxury Gradients */
+.bg-gradient-luxury { background: var(--gradient-luxury); }
+.bg-gradient-shimmer { background: var(--gradient-shimmer); }
+.bg-gradient-glass { background: var(--gradient-glass); }
+.bg-gradient-premium { background: var(--gradient-premium); }
+.bg-gradient-metallic { background: var(--gradient-metallic); }
+
+/* Luxury Shadows */
+.shadow-luxury { box-shadow: var(--shadow-luxury); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
+.shadow-elevation { box-shadow: var(--shadow-elevation); }
+.shadow-micro { box-shadow: var(--shadow-micro); }
+
+/* Luxury Animations */
+.animation-luxury { transition: var(--animation-luxury); }
+.animation-micro { transition: var(--animation-micro); }
+.animation-entrance { transition: var(--animation-entrance); }
+.animation-smooth { transition: var(--animation-smooth); }
 
 /* Toyota Glass Effects */
 .toyota-glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }

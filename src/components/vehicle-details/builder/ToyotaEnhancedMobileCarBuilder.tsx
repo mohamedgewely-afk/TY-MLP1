@@ -10,6 +10,7 @@ import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
 import { useSwipeable } from "@/hooks/use-swipeable";
+import { hapticFeedback } from "@/utils/haptic";
 
 interface BuilderConfig {
   modelYear: string;
@@ -64,6 +65,7 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
   const { containerPadding, textSize, mobilePadding } = useResponsiveSize();
 
   const resetConfig = () => {
+    hapticFeedback.medium();
     setConfig({
       modelYear: "2025",
       engine: "3.5L V6",
@@ -119,12 +121,18 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
 
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
-      if (step < 7) goNext();
+      if (step < 7) {
+        hapticFeedback.light();
+        goNext();
+      }
     },
     onSwipeRight: () => {
-      if (step > 1) goBack();
+      if (step > 1) {
+        hapticFeedback.light();
+        goBack();
+      }
     },
-    threshold: 50,
+    threshold: 40,
     preventDefaultTouchmoveEvent: false
   });
 
@@ -134,7 +142,7 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-background overflow-hidden flex flex-col mobile-viewport"
+      className="relative h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden flex flex-col mobile-viewport"
       ref={swipeableRef}
     >
       {/* Header */}
@@ -143,9 +151,13 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
         className={`flex items-center justify-between bg-toyota-white border-b border-gray-200 toyota-spacing-md ${containerPadding} safe-area-inset-top`}
       >
         <motion.button
-          onClick={step > 1 ? goBack : onClose}
-          className="toyota-spacing-sm toyota-border-radius bg-gray-100 hover:bg-gray-200 flex items-center justify-center touch-target transition-colors"
-          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            hapticFeedback.light();
+            step > 1 ? goBack() : onClose();
+          }}
+          className="toyota-spacing-sm toyota-border-radius bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center touch-target transition-all duration-300 shadow-micro"
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
         >
           {step > 1 ? (
             <ArrowLeft className="h-5 w-5 text-gray-700" />
@@ -158,7 +170,7 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
           <h1 className={`${textSize.base} font-semibold text-foreground`}>
             Build Your {vehicle.name}
           </h1>
-          <p className="text-xs text-toyota-red font-medium">
+          <p className="text-xs text-toyota-red-subtle font-medium">
             Step {step} of 7
           </p>
         </div>
@@ -167,50 +179,61 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
           onClick={resetConfig}
           variant="outline"
           size="sm"
-          className="p-2 h-11 w-11"
+          className="p-2 h-11 w-11 bg-white/80 hover:bg-white backdrop-blur-sm border-gray-200 hover:border-toyota-red-subtle transition-all duration-300"
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="h-4 w-4 text-gray-600" />
         </Button>
       </motion.header>
 
-      {/* Vehicle Image Section - Fixed height and proper aspect ratio */}
+      {/* Vehicle Image Section - Enhanced luxury display */}
       <motion.section 
         variants={itemVariants}
-        className="relative h-56 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b border-gray-200"
+        className="relative h-64 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden border-b border-gray-200"
         key={config.exteriorColor + config.grade}
       >
+        <div className="absolute inset-0 bg-gradient-shimmer opacity-30"></div>
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          className="w-full h-full object-contain relative z-10 drop-shadow-lg"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         />
         
         {/* Grade Badge */}
-        <div className="absolute top-3 right-3">
-          <div className="flex items-center gap-2 bg-toyota-white/95 toyota-border-radius toyota-spacing-sm shadow-sm">
+        <div className="absolute top-4 right-4 z-20">
+          <motion.div 
+            className="flex items-center gap-2 bg-white/90 backdrop-blur-md toyota-border-radius toyota-spacing-sm shadow-luxury border border-white/20"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <img 
               src={getGradeImage(config.grade)}
               alt={config.grade}
               className="w-6 h-6 object-contain"
             />
             <span className="text-xs font-medium text-gray-700">{config.grade}</span>
-          </div>
+          </motion.div>
         </div>
         
         {/* Vehicle Info */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-          <div className="bg-toyota-white/95 toyota-border-radius toyota-spacing-sm">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-4">
+          <motion.div 
+            className="bg-white/90 backdrop-blur-md toyota-border-radius toyota-spacing-sm shadow-luxury border border-white/20"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <div className="flex items-center gap-2">
-              <Car className="h-4 w-4 text-toyota-red" />
+              <Car className="h-4 w-4 text-toyota-red-subtle" />
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">{config.modelYear} {vehicle.name}</h3>
-                <p className="text-xs text-toyota-red">{config.grade} • {config.engine}</p>
+                <p className="text-xs text-toyota-red-subtle">{config.grade} • {config.engine}</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </motion.section>
 
@@ -224,13 +247,23 @@ const ToyotaEnhancedMobileCarBuilder: React.FC<ToyotaEnhancedMobileCarBuilderPro
         <ChoiceCollector config={config} step={step} />
       </motion.div>
 
-      {/* Swipe Indicator */}
+      {/* Enhanced Swipe Indicator */}
       <motion.div 
         variants={itemVariants}
         className="flex justify-center toyota-spacing-sm border-b border-gray-100"
       >
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>← Swipe to navigate →</span>
+        <div className="flex items-center gap-3 text-xs text-gray-500 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <motion.div 
+            className="w-1 h-1 bg-toyota-red-subtle rounded-full"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <span>Swipe to navigate</span>
+          <motion.div 
+            className="w-1 h-1 bg-toyota-red-subtle rounded-full"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+          />
         </div>
       </motion.div>
 

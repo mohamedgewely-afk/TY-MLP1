@@ -9,6 +9,8 @@ import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import ModelYearEngineStep from "./steps/ModelYearEngineStep";
 import GradeCarouselStep from "./steps/GradeCarouselStep";
 import ColorsAccessoriesStep from "./steps/ColorsAccessoriesStep";
+import SwipeableGradeStep from "./steps/SwipeableGradeStep";
+import SwipeableColorStep from "./steps/SwipeableColorStep";
 import ReviewStep from "./steps/ReviewStep";
 
 interface BuilderConfig {
@@ -108,9 +110,9 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       case 1:
         return <ModelYearEngineStep config={config} setConfig={setConfig} />;
       case 2:
-        return <GradeCarouselStep config={config} setConfig={setConfig} />;
+        return <SwipeableGradeStep config={config} setConfig={setConfig} />;
       case 3:
-        return <ColorsAccessoriesStep config={config} setConfig={setConfig} />;
+        return <SwipeableColorStep config={config} setConfig={setConfig} />;
       case 4:
         return <ReviewStep config={config} calculateTotalPrice={calculateTotalPrice} handlePayment={handlePayment} />;
       default:

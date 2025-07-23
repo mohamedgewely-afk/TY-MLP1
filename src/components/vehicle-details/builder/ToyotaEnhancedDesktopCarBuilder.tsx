@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw, Car } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
+import { hapticFeedback } from "@/utils/haptic";
 import { Button } from "@/components/ui/button";
 import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
@@ -67,6 +68,7 @@ const ToyotaEnhancedDesktopCarBuilder: React.FC<ToyotaEnhancedDesktopCarBuilderP
   const { deviceCategory } = useDeviceInfo();
   
   const resetConfig = () => {
+    hapticFeedback.medium();
     setConfig({
       modelYear: "2025",
       engine: "3.5L V6",
@@ -130,18 +132,21 @@ const ToyotaEnhancedDesktopCarBuilder: React.FC<ToyotaEnhancedDesktopCarBuilderP
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full overflow-hidden flex bg-gray-50"
+      className="relative h-full w-full overflow-hidden flex bg-gradient-to-br from-gray-50 via-white to-gray-100"
     >
       {/* Left Side - Car Image */}
       <motion.div 
         variants={leftPanelVariants}
-        className="w-1/2 h-full relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200"
+        className="w-1/2 h-full relative overflow-hidden bg-gradient-luxury"
       >
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-toyota-white/95 border-b border-gray-200">
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-white/90 backdrop-blur-lg border-b border-white/20 shadow-luxury">
           <motion.button
-            onClick={step > 1 ? goBack : onClose}
-            className="p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            onClick={() => {
+              hapticFeedback.light();
+              step > 1 ? goBack() : onClose();
+            }}
+            className="p-3 rounded-lg bg-white/80 hover:bg-white backdrop-blur-sm transition-all duration-300 shadow-micro"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -157,7 +162,7 @@ const ToyotaEnhancedDesktopCarBuilder: React.FC<ToyotaEnhancedDesktopCarBuilderP
               Build Your {vehicle.name}
             </h1>
             <div className="flex items-center justify-center space-x-2">
-              <span className="text-sm text-toyota-red font-medium">
+              <span className="text-sm text-toyota-red-subtle font-medium">
                 Step {step} of 7
               </span>
             </div>
@@ -167,7 +172,7 @@ const ToyotaEnhancedDesktopCarBuilder: React.FC<ToyotaEnhancedDesktopCarBuilderP
             onClick={resetConfig}
             variant="outline"
             size="sm"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-white/80 hover:bg-white backdrop-blur-sm border-gray-200 hover:border-toyota-red-subtle transition-all duration-300"
           >
             <RotateCcw className="h-4 w-4" />
             Reset
@@ -182,44 +187,54 @@ const ToyotaEnhancedDesktopCarBuilder: React.FC<ToyotaEnhancedDesktopCarBuilderP
           <motion.img 
             src={getCurrentVehicleImage()}
             alt="Vehicle Preview"
-            className="w-full h-full object-contain"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
+            className="w-full h-full object-contain drop-shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             whileHover={{ scale: 1.02 }}
           />
           
           {/* Grade Badge */}
-          <div className="absolute top-6 right-6">
-            <div className="flex items-center gap-3 bg-toyota-white/95 toyota-border-radius-lg p-4 shadow-lg">
+          <div className="absolute top-32 right-6">
+            <motion.div 
+              className="flex items-center gap-3 bg-white/90 backdrop-blur-lg toyota-border-radius-lg p-4 shadow-luxury border border-white/20"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               <img 
                 src={getGradeImage(config.grade)}
                 alt={config.grade}
                 className="w-8 h-8 object-contain"
               />
               <span className="text-sm font-medium text-gray-700">{config.grade}</span>
-            </div>
+            </motion.div>
           </div>
           
           {/* Vehicle Info */}
           <div className="absolute bottom-8 left-8 right-8">
-            <div className="bg-toyota-white/95 toyota-border-radius-lg p-6 shadow-lg">
+            <motion.div 
+              className="bg-white/90 backdrop-blur-lg toyota-border-radius-lg p-6 shadow-luxury border border-white/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <div className="flex items-center gap-3 mb-3">
-                <Car className="h-6 w-6 text-toyota-red" />
+                <Car className="h-6 w-6 text-toyota-red-subtle" />
                 <h3 className="text-xl font-bold text-gray-900">
                   {config.modelYear} {vehicle.name}
                 </h3>
               </div>
-              <p className="text-toyota-red text-lg font-medium mb-2">
+              <p className="text-toyota-red-subtle text-lg font-medium mb-2">
                 {config.grade} • {config.engine}
               </p>
               <p className="text-gray-600 mb-4">
                 {config.exteriorColor} Exterior
               </p>
-              <div className="text-3xl font-bold text-toyota-red">
+              <div className="text-3xl font-bold text-toyota-red-subtle">
                 AED {calculateTotalPrice().toLocaleString()}
               </div>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       </motion.div>
