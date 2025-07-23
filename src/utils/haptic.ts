@@ -81,6 +81,25 @@ export const hapticFeedback = {
       const adjustedIntensity = Math.min(Math.max(intensity, 0.1), 3);
       navigator.vibrate(basePattern * adjustedIntensity);
     }
+  },
+
+  // New luxury patterns for enhanced experience
+  cinematicEntry: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([100, 50, 150, 50, 200]);
+    }
+  },
+
+  luxuryTransition: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([40, 20, 60, 20, 40]);
+    }
+  },
+
+  premiumSelection: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([20, 10, 30, 10, 20]);
+    }
   }
 };
 
@@ -125,7 +144,10 @@ export const contextualHaptic = {
   swipeNavigation: () => hapticFeedback.elegantSwipe(),
   configComplete: () => hapticFeedback.luxuryComplete(),
   invalidAction: () => hapticFeedback.premiumError(),
-  hoverFeedback: () => hapticFeedback.sophisticatedHover()
+  hoverFeedback: () => hapticFeedback.sophisticatedHover(),
+  cinematicEntry: () => hapticFeedback.cinematicEntry(),
+  luxuryTransition: () => hapticFeedback.luxuryTransition(),
+  premiumSelection: () => hapticFeedback.premiumSelection()
 };
 
 // Performance optimized haptic with throttling
@@ -138,4 +160,31 @@ export const throttledHaptic = (type: keyof typeof hapticFeedback) => {
     hapticFeedback[type]();
     lastHapticTime = now;
   }
+};
+
+// Enhanced haptic effects for luxury experience
+export const luxuryHapticEffects = {
+  onStepEnter: () => throttledHaptic('cinematicEntry'),
+  onOptionHover: () => throttledHaptic('sophisticatedHover'),
+  onSelectionMade: () => throttledHaptic('premiumSelection'),
+  onTransition: () => throttledHaptic('luxuryTransition'),
+  onComplete: () => throttledHaptic('luxuryComplete')
+};
+
+// Gesture-based haptic patterns
+export const gestureHaptics = {
+  swipeStart: () => hapticFeedback.selection(),
+  swipeProgress: () => hapticFeedback.sophisticatedHover(),
+  swipeComplete: () => hapticFeedback.elegantSwipe(),
+  longPress: () => hapticFeedback.luxuryPress(),
+  multiTouch: () => hapticFeedback.premiumConfirm()
+};
+
+// Animation-synchronized haptic feedback
+export const animationHaptics = {
+  fadeIn: () => hapticFeedback.selection(),
+  scaleUp: () => hapticFeedback.luxuryPress(),
+  slideTransition: () => hapticFeedback.elegantSwipe(),
+  morphing: () => hapticFeedback.luxuryTransition(),
+  completion: () => hapticFeedback.luxuryComplete()
 };
