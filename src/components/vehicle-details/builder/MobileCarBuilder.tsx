@@ -303,7 +303,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.button>
       </motion.div>
 
-      {/* Enhanced Vehicle Image with Luxury Effects */}
+      {/* Enhanced Vehicle Image with Navigation Buttons */}
       <motion.div 
         variants={imageVariants}
         className={`relative w-full ${getImageHeight()} bg-gradient-to-br from-muted/20 to-card/20 overflow-hidden border-b border-border/10 flex-shrink-0 premium-card`}
@@ -313,7 +313,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
           className="w-full h-full object-contain relative z-10 gpu-accelerated"
-          initial={{ scale: 1.3, opacity: 0, filter: "blur(20px)" }}
+          initial={{ scale: 1.1, opacity: 0, filter: "blur(2px)" }}
           animate={{ 
             scale: 1, 
             opacity: 1, 
@@ -327,8 +327,16 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           loading="lazy"
         />
         
-        {/* Premium gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
+        {/* Add Navigation Buttons */}
+        <BuilderNavigation
+          currentStep={step}
+          totalSteps={4}
+          onPrevStep={goBack}
+          onNextStep={goNext}
+        />
+        
+        {/* Reduced gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/10 via-transparent to-transparent" />
         
         {/* Floating particles effect */}
         <div className="absolute inset-0 pointer-events-none">

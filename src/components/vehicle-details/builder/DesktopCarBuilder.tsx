@@ -166,9 +166,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           <div className="w-32" />
         </motion.div>
 
-        {/* Enhanced Car Image with reduced effects */}
+        {/* Enhanced Car Image with minimal effects */}
         <motion.div 
-          initial={{ scale: 1.2, opacity: 0 }}
+          initial={{ scale: 1.05, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
           className="relative w-full h-full overflow-hidden"
@@ -178,18 +178,18 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             src={getCurrentVehicleImage()}
             alt="Vehicle Preview"
             className="w-full h-full object-contain"
-            initial={{ scale: 1.1, opacity: 0, filter: "blur(5px)" }}
+            initial={{ scale: 1.02, opacity: 0, filter: "blur(2px)" }}
             animate={{ 
               scale: 1, 
               opacity: 1, 
               filter: "blur(0px)"
             }}
             transition={{ 
-              duration: 0.5, 
+              duration: 0.4, 
               delay: 0.4
             }}
             whileHover={{
-              scale: 1.02,
+              scale: 1.01,
               transition: { duration: 0.3 }
             }}
           />
@@ -202,8 +202,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             onNextStep={goNext}
           />
           
-          {/* Reduced gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-background/20" />
+          {/* Minimal gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-background/10" />
           
           {/* Enhanced Vehicle Info Overlay */}
           <motion.div 
