@@ -139,6 +139,9 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
             getCurrentVehicleImage={getCurrentVehicleImage}
             onPayment={handlePayment}
             showPaymentButton={false}
+            handleTouchStart={handleTouchStart}
+            handleTouchMove={handleTouchMove}
+            handleTouchEnd={handleTouchEnd}
           />
         );
       default:
