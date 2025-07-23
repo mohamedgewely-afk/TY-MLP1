@@ -32,45 +32,28 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
   deviceCategory,
   showPaymentButton = true
 }) => {
-  const { containerPadding, buttonSize, textSize, touchTarget, mobileSpacing, responsiveText } = useResponsiveSize();
+  const { containerPadding, buttonSize, textSize, touchTarget } = useResponsiveSize();
   const monthlyPayment = Math.round((totalPrice * 0.8 * 0.035) / 12);
+
+  const getGridSpacing = () => {
+    switch (deviceCategory) {
+      case 'smallMobile': return 'gap-1';
+      case 'standardMobile': return 'gap-1.5';
+      case 'largeMobile': return 'gap-2';
+      case 'extraLargeMobile': return 'gap-2';
+      default: return 'gap-2';
+    }
+  };
 
   const getCardPadding = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'p-1.5';
-      case 'standardMobile': return 'p-2';
-      case 'largeMobile': return 'p-2.5';
-      case 'extraLargeMobile': return 'p-3';
+      case 'smallMobile': return 'p-1';
+      case 'standardMobile': return 'p-1.5';
+      case 'largeMobile': return 'p-2';
+      case 'extraLargeMobile': return 'p-2';
       default: return 'p-2';
     }
   };
-
-  const getTextSizes = () => {
-    switch (deviceCategory) {
-      case 'smallMobile': return {
-        label: 'text-xs',
-        value: 'text-sm',
-        button: 'text-xs'
-      };
-      case 'standardMobile': return {
-        label: 'text-xs',
-        value: 'text-sm',
-        button: 'text-sm'
-      };
-      case 'largeMobile': return {
-        label: 'text-sm',
-        value: 'text-base',
-        button: 'text-sm'
-      };
-      default: return {
-        label: 'text-sm',
-        value: 'text-base',
-        button: 'text-sm'
-      };
-    }
-  };
-
-  const sizes = getTextSizes();
 
   return (
     <motion.div
@@ -80,46 +63,25 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
     >
       <Card className="border-0 shadow-none bg-transparent">
         <CardContent className="p-0">
-          <div className={`grid grid-cols-3 ${mobileSpacing.xs} text-center ${
-            deviceCategory === 'smallMobile' ? 'mb-2' : 'mb-3'
-          }`}>
-            <div className={`bg-muted/50 rounded-lg ${getCardPadding()} min-w-0`}>
-              <div className={`${sizes.label} text-muted-foreground mb-1 ${responsiveText.truncate}`}>
-                Total Price
-              </div>
-              <div className={`${sizes.value} font-bold ${responsiveText.truncate}`}>
-                AED {totalPrice.toLocaleString()}
-              </div>
+          <div className={`grid grid-cols-3 ${getGridSpacing()} text-center ${deviceCategory === 'smallMobile' ? 'mb-1.5' : 'mb-2'}`}>
+            <div className={`bg-muted/50 rounded-lg ${getCardPadding()}`}>
+              <div className={`${textSize.xs} text-muted-foreground mb-0.5`}>Total Price</div>
+              <div className={`${textSize.sm} font-bold truncate`}>AED {totalPrice.toLocaleString()}</div>
             </div>
-            
-            <div className={`bg-muted/50 rounded-lg ${getCardPadding()} min-w-0`}>
-              <div className={`${sizes.label} text-muted-foreground mb-1 ${responsiveText.truncate}`}>
-                Monthly
-              </div>
-              <div className={`${sizes.value} font-bold ${responsiveText.truncate}`}>
-                AED {monthlyPayment.toLocaleString()}
-              </div>
+            <div className={`bg-muted/50 rounded-lg ${getCardPadding()}`}>
+              <div className={`${textSize.xs} text-muted-foreground mb-0.5`}>Monthly</div>
+              <div className={`${textSize.sm} font-bold truncate`}>AED {monthlyPayment.toLocaleString()}</div>
             </div>
-            
-            <div className={`bg-muted/50 rounded-lg ${getCardPadding()} min-w-0`}>
-              <div className={`${sizes.label} text-muted-foreground mb-1 ${responsiveText.truncate}`}>
-                Reserve
-              </div>
-              <div className={`${sizes.value} font-bold ${responsiveText.truncate}`}>
-                AED {reserveAmount.toLocaleString()}
-              </div>
+            <div className={`bg-muted/50 rounded-lg ${getCardPadding()}`}>
+              <div className={`${textSize.xs} text-muted-foreground mb-0.5`}>Reserve</div>
+              <div className={`${textSize.sm} font-bold truncate`}>AED {reserveAmount.toLocaleString()}</div>
             </div>
           </div>
           
           {showPaymentButton && step === 4 && (
             <Button className={`w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg font-semibold shadow-lg ${touchTarget} ${buttonSize}`}>
-              <CreditCard className={`mr-2 ${
-                deviceCategory === 'smallMobile' ? 'h-3 w-3' : 
-                deviceCategory === 'standardMobile' ? 'h-4 w-4' : 'h-4 w-4'
-              }`} />
-              <span className={`${sizes.button} ${responsiveText.truncate}`}>
-                Reserve Now
-              </span>
+              <CreditCard className={`mr-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              <span className={`${textSize.sm} truncate`}>Reserve Now</span>
             </Button>
           )}
         </CardContent>

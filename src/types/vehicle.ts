@@ -13,7 +13,7 @@ export interface Vehicle {
 }
 
 export interface VehicleModel {
-  id?: string;
+  id?: string; // Add optional id property
   name: string;
   image: string;
   mmeUrl: string;
@@ -28,26 +28,8 @@ export interface VehicleModel {
     safetyRating?: string;
     warranty?: string;
   };
-  // Vehicle details page specific properties
+  // Add optional pre-owned properties
   year?: number;
-  gallery?: string[];
-  lifestyleGallery?: string[];
-  reviews?: Array<{
-    author: string;
-    content: string;
-    rating: number;
-  }>;
-  ownerTestimonials?: Array<{
-    owner: string;
-    comment: string;
-  }>;
-  faq?: Array<{
-    question: string;
-    answer: string;
-  }>;
-  relatedVehicles?: VehicleModel[];
-  preOwnedSimilar?: VehicleModel[];
-  // Pre-owned properties
   mileage?: string;
   location?: string;
   certification?: string;
