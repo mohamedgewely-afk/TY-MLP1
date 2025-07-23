@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { Monitor, Smartphone, Maximize2, ExternalLink, VrIcon } from "lucide-react";
+import { Monitor, Smartphone, Maximize2, ExternalLink, Eye } from "lucide-react";
 
 interface VirtualShowroomProps {
   vehicle: VehicleModel;
@@ -16,7 +16,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
 
   // Map vehicle names to their virtual showroom URLs
   const getVirtualShowroomUrl = (vehicleName: string) => {
-    const baseUrl = "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
+    const baseUrl = "https://www.virtualshowroom.toyota.ae/configurator";
     
     // Extract model name and create URL slug
     const modelName = vehicleName.toLowerCase()
@@ -137,7 +137,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             {[
               {
-                icon: <VrIcon className="h-6 w-6" />,
+                icon: <Eye className="h-6 w-6" />,
                 title: "360° Experience",
                 description: "Complete virtual tour of interior and exterior"
               },
