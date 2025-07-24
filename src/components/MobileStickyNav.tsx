@@ -7,7 +7,6 @@ import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useToast } from "@/hooks/use-toast";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
-import { contextualHaptic } from "@/utils/haptic";
 import { 
   Carousel, 
   CarouselContent, 
@@ -282,23 +281,23 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   return (
     <>
-      {/* Enhanced Debug Indicator */}
+      {/* Enhanced Debug Indicator for Real Device Testing */}
       {debugVisible && (
-        <div className="fixed top-0 left-0 right-0 bg-toyota-red text-white text-xs p-2 z-[9999] luxury-entrance">
+        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-xs p-2 z-[9999] animate-fade-in">
           <div className="text-center font-mono">
             DEBUG: {deviceCategory} | {screenSize.width}x{screenSize.height} | {deviceModel} | Mobile: {isMobile ? '✅' : '❌'} | Forced: {forceVisible ? '✅' : '❌'}
           </div>
         </div>
       )}
 
-      {/* Enhanced Overlay with Toyota styling */}
+      {/* Overlay */}
       <AnimatePresence>
         {(isMenuOpen || isActionsExpanded) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={() => {
               setIsMenuOpen(false);
               setActiveSection(null);
@@ -308,47 +307,43 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Vehicle Actions Panel */}
+      {/* Vehicle Actions Panel (for vehicle detail pages) */}
       <AnimatePresence>
         {isActionsExpanded && vehicle && (
           <motion.div
             initial={{ y: 300, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 300, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed left-4 right-4 bottom-24 z-50 bg-white/98 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-gray-100 p-4 luxury-entrance"
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="fixed left-4 right-4 bottom-24 z-50 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
           >
-            {/* Header with Toyota styling */}
+            {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-bold text-gray-900 luxury-text">{vehicle.name}</h3>
-                <span className="text-lg font-bold text-toyota-red">
+                <h3 className="font-bold text-gray-900">{vehicle.name}</h3>
+                <span className="text-lg font-bold text-primary">
                   AED {vehicle.price.toLocaleString()}
                 </span>
               </div>
               <Button
-                onClick={() => {
-                  contextualHaptic.buttonPress();
-                  setIsActionsExpanded(false);
-                }}
+                onClick={() => setIsActionsExpanded(false)}
                 variant="outline"
                 size="sm"
-                className="luxury-button p-2 rounded-full hover:border-toyota-red hover:text-toyota-red transition-colors"
+                className="p-2 rounded-full"
               >
                 <ChevronUp className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Enhanced Main Actions */}
+            {/* Main Actions */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   onClick={() => {
-                    contextualHaptic.buttonPress();
                     onBookTestDrive?.();
                     setIsActionsExpanded(false);
                   }}
-                  className="luxury-button w-full bg-toyota-red hover:bg-toyota-red/90 text-white py-3 rounded-xl text-sm font-medium shadow-[0_4px_12px_rgba(235,10,30,0.2)] hover:shadow-[0_8px_24px_rgba(235,10,30,0.3)] transition-all duration-200"
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl text-sm font-medium"
                 >
                   <Car className="h-4 w-4 mr-2" />
                   Test Drive
@@ -358,12 +353,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   onClick={() => {
-                    contextualHaptic.buttonPress();
                     onCarBuilder?.();
                     setIsActionsExpanded(false);
                   }}
                   variant="outline"
-                  className="luxury-button w-full border-2 border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white py-3 rounded-xl bg-white text-sm font-medium transition-all duration-200"
+                  className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground py-3 rounded-xl bg-white/70 text-sm font-medium"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Configure
@@ -371,17 +365,16 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               </motion.div>
             </div>
 
-            {/* Enhanced Secondary Actions */}
+            {/* Secondary Actions */}
             <div className="grid grid-cols-3 gap-2">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   onClick={() => {
-                    contextualHaptic.buttonPress();
                     onFinanceCalculator?.();
                     setIsActionsExpanded(false);
                   }}
                   variant="outline"
-                  className="luxury-button w-full border border-gray-300 text-gray-700 hover:border-toyota-red hover:text-toyota-red py-2 rounded-lg bg-white text-xs transition-all duration-200"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
                 >
                   <Calculator className="h-4 w-4 mb-1" />
                   Finance
@@ -391,12 +384,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   onClick={() => {
-                    contextualHaptic.buttonPress();
                     handleBrochureDownload();
                     setIsActionsExpanded(false);
                   }}
                   variant="outline"
-                  className="luxury-button w-full border border-gray-300 text-gray-700 hover:border-toyota-red hover:text-toyota-red py-2 rounded-lg bg-white text-xs transition-all duration-200"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
                 >
                   <Download className="h-4 w-4 mb-1" />
                   Brochure
@@ -406,12 +398,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   onClick={() => {
-                    contextualHaptic.buttonPress();
                     handleShare();
                     setIsActionsExpanded(false);
                   }}
                   variant="outline"
-                  className="luxury-button w-full border border-gray-300 text-gray-700 hover:border-toyota-red hover:text-toyota-red py-2 rounded-lg bg-white text-xs transition-all duration-200"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
                 >
                   <Share2 className="h-4 w-4 mb-1" />
                   Share
@@ -419,7 +410,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               </motion.div>
             </div>
 
-            {/* Enhanced Quick Info */}
+            {/* Quick Info */}
             <div className="mt-4 pt-3 border-t border-gray-200">
               <p className="text-xs text-muted-foreground text-center">
                 From AED 899/month • Free delivery • 7-day return
@@ -429,36 +420,33 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Sliding Menu */}
+      {/* Enhanced Sliding Menu from Bottom */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-16 left-0 right-0 bg-white/98 backdrop-blur-sm rounded-t-3xl shadow-[0_-8px_32px_rgba(0,0,0,0.15)] z-50 max-h-[80vh] overflow-hidden border-t-4 border-toyota-red luxury-entrance"
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed bottom-16 left-0 right-0 bg-white dark:bg-black rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-hidden border-t-4 border-red-500"
           >
-            {/* Enhanced Header with Toyota branding */}
-            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-toyota-red/5 to-toyota-red/10">
+            {/* Enhanced Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-red-50 to-red-100 dark:from-black dark:to-gray-900">
               <div>
-                <h3 className="font-bold text-lg text-black luxury-text">Toyota Connect</h3>
-                <p className="text-sm text-toyota-red">Your gateway to Toyota</p>
+                <h3 className="font-bold text-lg text-black dark:text-red-500">Toyota Connect</h3>
+                <p className="text-sm text-red-600 dark:text-red-400">Your gateway to Toyota</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  contextualHaptic.buttonPress();
-                  setIsMenuOpen(false);
-                }}
-                className="luxury-button rounded-full h-8 w-8 p-0 hover:bg-toyota-red/10 text-toyota-red transition-all duration-200"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-full h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900 text-red-600"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="overflow-y-auto max-h-[calc(75vh-100px)] smooth-scroll">
+            <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
               {/* Quick Actions Section */}
               {activeSection === "quick-actions" && (
                 <motion.div 
@@ -826,30 +814,31 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Main Sticky Nav with Toyota luxury styling */}
+      {/* Enhanced Main Sticky Nav with Force Visibility */}
       <motion.div 
         className={cn(
           "fixed bottom-0 left-0 right-0 z-[100]",
-          "bg-white/98 backdrop-blur-sm",
-          "border-t-2 border-toyota-red/20 shadow-[0_-4px_24px_rgba(0,0,0,0.1)]",
+          "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
+          "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
           "py-1",
+          // Force visibility classes with important modifiers
           "!block !visible !opacity-100",
+          // Enhanced safe area support
           "pb-safe-area-inset-bottom",
+          // Mobile-first display utility
           "block",
-          "gpu-accelerated"
+          // Force visibility for mobile screens up to 500px
+          "mobile-force-visible"
         )}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
         style={{ 
           paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
           minHeight: '64px',
           zIndex: 100,
         }}
       >
-        {/* Toyota Red Accent Line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-toyota-red/50 via-toyota-red to-toyota-red/50"></div>
-        
         <div className={cn(
           "grid gap-1 px-2 min-h-[56px] items-center",
           vehicle ? 'grid-cols-5' : 'grid-cols-4'
@@ -858,40 +847,31 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             icon={<Car className="h-5 w-5" />}
             label="Models"
             to="#"
-            onClick={() => {
-              contextualHaptic.buttonPress();
-              handleSectionToggle("models");
-            }}
+            onClick={() => handleSectionToggle("models")}
             isActive={activeItem === "models" || activeSection === "models"}
           />
           <NavItem 
             icon={<ShoppingBag className="h-5 w-5" />}
             label="Pre-Owned"
             to="#"
-            onClick={() => {
-              contextualHaptic.buttonPress();
-              handleSectionToggle("pre-owned");
-            }}
+            onClick={() => handleSectionToggle("pre-owned")}
             isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
           />
           
-          {/* Enhanced Vehicle Actions Item */}
+          {/* Vehicle Actions Item (only shown on vehicle detail pages) */}
           {vehicle && (
             <NavItem 
               icon={
                 <div className="relative">
-                  <div className="absolute inset-0 bg-toyota-red rounded-full animate-pulse opacity-50"></div>
-                  <div className="relative bg-toyota-red rounded-full p-2 shadow-[0_4px_12px_rgba(235,10,30,0.3)]">
-                    <Bolt className="h-4 w-4 text-white" fill="white" strokeWidth={0} />
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
+                  <div className="relative bg-red-500 rounded-full p-2">
+                    <Bolt className="h-4 w-4 text-white animate-pulse" fill="white" strokeWidth={0} />
                   </div>
                 </div>
               }
               label="Actions"
               to="#"
-              onClick={() => {
-                contextualHaptic.buttonPress();
-                setIsActionsExpanded(!isActionsExpanded);
-              }}
+              onClick={() => setIsActionsExpanded(!isActionsExpanded)}
               isActive={isActionsExpanded}
             />
           )}
@@ -900,20 +880,14 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             icon={<Search className="h-5 w-5" />}
             label="Search"
             to="#"
-            onClick={() => {
-              contextualHaptic.buttonPress();
-              handleSectionToggle("search");
-            }}
+            onClick={() => handleSectionToggle("search")}
             isActive={activeItem === "search" || activeSection === "search"}
           />
           <NavItem 
-            icon={<Menu className="h-5 w-5 text-toyota-red" />}
+            icon={<Menu className="h-5 w-5 text-red-500" />}
             label="Menu"
             to="#"
-            onClick={() => {
-              contextualHaptic.buttonPress();
-              toggleMenu();
-            }}
+            onClick={toggleMenu}
             isActive={isMenuOpen}
           />
         </div>
@@ -937,20 +911,19 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
       <div className="flex flex-col items-center justify-center relative min-h-[44px] w-full">
         <motion.div 
           className={cn(
-            "luxury-button p-2 rounded-xl transition-all relative touch-target cursor-magnetic",
+            "p-2 rounded-xl transition-all relative touch-target",
             "min-w-[44px] min-h-[44px] flex items-center justify-center",
             isActive 
-              ? "text-toyota-red bg-toyota-red/10 scale-110 shadow-[0_4px_12px_rgba(235,10,30,0.15)]" 
-              : "text-gray-500 hover:text-toyota-red hover:bg-toyota-red/5 hover:scale-105"
+              ? "text-toyota-red bg-red-50 dark:bg-red-950 scale-110" 
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           )}
           whileHover={{ scale: isActive ? 1.1 : 1.05 }}
           whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
           {icon}
           {badge && (
             <motion.div
-              className="absolute -top-1 -right-1 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-[0_2px_8px_rgba(235,10,30,0.4)]"
+              className="absolute -top-1 -right-1 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 500, damping: 15 }}
@@ -962,19 +935,19 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
         <span className={cn(
           "text-xs text-center transition-all font-medium mt-1 leading-tight",
           isActive 
-            ? "text-toyota-red font-semibold" 
-            : "text-gray-500"
+            ? "text-toyota-red" 
+            : "text-gray-500 dark:text-gray-400"
         )}>
           {label}
         </span>
       </div>
       {isActive && (
         <motion.div
-          layoutId="toyotaNavIndicator"
-          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-toyota-red rounded-full shadow-[0_2px_8px_rgba(235,10,30,0.4)]"
+          layoutId="navIndicator"
+          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-toyota-red rounded-full"
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 17 }}
+          transition={{ duration: 0.3 }}
         />
       )}
     </>
@@ -984,7 +957,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
     return (
       <button 
         onClick={onClick} 
-        className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px] group"
+        className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         {content}
@@ -995,7 +968,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
   return (
     <Link 
       to={to} 
-      className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px] group"
+      className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       {content}
