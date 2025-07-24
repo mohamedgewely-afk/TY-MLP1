@@ -18,9 +18,6 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const getVirtualShowroomUrl = () => {
   return "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
 };
-
-const showroomUrl = getVirtualShowroomUrl();
-
     
     // Extract model name and create URL slug
     const modelName = vehicleName.toLowerCase()
@@ -31,7 +28,7 @@ const showroomUrl = getVirtualShowroomUrl();
     return `${baseUrl}/${modelName}/en`;
   };
 
-  const showroomUrl = getVirtualShowroomUrl(vehicle.name);
+  const showroomUrl = getVirtualShowroomUrl(); // ✅ No arguments
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
