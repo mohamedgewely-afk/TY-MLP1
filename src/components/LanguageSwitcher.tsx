@@ -14,15 +14,16 @@ const LanguageSwitcher: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
+      className={`absolute top-5 ${isRTL ? 'left-5' : 'right-5'} z-40`}
     >
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={toggleLanguage}
-        className="flex items-center space-x-2 hover:bg-muted/50 transition-colors duration-200"
+        className="flex items-center gap-2 border-red-500 text-red-600 hover:bg-red-50 transition"
       >
         <Globe className="h-4 w-4" />
         <span className="text-sm font-medium">
