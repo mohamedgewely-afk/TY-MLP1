@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { Monitor, Smartphone, Maximize2, ExternalLink, Eye } from "lucide-react";
+import { Monitor, Smartphone, Maximize2, ExternalLink, VrIcon } from "lucide-react";
 
 interface VirtualShowroomProps {
   vehicle: VehicleModel;
@@ -54,7 +54,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
           className="text-center mb-8 lg:mb-12"
         >
           <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-3 rounded-full text-sm font-medium mb-6">
-            <Eye className="h-4 w-4 mr-2" />
+            <VrIcon className="h-4 w-4 mr-2" />
             Virtual Experience
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight">
@@ -137,7 +137,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             {[
               {
-                icon: <Eye className="h-6 w-6" />,
+                icon: <VrIcon className="h-6 w-6" />,
                 title: "360° Experience",
                 description: "Complete virtual tour of interior and exterior"
               },
