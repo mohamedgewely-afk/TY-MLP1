@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -34,8 +35,8 @@
  
     --radius: 0.5rem;
 
-    --toyota-red: 0 100% 50%;
-    --toyota-darkred: 0 100% 40%;
+    --toyota-red: 0 87% 46%;
+    --toyota-darkred: 0 87% 36%;
     --toyota-blue: 210 100% 50%;
     --toyota-darkblue: 210 100% 40%;
     
@@ -44,6 +45,12 @@
     --persona-secondary: 0 0% 50%;
     --persona-accent: 0 0% 70%;
     --persona-primary-rgb: 0, 0, 0;
+    
+    /* Toyota Luxury Variables */
+    --toyota-red-rgb: 235, 10, 30;
+    --toyota-precision-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --toyota-premium-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --toyota-luxury-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   }
  
   .dark {
@@ -74,6 +81,9 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
+    
+    --toyota-red: 0 87% 56%;
+    --toyota-darkred: 0 87% 46%;
   }
 }
  
@@ -149,6 +159,27 @@
   @apply text-[hsl(var(--toyota-red))];
 }
 
+/* Toyota Luxury Enhancements */
+.toyota-precision-shadow {
+  box-shadow: var(--toyota-precision-shadow);
+}
+
+.toyota-premium-shadow {
+  box-shadow: var(--toyota-premium-shadow);
+}
+
+.toyota-luxury-shadow {
+  box-shadow: var(--toyota-luxury-shadow);
+}
+
+.toyota-red-glow {
+  box-shadow: 0 0 20px rgba(var(--toyota-red-rgb), 0.3);
+}
+
+.toyota-red-glow:hover {
+  box-shadow: 0 0 30px rgba(var(--toyota-red-rgb), 0.5);
+}
+
 /* Persona-specific colors */
 .bg-persona-primary {
   background-color: hsl(var(--persona-primary));
@@ -211,6 +242,48 @@
 
 .safe-area-inset-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Toyota Luxury Animation Keyframes */
+@keyframes toyota-luxury-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toyota-precision-press {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes toyota-red-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(var(--toyota-red-rgb), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(var(--toyota-red-rgb), 0.6);
+  }
+}
+
+@keyframes toyota-magnetic-hover {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.02);
+  }
 }
 
 /* Premium Animation Keyframes */
@@ -371,6 +444,23 @@
     opacity: 1;
     transform: translateZ(0) rotateX(0deg);
   }
+}
+
+/* Toyota Luxury Animation Classes */
+.toyota-luxury-entrance {
+  animation: toyota-luxury-entrance 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.toyota-precision-press {
+  animation: toyota-precision-press 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toyota-red-pulse {
+  animation: toyota-red-pulse 2s ease-in-out infinite;
+}
+
+.toyota-magnetic-hover {
+  animation: toyota-magnetic-hover 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Premium Animation Classes */

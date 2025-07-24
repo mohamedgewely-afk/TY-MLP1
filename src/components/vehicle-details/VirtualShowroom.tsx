@@ -1,199 +1,111 @@
-
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { VehicleModel } from "@/types/vehicle";
-import { Monitor, Smartphone, Maximize2, ExternalLink, VrIcon } from "lucide-react";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Car, 
+  Camera, 
+  RotateCcw, 
+  ZoomIn, 
+  ZoomOut, 
+  Eye, 
+  Maximize2 
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface VirtualShowroomProps {
-  vehicle: VehicleModel;
+  imageUrl: string;
 }
 
-const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+interface Hotspot {
+  id: string;
+  position: { x: number; y: number };
+  content: string;
+}
 
-  // Map vehicle names to their virtual showroom URLs
-  const getVirtualShowroomUrl = (vehicleName: string) => {
-    const baseUrl = "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
-    
-    // Extract model name and create URL slug
-    const modelName = vehicleName.toLowerCase()
-      .replace('toyota ', '')
-      .replace(' hybrid', '')
-      .replace(/\s+/g, '-');
-    
-    return `${baseUrl}/${modelName}/en`;
+const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ imageUrl }) => {
+  const [is360View, setIs360View] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [showHotspots, setShowHotspots] = useState(false);
+
+  const hotspots: Hotspot[] = [
+    {
+      id: "engine",
+      position: { x: 0.3, y: 0.4 },
+      content: "Powerful Engine"
+    },
+    {
+      id: "interior",
+      position: { x: 0.7, y: 0.6 },
+      content: "Luxurious Interior"
+    }
+  ];
+
+  const handleToggle360View = () => {
+    setIs360View(!is360View);
   };
 
-  const showroomUrl = getVirtualShowroomUrl(vehicle.name);
-
-  const handleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+  const handleZoomIn = () => {
+    setZoomLevel(zoomLevel + 0.1);
   };
 
-  const handleExternalLink = () => {
-    window.open(showroomUrl, '_blank');
+  const handleZoomOut = () => {
+    setZoomLevel(zoomLevel - 0.1);
+  };
+
+  const handleToggleHotspots = () => {
+    setShowHotspots(!showHotspots);
   };
 
   return (
-    <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,75,75,0.2),transparent_50%)]" />
-      </div>
-
-      <div className="toyota-container relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-8 lg:mb-12"
-        >
-          <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-3 rounded-full text-sm font-medium mb-6">
-            <VrIcon className="h-4 w-4 mr-2" />
-            Virtual Experience
-          </Badge>
-          <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight">
-            Virtual{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-              Showroom
-            </span>
-          </h2>
-          <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Experience the {vehicle.name} in our immersive virtual showroom. Configure colors, explore features, and get a 360° view.
-          </p>
-        </motion.div>
-
-        {/* Virtual Showroom Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative"
-        >
-          <Card className="overflow-hidden shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-0">
-              {/* Controls Bar */}
-              <div className="flex items-center justify-between p-4 bg-muted/50 border-b">
-                <div className="flex items-center space-x-4">
-                  <Monitor className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">Interactive Configurator</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleFullscreen}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleExternalLink}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* iframe Container */}
-              <div className={`relative ${isFullscreen ? 'h-screen' : 'h-[400px] lg:h-[600px]'} transition-all duration-300`}>
-                <iframe
-                  src={showroomUrl}
-                  title={`${vehicle.name} Virtual Showroom`}
-                  className="w-full h-full border-0"
-                  allow="fullscreen; accelerometer; gyroscope; magnetometer; vr"
-                  loading="lazy"
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
-                
-                {/* Loading Overlay */}
-                <div className="absolute inset-0 bg-muted/90 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
-                  <div className="text-center space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground">Loading Virtual Showroom...</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile Instructions */}
-              <div className="lg:hidden p-4 bg-muted/30 border-t">
-                <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-                  <Smartphone className="h-4 w-4 flex-shrink-0" />
-                  <span>Tap and drag to explore • Pinch to zoom • Use device rotation for 360° view</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {[
-              {
-                icon: <VrIcon className="h-6 w-6" />,
-                title: "360° Experience",
-                description: "Complete virtual tour of interior and exterior"
-              },
-              {
-                icon: <Monitor className="h-6 w-6" />,
-                title: "Real-time Configuration",
-                description: "Customize colors, wheels, and accessories instantly"
-              },
-              {
-                icon: <ExternalLink className="h-6 w-6" />,
-                title: "Immersive Details",
-                description: "Explore every feature with high-resolution imagery"
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
+    <Card>
+      <CardContent className="p-4">
+        <div className="relative">
+          <motion.img
+            src={imageUrl}
+            alt="Virtual Showroom"
+            style={{
+              width: '100%',
+              transform: `scale(${zoomLevel})`,
+              transition: 'transform 0.3s ease-in-out'
+            }}
+          />
+          {showHotspots &&
+            hotspots.map(hotspot => (
+              <div
+                key={hotspot.id}
+                className="absolute rounded-full bg-red-500 w-4 h-4"
+                style={{
+                  left: `${hotspot.position.x * 100}%`,
+                  top: `${hotspot.position.y * 100}%`,
+                  transform: 'translate(-50%, -50%)'
+                }}
               >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </motion.div>
+                <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white text-xs rounded px-2 py-1">
+                  {hotspot.content}
+                </span>
+              </div>
             ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Fullscreen Overlay */}
-      {isFullscreen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm"
-          onClick={handleFullscreen}
-        >
-          <div className="absolute top-4 right-4 z-60">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleFullscreen}
-              className="text-white hover:bg-white/20"
-            >
-              <Maximize2 className="h-4 w-4 mr-2" />
-              Exit Fullscreen
-            </Button>
-          </div>
-        </motion.div>
-      )}
-    </section>
+        </div>
+        <div className="mt-4 flex space-x-2">
+          <Button onClick={handleToggle360View} variant="outline">
+            {is360View ? <RotateCcw className="mr-2 h-4 w-4" /> : <Camera className="mr-2 h-4 w-4" />}
+            {is360View ? 'Exit 360 View' : 'Enter 360 View'}
+          </Button>
+          <Button onClick={handleZoomIn} variant="outline">
+            <ZoomIn className="mr-2 h-4 w-4" />
+            Zoom In
+          </Button>
+          <Button onClick={handleZoomOut} variant="outline">
+            <ZoomOut className="mr-2 h-4 w-4" />
+            Zoom Out
+          </Button>
+          <Button onClick={handleToggleHotspots} variant="outline">
+            {showHotspots ? <Eye className="mr-2 h-4 w-4" /> : <Maximize2 className="mr-2 h-4 w-4" />}
+            {showHotspots ? 'Hide Hotspots' : 'Show Hotspots'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
