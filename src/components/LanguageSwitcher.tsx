@@ -19,7 +19,7 @@ const LanguageSwitcher: React.FC = () => {
       transition={{ duration: 0.3 }}
       className={`
         absolute top-4 
-        ${isRTL ? 'left-4 md:left-32' : 'right-4 md:right-32'} 
+        ${isRTL ? 'left-6 md:left-20' : 'right-4 md:right-25'} 
         z-40
       `}
     >
