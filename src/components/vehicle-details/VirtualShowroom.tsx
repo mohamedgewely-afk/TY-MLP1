@@ -15,8 +15,12 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Map vehicle names to their virtual showroom URLs
-  const getVirtualShowroomUrl = (vehicleName: string) => {
-    const baseUrl = "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
+  const getVirtualShowroomUrl = () => {
+  return "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
+};
+
+const showroomUrl = getVirtualShowroomUrl();
+
     
     // Extract model name and create URL slug
     const modelName = vehicleName.toLowerCase()
