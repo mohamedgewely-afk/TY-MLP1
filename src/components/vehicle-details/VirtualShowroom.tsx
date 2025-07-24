@@ -14,21 +14,14 @@ interface VirtualShowroomProps {
 const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Map vehicle names to their virtual showroom URLs
+ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const getVirtualShowroomUrl = () => {
-  return "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
-};
-    
-    // Extract model name and create URL slug
-    const modelName = vehicleName.toLowerCase()
-      .replace('toyota ', '')
-      .replace(' hybrid', '')
-      .replace(/\s+/g, '-');
-    
-    return `${baseUrl}/${modelName}/en`;
+    return "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
   };
 
-  const showroomUrl = getVirtualShowroomUrl(); // ✅ No arguments
+  const showroomUrl = getVirtualShowroomUrl();
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -39,6 +32,12 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   };
 
   return (
+    <section className="py-12 lg:py-20 ...">
+      {/* your JSX continues */}
+    </section>
+  );
+};
+
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
