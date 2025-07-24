@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,39 +13,24 @@ interface VirtualShowroomProps {
 const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
- const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const getVirtualShowroomUrl = () => {
-    return "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
-  };
-
-  const showroomUrl = getVirtualShowroomUrl();
+  const showroomUrl = "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
 
   const handleExternalLink = () => {
-    window.open(showroomUrl, '_blank');
+    window.open(showroomUrl, "_blank");
   };
 
   return (
-    <section className="py-12 lg:py-20 ...">
-      {/* your JSX continues */}
-    </section>
-  );
-};
-
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
-      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,75,75,0.2),transparent_50%)]" />
       </div>
 
       <div className="toyota-container relative z-10">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -64,11 +48,11 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
             </span>
           </h2>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Experience the {vehicle.name} in our immersive virtual showroom. Configure colors, explore features, and get a 360° view.
+            Experience the {vehicle.name} in our immersive virtual showroom.
+            Configure colors, explore features, and get a 360° view.
           </p>
         </motion.div>
 
-        {/* Virtual Showroom Card */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -77,33 +61,21 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
         >
           <Card className="overflow-hidden shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
             <CardContent className="p-0">
-              {/* Controls Bar */}
               <div className="flex items-center justify-between p-4 bg-muted/50 border-b">
                 <div className="flex items-center space-x-4">
                   <Monitor className="h-5 w-5 text-muted-foreground" />
                   <span className="text-sm font-medium">Interactive Configurator</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleFullscreen}
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button variant="ghost" size="sm" onClick={handleFullscreen} className="h-8 w-8 p-0">
                     <Maximize2 className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleExternalLink}
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button variant="ghost" size="sm" onClick={handleExternalLink} className="h-8 w-8 p-0">
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              {/* iframe Container */}
               <div className={`relative ${isFullscreen ? 'h-screen' : 'h-[400px] lg:h-[600px]'} transition-all duration-300`}>
                 <iframe
                   src={showroomUrl}
@@ -113,8 +85,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
                   loading="lazy"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                 />
-                
-                {/* Loading Overlay */}
+
                 <div className="absolute inset-0 bg-muted/90 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
                   <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -123,7 +94,6 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
                 </div>
               </div>
 
-              {/* Mobile Instructions */}
               <div className="lg:hidden p-4 bg-muted/30 border-t">
                 <div className="flex items-center space-x-3 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4 flex-shrink-0" />
@@ -133,7 +103,6 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
             </CardContent>
           </Card>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             {[
               {
@@ -171,7 +140,6 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
         </motion.div>
       </div>
 
-      {/* Fullscreen Overlay */}
       {isFullscreen && (
         <motion.div
           initial={{ opacity: 0 }}
