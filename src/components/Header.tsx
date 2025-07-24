@@ -94,28 +94,25 @@ const Header: React.FC = () => {
             </nav>
           )}
 
-          {/* CTA Buttons + Language Switcher */}
-<div className="flex items-center space-x-2 rtl:space-x-reverse">
-  <LanguageSwitcher />
-
-  <motion.button
-    onClick={() => navigate("/test-drive")}
-    className="hidden sm:inline-flex bg-toyota-red text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs font-medium"
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Test Drive
-  </motion.button>
-
-  <motion.button
-    onClick={() => navigate("/enquire")}
-    className="border border-toyota-red text-toyota-red px-3 py-2 rounded-lg hover:bg-toyota-red hover:text-white transition-colors text-xs font-medium"
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Enquire
-  </motion.button>
-</div>
+          {/* CTA Buttons */}
+          <div className="flex items-center space-x-2">
+            <motion.button
+              onClick={() => navigate("/test-drive")}
+              className="hidden sm:inline-flex bg-toyota-red text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs font-medium"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Test Drive
+            </motion.button>
+            <motion.button
+              onClick={() => navigate("/enquire")}
+              className="border border-toyota-red text-toyota-red px-3 py-2 rounded-lg hover:bg-toyota-red hover:text-white transition-colors text-xs font-medium"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Enquire
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.header>
