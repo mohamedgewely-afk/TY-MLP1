@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,7 +37,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     {
       name: "2.5L Hybrid",
       power: "218 HP",
-      torque: "221 lb-ft",
+      torque: "221 lb-ft", 
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
       grades: [
@@ -100,7 +99,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     },
     {
       name: "3.5L V6",
-      power: "301 HP", 
+      power: "301 HP",
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
       description: "Powerful V6 engine for enhanced performance",
@@ -210,10 +209,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   };
 
   const handleConfigure = (gradeName: string) => {
-    // Dispatch custom event to open car builder with pre-filled config
     const event = new CustomEvent('openCarBuilder', {
       detail: {
-        step: 2, // Start at grade selection since engine is already chosen
+        step: 2,
         config: {
           modelYear: '2024',
           engine: selectedEngine,
@@ -247,7 +245,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </p>
         </motion.div>
 
-        {/* Step 1: Engine Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -314,7 +311,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Selection Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -326,7 +322,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </h3>
 
           <div className="relative">
-            {/* Navigation Buttons */}
             <button
               onClick={prevGrade}
               className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-xl border-2 border-primary/20 hover:shadow-2xl hover:border-primary/40 transition-all duration-300 ${
@@ -347,7 +342,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <ChevronRight className={`text-primary ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
             </button>
 
-            {/* Grade Card */}
             <div 
               ref={swipeableRef}
               className={`${isMobile ? 'mx-4 touch-manipulation' : 'mx-8'}`}
@@ -367,7 +361,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     isMobile ? 'w-full' : 'max-w-5xl mx-auto'
                   }`}>
                     <CardContent className="p-0">
-                      {/* Header */}
                       <div className="bg-gradient-to-r from-primary via-primary/95 to-primary/80 text-white relative overflow-hidden">
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"white\" fill-opacity=\"0.1\"%3E%3Cpath d=\"M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z\"/%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
                         
@@ -399,9 +392,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                         </div>
                       </div>
 
-                      {/* Content */}
                       <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
-                        {/* Grade Image */}
                         <div className={`mb-6 rounded-xl overflow-hidden relative bg-gradient-to-br from-muted/30 to-muted/10 ${
                           isMobile ? 'w-full aspect-[4/3]' : 'aspect-[16/9]'
                         }`}>
@@ -426,7 +417,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                         </div>
 
                         <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          {/* Key Features */}
                           <div className="space-y-4">
                             <h5 className={`font-bold text-foreground ${isMobile ? 'text-base' : 'text-lg'}`}>
                               Key Features
@@ -447,7 +437,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             </div>
                           </div>
 
-                          {/* Specifications */}
                           <div className="space-y-4">
                             <Accordion type="single" collapsible className="w-full">
                               <AccordionItem value="specifications" className="border-primary/20">
@@ -476,7 +465,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                           <Button
                             onClick={() => handleDownloadSpec(currentGrade.name)}
@@ -506,7 +494,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
 
-            {/* Indicators */}
             <div className="flex justify-center space-x-3 mt-8">
               {currentGrades.map((_, index) => (
                 <button
@@ -533,7 +520,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               ))}
             </div>
 
-            {/* Mobile Swipe Indicator */}
             {isMobile && (
               <div className="flex justify-center mt-4">
                 <div className="flex items-center space-x-2 bg-primary/10 rounded-full px-4 py-2 border border-primary/20">
