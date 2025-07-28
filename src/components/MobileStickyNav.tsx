@@ -1,9 +1,10 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Car, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 interface MobileStickyNavProps {
   isVisible: boolean;
@@ -41,7 +42,7 @@ const offers = [
 ];
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ isVisible, onToggle }) => {
-  const navigate = useRouter().push;
+  const navigate = useNavigate();
 
   const getCurrentOffers = () => {
     return offers.filter(offer => offer.isActive);
