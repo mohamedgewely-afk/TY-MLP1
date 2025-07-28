@@ -201,7 +201,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
           <DialogContent 
-            className="max-w-7xl max-h-[90vh] w-full"
+            className="max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden"
             aria-describedby="car-builder-description"
           >
             <VisuallyHidden>
