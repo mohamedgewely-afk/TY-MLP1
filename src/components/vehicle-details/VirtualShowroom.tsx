@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { Monitor, Smartphone, Maximize2, ExternalLink, Eye } from "lucide-react";
+import {
+  Monitor,
+  Smartphone,
+  Maximize2,
+  ExternalLink,
+  Eye,
+} from "lucide-react";
 
 interface VirtualShowroomProps {
   vehicle: VehicleModel;
@@ -12,25 +20,80 @@ interface VirtualShowroomProps {
 
 const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const showroomUrl = "https://www.virtualshowroom.toyota.ae/configurator/land-cruiser/en";
+  const getVirtualShowroomUrl = (vehicleName: string) => {
+    const baseUrl = "https://www.virtualshowroom.toyota.ae/configurator";
+
+    const modelName = vehicleName
+      .toLowerCase()
+      .replace("toyota ", "")
+      .replace(" hybrid", "")
+      .replace(/\s+/g, "-");
+
+    return `${baseUrl}/${modelName}/en`;
+  };
+
+  const showroomUrl = getVirtualShowroomUrl(vehicle.name);
 
   const handleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+    setIsFullscreen((prev) => !prev);
   };
 
   const handleExternalLink = () => {
     window.open(showroomUrl, "_blank");
   };
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    document.body.style.overflow = isFullscreen ? "hidden" : "auto";
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "auto";
+    };
+  }, [isFullscreen]);
+
+  const iframe = (
+    <div className="relative w-full h-full">
+      <iframe
+        src={showroomUrl}
+        title={`${vehicle.name} Virtual Showroom`}
+        className="w-full h-full border-0"
+        allow="fullscreen; accelerometer; gyroscope; magnetometer; vr"
+        loading="lazy"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+        onLoad={() => setLoading(false)}
+      />
+      <div
+        className={`absolute inset-0 bg-muted/90 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+          loading ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading Virtual Showroom...</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,75,75,0.2),transparent_50%)]" />
       </div>
 
       <div className="toyota-container relative z-10">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -53,6 +116,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
           </p>
         </motion.div>
 
+        {/* Showroom Card */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -61,65 +125,80 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
         >
           <Card className="overflow-hidden shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
             <CardContent className="p-0">
+              {/* Controls Bar */}
               <div className="flex items-center justify-between p-4 bg-muted/50 border-b">
                 <div className="flex items-center space-x-4">
                   <Monitor className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">Interactive Configurator</span>
+                  <span className="text-sm font-medium">
+                    Interactive Configurator
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" onClick={handleFullscreen} className="h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleFullscreen}
+                    className="h-8 w-8 p-0"
+                    aria-label="Toggle Fullscreen"
+                    title="Fullscreen"
+                  >
                     <Maximize2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={handleExternalLink} className="h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExternalLink}
+                    className="h-8 w-8 p-0"
+                    aria-label="Open in new tab"
+                    title="Open External"
+                  >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className={`relative ${isFullscreen ? 'h-screen' : 'h-[400px] lg:h-[600px]'} transition-all duration-300`}>
-                <iframe
-                  src={showroomUrl}
-                  title={`${vehicle.name} Virtual Showroom`}
-                  className="w-full h-full border-0"
-                  allow="fullscreen; accelerometer; gyroscope; magnetometer; vr"
-                  loading="lazy"
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
-
-                <div className="absolute inset-0 bg-muted/90 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
-                  <div className="text-center space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground">Loading Virtual Showroom...</p>
-                  </div>
-                </div>
+              {/* Iframe Section */}
+              <div
+                className={`relative ${
+                  isFullscreen ? "hidden" : "h-[400px] lg:h-[600px]"
+                } transition-all duration-300`}
+              >
+                {iframe}
               </div>
 
+              {/* Mobile Instructions */}
               <div className="lg:hidden p-4 bg-muted/30 border-t">
                 <div className="flex items-center space-x-3 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4 flex-shrink-0" />
-                  <span>Tap and drag to explore • Pinch to zoom • Use device rotation for 360° view</span>
+                  <span>
+                    Tap and drag to explore • Pinch to zoom • Use device
+                    rotation for 360° view
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             {[
               {
                 icon: <Eye className="h-6 w-6" />,
                 title: "360° Experience",
-                description: "Complete virtual tour of interior and exterior"
+                description:
+                  "Complete virtual tour of interior and exterior",
               },
               {
                 icon: <Monitor className="h-6 w-6" />,
                 title: "Real-time Configuration",
-                description: "Customize colors, wheels, and accessories instantly"
+                description:
+                  "Customize colors, wheels, and accessories instantly",
               },
               {
                 icon: <ExternalLink className="h-6 w-6" />,
                 title: "Immersive Details",
-                description: "Explore every feature with high-resolution imagery"
-              }
+                description: "Explore every feature with high-resolution imagery",
+              },
             ].map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -133,36 +212,42 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      {isFullscreen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm"
-          onClick={handleFullscreen}
-        >
-          <div className="absolute top-4 right-4 z-60">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleFullscreen}
-              className="text-white hover:bg-white/20"
-            >
-              <Maximize2 className="h-4 w-4 mr-2" />
-              Exit Fullscreen
-            </Button>
-          </div>
-        </motion.div>
-      )}
+      {/* Fullscreen Overlay Portal */}
+      {isFullscreen &&
+        ReactDOM.createPortal(
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm"
+          >
+            <div className="absolute top-4 right-4 z-60">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleFullscreen}
+                className="text-white hover:bg-white/20"
+              >
+                <Maximize2 className="h-4 w-4 mr-2" />
+                Exit Fullscreen
+              </Button>
+            </div>
+            <div className="w-full h-full">{iframe}</div>
+          </motion.div>,
+          document.body
+        )}
     </section>
   );
 };
 
 export default VirtualShowroom;
+
