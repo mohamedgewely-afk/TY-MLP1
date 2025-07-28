@@ -1,4 +1,12 @@
-
+import {
+  Gauge,
+  Shield,
+  Smartphone,
+  Wind,
+  Zap,
+  Settings,
+  ChevronRight
+} from "lucide-react";
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -196,15 +204,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             </TabsContent>
 
             <TabsContent value="technology" className="mt-0">
-  <motion.div
-    key="technology"
-    initial={{ opacity: 0, x: 20 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -20 }}
-    transition={{ duration: 0.4 }}
-    className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
-  >
-
+              </motion.div> //
+                key="technology"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
+              >
                 {technologyFeatures.map((feature, index) => (
                   <motion.div
                     key={feature.id}
@@ -259,15 +266,15 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                   <div className="w-2 h-2 rounded-full bg-primary mr-3" />
                                   <span className="text-sm text-muted-foreground">{benefit}</span>
                                 </div>
-                                           ))}
-                            </motion.div>
+                              ))}
+                            </motion.div> 
                           )}
                         </AnimatePresence>
                       </CardContent>
                     </Card>
                   </motion.div>
                 ))}
-              </motion.div> {/* ← this closes the motion.div that wraps technologyFeatures.map */}
+              </div>
             </TabsContent>
           </AnimatePresence>
         </Tabs>

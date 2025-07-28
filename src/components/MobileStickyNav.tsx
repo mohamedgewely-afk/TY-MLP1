@@ -6,9 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 
 interface MobileStickyNavProps {
-  isVisible: boolean;
-  onToggle: () => void;
+  activeItem: string;
+  vehicle: VehicleModel;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  onBookTestDrive: () => void;
+  onCarBuilder: () => void;
+  onFinanceCalculator: () => void;
 }
+
+const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
+  activeItem,
+  vehicle,
+  isFavorite,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator
+}) => {
+  // use activeItem here if needed
+  return (...);
+};
 
 const offers = [
   {
