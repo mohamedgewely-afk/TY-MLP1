@@ -160,7 +160,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     {
       id: "test-drive",
       title: "Book Test Drive",
-      icon: <Car className="h-7 w-7" />,
+      icon: <Car className="h-8 w-8" />,
       color: "bg-gradient-to-br from-toyota-red to-red-600 text-white",
       link: "/test-drive",
       description: "Experience Toyota firsthand"
@@ -168,7 +168,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     {
       id: "offers",
       title: "Latest Offers",
-      icon: <ShoppingBag className="h-7 w-7" />,
+      icon: <ShoppingBag className="h-8 w-8" />,
       color: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
       link: "/offers",
       description: "Exclusive deals available"
@@ -176,7 +176,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     {
       id: "configure",
       title: "Build & Price",
-      icon: <Settings className="h-7 w-7" />,
+      icon: <Settings className="h-8 w-8" />,
       color: "bg-gradient-to-br from-green-500 to-green-600 text-white",
       link: "/configure",
       description: "Customize your Toyota"
@@ -184,7 +184,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     {
       id: "service",
       title: "Service Booking",
-      icon: <Phone className="h-7 w-7" />,
+      icon: <Phone className="h-8 w-8" />,
       color: "bg-gradient-to-br from-amber-500 to-amber-600 text-white",
       link: "/service",
       description: "Professional maintenance"
@@ -460,22 +460,22 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   <Carousel opts={{ align: "start" }} className="w-full mb-6">
                     <CarouselContent>
                       {quickActionCards.map((card) => (
-                        <CarouselItem key={card.id} className="basis-2/3 pl-4">
+                        <CarouselItem key={card.id} className="basis-1/2 pl-4">
                           <Link to={card.link} onClick={() => setIsMenuOpen(false)}>
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                              <Card className={cn("h-32 overflow-hidden", card.color)}>
-                                <CardContent className="flex flex-col justify-between h-full p-4">
+                              <Card className={cn("h-40 overflow-hidden", card.color)}>
+                                <CardContent className="flex flex-col justify-between h-full p-6">
                                   <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                      <h3 className="font-semibold text-base">{card.title}</h3>
-                                      <p className="text-xs opacity-90">{card.description}</p>
+                                    <div className="space-y-2">
+                                      <h3 className="font-semibold text-lg">{card.title}</h3>
+                                      <p className="text-sm opacity-90">{card.description}</p>
                                     </div>
                                     <div className="opacity-80">
                                       {card.icon}
                                     </div>
                                   </div>
                                   <div className="flex justify-end">
-                                    <ChevronRight className="h-4 w-4 opacity-70" />
+                                    <ChevronRight className="h-5 w-5 opacity-70" />
                                   </div>
                                 </CardContent>
                               </Card>

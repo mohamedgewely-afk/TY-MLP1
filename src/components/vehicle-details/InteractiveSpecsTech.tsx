@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -223,6 +224,17 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       }
     });
     window.dispatchEvent(event);
+  };
+
+  const handleTestDrive = () => {
+    toast({
+      title: "Test Drive Booking",
+      description: "Redirecting to test drive booking...",
+    });
+    
+    setTimeout(() => {
+      window.location.href = '/test-drive';
+    }, 1000);
   };
 
   return (
@@ -465,7 +477,17 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           </div>
                         </div>
 
-                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
+                          <Button
+                            onClick={handleTestDrive}
+                            className={`w-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                              isMobile ? 'h-12' : 'h-14'
+                            }`}
+                          >
+                            <Car className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                            Book Test Drive
+                          </Button>
+                          
                           <Button
                             onClick={() => handleDownloadSpec(currentGrade.name)}
                             variant="outline"
@@ -474,17 +496,18 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             }`}
                           >
                             <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Download Spec Sheet
+                            Download Spec
                           </Button>
                           
                           <Button
                             onClick={() => handleConfigure(currentGrade.name)}
-                            className={`w-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                            variant="outline"
+                            className={`w-full border-primary/30 text-primary hover:bg-primary/10 transition-all duration-300 ${
                               isMobile ? 'h-12' : 'h-14'
                             }`}
                           >
                             <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Configure This Grade
+                            Configure
                           </Button>
                         </div>
                       </div>
