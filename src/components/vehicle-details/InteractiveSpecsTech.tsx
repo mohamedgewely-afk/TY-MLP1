@@ -215,7 +215,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             </TabsContent>
 
             <TabsContent value="technology" className="mt-0">
-              <motion.div
+              </motion.div> //
                 key="technology"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -278,7 +278,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                   <span className="text-sm text-muted-foreground">{benefit}</span>
                                 </div>
                               ))}
-                            </motion.div>
+                            </motion.div> //
                           )}
                         </AnimatePresence>
                       </CardContent>
