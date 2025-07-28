@@ -278,7 +278,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                   <span className="text-sm text-muted-foreground">{benefit}</span>
                                 </div>
                               ))}
-                            </motion.div> //
+                            </motion.div> 
                           )}
                         </AnimatePresence>
                       </CardContent>
