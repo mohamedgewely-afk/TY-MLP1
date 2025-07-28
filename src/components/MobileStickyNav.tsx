@@ -75,54 +75,63 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ isVisible, onToggle }
 
             {/* Enhanced Offers Carousel */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-gray-700">Current Offers</h4>
-                <span className="text-xs text-gray-500">
-                  {currentOffers.length} active
-                </span>
-              </div>
-              
-              <div className="relative">
-                <div className="overflow-x-auto scrollbar-hide">
-                  <div className="flex space-x-3 pb-2">
-                    {currentOffers.map((offer) => (
-                      <motion.div
-                        key={offer.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="flex-shrink-0 basis-3/4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border border-primary/20"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge variant="secondary" className="text-xs bg-primary/20 text-primary">
-                            {offer.type}
-                          </Badge>
-                          <span className="text-xs text-gray-500">{offer.validUntil}</span>
-                        </div>
-                        <h5 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
-                          {offer.title}
-                        </h5>
-                        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                          {offer.description}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-primary">
-                            {offer.discount}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs px-2 py-1 h-6 border-primary/30 text-primary hover:bg-primary/10"
-                          >
-                            Details
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="text-sm font-semibold text-gray-700">Current Offers</h4>
+    <span className="text-xs text-gray-500">
+      {currentOffers.length} active
+    </span>
+  </div>
+
+  <div className="relative">
+    <div className="overflow-x-auto scrollbar-hide">
+      <div className="flex space-x-3 pb-2">
+        {currentOffers.map((offer) => (
+          <motion.div
+            key={offer.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="flex-shrink-0 basis-3/4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border border-primary/20"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <Badge
+                variant="secondary"
+                className="text-xs bg-primary/20 text-primary"
+              >
+                {offer.type}
+              </Badge>
+              <span className="text-xs text-gray-500">
+                {offer.validUntil}
+              </span>
             </div>
+
+            <h5 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
+              {offer.title}
+            </h5>
+
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+              {offer.description}
+            </p>
+
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-primary">
+                {offer.discount}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs px-2 py-1 h-6 border-primary/30 text-primary hover:bg-primary/10"
+              >
+                Details
+              </Button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-3">
