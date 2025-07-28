@@ -5,25 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Zap, 
-  Shield, 
-  Gauge, 
-  Leaf, 
-  Smartphone, 
-  Wind, 
-  Battery, 
-  Lock,
-  Settings,
-  Star,
-  ChevronRight,
-  Play,
-  Volume2,
-  Info,
-  Award,
-  Target,
-  Layers
-} from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 
 interface InteractiveSpecsTechProps {
