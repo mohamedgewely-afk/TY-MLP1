@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -314,7 +315,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Selection Carousel - Enhanced with Swipe Support */}
+        {/* Step 2: Grade Selection Carousel - Enhanced with Better Mobile UI */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -325,30 +326,30 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Step 2: Available Grades for {selectedEngine}
           </h3>
 
-          {/* Grade Carousel - Now with Swipe Support */}
+          {/* Grade Carousel - Enhanced for Mobile */}
           <div className="relative">
-            {/* Navigation Buttons - Larger for better accessibility */}
+            {/* Navigation Buttons */}
             <button
               onClick={prevGrade}
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all ${
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-xl border-2 border-primary/20 hover:shadow-2xl hover:border-primary/40 transition-all duration-300 ${
                 isMobile ? 'p-2 -translate-x-1' : 'p-3 -translate-x-2'
               }`}
               aria-label="Previous grade"
             >
-              <ChevronLeft className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
+              <ChevronLeft className={`text-primary ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
             </button>
             
             <button
               onClick={nextGrade}
-              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all ${
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full bg-white shadow-xl border-2 border-primary/20 hover:shadow-2xl hover:border-primary/40 transition-all duration-300 ${
                 isMobile ? 'p-2 translate-x-1' : 'p-3 translate-x-2'
               }`}
               aria-label="Next grade"
             >
-              <ChevronRight className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
+              <ChevronRight className={`text-primary ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
             </button>
 
-            {/* Grade Card - With Swipe Support */}
+            {/* Grade Card - Enhanced Mobile UI */}
             <div 
               ref={swipeableRef}
               className={`${isMobile ? 'mx-4 touch-manipulation' : 'mx-8'}`}
@@ -364,87 +365,99 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Card className={`overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 ${
+                  <Card className={`overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 shadow-lg ${
                     isMobile ? 'w-full' : 'max-w-5xl mx-auto'
                   }`}>
                     <CardContent className="p-0">
-                      {/* Header */}
-                      <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 lg:p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
-                            {currentGrade.name}
-                          </h4>
-                          <Badge className="bg-white/20 text-white border-white/30">
-                            {currentGrade.highlight}
-                          </Badge>
-                        </div>
-                        <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                          {currentGrade.description}
-                        </p>
+                      {/* Enhanced Header */}
+                      <div className="bg-gradient-to-r from-primary via-primary/95 to-primary/80 text-white relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="white" fill-opacity="0.1"%3E%3Cpath d="M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z"/%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
                         
-                        {/* Pricing */}
-                        <div className="pt-4 border-t border-white/20">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
-                                AED {currentGrade.fullPrice.toLocaleString()}
-                              </div>
-                              <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                                Starting from AED {currentGrade.monthlyEMI}/month
+                        <div className="relative z-10 p-4 lg:p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
+                              {currentGrade.name}
+                            </h4>
+                            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                              {currentGrade.highlight}
+                            </Badge>
+                          </div>
+                          <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                            {currentGrade.description}
+                          </p>
+                          
+                          {/* Enhanced Pricing */}
+                          <div className="pt-4 border-t border-white/20">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+                                  AED {currentGrade.fullPrice.toLocaleString()}
+                                </div>
+                                <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                  Starting from AED {currentGrade.monthlyEMI}/month
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Content - Larger Layout with Full-Width Images */}
+                      {/* Enhanced Content */}
                       <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
-                        {/* Grade Image - Full Width and Larger Height */}
-                        <div className={`mb-6 rounded-lg overflow-hidden relative ${
-                          isMobile ? 'w-full' : ''
+                        {/* Enhanced Grade Image - Better aspect ratio and fitting */}
+                        <div className={`mb-6 rounded-xl overflow-hidden relative bg-gradient-to-br from-muted/30 to-muted/10 ${
+                          isMobile ? 'w-full aspect-[4/3]' : 'aspect-[16/9]'
                         }`}>
                           {imageLoading && (
-                            <div className={`absolute inset-0 bg-muted animate-pulse flex items-center justify-center ${
-                              isMobile ? 'h-80' : 'h-64 lg:h-96'
-                            }`}>
-                              <div className="text-muted-foreground">Loading...</div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/30 animate-pulse flex items-center justify-center">
+                              <div className="flex flex-col items-center space-y-2">
+                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                <div className="text-muted-foreground text-sm">Loading image...</div>
+                              </div>
                             </div>
                           )}
                           <img
                             src={currentGrade.image}
                             alt={`${currentGrade.name} Grade`}
-                            className={`w-full object-cover object-center ${
-                              isMobile ? 'h-80' : 'h-64 lg:h-96'
-                            }`}
+                            className="w-full h-full object-cover object-center transition-all duration-300"
                             loading="lazy"
                             onLoad={() => setImageLoading(false)}
                             onError={() => setImageLoading(false)}
                           />
+                          
+                          {/* Enhanced Image Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
                         </div>
 
                         <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          {/* Key Features */}
-                          <div>
-                            <h5 className={`font-bold text-foreground mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>
+                          {/* Enhanced Key Features */}
+                          <div className="space-y-4">
+                            <h5 className={`font-bold text-foreground ${isMobile ? 'text-base' : 'text-lg'}`}>
                               Key Features
                             </h5>
-                            <div className="space-y-2">
-                              {currentGrade.features.map((feature) => (
-                                <div key={feature} className="flex items-center space-x-3">
-                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                  <span className={isMobile ? 'text-sm' : 'text-base'}>{feature}</span>
-                                </div>
+                            <div className="space-y-3">
+                              {currentGrade.features.map((feature, index) => (
+                                <motion.div 
+                                  key={feature}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
+                                >
+                                  <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                                  <span className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>{feature}</span>
+                                </motion.div>
                               ))}
                             </div>
                           </div>
 
-                          {/* Specifications */}
-                          <div>
+                          {/* Enhanced Specifications */}
+                          <div className="space-y-4">
                             <Accordion type="single" collapsible className="w-full">
-                              <AccordionItem value="specifications">
-                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold`}>
+                              <AccordionItem value="specifications" className="border-primary/20">
+                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:text-primary transition-colors`}>
                                   <div className="flex items-center space-x-2">
-                                    <Settings className="h-5 w-5" />
+                                    <Settings className="h-5 w-5 text-primary" />
                                     <span>Full Specifications</span>
                                   </div>
                                 </AccordionTrigger>
@@ -452,11 +465,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                   <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
                                     <div className="space-y-3">
                                       {Object.entries(currentGrade.specs).map(([key, value]) => (
-                                        <div key={key} className="flex justify-between">
-                                          <span className="text-muted-foreground capitalize">
+                                        <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-muted/30">
+                                          <span className="text-muted-foreground capitalize font-medium">
                                             {key.replace(/([A-Z])/g, ' $1')}
                                           </span>
-                                          <span className="font-medium">{value}</span>
+                                          <span className="font-bold text-primary">{value}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -467,13 +480,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Enhanced Action Buttons */}
                         <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                           <Button
                             onClick={() => handleDownloadSpec(currentGrade.name)}
                             variant="outline"
-                            className="w-full"
-                            size={isMobile ? "default" : "lg"}
+                            className={`w-full border-primary/30 text-primary hover:bg-primary/10 transition-all duration-300 ${
+                              isMobile ? 'h-12' : 'h-14'
+                            }`}
                           >
                             <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                             Download Spec Sheet
@@ -481,8 +495,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           
                           <Button
                             onClick={() => handleConfigure(currentGrade.name)}
-                            className="w-full bg-primary hover:bg-primary/90"
-                            size={isMobile ? "default" : "lg"}
+                            className={`w-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                              isMobile ? 'h-12' : 'h-14'
+                            }`}
                           >
                             <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                             Configure This Grade
@@ -495,8 +510,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
 
-            {/* Indicators - Enhanced for better touch targets */}
-            <div className="flex justify-center space-x-2 mt-8">
+            {/* Enhanced Indicators */}
+            <div className="flex justify-center space-x-3 mt-8">
               {currentGrades.map((_, index) => (
                 <button
                   key={index}
@@ -504,17 +519,17 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     setCurrentGradeIndex(index);
                     setImageLoading(true);
                   }}
-                  className={`rounded-full transition-all ${
+                  className={`rounded-full transition-all duration-300 ${
                     index === currentGradeIndex 
-                      ? 'bg-primary w-8 h-3' 
-                      : 'bg-muted-foreground/30 w-3 h-3 hover:bg-muted-foreground/50'
+                      ? 'bg-primary w-8 h-3 shadow-lg' 
+                      : 'bg-muted-foreground/30 w-3 h-3 hover:bg-primary/50'
                   } ${isMobile ? 'min-w-[44px] min-h-[44px] flex items-center justify-center' : ''}`}
                   aria-label={`Go to grade ${index + 1}`}
                 >
                   {isMobile && (
-                    <div className={`rounded-full ${
+                    <div className={`rounded-full transition-all duration-300 ${
                       index === currentGradeIndex 
-                        ? 'bg-primary w-6 h-2' 
+                        ? 'bg-primary w-6 h-2 shadow-md' 
                         : 'bg-muted-foreground/30 w-2 h-2'
                     }`} />
                   )}
@@ -525,8 +540,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             {/* Enhanced Mobile Swipe Indicator */}
             {isMobile && (
               <div className="flex justify-center mt-4">
-                <div className="flex items-center space-x-2 bg-muted rounded-full px-4 py-2">
-                  <span className="text-xs text-muted-foreground">Swipe horizontally to navigate grades</span>
+                <div className="flex items-center space-x-2 bg-primary/10 rounded-full px-4 py-2 border border-primary/20">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  <span className="text-xs text-primary font-medium">Swipe to explore grades</span>
                 </div>
               </div>
             )}
