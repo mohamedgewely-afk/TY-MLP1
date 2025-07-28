@@ -86,7 +86,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ isVisible, onToggle }
     <div className="overflow-x-auto scrollbar-hide">
       <div className="flex space-x-3 pb-2">
         {currentOffers.map((offer) => (
-          <motion.div
+           </motion.div> 
             key={offer.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
