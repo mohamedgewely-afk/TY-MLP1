@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -77,126 +76,11 @@ const config: Config = {
             opacity: '1',
           },
         },
-        // Luxury automotive-inspired animations
-        "luxury-slide-up": {
-          "0%": {
-            opacity: '0',
-            transform: 'translateY(40px) scale(0.95)',
-          },
-          "100%": {
-            opacity: '1',
-            transform: 'translateY(0) scale(1)',
-          },
-        },
-        "luxury-slide-in-left": {
-          "0%": {
-            opacity: '0',
-            transform: 'translateX(-40px) scale(0.95)',
-          },
-          "100%": {
-            opacity: '1',
-            transform: 'translateX(0) scale(1)',
-          },
-        },
-        "luxury-slide-in-right": {
-          "0%": {
-            opacity: '0',
-            transform: 'translateX(40px) scale(0.95)',
-          },
-          "100%": {
-            opacity: '1',
-            transform: 'translateX(0) scale(1)',
-          },
-        },
-        "luxury-scale-in": {
-          "0%": {
-            opacity: '0',
-            transform: 'scale(0.8) translateY(20px)',
-          },
-          "50%": {
-            opacity: '0.8',
-            transform: 'scale(1.02) translateY(-5px)',
-          },
-          "100%": {
-            opacity: '1',
-            transform: 'scale(1) translateY(0)',
-          },
-        },
-        "luxury-morph": {
-          "0%": {
-            borderRadius: '8px',
-            transform: 'scale(1)',
-          },
-          "50%": {
-            borderRadius: '16px',
-            transform: 'scale(1.02)',
-          },
-          "100%": {
-            borderRadius: '12px',
-            transform: 'scale(1)',
-          },
-        },
-        "premium-pulse": {
-          "0%, 100%": {
-            boxShadow: '0 0 0 0 rgba(235, 10, 30, 0.4)',
-            transform: 'scale(1)',
-          },
-          "50%": {
-            boxShadow: '0 0 0 8px rgba(235, 10, 30, 0)',
-            transform: 'scale(1.02)',
-          },
-        },
-        "cinematic-reveal": {
-          "0%": {
-            opacity: '0',
-            transform: 'translateY(80px) rotateX(15deg)',
-            filter: 'blur(4px)',
-          },
-          "50%": {
-            opacity: '0.8',
-            transform: 'translateY(-10px) rotateX(-2deg)',
-            filter: 'blur(1px)',
-          },
-          "100%": {
-            opacity: '1',
-            transform: 'translateY(0) rotateX(0deg)',
-            filter: 'blur(0px)',
-          },
-        },
-        "luxury-shimmer": {
-          "0%": {
-            backgroundPosition: '-200% 0',
-          },
-          "100%": {
-            backgroundPosition: '200% 0',
-          },
-        },
-        "floating": {
-          "0%, 100%": {
-            transform: 'translateY(0px) rotate(0deg)',
-          },
-          "50%": {
-            transform: 'translateY(-10px) rotate(1deg)',
-          },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-in-out forwards",
-        // Luxury animations with automotive timing
-        "luxury-slide-up": "luxury-slide-up 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) forwards",
-        "luxury-slide-in-left": "luxury-slide-in-left 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
-        "luxury-slide-in-right": "luxury-slide-in-right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
-        "luxury-scale-in": "luxury-scale-in 0.7s cubic-bezier(0.25, 0.1, 0.25, 1.0) forwards",
-        "luxury-morph": "luxury-morph 0.4s cubic-bezier(0.77, 0, 0.175, 1) forwards",
-        "premium-pulse": "premium-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
-        "cinematic-reveal": "cinematic-reveal 1s cubic-bezier(0.25, 0.1, 0.25, 1.0) forwards",
-        "luxury-shimmer": "luxury-shimmer 2s linear infinite",
-        "floating": "floating 3s ease-in-out infinite",
-        // Combined luxury animations
-        "luxury-entrance": "luxury-slide-up 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) forwards, premium-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.6s",
-        "premium-hover": "luxury-scale-in 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
       },
       spacing: {
         'safe-area-inset-top': 'env(safe-area-inset-top)',
@@ -220,19 +104,6 @@ const config: Config = {
         'mobile': '414px',
         'lg-mobile': '430px',
         'xl-mobile': '500px',
-      },
-      // Luxury timing functions
-      transitionTimingFunction: {
-        'luxury': 'cubic-bezier(0.25, 0.1, 0.25, 1.0)',
-        'premium': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-        'cinematic': 'cubic-bezier(0.77, 0, 0.175, 1)',
-        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-      },
-      transitionDuration: {
-        'luxury-fast': '150ms',
-        'luxury-normal': '250ms',
-        'luxury-slow': '350ms',
-        'cinematic': '500ms',
       }
     },
   },
@@ -276,27 +147,6 @@ const config: Config = {
           display: 'block !important',
           visibility: 'visible !important',
           opacity: '1 !important'
-        },
-        // Luxury animation utilities
-        '.luxury-hover': {
-          transition: 'all 250ms cubic-bezier(0.25, 0.1, 0.25, 1.0)',
-          '&:hover': {
-            transform: 'translateY(-2px) scale(1.02)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)'
-          }
-        },
-        '.premium-card': {
-          background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.2) 100%)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.1)',
-          border: '1px solid hsl(var(--border)/0.5)',
-          borderRadius: '12px',
-        },
-        '.luxury-gradient': {
-          background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.9) 100%)',
-          boxShadow: '0 8px 32px rgba(235, 10, 30, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.1)'
-        },
-        '.cinematic-shadow': {
-          boxShadow: '0 16px 64px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.1)'
         },
         '@media (max-width: 500px)': {
           '.force-mobile-nav': {
