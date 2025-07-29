@@ -53,12 +53,22 @@ export function useLuxuryAnimations() {
     ...createAnimation('all', { duration: 'slow', curve: 'premium' })
   }), [createAnimation]);
 
+  const hapticFeedback = useCallback(() => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  }, []);
+
   return {
     createAnimation,
     shrinkAnimation,
     elevationAnimation,
     morphAnimation,
+    hapticFeedback,
     curves: LUXURY_CURVES,
-    durations: LUXURY_DURATIONS
+    durations: LUXURY_DURATIONS,
+    luxuryEase: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1.0] },
+    premiumBounce: { duration: 0.4, ease: [0.68, -0.55, 0.265, 1.55] },
+    cinematicSlide: { duration: 0.5, ease: [0.77, 0, 0.175, 1] }
   };
 }

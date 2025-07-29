@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Car, Settings, Calculator, MapPin, Phone, Share2, Calendar, Fuel, Shield, ChevronRight } from "lucide-react";
@@ -17,6 +18,15 @@ interface MobileStickyNavProps {
   onBookTestDrive?: () => void;
   onCarBuilder?: () => void;
   onFinanceCalculator?: () => void;
+}
+
+interface ActionItem {
+  icon: React.ReactElement;
+  label: string;
+  action: () => void;
+  id: string;
+  isPrimary?: boolean;
+  isActive?: boolean;
 }
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
@@ -77,7 +87,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     }, 150);
   };
 
-  const navigationItems = [
+  const navigationItems: ActionItem[] = [
     {
       icon: <MapPin className="h-5 w-5" />,
       label: "Locate",
@@ -98,7 +108,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     }
   ];
 
-  const vehicleActions = vehicle ? [
+  const vehicleActions: ActionItem[] = vehicle ? [
     {
       icon: <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />,
       label: "Favorite",

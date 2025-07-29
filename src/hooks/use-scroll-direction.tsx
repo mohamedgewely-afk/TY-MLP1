@@ -52,6 +52,8 @@ export function useScrollDirection({
     scrollDirection,
     isScrolling,
     scrollY,
-    isAtTop: scrollY <= threshold
+    isAtTop: scrollY <= threshold,
+    isScrollingDown: scrollDirection === 'down',
+    isScrollingUp: scrollDirection === 'up'
   };
 }
