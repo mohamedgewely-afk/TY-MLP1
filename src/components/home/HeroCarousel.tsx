@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeroSlide {
   id: string;
@@ -27,6 +27,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const isMobile = useIsMobile();
 
   // Default slides with consistent properties
   const defaultSlides: HeroSlide[] = [
@@ -124,24 +125,36 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
               className="w-full h-full object-cover"
               style={{ objectPosition: 'center center' }}
             />
-            {/* Enhanced gradient overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+            {/* Enhanced gradient overlay - lighter for mobile to show more of the image */}
+            <div className={`absolute inset-0 ${
+              isMobile 
+                ? 'bg-gradient-to-r from-black/80 via-black/40 to-transparent' // Side gradient for mobile
+                : 'bg-gradient-to-t from-black/80 via-black/30 to-black/40'
+            }`} />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Content positioned at bottom */}
-      <div className="relative z-10 h-full flex items-end pb-32 md:pb-24">
+      {/* Enhanced Mobile-First Content Layout */}
+      <div className={`relative z-10 h-full flex items-end ${
+        isMobile ? 'pb-24' : 'pb-32 md:pb-24'
+      }`}>
         <div className="toyota-container w-full">
-          <div className="max-w-4xl">
+          <div className={`${
+            isMobile 
+              ? 'max-w-xs' // Much smaller width for mobile
+              : 'max-w-4xl'
+          }`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}
-                initial={{ opacity: 0, y: 50, x: -30 }}
+                initial={{ opacity: 0, y: 50, x: isMobile ? -20 : -30 }}
                 animate={{ opacity: 1, y: 0, x: 0 }}
-                exit={{ opacity: 0, y: -30, x: 30 }}
+                exit={{ opacity: 0, y: -30, x: isMobile ? 20 : 30 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="space-y-4 md:space-y-6 text-white"
+                className={`space-y-3 md:space-y-6 text-white ${
+                  isMobile ? 'space-y-2' : ''
+                }`}
               >
                 {/* Badge */}
                 {slides[currentSlide].badge && (
@@ -151,56 +164,76 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                     transition={{ delay: 0.2 }}
                     className="inline-block"
                   >
-                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold border border-white/20">
+                    <span className={`bg-toyota-red/90 backdrop-blur-sm text-white rounded-full font-semibold border border-white/20 ${
+                      isMobile 
+                        ? 'px-2.5 py-1 text-xs' // Much smaller badge
+                        : 'px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm'
+                    }`}>
                       {slides[currentSlide].badge}
                     </span>
                   </motion.div>
                 )}
 
-                {/* Title */}
+                {/* Title - Significantly smaller on mobile */}
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight"
+                  className={`font-black leading-tight ${
+                    isMobile 
+                      ? 'text-2xl' // Much smaller title 
+                      : 'text-3xl md:text-5xl lg:text-6xl xl:text-7xl'
+                  }`}
                 >
                   {slides[currentSlide].title}
                 </motion.h1>
 
-                {/* Subtitle */}
+                {/* Subtitle - Smaller on mobile */}
                 <motion.h2
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-lg md:text-2xl lg:text-3xl font-light text-white/90 leading-relaxed"
+                  className={`font-light text-white/90 leading-relaxed ${
+                    isMobile 
+                      ? 'text-sm' // Much smaller subtitle
+                      : 'text-lg md:text-2xl lg:text-3xl'
+                  }`}
                 >
                   {slides[currentSlide].subtitle}
                 </motion.h2>
 
-                {/* Description */}
+                {/* Description - Compact on mobile */}
                 {slides[currentSlide].description && (
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-sm md:text-lg text-white/80 max-w-2xl leading-relaxed"
+                    className={`text-white/80 leading-relaxed ${
+                      isMobile 
+                        ? 'text-xs max-w-xs' // Very small and constrained
+                        : 'text-sm md:text-lg max-w-2xl'
+                    }`}
                   >
                     {slides[currentSlide].description}
                   </motion.p>
                 )}
 
-                {/* CTA Button */}
+                {/* CTA Button - Compact on mobile */}
                 {(slides[currentSlide].cta || slides[currentSlide].ctaText) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="pt-2 md:pt-4"
+                    className={isMobile ? 'pt-2' : 'pt-2 md:pt-4'}
                   >
                     <Button
-                      size="lg"
+                      size={isMobile ? "sm" : "lg"}
                       onClick={() => navigate(slides[currentSlide].link || slides[currentSlide].ctaLink || "/")}
-                      className="bg-white text-toyota-red hover:bg-gray-100 px-6 py-3 md:px-8 md:py-4 text-sm md:text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                      className={`bg-white text-toyota-red hover:bg-gray-100 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 ${
+                        isMobile 
+                          ? 'px-4 py-2 text-xs font-semibold' // Much smaller button
+                          : 'px-6 py-3 md:px-8 md:py-4 text-sm md:text-lg font-semibold'
+                      }`}
                     >
                       {slides[currentSlide].cta || slides[currentSlide].ctaText}
                     </Button>
@@ -212,19 +245,25 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
         </div>
       </div>
 
-      {/* Navigation Controls - Responsive positioning */}
-      <div className="absolute bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="flex items-center space-x-4 md:space-x-6">
+      {/* Navigation Controls - Enhanced mobile positioning */}
+      <div className={`absolute z-20 ${
+        isMobile 
+          ? 'bottom-20 left-1/2 transform -translate-x-1/2' // Higher up on mobile to avoid sticky nav
+          : 'bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2'
+      }`}>
+        <div className={`flex items-center ${isMobile ? 'space-x-3' : 'space-x-4 md:space-x-6'}`}>
           {/* Dots Indicator */}
-          <div className="flex space-x-2 md:space-x-3">
+          <div className={`flex ${isMobile ? 'space-x-1.5' : 'space-x-2 md:space-x-3'}`}>
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+                className={`rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? "bg-white scale-125 shadow-lg"
                     : "bg-white/40 hover:bg-white/60"
+                } ${
+                  isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2 md:w-3 md:h-3'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -234,29 +273,39 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
           {/* Auto-play Toggle */}
           <button
             onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className="bg-white/20 backdrop-blur-sm border border-white/30 text-white p-1.5 md:p-2 rounded-full hover:bg-white/30 transition-all duration-300"
+            className={`bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full hover:bg-white/30 transition-all duration-300 ${
+              isMobile ? 'p-1' : 'p-1.5 md:p-2'
+            }`}
             aria-label={isAutoPlay ? "Pause slideshow" : "Play slideshow"}
           >
-            {isAutoPlay ? <Pause className="h-3 w-3 md:h-4 md:w-4" /> : <Play className="h-3 w-3 md:h-4 md:w-4" />}
+            {isAutoPlay ? (
+              <Pause className={isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3 md:h-4 md:w-4'} />
+            ) : (
+              <Play className={isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3 md:h-4 md:w-4'} />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Arrow Navigation - Responsive */}
+      {/* Arrow Navigation - Smaller on mobile */}
       <button
         onClick={prevSlide}
-        className="absolute left-3 md:left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        className={`absolute top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110 ${
+          isMobile ? 'left-2 p-1.5' : 'left-3 md:left-6 p-2 md:p-3'
+        }`}
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
+        <ChevronLeft className={isMobile ? 'h-3 w-3' : 'h-4 w-4 md:h-6 md:w-6'} />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-3 md:right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110"
+        className={`absolute top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-110 ${
+          isMobile ? 'right-2 p-1.5' : 'right-3 md:right-6 p-2 md:p-3'
+        }`}
         aria-label="Next slide"
       >
-        <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
+        <ChevronRight className={isMobile ? 'h-3 w-3' : 'h-4 w-4 md:h-6 md:w-6'} />
       </button>
 
       {/* Progress Bar */}
