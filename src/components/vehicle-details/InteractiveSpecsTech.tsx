@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -294,7 +295,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
         >
           <h3 className="text-2xl font-bold text-center mb-8">Step 1: Choose Your Powertrain</h3>
           
-          {/* Forced side-by-side layout for mobile */}
+          {/* Side-by-side layout for all screens */}
           <div className="grid grid-cols-2 gap-3 max-w-4xl mx-auto">
             {engines.map((engine, index) => (
               <motion.div
@@ -309,7 +310,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1.0] }
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="h-full min-h-[44px]" // Minimum touch target
+                className="h-full"
+                style={{ minHeight: '44px' }} // Minimum touch target
               >
                 <Card 
                   className={`cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] h-full relative overflow-hidden ${
@@ -450,7 +452,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6 lg:p-8'}`}>
                         {/* Animated background pattern */}
                         <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/5" />
-                        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M30 0L30 60M0 30L60 30M15 15L45 45M15 45L45 15"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 0L30 60M0 30L60 30M15 15L45 45M15 45L45 15\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
                         
                         <div className="relative z-10">
                           <div className="flex items-center justify-between mb-4">
@@ -501,7 +503,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                   <motion.div
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className={`w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2`}
+                                    className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
                                   />
                                   <div className="text-muted-foreground font-medium">Loading premium experience...</div>
                                 </div>
