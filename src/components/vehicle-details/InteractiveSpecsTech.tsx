@@ -515,7 +515,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             )}
                           </AnimatePresence>
                           <motion.img
-                            </div>
                              src={currentGrade.image}
   alt={`${currentGrade.name} Grade`}
   className={`mx-auto max-w-full transition-opacity duration-500 ${
