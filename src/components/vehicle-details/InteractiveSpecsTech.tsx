@@ -74,7 +74,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "221 lb-ft", 
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: "from-black-600 via-neutral-800 to-black-900", // BMW-inspired
+      brandColor: "from-black-600 via-black-800 to-black-900", // BMW-inspired
       accentColor: "bg-black-500",
       icon: <Zap className="h-5 w-5" />,
       grades: [
