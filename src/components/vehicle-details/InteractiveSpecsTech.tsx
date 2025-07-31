@@ -275,7 +275,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <Badge className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground border-0 mb-4 shadow-lg">
+          <Badge className="bg-gradient-to-r from-yellow-300 via-yellow-100 to-white/10 text-black text-xs font-medium uppercase tracking-wide shadow-xl border-0">
             <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
@@ -315,11 +315,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 style={{ minHeight: '44px' }} // Minimum touch target
               >
                 <Card 
-                  className={`cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] h-full relative overflow-hidden ${
-                    selectedEngine === engine.name
-                      ? 'border-2 border-primary shadow-xl ring-4 ring-primary/20'
-                      : 'border border-border hover:border-primary/50 hover:shadow-lg'
-                  }`}
+                  <Card 
+  className={`relative cursor-pointer h-full backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] ${
+    selectedEngine === engine.name
+      ? 'border-2 border-primary shadow-2xl ring-4 ring-primary/30 bg-white/10'
+      : 'border border-white/10 bg-white/5 hover:shadow-md'
+  }`}
                   onClick={() => handleEngineChange(engine.name)}
                   style={{ minHeight: '44px' }} // Ensure minimum touch target
                 >
