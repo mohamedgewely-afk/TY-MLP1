@@ -275,8 +275,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <Badge className="bg-gradient-to-r from-yellow-300 via-yellow-100 to-white/10 text-black text-xs font-medium uppercase tracking-wide shadow-md backdrop-blur-sm border border-white/20">
-  <Sparkles className="h-4 w-4 mr-2" />
+          <Badge className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground border-0 mb-4 shadow-lg">
+            <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
@@ -463,10 +463,10 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
                               {currentGrade.name}
                             </h4>
-                            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              {currentGrade.highlight}
-                            </Badge>
+                            <Badge className="bg-gradient-to-r from-white/20 via-white/10 to-transparent text-white text-xs font-semibold rounded-full px-3 py-1 backdrop-blur border border-white/10 shadow-sm">
+  <Sparkles className="h-3 w-3 mr-1" />
+  {currentGrade.highlight}
+</Badge>
                           </div>
                           <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
                             {currentGrade.description}
