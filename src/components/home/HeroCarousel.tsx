@@ -124,16 +124,16 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
               className="w-full h-full object-cover"
               style={{ objectPosition: 'center center' }}
             />
-            {/* Enhanced gradient overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+            {/* Enhanced gradient overlay - stronger left gradient for mobile */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent md:bg-gradient-to-t md:from-black/80 md:via-black/30 md:to-black/40" />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Content positioned at bottom */}
-      <div className="relative z-10 h-full flex items-end pb-32 md:pb-24">
+      {/* Content positioned at bottom for desktop, left for mobile */}
+      <div className="relative z-10 h-full flex items-end md:pb-24 pb-32">
         <div className="toyota-container w-full">
-          <div className="max-w-4xl">
+          <div className="max-w-4xl md:max-w-4xl max-w-xs">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}
@@ -141,7 +141,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                 animate={{ opacity: 1, y: 0, x: 0 }}
                 exit={{ opacity: 0, y: -30, x: 30 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="space-y-4 md:space-y-6 text-white"
+                className="space-y-2 md:space-y-6 text-white"
               >
                 {/* Badge */}
                 {slides[currentSlide].badge && (
@@ -151,56 +151,56 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
                     transition={{ delay: 0.2 }}
                     className="inline-block"
                   >
-                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold border border-white/20">
+                    <span className="bg-toyota-red/90 backdrop-blur-sm text-white px-2 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold border border-white/20">
                       {slides[currentSlide].badge}
                     </span>
                   </motion.div>
                 )}
 
-                {/* Title */}
+                {/* Title - Much smaller on mobile */}
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight"
+                  className="text-xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight"
                 >
                   {slides[currentSlide].title}
                 </motion.h1>
 
-                {/* Subtitle */}
+                {/* Subtitle - Much smaller on mobile */}
                 <motion.h2
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-lg md:text-2xl lg:text-3xl font-light text-white/90 leading-relaxed"
+                  className="text-sm md:text-2xl lg:text-3xl font-light text-white/90 leading-relaxed"
                 >
                   {slides[currentSlide].subtitle}
                 </motion.h2>
 
-                {/* Description */}
+                {/* Description - Hidden on mobile, smaller text */}
                 {slides[currentSlide].description && (
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-sm md:text-lg text-white/80 max-w-2xl leading-relaxed"
+                    className="hidden md:block text-sm md:text-lg text-white/80 max-w-2xl leading-relaxed"
                   >
                     {slides[currentSlide].description}
                   </motion.p>
                 )}
 
-                {/* CTA Button */}
+                {/* CTA Button - Smaller on mobile */}
                 {(slides[currentSlide].cta || slides[currentSlide].ctaText) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="pt-2 md:pt-4"
+                    className="pt-1 md:pt-4"
                   >
                     <Button
                       size="lg"
                       onClick={() => navigate(slides[currentSlide].link || slides[currentSlide].ctaLink || "/")}
-                      className="bg-white text-toyota-red hover:bg-gray-100 px-6 py-3 md:px-8 md:py-4 text-sm md:text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                      className="bg-white text-toyota-red hover:bg-gray-100 px-4 py-2 md:px-8 md:py-4 text-xs md:text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                     >
                       {slides[currentSlide].cta || slides[currentSlide].ctaText}
                     </Button>
