@@ -499,7 +499,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                               <motion.div 
                                 initial={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
+                                className="absolute inset-0 bg-black/70 backdrop-blur-sm z-20 flex items-center justify-center"
                                   isMobile ? 'h-80' : 'h-64 lg:h-96'
                                 }`}
                               >
@@ -650,22 +650,22 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
             {/* Enhanced Mobile Swipe Indicator */}
             {isMobile && (
-  <motion.div 
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 1 }}
-    className="flex justify-center mt-6"
-  >
-    <div className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur text-white shadow-sm">
-      <motion.div
-        animate={{ x: [0, 5, -5, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="w-2 h-2 rounded-full bg-primary"
-      />
-      <span className="text-xs font-medium opacity-80">Swipe to explore grades</span>
-    </div>
-  </motion.div>
-)}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="flex justify-center mt-6"
+              >
+                <div className={`flex items-center space-x-2 bg-gradient-to-r ${currentEngineData.brandColor} bg-opacity-10 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/20`}>
+                  <motion.div
+                    animate={{ x: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 bg-primary rounded-full"
+                  />
+                  <span className="text-xs text-muted-foreground font-medium">Swipe to explore grades</span>
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       </div>
