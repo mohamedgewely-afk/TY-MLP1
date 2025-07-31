@@ -121,10 +121,10 @@ const ToyotaLayout: React.FC<ToyotaLayoutProps> = ({
       // Add mobile-specific body classes
       shouldShowMobileNav && "touch-manipulation overscroll-none"
     )}>
-      {/* Language Switcher - Fixed Position */}
-      <div className={`fixed top-4 ${isRTL ? 'left-4' : 'right-4'} z-50`}>
-        <LanguageSwitcher />
-      </div>
+      {/* Language Switcher - Fixed Position (desktop only) */}
+<div className="hidden md:block fixed top-4 right-4 z-50">
+  <LanguageSwitcher />
+</div>
       
       <Header />
       
