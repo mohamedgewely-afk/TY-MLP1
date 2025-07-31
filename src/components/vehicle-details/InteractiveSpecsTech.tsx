@@ -497,6 +497,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           <AnimatePresence>
                             {imageLoading && (
                               <motion.div 
+                                </div>
                                 initial={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
@@ -515,7 +516,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             )}
                           </AnimatePresence>
                           <motion.img
-                            </div>
                              src={currentGrade.image}
   alt={`${currentGrade.name} Grade`}
   className={`mx-auto max-w-full transition-opacity duration-500 ${
