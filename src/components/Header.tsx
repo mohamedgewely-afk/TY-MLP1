@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MessageCircle, Phone } from "lucide-react";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +40,73 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  if (isMobile) {
+    return (
+      <motion.header 
+        className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40"
+        initial={{ y: -100 }}
+        animate={{ y: isVisible ? 0 : -100 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Left - Toyota Logo */}
+          <motion.div
+            className="flex items-center cursor-pointer"
+            onClick={() => navigate("/")}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="https://dam.alfuttaim.com/wps/wcm/connect/a4d697d5-b0c5-4f79-a410-8266625f6b1f/brand-toyota-toyota-mark-black.svg?MOD=AJPERES&CACHEID=ROOTWORKSPACE-a4d697d5-b0c5-4f79-a410-8266625f6b1f-p5aTs4r&mformat=true"
+                alt="Toyota Logo"
+                className="w-6 h-6 object-contain"
+              />
+            </div>
+          </motion.div>
+
+          {/* Center - Arabic text */}
+          <div className="flex-1 text-center">
+            <span className="text-sm font-medium text-gray-700">عربي</span>
+          </div>
+
+          {/* Right - Action buttons */}
+          <div className="flex items-center space-x-2">
+            {/* WhatsApp Button */}
+            <motion.button
+              onClick={() => window.open('https://wa.me/971XXXXXXX', '_blank')}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <MessageCircle className="h-5 w-5 text-green-600" />
+            </motion.button>
+
+            {/* Phone Button */}
+            <motion.button
+              onClick={() => window.open('tel:+971XXXXXXX', '_self')}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Phone className="h-5 w-5 text-gray-700" />
+            </motion.button>
+
+            {/* Enquire Button */}
+            <motion.button
+              onClick={() => navigate("/enquire")}
+              className="bg-toyota-red text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Enquire
+            </motion.button>
+          </div>
+        </div>
+      </motion.header>
+    );
+  }
+
   return (
     <motion.header 
       className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40"
@@ -72,27 +139,25 @@ const Header: React.FC = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          {!isMobile && (
-            <nav className="hidden md:flex items-center space-x-8">
-              {navItems.map((item, index) => (
-                <motion.button
-                  key={item.href}
-                  onClick={() => navigate(item.href)}
-                  className={`text-sm font-medium transition-colors hover:text-toyota-red ${
-                    location.pathname === item.href 
-                      ? "text-toyota-red" 
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -2 }}
-                >
-                  {item.label}
-                </motion.button>
-              ))}
-            </nav>
-          )}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navItems.map((item, index) => (
+              <motion.button
+                key={item.href}
+                onClick={() => navigate(item.href)}
+                className={`text-sm font-medium transition-colors hover:text-toyota-red ${
+                  location.pathname === item.href 
+                    ? "text-toyota-red" 
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -2 }}
+              >
+                {item.label}
+              </motion.button>
+            ))}
+          </nav>
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-2">
