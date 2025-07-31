@@ -125,6 +125,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
   const [forceVisible, setForceVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isScrollingUp, setIsScrollingUp] = useState(false);
   const { toast } = useToast();
 
   // Enhanced device detection debugging and force visibility
@@ -155,6 +158,40 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setTimeout(() => setDebugVisible(false), 8000); // Show for 8 seconds
     }
   }, [isMobile, isTablet, deviceCategory, screenSize, isInitialized, deviceModel, isIPhone]);
+
+  // Shrink-on-scroll functionality with cinematic timing
+  useEffect(() => {
+    let ticking = false;
+    
+    const updateScrollState = () => {
+      const scrollY = window.scrollY;
+      const scrollThreshold = 100;
+      
+      // Determine scroll direction
+      const scrollingUp = scrollY < lastScrollY;
+      setIsScrollingUp(scrollingUp);
+      
+      // Update scroll state with hysteresis for smooth transitions
+      if (scrollY > scrollThreshold && !isScrolled) {
+        setIsScrolled(true);
+      } else if (scrollY <= scrollThreshold * 0.7 && isScrolled) {
+        setIsScrolled(false);
+      }
+      
+      setLastScrollY(scrollY);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollState);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY, isScrolled]);
 
   const quickActionCards = [
     {
@@ -814,13 +851,13 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced Main Sticky Nav with Force Visibility */}
+      {/* Enhanced Main Sticky Nav with Shrink-on-Scroll */}
       <motion.div 
         className={cn(
           "fixed bottom-0 left-0 right-0 z-[100]",
           "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
           "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
-          "py-1",
+          "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
           // Force visibility classes with important modifiers
           "!block !visible !opacity-100",
           // Enhanced safe area support
@@ -831,31 +868,56 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           "mobile-force-visible"
         )}
         initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+        animate={{ 
+          y: 0, 
+          opacity: 1,
+          height: isScrolled ? 'auto' : 'auto',
+          paddingTop: isScrolled ? '0.125rem' : '0.25rem',
+          paddingBottom: isScrolled ? '0.125rem' : '0.25rem'
+        }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20, 
+          delay: 0.1,
+          height: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+          paddingTop: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+          paddingBottom: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+        }}
         style={{ 
           paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
-          minHeight: '64px',
+          minHeight: isScrolled ? '56px' : '64px',
           zIndex: 100,
         }}
       >
-        <div className={cn(
-          "grid gap-1 px-2 min-h-[56px] items-center",
-          vehicle ? 'grid-cols-5' : 'grid-cols-4'
-        )}>
+        <motion.div 
+          className={cn(
+            "grid gap-1 px-2 items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            vehicle ? 'grid-cols-5' : 'grid-cols-4'
+          )}
+          animate={{
+            minHeight: isScrolled ? '48px' : '56px'
+          }}
+          transition={{
+            duration: 0.7,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+        >
           <NavItem 
-            icon={<Car className="h-5 w-5" />}
+            icon={<Car className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
             label="Models"
             to="#"
             onClick={() => handleSectionToggle("models")}
             isActive={activeItem === "models" || activeSection === "models"}
+            isScrolled={isScrolled}
           />
           <NavItem 
-            icon={<ShoppingBag className="h-5 w-5" />}
+            icon={<ShoppingBag className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
             label="Pre-Owned"
             to="#"
             onClick={() => handleSectionToggle("pre-owned")}
             isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+            isScrolled={isScrolled}
           />
           
           {/* Vehicle Actions Item (only shown on vehicle detail pages) */}
@@ -865,7 +927,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 <div className="relative">
                   <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
                   <div className="relative bg-red-500 rounded-full p-2">
-                    <Bolt className="h-4 w-4 text-white animate-pulse" fill="white" strokeWidth={0} />
+                    <Bolt className={cn("text-white animate-pulse transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-3 w-3" : "h-4 w-4")} fill="white" strokeWidth={0} />
                   </div>
                 </div>
               }
@@ -873,24 +935,27 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               to="#"
               onClick={() => setIsActionsExpanded(!isActionsExpanded)}
               isActive={isActionsExpanded}
+              isScrolled={isScrolled}
             />
           )}
 
           <NavItem 
-            icon={<Search className="h-5 w-5" />}
+            icon={<Search className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
             label="Search"
             to="#"
             onClick={() => handleSectionToggle("search")}
             isActive={activeItem === "search" || activeSection === "search"}
+            isScrolled={isScrolled}
           />
           <NavItem 
-            icon={<Menu className="h-5 w-5 text-red-500" />}
+            icon={<Menu className={cn("h-5 w-5 text-red-500 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled && "h-4 w-4")} />}
             label="Menu"
             to="#"
             onClick={toggleMenu}
             isActive={isMenuOpen}
+            isScrolled={isScrolled}
           />
-        </div>
+        </motion.div>
       </motion.div>
     </>
   );
@@ -903,20 +968,31 @@ interface NavItemProps {
   isActive?: boolean;
   onClick?: () => void;
   badge?: number;
+  isScrolled?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, badge }) => {
+const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, badge, isScrolled = false }) => {
   const content = (
     <>
-      <div className="flex flex-col items-center justify-center relative min-h-[44px] w-full">
+      <div className="flex flex-col items-center justify-center relative w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+           style={{ minHeight: isScrolled ? '40px' : '44px' }}>
         <motion.div 
           className={cn(
-            "p-2 rounded-xl transition-all relative touch-target",
-            "min-w-[44px] min-h-[44px] flex items-center justify-center",
+            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            "flex items-center justify-center",
             isActive 
               ? "text-toyota-red bg-red-50 dark:bg-red-950 scale-110" 
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           )}
+          animate={{
+            minWidth: isScrolled ? '36px' : '44px',
+            minHeight: isScrolled ? '36px' : '44px',
+            padding: isScrolled ? '6px' : '8px'
+          }}
+          transition={{
+            duration: 0.7,
+            ease: [0.16, 1, 0.3, 1]
+          }}
           whileHover={{ scale: isActive ? 1.1 : 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -932,22 +1008,42 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
             </motion.div>
           )}
         </motion.div>
-        <span className={cn(
-          "text-xs text-center transition-all font-medium mt-1 leading-tight",
-          isActive 
-            ? "text-toyota-red" 
-            : "text-gray-500 dark:text-gray-400"
-        )}>
-          {label}
-        </span>
+        <AnimatePresence mode="wait">
+          {!isScrolled && (
+            <motion.span 
+              className={cn(
+                "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                isActive 
+                  ? "text-toyota-red" 
+                  : "text-gray-500 dark:text-gray-400"
+              )}
+              initial={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ 
+                duration: 0.5,
+                ease: [0.16, 1, 0.3, 1]
+              }}
+            >
+              {label}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
       {isActive && (
         <motion.div
           layoutId="navIndicator"
           className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-toyota-red rounded-full"
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1,
+            y: isScrolled ? -2 : -4
+          }}
+          transition={{ 
+            duration: 0.3,
+            y: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+          }}
         />
       )}
     </>
@@ -957,8 +1053,11 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
     return (
       <button 
         onClick={onClick} 
-        className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
-        style={{ WebkitTapHighlightColor: 'transparent' }}
+        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{ 
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: isScrolled ? '48px' : '56px'
+        }}
       >
         {content}
       </button>
@@ -968,8 +1067,11 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, on
   return (
     <Link 
       to={to} 
-      className="relative flex items-center justify-center px-1 py-2 touch-target min-h-[56px]"
-      style={{ WebkitTapHighlightColor: 'transparent' }}
+      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{ 
+        WebkitTapHighlightColor: 'transparent',
+        minHeight: isScrolled ? '48px' : '56px'
+      }}
     >
       {content}
     </Link>

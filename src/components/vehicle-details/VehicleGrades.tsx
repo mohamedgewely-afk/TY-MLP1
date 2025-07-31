@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +42,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
       price: vehicle.price,
       badge: "Base",
       icon: <Star className="h-6 w-6" />,
-      color: "from-blue-500 to-blue-600",
+      color: "from-gray-600 to-gray-700", // Toyota conservative gray
       features: [
         "Toyota Safety Sense 3.0",
         "8-inch Touchscreen",
@@ -63,7 +64,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
       price: vehicle.price + 15000,
       badge: "Popular",
       icon: <Zap className="h-6 w-6" />,
-      color: "from-emerald-500 to-emerald-600",
+      color: "from-red-600 to-red-700", // Toyota signature red
       popular: true,
       features: [
         "All LE Features",
@@ -87,7 +88,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
       price: vehicle.price + 25000,
       badge: "Premium",
       icon: <Crown className="h-6 w-6" />,
-      color: "from-purple-500 to-purple-600",
+      color: "from-gray-800 to-gray-900", // Toyota luxury black
       features: [
         "All XLE Features",
         "Leather-trimmed Seats",
@@ -131,7 +132,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
   };
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-muted/30 to-background">
+    <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-red-50/30 to-background">
       <div className="toyota-container">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -141,7 +142,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
         >
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-6">
             Choose Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700">
               Grade
             </span>
           </h2>
@@ -157,7 +158,11 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                 setCompareMode(!compareMode);
                 setSelectedForCompare([]);
               }}
-              className="flex items-center space-x-2"
+              className={`flex items-center space-x-2 ${
+                compareMode 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'border-red-200 text-red-600 hover:bg-red-50'
+              }`}
             >
               <ArrowUpDown className="h-4 w-4" />
               <span>{compareMode ? "Exit Compare" : "Compare Grades"}</span>
@@ -168,16 +173,16 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
         {!compareMode ? (
           /* Grade Selection View - Enhanced with Swipe */
           <div className="space-y-8">
-            {/* Grade Tabs */}
+            {/* Grade Tabs with Toyota colors */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               {grades.map((grade, index) => (
                 <motion.button
                   key={grade.id}
                   onClick={() => setSelectedGrade(index)}
-                  className={`relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  className={`relative px-6 py-3 rounded-xl font-semibold transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     selectedGrade === index
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ? "bg-red-600 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -187,7 +192,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                     <span>{grade.name}</span>
                   </div>
                   {grade.popular && (
-                    <Badge className="absolute -top-2 -right-2 bg-orange-500 text-xs">
+                    <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs">
                       Popular
                     </Badge>
                   )}
@@ -195,7 +200,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
               ))}
             </div>
 
-            {/* Selected Grade Details - With Swipe Support */}
+            {/* Selected Grade Details - With Swipe Support and Toyota styling */}
             <div 
               ref={swipeableRef} 
               className="touch-manipulation select-none overflow-hidden"
@@ -209,7 +214,10 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                   initial={{ opacity: 0, x: 100 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ 
+                    duration: 0.5,
+                    ease: [0.16, 1, 0.3, 1] // Cinematic timing curve
+                  }}
                   className="grid lg:grid-cols-2 gap-8 lg:gap-12"
                 >
                   {/* Image */}
@@ -231,19 +239,19 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                       <h3 className="text-2xl lg:text-3xl font-bold mb-2">
                         {vehicle.name} {grades[selectedGrade].name}
                       </h3>
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-2xl font-bold text-red-600">
                         From AED {grades[selectedGrade].price.toLocaleString()}
                       </p>
                     </div>
 
-                    {/* Specs */}
+                    {/* Specs with Toyota styling */}
                     <div className="grid grid-cols-2 gap-4">
                       {Object.entries(grades[selectedGrade].specs).map(([key, value]) => (
-                        <div key={key} className="bg-muted rounded-lg p-3">
-                          <div className="text-sm text-muted-foreground capitalize">
+                        <div key={key} className="bg-red-50 border border-red-100 rounded-lg p-3">
+                          <div className="text-sm text-red-600/70 capitalize">
                             {key.replace(/([A-Z])/g, ' $1')}
                           </div>
-                          <div className="font-semibold">{value}</div>
+                          <div className="font-semibold text-red-900">{value}</div>
                         </div>
                       ))}
                     </div>
@@ -257,22 +265,26 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                             key={feature}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
+                            transition={{ 
+                              delay: idx * 0.1,
+                              duration: 0.4,
+                              ease: [0.16, 1, 0.3, 1]
+                            }}
                             className="flex items-center space-x-3"
                           >
-                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
                             <span className="text-sm">{feature}</span>
                           </motion.div>
                         ))}
                       </div>
                     </div>
 
-                    {/* CTA */}
+                    {/* CTA with Toyota styling */}
                     <div className="flex space-x-4 pt-4">
-                      <Button size="lg" className="flex-1">
+                      <Button size="lg" className="flex-1 bg-red-600 hover:bg-red-700 text-white">
                         Configure {grades[selectedGrade].name}
                       </Button>
-                      <Button variant="outline" size="lg">
+                      <Button variant="outline" size="lg" className="border-red-200 text-red-600 hover:bg-red-50">
                         Test Drive
                       </Button>
                     </div>
@@ -280,26 +292,26 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                 </motion.div>
               </AnimatePresence>
 
-              {/* Enhanced Mobile Swipe Indicator */}
+              {/* Enhanced Mobile Swipe Indicator with Toyota styling */}
               <div className="flex justify-center mt-6 md:hidden">
-                <div className="flex items-center space-x-2 bg-muted rounded-full px-4 py-2">
+                <div className="flex items-center space-x-2 bg-red-50 border border-red-100 rounded-full px-4 py-2">
                   <div className="flex space-x-2">
                     {grades.map((_, index) => (
                       <div
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index === selectedGrade ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                        className={`w-2 h-2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          index === selectedGrade ? 'bg-red-600 w-6' : 'bg-red-300'
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-xs text-muted-foreground ml-3">Swipe horizontally to navigate</span>
+                  <span className="text-xs text-red-600/70 ml-3">Swipe horizontally to navigate</span>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          /* Compare Mode */
+          /* Compare Mode with Toyota styling */
           <div className="space-y-6">
             <div className="text-center">
               <p className="text-muted-foreground">
@@ -312,12 +324,12 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                 <motion.div
                   key={grade.id}
                   whileHover={{ scale: 1.02 }}
-                  className={`relative cursor-pointer ${
-                    selectedForCompare.includes(index) ? "ring-2 ring-primary" : ""
+                  className={`relative cursor-pointer transition-all duration-300 ${
+                    selectedForCompare.includes(index) ? "ring-2 ring-red-500" : ""
                   }`}
                   onClick={() => toggleCompareSelection(index)}
                 >
-                  <Card className="h-full">
+                  <Card className="h-full border-red-100 hover:border-red-200">
                     <CardContent className="p-6">
                       <div className="text-center space-y-4">
                         <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${grade.color} flex items-center justify-center text-white`}>
@@ -325,14 +337,14 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                         </div>
                         <div>
                           <h3 className="font-bold text-xl">{grade.name}</h3>
-                          <p className="text-primary font-semibold">
+                          <p className="text-red-600 font-semibold">
                             AED {grade.price.toLocaleString()}
                           </p>
                         </div>
                         <div className="space-y-2 text-left">
                           {grade.features.slice(0, 3).map((feature) => (
                             <div key={feature} className="flex items-center space-x-2 text-sm">
-                              <Check className="h-3 w-3 text-green-500" />
+                              <Check className="h-3 w-3 text-green-600" />
                               <span>{feature}</span>
                             </div>
                           ))}
@@ -340,7 +352,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
                       </div>
                       
                       {selectedForCompare.includes(index) && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
                           <Check className="h-4 w-4 text-white" />
                         </div>
                       )}
@@ -352,7 +364,7 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
 
             {selectedForCompare.length > 1 && (
               <div className="text-center">
-                <Button size="lg" className="px-8">
+                <Button size="lg" className="px-8 bg-red-600 hover:bg-red-700 text-white">
                   Compare Selected Grades ({selectedForCompare.length})
                 </Button>
               </div>

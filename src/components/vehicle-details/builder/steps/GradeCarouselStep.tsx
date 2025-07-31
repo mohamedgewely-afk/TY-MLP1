@@ -38,7 +38,8 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         { icon: <Star className="h-4 w-4" />, title: "Quality", desc: "Toyota reliability standard" }
       ],
       features: ["Manual A/C", "Fabric Seats", "Basic Audio", "Standard Safety"],
-      highlight: "Great Value"
+      highlight: "Great Value",
+      toyotaColor: "from-slate-600 to-slate-700" // Toyota conservative gray
     },
     {
       name: "SE",
@@ -51,7 +52,8 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         { icon: <Star className="h-4 w-4" />, title: "Premium Audio", desc: "6-speaker sound system" }
       ],
       features: ["Sport Seats", "Enhanced Audio", "Sport Suspension", "Alloy Wheels"],
-      highlight: "Sport Package"
+      highlight: "Sport Package",
+      toyotaColor: "from-gray-700 to-gray-800" // Toyota dark metallic
     },
     {
       name: "XLE",
@@ -64,7 +66,8 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         { icon: <Shield className="h-4 w-4" />, title: "Enhanced Safety", desc: "Additional safety tech" }
       ],
       features: ["Leather Seats", "Dual-Zone Climate", "Premium Audio", "Advanced Safety"],
-      highlight: "Most Popular"
+      highlight: "Most Popular",
+      toyotaColor: "from-red-600 to-red-700" // Toyota signature red
     },
     {
       name: "Limited",
@@ -77,7 +80,8 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         { icon: <Shield className="h-4 w-4" />, title: "Complete Safety", desc: "All available safety features" }
       ],
       features: ["Premium Leather", "Panoramic Sunroof", "JBL Audio", "Full Safety Suite"],
-      highlight: "Ultimate Luxury"
+      highlight: "Ultimate Luxury",
+      toyotaColor: "from-gray-800 to-gray-900" // Toyota luxury black
     },
     {
       name: "Platinum",
@@ -90,7 +94,8 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         { icon: <Shield className="h-4 w-4" />, title: "Premium Care", desc: "Extended warranty & service" }
       ],
       features: ["Platinum Interior", "Advanced Driver Assist", "Premium JBL Audio", "Exclusive Styling"],
-      highlight: "Top of the Line"
+      highlight: "Top of the Line",
+      toyotaColor: "from-zinc-700 to-zinc-800" // Toyota platinum metallic
     }
   ];
 
@@ -146,28 +151,38 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.16, 1, 0.3, 1] // Cinematic timing curve
+              }}
             >
-              <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5">
+              <Card className="overflow-hidden border-2 border-red-200 bg-gradient-to-br from-white to-red-50">
                 <CardContent className="p-0">
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>{currentGrade.name}</h4>
-                      <Badge className="bg-white/20 text-white border-white/30 text-xs">
-                        {currentGrade.highlight}
-                      </Badge>
-                    </div>
-                    <p className="text-white/90 text-xs">{currentGrade.description}</p>
+                  {/* Header with Toyota colors */}
+                  <div className={`bg-gradient-to-r ${currentGrade.toyotaColor} text-white p-3 relative overflow-hidden`}>
+                    {/* Toyota-inspired subtle pattern overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/10" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12" />
                     
-                    {/* Pricing */}
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
-                            {currentGrade.price > 0 ? `+AED ${currentGrade.price.toLocaleString()}` : "Included"}
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>{currentGrade.name}</h4>
+                        <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                          {currentGrade.highlight}
+                        </Badge>
+                      </div>
+                      <p className="text-white/90 text-xs">{currentGrade.description}</p>
+                      
+                      {/* Pricing */}
+                      <div className="mt-2 pt-2 border-t border-white/20">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                              {currentGrade.price > 0 ? `+AED ${currentGrade.price.toLocaleString()}` : "Included"}
+                            </div>
+                            <div className="text-white/80 text-xs">Starting from AED {currentGrade.monthlyEMI}/month</div>
                           </div>
-                          <div className="text-white/80 text-xs">Starting from AED {currentGrade.monthlyEMI}/month</div>
                         </div>
                       </div>
                     </div>
@@ -180,13 +195,13 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                       <div className="mb-3">
                         <button
                           onClick={() => setIsKeyBenefitsOpen(!isKeyBenefitsOpen)}
-                          className="flex items-center justify-between w-full p-2 bg-muted/30 rounded-lg"
+                          className="flex items-center justify-between w-full p-2 bg-red-50 rounded-lg border border-red-100"
                         >
                           <h5 className="font-bold text-foreground text-sm">Key Benefits</h5>
                           {isKeyBenefitsOpen ? (
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp className="h-4 w-4 text-red-600" />
                           ) : (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-4 w-4 text-red-600" />
                           )}
                         </button>
                         
@@ -196,16 +211,19 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
+                              transition={{ 
+                                duration: 0.4,
+                                ease: [0.16, 1, 0.3, 1]
+                              }}
                               className="overflow-hidden"
                             >
                               <div className="grid grid-cols-1 gap-2 mt-2">
                                 {currentGrade.usps.map((usp, index) => (
                                   <div
                                     key={usp.title}
-                                    className="flex items-start space-x-2 p-2 bg-muted/20 rounded-lg"
+                                    className="flex items-start space-x-2 p-2 bg-white rounded-lg border border-red-100"
                                   >
-                                    <div className="p-1 bg-primary/10 rounded-lg text-primary">
+                                    <div className="p-1 bg-red-100 rounded-lg text-red-600">
                                       {usp.icon}
                                     </div>
                                     <div className="flex-1">
@@ -228,10 +246,14 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                               key={usp.title}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg"
+                              transition={{ 
+                                delay: index * 0.1,
+                                duration: 0.4,
+                                ease: [0.16, 1, 0.3, 1]
+                              }}
+                              className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-100"
                             >
-                              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                              <div className="p-2 bg-red-100 rounded-lg text-red-600">
                                 {usp.icon}
                               </div>
                               <div className="flex-1">
@@ -249,19 +271,19 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                     <div className={`grid gap-1 mb-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                       {currentGrade.features.map((feature) => (
                         <div key={feature} className="flex items-center space-x-2 text-xs">
-                          <Check className="h-3 w-3 text-green-500" />
+                          <Check className="h-3 w-3 text-green-600" />
                           <span>{feature}</span>
                         </div>
                       ))}
                     </div>
 
-                    {/* Select Button */}
+                    {/* Select Button with Toyota styling */}
                     <Button
                       onClick={selectCurrentGrade}
-                      className={`w-full text-xs ${
+                      className={`w-full text-xs transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                         config.grade === currentGrade.name
-                          ? 'bg-green-500 hover:bg-green-600'
-                          : 'bg-primary hover:bg-primary/90'
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-red-600 hover:bg-red-700 text-white'
                       }`}
                       size="sm"
                     >
@@ -275,14 +297,16 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
           </AnimatePresence>
         </div>
 
-        {/* Indicators */}
+        {/* Enhanced Indicators with Toyota styling */}
         <div className="flex justify-center space-x-1 mt-3">
           {grades.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentGradeIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentGradeIndex ? 'bg-primary w-4' : 'bg-muted-foreground/30'
+              className={`rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                index === currentGradeIndex 
+                  ? 'bg-red-600 w-6 h-2' 
+                  : 'bg-gray-300 w-2 h-2 hover:bg-red-300'
               }`}
             />
           ))}
