@@ -515,17 +515,18 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             )}
                           </AnimatePresence>
                           <motion.img
-                            src={currentGrade.image}
-                            alt={`${currentGrade.name} Grade`}
-                            className={`w-full object-cover object-center transition-opacity duration-500 ${
-                              isMobile ? 'h-80' : 'h-64 lg:h-96'
-                            } ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-                            loading="lazy"
-                            onLoad={() => setImageLoading(false)}
-                            onError={() => setImageLoading(false)}
-                            initial={{ scale: 1.1 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+                             src={currentGrade.image}
+  alt={`${currentGrade.name} Grade`}
+  className={`mx-auto max-w-full transition-opacity duration-500 ${
+    isMobile ? 'h-auto max-h-80' : 'h-auto max-h-[30rem] lg:max-h-[36rem]'
+  } ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+  style={{ objectFit: "contain", objectPosition: "center" }}
+  loading="lazy"
+  onLoad={() => setImageLoading(false)}
+  onError={() => setImageLoading(false)}
+  initial={{ scale: 1.05 }}
+  animate={{ scale: 1 }}
+  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
                           />
                         </div>
 
