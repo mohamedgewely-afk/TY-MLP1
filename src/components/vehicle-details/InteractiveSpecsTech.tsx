@@ -491,29 +491,42 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       {/* Enhanced Content */}
                       <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
                         {/* Professional Loading State */}
-                        <div className={`mb-6 rounded-xl overflow-hidden relative ${
-                          isMobile ? 'w-full' : ''
-                        }`}>
-                          <AnimatePresence>
-                            {imageLoading && (
-                              <motion.div 
-                                initial={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
-                                  isMobile ? 'h-80' : 'h-64 lg:h-96'
-                                }`}
-                              >
-                                <div className="text-center">
-                                  <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
-                                  />
-                                  <div className="text-muted-foreground font-medium">Loading premium experience...</div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                        {/* ✅ Fixed: Image Loader without Flash */}
+<div className="relative mb-6 rounded-xl overflow-hidden bg-black shadow-xl">
+  {/* Car Image */}
+  <motion.img
+    src={currentGrade.image}
+    alt={`${currentGrade.name} Grade`}
+    className={`mx-auto w-full transition-opacity duration-500 ${
+      imageLoading ? 'opacity-0' : 'opacity-100'
+    } ${isMobile ? 'max-h-80' : 'max-h-[30rem] lg:max-h-[36rem]'}`}
+    style={{ objectFit: 'contain', objectPosition: 'center' }}
+    loading="lazy"
+    onLoad={() => setImageLoading(false)}
+    onError={() => setImageLoading(false)}
+    initial={{ scale: 1.05 }}
+    animate={{ scale: 1 }}
+    transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+  />
+
+  {/* Loader Overlay */}
+  <AnimatePresence>
+    {imageLoading && (
+      <motion.div
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center"
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+          className="w-8 h-8 border-4 border-white/20 border-t-transparent rounded-full"
+        />
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
                           <motion.img
                              src={currentGrade.image}
   alt={`${currentGrade.name} Grade`}
@@ -650,22 +663,22 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
             {/* Enhanced Mobile Swipe Indicator */}
             {isMobile && (
-  <motion.div 
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 1 }}
-    className="flex justify-center mt-6"
-  >
-    <div className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur text-white shadow-sm">
-      <motion.div
-        animate={{ x: [0, 5, -5, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="w-2 h-2 rounded-full bg-primary"
-      />
-      <span className="text-xs font-medium opacity-80">Swipe to explore grades</span>
-    </div>
-  </motion.div>
-)}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="flex justify-center mt-6"
+              >
+                <div className={`flex items-center space-x-2 bg-gradient-to-r ${currentEngineData.brandColor} bg-opacity-10 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/20`}>
+                  <motion.div
+                    animate={{ x: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 bg-primary rounded-full"
+                  />
+                  <span className="text-xs text-muted-foreground font-medium">Swipe to explore grades</span>
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       </div>
