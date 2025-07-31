@@ -68,16 +68,16 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const { toast } = useToast();
 
   const engines = [
-    {
-      name: "2.5L Hybrid",
-      power: "218 HP",
-      torque: "221 lb-ft", 
-      efficiency: "25.2 km/L",
-      description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: "from-black-600 via-black-800 to-black-900", // BMW-inspired
-      accentColor: "bg-black-500",
-      icon: <Zap className="h-5 w-5" />,
-      grades: [
+  {
+    name: "2.5L Hybrid",
+    power: "218 HP",
+    torque: "221 lb-ft", 
+    efficiency: "25.2 km/L",
+    description: "Advanced hybrid powertrain with seamless electric assist",
+    brandColor: "from-neutral-900 via-neutral-800 to-neutral-700", // Matte black gradient
+    accentColor: "bg-neutral-900", // Solid matte black
+    icon: <Zap className="h-5 w-5" />,
+    grades: [
         {
           name: "Hybrid SE",
           fullPrice: 94900,
