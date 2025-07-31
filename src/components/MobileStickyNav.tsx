@@ -1,9 +1,8 @@
+
 import React from "react";
 import { Home, Search, Plus, User, Car } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import CompareBanner from "./CompareBanner";
-import CompareModal from "./CompareModal";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
@@ -11,31 +10,17 @@ import { useScrollDirection } from "@/hooks/use-scroll-direction";
 const MobileStickyNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
-  const [showCompareBanner, setShowCompareBanner] = useState(false);
 
   const navItems = [
     { name: "Home", icon: Home, path: "/" },
     { name: "Search", icon: Search, path: "/search" },
-    { name: "Compare", icon: Car, path: "#" },
+    { name: "Compare", icon: Car, path: "/compare" },
     { name: "Add", icon: Plus, path: "/add" },
     { name: "Account", icon: User, path: "/account" },
   ];
 
-  useEffect(() => {
-    // Check if the current path is the compare page
-    if (location.pathname === "/compare") {
-      setShowCompareBanner(false);
-    }
-  }, [location.pathname]);
-
   const handleNavigation = (item: { name: string; path: string }) => {
-    if (item.name === "Compare") {
-      setIsCompareModalOpen(true);
-      setShowCompareBanner(false);
-    } else {
-      navigate(item.path);
-    }
+    navigate(item.path);
   };
 
   const isActive = (item: { name: string; path: string }) => {
@@ -110,17 +95,7 @@ const MobileStickyNav = () => {
             </motion.button>
           ))}
         </div>
-        
-        {showCompareBanner && (
-          <CompareBanner setShowCompareBanner={setShowCompareBanner} />
-        )}
       </motion.div>
-      
-      <CompareModal
-        isOpen={isCompareModalOpen}
-        onClose={() => setIsCompareModalOpen(false)}
-        setShowCompareBanner={setShowCompareBanner}
-      />
     </div>
   );
 };
