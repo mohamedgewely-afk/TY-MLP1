@@ -328,7 +328,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     selectedEngine === engine.name ? 'opacity-10' : ''
                   }`} />
                   
-                  <CardContent className={`relative z-10 ${isMobile ? 'p-3' : 'p-4'}`}>
+                  <CardContent className={`relative z-10 ${isMobile ? 'p-4' : 'p-6'}`}>
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <div className={`w-8 h-8 rounded-lg ${engine.accentColor} flex items-center justify-center text-white shadow-md`}>
@@ -447,7 +447,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   exit="exit"
                   className="w-full"
                 >
-                  <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-white via-white to-muted/10 backdrop-blur-sm">
+                  <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-white via-white to-muted/10 backdrop-blur-sm max-w-5xl mx-auto">
                     <CardContent className="p-0max-h-[calc(100vh-10rem)] overflow-y-auto"> 
                       {/* Luxury Header with Premium Gradient */}
                       <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6 lg:p-8'}`}>
