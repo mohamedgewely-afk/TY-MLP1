@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { MessageCircle, Phone } from "lucide-react";
+import { MessageCircle, Phone, Globe } from "lucide-react";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -43,63 +43,73 @@ const Header: React.FC = () => {
   if (isMobile) {
     return (
       <motion.header 
-        className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40"
+        className="bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-100/50 sticky top-0 z-40"
         initial={{ y: -100 }}
         animate={{ y: isVisible ? 0 : -100 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-5 py-3.5">
           {/* Left - Toyota Logo */}
           <motion.div
             className="flex items-center cursor-pointer"
             onClick={() => navigate("/")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="w-8 h-8 flex items-center justify-center">
+            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm">
               <img 
                 src="https://dam.alfuttaim.com/wps/wcm/connect/a4d697d5-b0c5-4f79-a410-8266625f6b1f/brand-toyota-toyota-mark-black.svg?MOD=AJPERES&CACHEID=ROOTWORKSPACE-a4d697d5-b0c5-4f79-a410-8266625f6b1f-p5aTs4r&mformat=true"
                 alt="Toyota Logo"
-                className="w-6 h-6 object-contain"
+                className="w-7 h-7 object-contain"
               />
             </div>
           </motion.div>
 
-          {/* Center - Arabic text */}
-          <div className="flex-1 text-center">
-            <span className="text-sm font-medium text-gray-700">عربي</span>
-          </div>
-
-          {/* Right - Action buttons */}
-          <div className="flex items-center space-x-2">
+          {/* Right - Action buttons with luxury glass morphism design */}
+          <div className="flex items-center space-x-3">
             {/* WhatsApp Button */}
             <motion.button
               onClick={() => window.open('https://wa.me/971XXXXXXX', '_blank')}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              whileHover={{ scale: 1.05 }}
+              className="relative p-3 rounded-2xl bg-gradient-to-br from-green-50 to-green-100/70 border border-green-200/30 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300"
+              whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <MessageCircle className="h-5 w-5 text-green-600" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+              <MessageCircle className="h-5 w-5 text-green-600 relative z-10" />
             </motion.button>
 
             {/* Phone Button */}
             <motion.button
               onClick={() => window.open('tel:+971XXXXXXX', '_self')}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              whileHover={{ scale: 1.05 }}
+              className="relative p-3 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/70 border border-blue-200/30 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300"
+              whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Phone className="h-5 w-5 text-gray-700" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+              <Phone className="h-5 w-5 text-blue-600 relative z-10" />
             </motion.button>
 
-            {/* Enquire Button */}
+            {/* Language Switcher */}
             <motion.button
-              onClick={() => navigate("/enquire")}
-              className="bg-toyota-red text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition-colors"
-              whileHover={{ scale: 1.05 }}
+              className="relative p-3 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/70 border border-gray-200/30 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300"
+              whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
             >
-              Enquire
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+              <Globe className="h-5 w-5 text-gray-600 relative z-10" />
+            </motion.button>
+
+            {/* Enquire Button - Premium CTA */}
+            <motion.button
+              onClick={() => navigate("/enquire")}
+              className="relative bg-gradient-to-r from-toyota-red to-red-600 text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent pointer-events-none"></div>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none"></div>
+              <span className="relative z-10">Enquire</span>
             </motion.button>
           </div>
         </div>
