@@ -267,8 +267,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   };
 
   return (
-    <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="toyota-container">
+    <section className="py-16 px-4 lg:px-20 bg-gradient-to-br from-black via-neutral-900 to-black text-white">
+  <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -279,10 +279,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
-          <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
-            Choose Your Configuration
+          <h2 className="text-4xl lg:text-5xl font-serif font-semibold tracking-tight mt-4 mb-2">
+  Choose Your Configuration
+</h2>
+
           </h2>
-          <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Start by selecting your preferred engine, then explore the available grades.
           </p>
         </motion.div>
