@@ -275,8 +275,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <Badge className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground border-0 mb-4 shadow-lg">
-            <Sparkles className="h-4 w-4 mr-2" />
+          <Badge className="bg-gradient-to-r from-yellow-300 via-yellow-100 to-white/10 text-black text-xs font-medium uppercase tracking-wide shadow-md backdrop-blur-sm border border-white/20">
+  <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
@@ -588,29 +588,29 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           </div>
                         </div>
 
-                        {/* 🔘 Enhanced Action Buttons */}
-<div className={`grid gap-4 mt-10 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-  <Button
-    onClick={() => handleDownloadSpec(currentGrade.name)}
-    variant="outline"
-    className="w-full border-2 border-muted bg-white/30 backdrop-blur-md hover:bg-white/50 hover:shadow-lg text-foreground transition-all duration-300"
-    size={isMobile ? "default" : "lg"}
-    style={{ minHeight: '48px' }}
-  >
-    <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-    Download Spec Sheet
-  </Button>
-
-  <Button
-    onClick={() => handleConfigure(currentGrade.name)}
-    className={`w-full bg-gradient-to-r ${currentEngineData.brandColor} hover:shadow-xl text-white font-semibold border-0`}
-    size={isMobile ? "default" : "lg"}
-    style={{ minHeight: '48px' }}
-  >
-    <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-    Configure This Grade
-  </Button>
-</div>
+                        {/* Enhanced Action Buttons */}
+                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                          <Button
+                            onClick={() => handleDownloadSpec(currentGrade.name)}
+                            variant="outline"
+                            className="w-full border-2 hover:shadow-lg transition-all duration-300"
+                            size={isMobile ? "default" : "lg"}
+                            style={{ minHeight: '44px' }}
+                          >
+                            <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                            Download Spec Sheet
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleConfigure(currentGrade.name)}
+                            className={`w-full bg-gradient-to-r ${currentEngineData.brandColor} hover:shadow-xl transition-all duration-300 border-0`}
+                            size={isMobile ? "default" : "lg"}
+                            style={{ minHeight: '44px' }}
+                          >
+                            <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                            Configure This Grade
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
