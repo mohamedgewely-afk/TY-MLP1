@@ -530,93 +530,87 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           />
                         </div>
 
-                       <div className={`grid gap-8 mt-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-  {/* ✨ Key Features */}
-  <motion.div
-    initial={{ opacity: 0, x: -10 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.6 }}
-  >
-    <h5 className={`font-bold text-foreground mb-4 flex items-center ${isMobile ? 'text-base' : 'text-lg'}`}>
-      <div className={`w-2 h-2 rounded-full ${currentEngineData.accentColor} mr-2`} />
-      Key Features
-    </h5>
-    <div className="space-y-3">
-      {currentGrade.features.map((feature, idx) => (
-        <motion.div 
-          key={feature} 
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 * idx }}
-          className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all duration-300"
-        >
-          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-          <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>{feature}</span>
-        </motion.div>
-      ))}
-    </div>
-  </motion.div>
+                        <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                          {/* Enhanced Key Features */}
+                          <div>
+                            <h5 className={`font-bold text-foreground mb-4 flex items-center ${isMobile ? 'text-base' : 'text-lg'}`}>
+                              <div className={`w-2 h-2 rounded-full ${currentEngineData.accentColor} mr-2`} />
+                              Key Features
+                            </h5>
+                            <div className="space-y-3">
+                              {currentGrade.features.map((feature, idx) => (
+                                <motion.div 
+                                  key={feature} 
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: 0.1 * idx, ease: [0.25, 0.1, 0.25, 1.0] }}
+                                  className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all duration-300"
+                                >
+                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>{feature}</span>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
 
-  {/* ⚙️ Full Specifications */}
-  <motion.div
-    initial={{ opacity: 0, x: 10 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.6 }}
-  >
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="specifications" className="border-0">
-        <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:no-underline`}>
-          <div className="flex items-center space-x-2">
-            <Settings className="h-5 w-5" />
-            <span>Full Specifications</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
-            {Object.entries(currentGrade.specs).map(([key, value], idx) => (
-              <motion.div 
-                key={key} 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * idx }}
-                className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-muted/20 to-transparent"
-              >
-                <span className="text-muted-foreground capitalize font-medium">
-                  {key.replace(/([A-Z])/g, ' $1')}
-                </span>
-                <span className="font-bold text-foreground">{value}</span>
-              </motion.div>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </motion.div>
-</div>
-
-                        {/* Enhanced Action Buttons */}
-                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          <Button
-                            onClick={() => handleDownloadSpec(currentGrade.name)}
-                            variant="outline"
-                            className="w-full border-2 hover:shadow-lg transition-all duration-300"
-                            size={isMobile ? "default" : "lg"}
-                            style={{ minHeight: '44px' }}
-                          >
-                            <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Download Spec Sheet
-                          </Button>
-                          
-                          <Button
-                            onClick={() => handleConfigure(currentGrade.name)}
-                            className={`w-full bg-gradient-to-r ${currentEngineData.brandColor} hover:shadow-xl transition-all duration-300 border-0`}
-                            size={isMobile ? "default" : "lg"}
-                            style={{ minHeight: '44px' }}
-                          >
-                            <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Configure This Grade
-                          </Button>
+                          {/* Enhanced Specifications */}
+                          <div>
+                            <Accordion type="single" collapsible className="w-full">
+                              <AccordionItem value="specifications" className="border-0">
+                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:no-underline`}>
+                                  <div className="flex items-center space-x-2">
+                                    <Settings className="h-5 w-5" />
+                                    <span>Full Specifications</span>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
+                                    <div className="space-y-4">
+                                      {Object.entries(currentGrade.specs).map(([key, value], idx) => (
+                                        <motion.div 
+                                          key={key} 
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          transition={{ delay: 0.1 * idx }}
+                                          className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-muted/20 to-transparent"
+                                        >
+                                          <span className="text-muted-foreground capitalize font-medium">
+                                            {key.replace(/([A-Z])/g, ' $1')}
+                                          </span>
+                                          <span className="font-bold text-foreground">{value}</span>
+                                        </motion.div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </div>
                         </div>
+
+                        {/* 🔘 Enhanced Action Buttons */}
+<div className={`grid gap-4 mt-10 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+  <Button
+    onClick={() => handleDownloadSpec(currentGrade.name)}
+    variant="outline"
+    className="w-full border-2 border-muted bg-white/30 backdrop-blur-md hover:bg-white/50 hover:shadow-lg text-foreground transition-all duration-300"
+    size={isMobile ? "default" : "lg"}
+    style={{ minHeight: '48px' }}
+  >
+    <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+    Download Spec Sheet
+  </Button>
+
+  <Button
+    onClick={() => handleConfigure(currentGrade.name)}
+    className={`w-full bg-gradient-to-r ${currentEngineData.brandColor} hover:shadow-xl text-white font-semibold border-0`}
+    size={isMobile ? "default" : "lg"}
+    style={{ minHeight: '48px' }}
+  >
+    <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+    Configure This Grade
+  </Button>
+</div>
                       </div>
                     </CardContent>
                   </Card>
