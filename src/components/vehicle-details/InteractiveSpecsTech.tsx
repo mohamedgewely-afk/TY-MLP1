@@ -448,7 +448,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   className="w-full"
                 >
                   <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-white via-white to-muted/10 backdrop-blur-sm">
-                    <CardContent className="p-0">
+                    <CardContent className="p-0max-h-[calc(100vh-10rem)] overflow-y-auto"> 
                       {/* Luxury Header with Premium Gradient */}
                       <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6 lg:p-8'}`}>
                         {/* Animated background pattern */}
