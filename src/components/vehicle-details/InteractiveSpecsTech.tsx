@@ -267,22 +267,24 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   };
 
   return (
-    <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="toyota-container">
+    <section className="py-16 px-4 lg:px-20 bg-gradient-to-br from-black via-neutral-900 to-black text-white">
+  <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <Badge className="bg-gradient-to-r from-yellow-300 via-yellow-100 to-white/10 text-black text-xs font-medium uppercase tracking-wide shadow-xl border-0">
+          <Badge className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground border-0 mb-4 shadow-lg">
             <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
-          <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
-            Choose Your Configuration
+          <h2 className="text-4xl lg:text-5xl font-serif font-semibold tracking-tight mt-4 mb-2">
+  Choose Your Configuration
+</h2>
+
           </h2>
-          <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Start by selecting your preferred engine, then explore the available grades.
           </p>
         </motion.div>
@@ -315,12 +317,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 style={{ minHeight: '44px' }} // Minimum touch target
               >
                 <Card 
-                  <Card 
-  className={`relative cursor-pointer h-full backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] ${
-    selectedEngine === engine.name
-      ? 'border-2 border-primary shadow-2xl ring-4 ring-primary/30 bg-white/10'
-      : 'border border-white/10 bg-white/5 hover:shadow-md'
-  }`}
+                  className={`cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] h-full relative overflow-hidden ${
+                    selectedEngine === engine.name
+                      ? 'border-2 border-primary shadow-xl ring-4 ring-primary/20'
+                      : 'border border-border hover:border-primary/50 hover:shadow-lg'
+                  }`}
                   onClick={() => handleEngineChange(engine.name)}
                   style={{ minHeight: '44px' }} // Ensure minimum touch target
                 >
