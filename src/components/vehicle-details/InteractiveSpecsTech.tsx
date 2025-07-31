@@ -490,104 +490,109 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
                       {/* Enhanced Content */}
                       <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
-                        {/* ✨ Premium Car Image Section with Glassmorphism */}
-<div className={`mb-6 relative overflow-hidden rounded-2xl bg-black shadow-xl`}>
-  <AnimatePresence>
-    {imageLoading && (
-      <motion.div 
-        initial={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
-          isMobile ? 'h-80' : 'h-64 lg:h-96'
-        }`}
-      >
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"
-          />
-          <div className="text-muted-foreground font-medium">
-            Loading premium experience...
-          </div>
-        </div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-
-  <motion.img
-    src={currentGrade.image}
-    alt={`${currentGrade.name} Grade`}
-    className={`mx-auto w-full transition-opacity duration-500 ${
-      imageLoading ? 'opacity-0' : 'opacity-100'
-    } ${isMobile ? 'max-h-80' : 'max-h-[30rem] lg:max-h-[36rem]'} object-contain`}
-    loading="lazy"
-    onLoad={() => setImageLoading(false)}
-    onError={() => setImageLoading(false)}
-    initial={{ scale: 1.05 }}
-    animate={{ scale: 1 }}
-    transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
-  />
-</div>
-
-
-                        <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          {/* Enhanced Key Features */}
-                          <div>
-                            <h5 className={`font-bold text-foreground mb-4 flex items-center ${isMobile ? 'text-base' : 'text-lg'}`}>
-                              <div className={`w-2 h-2 rounded-full ${currentEngineData.accentColor} mr-2`} />
-                              Key Features
-                            </h5>
-                            <div className="space-y-3">
-                              {currentGrade.features.map((feature, idx) => (
-                                <motion.div 
-                                  key={feature} 
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.1 * idx, ease: [0.25, 0.1, 0.25, 1.0] }}
-                                  className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all duration-300"
-                                >
-                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>{feature}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Enhanced Specifications */}
-                          <div>
-                            <Accordion type="single" collapsible className="w-full">
-                              <AccordionItem value="specifications" className="border-0">
-                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:no-underline`}>
-                                  <div className="flex items-center space-x-2">
-                                    <Settings className="h-5 w-5" />
-                                    <span>Full Specifications</span>
-                                  </div>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
-                                    <div className="space-y-4">
-                                      {Object.entries(currentGrade.specs).map(([key, value], idx) => (
-                                        <motion.div 
-                                          key={key} 
-                                          initial={{ opacity: 0, y: 10 }}
-                                          animate={{ opacity: 1, y: 0 }}
-                                          transition={{ delay: 0.1 * idx }}
-                                          className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-muted/20 to-transparent"
-                                        >
-                                          <span className="text-muted-foreground capitalize font-medium">
-                                            {key.replace(/([A-Z])/g, ' $1')}
-                                          </span>
-                                          <span className="font-bold text-foreground">{value}</span>
-                                        </motion.div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
-                            </Accordion>
-                          </div>
+                        {/* Professional Loading State */}
+                        <div className={`mb-6 rounded-xl overflow-hidden relative ${
+                          isMobile ? 'w-full' : ''
+                        }`}>
+                          <AnimatePresence>
+                            {imageLoading && (
+                              <motion.div 
+                                initial={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
+                                  isMobile ? 'h-80' : 'h-64 lg:h-96'
+                                }`}
+                              >
+                                <div className="text-center">
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                    className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
+                                  />
+                                  <div className="text-muted-foreground font-medium">Loading premium experience...</div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                          <motion.img
+                             src={currentGrade.image}
+  alt={`${currentGrade.name} Grade`}
+  className={`mx-auto max-w-full transition-opacity duration-500 ${
+    isMobile ? 'h-auto max-h-80' : 'h-auto max-h-[30rem] lg:max-h-[36rem]'
+  } ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+  style={{ objectFit: "contain", objectPosition: "center" }}
+  loading="lazy"
+  onLoad={() => setImageLoading(false)}
+  onError={() => setImageLoading(false)}
+  initial={{ scale: 1.05 }}
+  animate={{ scale: 1 }}
+  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+                          />
                         </div>
+
+                       <div className={`grid gap-8 mt-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+  {/* ✨ Key Features */}
+  <motion.div
+    initial={{ opacity: 0, x: -10 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.6 }}
+  >
+    <h5 className={`font-bold text-foreground mb-4 flex items-center ${isMobile ? 'text-base' : 'text-lg'}`}>
+      <div className={`w-2 h-2 rounded-full ${currentEngineData.accentColor} mr-2`} />
+      Key Features
+    </h5>
+    <div className="space-y-3">
+      {currentGrade.features.map((feature, idx) => (
+        <motion.div 
+          key={feature} 
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 * idx }}
+          className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all duration-300"
+        >
+          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+          <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>{feature}</span>
+        </motion.div>
+      ))}
+    </div>
+  </motion.div>
+
+  {/* ⚙️ Full Specifications */}
+  <motion.div
+    initial={{ opacity: 0, x: 10 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.6 }}
+  >
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="specifications" className="border-0">
+        <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:no-underline`}>
+          <div className="flex items-center space-x-2">
+            <Settings className="h-5 w-5" />
+            <span>Full Specifications</span>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
+            {Object.entries(currentGrade.specs).map(([key, value], idx) => (
+              <motion.div 
+                key={key} 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * idx }}
+                className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-muted/20 to-transparent"
+              >
+                <span className="text-muted-foreground capitalize font-medium">
+                  {key.replace(/([A-Z])/g, ' $1')}
+                </span>
+                <span className="font-bold text-foreground">{value}</span>
+              </motion.div>
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  </motion.div>
+</div>
 
                         {/* Enhanced Action Buttons */}
                         <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
