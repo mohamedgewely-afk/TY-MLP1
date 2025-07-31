@@ -463,10 +463,10 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
                               {currentGrade.name}
                             </h4>
-                            <Badge className="bg-gradient-to-r from-white/20 via-white/10 to-transparent text-white text-xs font-semibold rounded-full px-3 py-1 backdrop-blur border border-white/10 shadow-sm">
-  <Sparkles className="h-3 w-3 mr-1" />
-  {currentGrade.highlight}
-</Badge>
+                            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              {currentGrade.highlight}
+                            </Badge>
                           </div>
                           <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
                             {currentGrade.description}
@@ -650,22 +650,22 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
             {/* Enhanced Mobile Swipe Indicator */}
             {isMobile && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
-                className="flex justify-center mt-6"
-              >
-                <div className={`flex items-center space-x-2 bg-gradient-to-r ${currentEngineData.brandColor} bg-opacity-10 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/20`}>
-                  <motion.div
-                    animate={{ x: [0, 5, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-2 h-2 bg-primary rounded-full"
-                  />
-                  <span className="text-xs text-muted-foreground font-medium">Swipe to explore grades</span>
-                </div>
-              </motion.div>
-            )}
+  <motion.div 
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 1 }}
+    className="flex justify-center mt-6"
+  >
+    <div className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur text-white shadow-sm">
+      <motion.div
+        animate={{ x: [0, 5, -5, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        className="w-2 h-2 rounded-full bg-primary"
+      />
+      <span className="text-xs font-medium opacity-80">Swipe to explore grades</span>
+    </div>
+  </motion.div>
+)}
           </div>
         </motion.div>
       </div>
