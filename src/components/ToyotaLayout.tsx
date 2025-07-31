@@ -3,7 +3,6 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { Toaster } from "@/components/ui/toaster";
 import MobileStickyNav from "./MobileStickyNav";
-import LanguageSwitcher from "./LanguageSwitcher";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VehicleModel } from "@/types/vehicle";
