@@ -279,9 +279,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
-          <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6">
-            Choose Your Configuration
-          </h2>
+          <h2 className="text-4xl lg:text-5xl font-serif font-semibold tracking-tight mt-4 mb-2">
+  Choose Your Configuration
+</h2>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
             Start by selecting your preferred engine, then explore the available grades.
           </p>
