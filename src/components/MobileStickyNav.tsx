@@ -1093,33 +1093,3 @@ const MobileStickyNav = () => {
 };
 
 export default MobileStickyNav;
-  if (onClick) {
-    return (
-      <button 
-        onClick={onClick} 
-        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-        style={{ 
-          WebkitTapHighlightColor: 'transparent',
-          minHeight: isScrolled ? '48px' : '56px'
-        }}
-      >
-        {content}
-      </button>
-    );
-  }
-
-  return (
-    <Link 
-      to={to} 
-      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-      style={{ 
-        WebkitTapHighlightColor: 'transparent',
-        minHeight: isScrolled ? '48px' : '56px'
-      }}
-    >
-      {content}
-    </Link>
-  );
-};
-
-export default MobileStickyNav;
