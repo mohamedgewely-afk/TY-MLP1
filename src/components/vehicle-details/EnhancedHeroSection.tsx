@@ -1,23 +1,14 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { VehicleModel } from "@/types/vehicle";
-import { 
-  Calendar, 
-  Shield, 
-  Award,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-  Settings,
-  Play,
-  Pause
-} from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import YouTubeEmbed from "@/components/ui/youtube-embed";
-import AnimatedCounter from "@/components/ui/animated-counter";
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform, useInView } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Heart, Share2, Car, Settings, Play, Pause, Volume2, VolumeX, Sparkles, Calendar, Fuel, Shield, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { VehicleModel } from '@/types/vehicle';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
+import { glassStyles, premiumAnimations, createGlassVariant } from '@/utils/glassUtils';
+import { typography, formatPremiumNumber } from '@/utils/typography';
 
 interface EnhancedHeroSectionProps {
   vehicle: VehicleModel;
@@ -40,36 +31,33 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [showVideo, setShowVideo] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll();
+  const { scrollYProgress } = useScroll({ target: heroRef });
+  const isInView = useInView(heroRef);
   
-  const y = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.3], [1, 1.05]);
-  
-  const heroImageRef = useRef<HTMLDivElement>(null);
-  const isHeroInView = useInView(heroImageRef);
+  // Premium parallax effects
+  const y = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  // Premium easing curve
-  const premiumEasing = [0.25, 0.1, 0.25, 1];
-  const mobileAnimationDuration = 0.3;
-  const desktopAnimationDuration = 0.5;
-
-  // Auto-rotate gallery images with enhanced timing
+  // Auto-rotation with enhanced timing
   useEffect(() => {
-    if (!isHeroInView || !isAutoPlaying || showVideo) return;
+    if (!isAutoPlaying || !isInView) return;
     
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    }, 4500); // Slightly longer for premium feel
+      setCurrentImageIndex(prev => (prev + 1) % galleryImages.length);
+    }, 6000); // Slower, more cinematic timing
     
     return () => clearInterval(interval);
-  }, [isHeroInView, galleryImages.length, isAutoPlaying, showVideo]);
+  }, [isAutoPlaying, isInView, galleryImages.length]);
 
+  // Enhanced touch handlers with momentum
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -82,306 +70,290 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
     if (!touchStart || !touchEnd) return;
     
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+    const isLeftSwipe = distance > 75; // Increased threshold for better UX
+    const isRightSwipe = distance < -75;
 
     if (isLeftSwipe) {
-      nextImage();
+      setCurrentImageIndex(prev => (prev + 1) % galleryImages.length);
     }
     if (isRightSwipe) {
-      prevImage();
+      setCurrentImageIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length);
     }
   };
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  };
-
-  const toggleAutoPlay = () => {
-    setIsAutoPlaying(!isAutoPlaying);
-  };
-
-  const toggleVideo = () => {
-    setShowVideo(!showVideo);
-    if (!showVideo) {
-      setIsAutoPlaying(false);
-    }
-  };
-
-  const isBestSeller = 
-    vehicle.name === "Toyota Camry" || 
-    vehicle.name === "Toyota Corolla Hybrid" || 
-    vehicle.name === "Toyota Land Cruiser" || 
-    vehicle.name === "Toyota RAV4 Hybrid";
-
-  const isHybrid = vehicle.name.toLowerCase().includes('hybrid');
-  const isElectric = vehicle.name.toLowerCase().includes('bz4x') || vehicle.category === 'Electric';
+  const priceInfo = formatPremiumNumber(vehicle.price);
+  const isBestSeller = vehicle.name.includes("Camry") || vehicle.name.includes("Corolla") || vehicle.name.includes("Land Cruiser") || vehicle.name.includes("RAV4");
 
   return (
-    <section ref={heroRef} className="relative h-screen overflow-hidden">
-      {/* Enhanced Full Background Media */}
-      <motion.div
-        ref={heroImageRef}
-        style={{ y, scale }}
-        className="absolute inset-0 w-full h-full"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Premium Loading Skeleton */}
-        <div className="absolute inset-0 bg-gradient-to-br from-muted/20 via-muted/10 to-muted/30 animate-pulse" />
-        
-        {/* Vehicle Images or Video with Enhanced Transitions */}
-        <AnimatePresence mode="wait">
-          {showVideo ? (
-            <motion.div
-              key="video"
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ 
-                duration: isMobile ? mobileAnimationDuration : desktopAnimationDuration, 
-                ease: premiumEasing 
-              }}
-              className="absolute inset-0 w-full h-full"
-            >
-              <YouTubeEmbed
-                videoId="xEkrrzLvya8"
-                className="w-full h-full"
-                autoplay={true}
-                muted={true}
-                controls={false}
-              />
-            </motion.div>
-          ) : (
-            <motion.img
-              key={currentImageIndex}
-              src={galleryImages[currentImageIndex]}
-              alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
-              className="absolute inset-0 w-full h-full object-cover"
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ 
-                duration: isMobile ? mobileAnimationDuration : desktopAnimationDuration, 
-                ease: premiumEasing 
-              }}
-              loading="lazy"
-              onLoad={(e) => {
-                const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
-                if (skeleton) {
-                  skeleton.style.display = 'none';
-                }
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Premium Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-      </motion.div>
-
-      {/* Enhanced Navigation Controls - Desktop Only */}
-      {!isMobile && !showVideo && (
-        <>
-          <motion.button
-            onClick={prevImage}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="absolute left-6 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-black/30 border border-white/20 hover:bg-black/50 transition-all duration-300 group"
-          >
-            <ChevronLeft className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
-          </motion.button>
-          <motion.button
-            onClick={nextImage}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="absolute right-6 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-black/30 border border-white/20 hover:bg-black/50 transition-all duration-300 group"
-          >
-            <ChevronRight className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
-          </motion.button>
-        </>
-      )}
-
-      {/* Enhanced Pause Button */}
+    <motion.section
+      ref={heroRef}
+      className="relative h-screen overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: premiumAnimations.duration.slow / 1000, ease: premiumAnimations.luxury }}
+    >
+      {/* Cinematic Background with Premium Parallax */}
       <motion.div 
-        className="absolute bottom-6 right-6 z-20"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, duration: 0.6, ease: premiumEasing }}
+        className="absolute inset-0"
+        style={{ y, scale }}
       >
-        <button
-          onClick={toggleAutoPlay}
-          className="p-3 rounded-full bg-black/40 border border-white/30 hover:bg-black/60 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-        >
-          {isAutoPlaying ? (
-            <Pause className="h-4 w-4 text-white" />
-          ) : (
-            <Play className="h-4 w-4 text-white" />
-          )}
-        </button>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentImageIndex}
+            className="absolute inset-0"
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ 
+              opacity: imageLoaded ? 1 : 0, 
+              scale: 1,
+              transition: { 
+                duration: premiumAnimations.duration.cinematic / 1000,
+                ease: premiumAnimations.luxury
+              }
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.95,
+              transition: { duration: premiumAnimations.duration.fast / 1000 }
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={galleryImages[currentImageIndex]}
+              alt={`${vehicle.name} - Image ${currentImageIndex + 1}`}
+              className="w-full h-full object-cover"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)}
+            />
+            
+            {/* Premium gradient overlays for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
 
-      {/* Enhanced Content Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <div className="toyota-container pb-6 md:pb-8">
-          {/* Enhanced Image Indicators */}
-          {!showVideo && (
-            <motion.div 
-              className="flex justify-center space-x-2 mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6, ease: premiumEasing }}
+      {/* Luxury Glass Morphism Content Overlay */}
+      <motion.div 
+        className="relative z-20 h-full flex flex-col"
+        style={{ opacity }}
+      >
+        {/* Premium Top Bar with Glass Morphism */}
+        <motion.div 
+          className={`${createGlassVariant('primary', 'sm')} m-4 rounded-2xl p-4`}
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: premiumAnimations.luxury }}
+        >
+          <div className="flex items-center justify-between">
+            {/* Premium badges */}
+            <div className="flex items-center space-x-2">
+              {isBestSeller && (
+                <Badge className="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white px-3 py-1 text-xs font-bold">
+                  <Award className="h-3 w-3 mr-1" />
+                  Best Seller
+                </Badge>
+              )}
+              <Badge className="bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 text-xs font-bold">
+                <Shield className="h-3 w-3 mr-1" />
+                5★ Safety
+              </Badge>
+            </div>
+
+            {/* Luxury action buttons */}
+            <div className="flex items-center space-x-2">
+              <motion.button
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onToggleFavorite}
+                className={`p-3 rounded-full ${createGlassVariant('secondary')} transition-all duration-300 ${
+                  isFavorite ? 'text-red-500' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                className={`p-3 rounded-full ${createGlassVariant('secondary')} text-white/80 hover:text-white transition-all duration-300`}
+              >
+                <Share2 className="h-5 w-5" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Premium Content Area */}
+        <div className="flex-1 flex flex-col justify-center px-4 lg:px-8">
+          <div className="toyota-container">
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: premiumAnimations.luxury }}
+              className="max-w-4xl"
             >
+              {/* Luxury Vehicle Title */}
+              <div className="mb-8">
+                <motion.div
+                  initial={{ x: -30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  className="flex items-center mb-4"
+                >
+                  <Sparkles className="h-6 w-6 text-yellow-400 mr-3" />
+                  <span className={`${typography.accent.premium} text-yellow-400`}>
+                    Premium Hybrid Technology
+                  </span>
+                </motion.div>
+                
+                <motion.h1 
+                  className={`${typography.display[1]} text-white mb-4 drop-shadow-2xl`}
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.8, ease: premiumAnimations.luxury }}
+                >
+                  {vehicle.name}
+                </motion.h1>
+                
+                <motion.p 
+                  className={`${typography.body.large} text-white/90 mb-6 drop-shadow-lg max-w-2xl`}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 1 }}
+                >
+                  Experience the perfect fusion of performance, efficiency, and luxury. 
+                  Advanced hybrid technology meets premium design in every detail.
+                </motion.p>
+              </div>
+
+              {/* Premium Pricing Display with Glass Morphism */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
+                className={`${createGlassVariant('overlay', 'lg')} rounded-2xl p-6 mb-8 max-w-lg`}
+              >
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <div className="text-white/70 text-sm font-medium mb-2 uppercase tracking-wide">
+                      Starting from
+                    </div>
+                    <div className={`${typography.heading[2]} text-white mb-1`}>
+                      {priceInfo.main}
+                    </div>
+                    <div className="text-white/60 text-sm">
+                      {priceInfo.full}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-white/70 text-sm font-medium mb-2 uppercase tracking-wide">
+                      Monthly from
+                    </div>
+                    <div className={`${typography.heading[3]} text-primary mb-1`}>
+                      {priceInfo.monthly}
+                    </div>
+                    <div className="text-white/60 text-sm">
+                      60 months EMI
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Premium Action Buttons */}
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4"
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 1.4 }}
+              >
+                <motion.div whileHover={{ scale: 1.05, y: -3 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={onBookTestDrive}
+                    size="lg"
+                    className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-bold py-4 px-8 rounded-2xl shadow-2xl border-0 backdrop-blur-sm relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <Car className="h-6 w-6 mr-3 relative z-10" />
+                    <span className="relative z-10">Book Test Drive</span>
+                  </Button>
+                </motion.div>
+                
+                <motion.div whileHover={{ scale: 1.05, y: -3 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={onCarBuilder}
+                    variant="outline"
+                    size="lg"
+                    className={`${createGlassVariant('primary', 'md')} border-2 border-white/30 text-white hover:text-white hover:bg-white/20 font-bold py-4 px-8 rounded-2xl backdrop-blur-xl`}
+                  >
+                    <Settings className="h-6 w-6 mr-3" />
+                    Build & Price
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Premium Navigation Controls */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+          <motion.div 
+            className={`flex items-center space-x-6 ${createGlassVariant('primary', 'md')} rounded-full px-6 py-4`}
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.6 }}
+          >
+            {/* Image indicators */}
+            <div className="flex space-x-2">
               {galleryImages.map((_, index) => (
-                <button
+                <motion.button
                   key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`h-1.5 rounded-full transition-all duration-500 hover:scale-110 ${
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     index === currentImageIndex 
-                      ? 'bg-white w-8 shadow-lg' 
-                      : 'bg-white/50 w-1.5 hover:bg-white/70'
+                      ? 'bg-primary w-8' 
+                      : 'bg-white/40 hover:bg-white/60'
                   }`}
+                  onClick={() => setCurrentImageIndex(index)}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.8 }}
                 />
               ))}
-            </motion.div>
-          )}
-
-          {/* Enhanced Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: premiumEasing }}
-            className="flex flex-wrap gap-2 justify-center mb-4"
-          >
-            {isBestSeller && (
-              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-3 py-1.5 text-sm font-semibold shadow-lg">
-                <Award className="h-3 w-3 mr-1.5" />
-                Best Seller
-              </Badge>
-            )}
-            <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1.5 text-sm font-semibold shadow-lg">
-              <Shield className="h-3 w-3 mr-1.5" />
-              5-Star Safety
-            </Badge>
-          </motion.div>
-
-          {/* Enhanced Vehicle Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6, ease: premiumEasing }}
-            className="text-center mb-4"
-          >
-            <h1 className={`font-black text-white leading-tight tracking-tight ${
-              isMobile ? 'text-2xl' : 'text-4xl lg:text-5xl'
-            }`}>
-              {vehicle.name}
-            </h1>
-          </motion.div>
-
-          {/* Enhanced Premium Price Box */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6, ease: premiumEasing }}
-            className="bg-black/70 border border-white/20 rounded-2xl p-4 md:p-6 mb-6 max-w-md mx-auto shadow-2xl"
-          >
-            {/* Enhanced Main Pricing */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-center flex-1">
-                <div className="text-xs md:text-sm text-white/70 uppercase font-semibold tracking-wide mb-1">Starting From</div>
-                <div className={`font-black text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                  AED <AnimatedCounter value={vehicle.price} duration={2.5} />
-                </div>
-                <div className="text-xs text-white/80">*Price includes VAT</div>
-              </div>
-              
-              <div className="w-px h-12 bg-white/30 mx-3"></div>
-              
-              <div className="text-center flex-1">
-                <div className="text-xs md:text-sm text-white/70 uppercase font-semibold tracking-wide mb-1">Monthly EMI</div>
-                <div className={`font-black text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                  AED <AnimatedCounter value={monthlyEMI} duration={2} />
-                  <span className="text-sm font-normal text-white/80 ml-1">/mo</span>
-                </div>
-                <div className="text-xs text-white/80">*80% financing</div>
-              </div>
             </div>
 
-            {/* Enhanced Performance Stats */}
-            <div className="flex justify-between items-center pt-4 border-t border-white/30">
-              <div className="text-center">
-                <div className={`font-black text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  <AnimatedCounter 
-                    value={isHybrid ? 25.2 : isElectric ? 450 : 22.2} 
-                    decimals={1}
-                    duration={2}
-                  />
-                  <span className="text-sm font-normal text-white/80 ml-1">
-                    {isElectric ? "km" : "km/L"}
-                  </span>
-                </div>
-                <div className="text-xs text-white/70 tracking-wide">
-                  {isElectric ? "Range" : "Fuel Efficiency"}
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className={`font-black text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  <AnimatedCounter 
-                    value={isHybrid ? 218 : isElectric ? 201 : 203}
-                    duration={2}
-                  />
-                  <span className="text-sm font-normal text-white/80 ml-1">HP</span>
-                </div>
-                <div className="text-xs text-white/70 tracking-wide">Total Power</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Enhanced Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6, ease: premiumEasing }}
-            className="flex flex-col gap-3"
-          >
-            <Button 
-              onClick={onBookTestDrive}
-              size={isMobile ? "default" : "lg"}
-              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 text-primary-foreground font-bold px-6 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 group w-full"
-            >
-              <Calendar className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-              Book Test Drive
-              <motion.div
-                className="ml-2"
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
+            {/* Navigation buttons */}
+            <div className="flex items-center space-x-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentImageIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length)}
+                className="p-2 rounded-full text-white/80 hover:text-white transition-colors duration-300"
               >
-                <ArrowRight className="h-4 w-4" />
-              </motion.div>
-            </Button>
-            
-            <Button 
-              onClick={onCarBuilder}
-              variant="outline"
-              size={isMobile ? "default" : "lg"}
-              className="border-2 border-white/60 text-white hover:bg-white hover:text-gray-900 font-bold px-6 py-3 rounded-xl transition-all duration-300 group bg-black/20 w-full hover:scale-105"
-            >
-              <Settings className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-              Configure Your Car
-            </Button>
+                <ChevronLeft className="h-5 w-5" />
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                className="p-2 rounded-full text-white/80 hover:text-white transition-colors duration-300"
+              >
+                {isAutoPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentImageIndex(prev => (prev + 1) % galleryImages.length)}
+                className="p-2 rounded-full text-white/80 hover:text-white transition-colors duration-300"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </motion.button>
+            </div>
           </motion.div>
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 };
 
