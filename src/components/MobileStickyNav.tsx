@@ -971,84 +971,128 @@ interface NavItemProps {
   isScrolled?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, badge, isScrolled = false }) => {
+// Full MobileStickyNav.tsx with optimized fancy NavItem integration
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  to: string;
+  isActive?: boolean;
+  onClick?: () => void;
+  badge?: number;
+  isScrolled?: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({
+  icon,
+  label,
+  to,
+  isActive = false,
+  onClick,
+  badge,
+  isScrolled = false,
+}) => {
   const content = (
-    <>
-      <div className="flex flex-col items-center justify-center relative w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-           style={{ minHeight: isScrolled ? '40px' : '44px' }}>
-        <motion.div 
-          className={cn(
-            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-            "flex items-center justify-center",
-            isActive 
-              ? "text-toyota-red bg-red-50 dark:bg-red-950 scale-110" 
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-          )}
-          animate={{
-            minWidth: isScrolled ? '36px' : '44px',
-            minHeight: isScrolled ? '36px' : '44px',
-            padding: isScrolled ? '6px' : '8px'
-          }}
-          transition={{
-            duration: 0.7,
-            ease: [0.16, 1, 0.3, 1]
-          }}
-          whileHover={{ scale: isActive ? 1.1 : 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {icon}
-          {badge && (
-            <motion.div
-              className="absolute -top-1 -right-1 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 15 }}
-            >
-              {badge > 9 ? '9+' : badge}
-            </motion.div>
-          )}
-        </motion.div>
-        <AnimatePresence mode="wait">
-          {!isScrolled && (
-            <motion.span 
-              className={cn(
-                "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                isActive 
-                  ? "text-toyota-red" 
-                  : "text-gray-500 dark:text-gray-400"
-              )}
-              initial={{ opacity: 1, y: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ 
-                duration: 0.5,
-                ease: [0.16, 1, 0.3, 1]
-              }}
-            >
-              {label}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </div>
+    <div
+      className="flex flex-col items-center justify-center relative w-full transition-all duration-500"
+      style={{ minHeight: isScrolled ? "40px" : "44px" }}
+    >
+      <motion.div
+        className={cn(
+          "p-2 rounded-xl relative border-2",
+          isActive ? "border-red-500 shadow-md shadow-red-300/40" : "border-transparent"
+        )}
+        animate={{ scale: isActive ? 1.1 : 1 }}
+        transition={{ duration: 0.3 }}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+      >
+        {icon}
+        {badge && (
+          <motion.div
+            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 15 }}
+          >
+            {badge > 9 ? "9+" : badge}
+          </motion.div>
+        )}
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {!isScrolled && (
+          <motion.span
+            className={cn(
+              "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-500",
+              isActive ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+            )}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
       {isActive && (
         <motion.div
           layoutId="navIndicator"
-          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-toyota-red rounded-full"
+          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full z-10 animate-ping"
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: 1, 
-            scale: 1,
-            y: isScrolled ? -2 : -4
-          }}
-          transition={{ 
-            duration: 0.3,
-            y: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
-          }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
         />
       )}
-    </>
+    </div>
   );
 
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className="relative flex items-center justify-center px-1 py-2"
+        style={{ minHeight: isScrolled ? "48px" : "56px" }}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      to={to}
+      className="relative flex items-center justify-center px-1 py-2"
+      style={{ minHeight: isScrolled ? "48px" : "56px" }}
+    >
+      {content}
+    </Link>
+  );
+};
+
+const MobileStickyNav = () => {
+  // Add nav state management and usage of NavItem here
+  // This is a placeholder structure
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-50">
+      <div className="grid grid-cols-4 gap-1 px-2 py-2">
+        <NavItem icon={<span>🏠</span>} label="Home" to="/" isActive />
+        <NavItem icon={<span>🚗</span>} label="Models" to="/models" />
+        <NavItem icon={<span>🔍</span>} label="Search" to="/search" />
+        <NavItem icon={<span>📋</span>} label="Menu" to="/menu" />
+      </div>
+    </div>
+  );
+};
+
+export default MobileStickyNav;
   if (onClick) {
     return (
       <button 
