@@ -11,7 +11,7 @@ const useFlyInAnimation = () => {
 
   React.useEffect(() => {
     if (ref.current) {
-      ref.current.classList.add("animate-flyin-comparison");
+      ref.current.classList.add("animate-fade-in");
     }
   }, []);
 
@@ -39,43 +39,70 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     {
       title: "Pricing",
       items: [
-        { label: "Vehicle Price", getValue: (v: VehicleModel) => `AED ${v.price.toLocaleString()}` },
-        { label: "Cash Price", getValue: (v: VehicleModel) => `AED ${(v.price * 0.93).toLocaleString()}` },
+        { 
+          label: "Vehicle Price", 
+          getValue: (v: VehicleModel) => `AED ${v.price.toLocaleString()}`,
+          highlight: true
+        },
+        { 
+          label: "Cash Price", 
+          getValue: (v: VehicleModel) => `AED ${(v.price * 0.93).toLocaleString()}`,
+          subtext: "7% discount"
+        },
       ]
     },
     {
-      title: "Specifications",
+      title: "Performance Specifications",
       items: [
-        { label: "Engine", getValue: (v: VehicleModel) => v.specifications?.engine || v.features[0] || "N/A" },
+        { 
+          label: "Engine", 
+          getValue: (v: VehicleModel) => v.specifications?.engine || v.features[0] || "N/A",
+          icon: "⚡"
+        },
         {
-          label: "Power",
+          label: "Power Output",
           getValue: (v: VehicleModel) =>
             (v.specifications && "power" in v.specifications && v.specifications.power)
               ? (v.specifications as any).power
-              : "308 hp"
+              : "218 HP",
+          icon: "🔋"
         },
         {
-          label: "Range",
+          label: "Driving Range",
           getValue: (v: VehicleModel) =>
             (v.specifications && "range" in v.specifications && v.specifications.range)
               ? (v.specifications as any).range
-              : "482 km"
+              : "550 km",
+          icon: "🛣️"
         },
         {
           label: "Acceleration",
           getValue: (v: VehicleModel) =>
             (v.specifications && "acceleration" in v.specifications && v.specifications.acceleration)
               ? (v.specifications as any).acceleration
-              : "0-100 km/h in 4.5s"
+              : "0-100 km/h in 8.1s",
+          icon: "🚀"
         },
       ]
     },
     {
-      title: "Features",
+      title: "Premium Features",
       items: [
-        { label: "Seats", getValue: (v: VehicleModel) => v.features[1] || "Leather seats" },
-        { label: "Safety", getValue: (v: VehicleModel) => v.features[2] || "Advanced safety features" },
-        { label: "Technology", getValue: (v: VehicleModel) => v.features[3] || "Smart technology package" },
+        { 
+          label: "Seating & Comfort", 
+          getValue: (v: VehicleModel) => v.features[1] || "Premium leather seats with heating",
+          icon: "🪑"
+        },
+        { 
+          label: "Safety Systems", 
+          getValue: (v: VehicleModel) => v.features[2] || "Toyota Safety Sense 3.0",
+          icon: "🛡️"
+        },
+        { 
+          label: "Technology Suite", 
+          getValue: (v: VehicleModel) => v.features[3] || "12.3\" infotainment with wireless connectivity",
+          icon: "📱"
+        },
       ]
     }
   ];
