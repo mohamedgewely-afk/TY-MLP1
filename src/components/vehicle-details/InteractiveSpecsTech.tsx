@@ -4,14 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { 
-  Gauge, 
-  Fuel, 
-  Shield, 
-  Zap, 
-  Car, 
-  Settings, 
   ChevronLeft,
   ChevronRight,
   Check,
@@ -20,14 +13,14 @@ import {
   Sparkles,
   ArrowUpDown,
   X,
-  Plus,
-  Minus
+  Zap,
+  Gauge
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useToast } from "@/hooks/use-toast";
-import { useSwipeable } from "@/hooks/use-swipeable";
+import GradeComparisonModal from "./GradeComparisonModal";
 
 interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
@@ -66,15 +59,13 @@ const luxuryVariants = {
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
-  const [selectedGrades, setSelectedGrades] = useState<number[]>([0]);
-  const [comparisonMode, setComparisonMode] = useState(false);
+  const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [imageLoading, setImageLoading] = useState<Record<number, boolean>>({});
   const isMobile = useIsMobile();
   const { deviceCategory } = useDeviceInfo();
   const { toast } = useToast();
-
-  // Determine max grades based on device
-  const maxGrades = ['smallMobile', 'standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 2 : 3;
 
   const engines = [
     {
@@ -213,11 +204,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
   const currentEngineData = engines.find(e => e.name === selectedEngine) || engines[0];
   const currentGrades = currentEngineData.grades;
+  const currentGrade = currentGrades[currentGradeIndex];
 
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
-    setSelectedGrades([0]);
-    setComparisonMode(false);
+    setCurrentGradeIndex(0);
     setImageLoading({});
     
     toast({
@@ -226,28 +217,20 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     });
   };
 
-  const handleGradeToggle = (gradeIndex: number) => {
-    if (selectedGrades.includes(gradeIndex)) {
-      setSelectedGrades(prev => prev.filter(i => i !== gradeIndex));
-    } else if (selectedGrades.length < maxGrades) {
-      setSelectedGrades(prev => [...prev, gradeIndex]);
-    } else {
-      toast({
-        title: "Maximum Reached",
-        description: `You can compare up to ${maxGrades} grades at once.`,
-      });
-    }
+  const nextGrade = () => {
+    setCurrentGradeIndex((prev) => (prev + 1) % currentGrades.length);
   };
 
-  const handleComparisonModeToggle = () => {
-    if (selectedGrades.length < 2) {
-      toast({
-        title: "Select More Grades",
-        description: "Please select at least 2 grades to compare.",
-      });
-      return;
-    }
-    setComparisonMode(!comparisonMode);
+  const prevGrade = () => {
+    setCurrentGradeIndex((prev) => (prev - 1 + currentGrades.length) % currentGrades.length);
+  };
+
+  const selectCurrentGrade = () => {
+    setSelectedGrade(currentGrade.name);
+    toast({
+      title: "Grade Selected",
+      description: `${currentGrade.name} has been selected`,
+    });
   };
 
   const handleImageLoad = (gradeIndex: number) => {
@@ -258,150 +241,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     setImageLoading(prev => ({ ...prev, [gradeIndex]: true }));
   };
 
-  const clearComparison = () => {
-    setSelectedGrades([0]);
-    setComparisonMode(false);
-  };
-
-  const renderGradeCard = (grade: any, gradeIndex: number, isSelected: boolean) => {
-    const isLoading = imageLoading[gradeIndex];
-    
-    return (
-      <motion.div
-        key={`${selectedEngine}-${gradeIndex}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: gradeIndex * 0.1 }}
-        className={`relative ${isMobile ? 'min-w-0' : ''}`}
-      >
-        <Card className={`overflow-hidden transition-all duration-300 h-full ${
-          isSelected 
-            ? 'ring-2 ring-primary shadow-xl border-primary/50' 
-            : 'border-border hover:border-primary/30 hover:shadow-lg'
-        }`}>
-          {/* Selection Toggle */}
-          <div className="absolute top-3 right-3 z-20">
-            <Button
-              size="sm"
-              variant={isSelected ? "default" : "outline"}
-              className={`rounded-full p-2 transition-all duration-300 ${
-                isSelected 
-                  ? 'bg-primary text-primary-foreground shadow-lg' 
-                  : 'bg-white/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground'
-              }`}
-              onClick={() => handleGradeToggle(gradeIndex)}
-              style={{ minWidth: '44px', minHeight: '44px' }}
-            >
-              {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            </Button>
-          </div>
-
-          {/* Grade Header */}
-          <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6'}`}>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  {grade.name}
-                </h4>
-                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {grade.highlight}
-                </Badge>
-              </div>
-              <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                {grade.description}
-              </p>
-              
-              <div className="pt-3 border-t border-white/20">
-                <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                  AED {grade.fullPrice.toLocaleString()}
-                </div>
-                <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                  From AED {grade.monthlyEMI}/month
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <CardContent className="p-0">
-            {/* Grade Image */}
-            <div className={`relative overflow-hidden ${isMobile ? 'h-48' : 'h-64'}`}>
-              <AnimatePresence>
-                {isLoading && (
-                  <motion.div 
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-gradient-to-r from-muted via-muted/50 to-muted animate-pulse flex items-center justify-center"
-                  >
-                    <div className="text-center">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
-                      />
-                      <div className="text-muted-foreground font-medium">Loading...</div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              
-              <img
-                src={grade.image}
-                alt={`${grade.name} Grade`}
-                className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${
-                  isLoading ? 'opacity-0' : 'opacity-100'
-                }`}
-                loading="lazy"
-                onLoadStart={() => handleImageLoadStart(gradeIndex)}
-                onLoad={() => handleImageLoad(gradeIndex)}
-                onError={() => handleImageLoad(gradeIndex)}
-              />
-            </div>
-
-            {/* Grade Content */}
-            <div className={isMobile ? 'p-4' : 'p-6'}>
-              {/* Key Features */}
-              <div className="mb-6">
-                <h5 className={`font-bold text-foreground mb-3 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                  Key Features
-                </h5>
-                <div className="space-y-2">
-                  {grade.features.slice(0, 3).map((feature: string, idx: number) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size={isMobile ? "sm" : "default"}
-                  style={{ minHeight: '44px' }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Spec
-                </Button>
-                <Button
-                  className={`w-full bg-gradient-to-r ${currentEngineData.brandColor}`}
-                  size={isMobile ? "sm" : "default"}
-                  style={{ minHeight: '44px' }}
-                >
-                  <Wrench className="h-4 w-4 mr-2" />
-                  Configure Grade
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
+  const openComparisonModal = () => {
+    setShowComparisonModal(true);
   };
 
   return (
@@ -421,7 +262,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Choose Your Configuration
           </h2>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Select your preferred engine and compare grades side-by-side.
+            Select your preferred engine and explore grades with our interactive carousel.
           </p>
         </motion.div>
 
@@ -527,7 +368,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Selection & Comparison */}
+        {/* Step 2: Grade Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -536,80 +377,184 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
         >
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-2xl font-bold">
-              Step 2: Select & Compare Grades
+              Step 2: Choose Your Grade
             </h3>
             
-            {/* Comparison Controls */}
             <div className="flex items-center space-x-4">
-              {selectedGrades.length > 0 && (
-                <Badge variant="secondary" className="px-3 py-1">
-                  {selectedGrades.length} selected
-                </Badge>
-              )}
-              
-              {selectedGrades.length > 1 && (
-                <Button
-                  variant={comparisonMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleComparisonModeToggle}
-                  className="transition-all duration-300"
-                  style={{ minHeight: '44px' }}
-                >
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
-                  {comparisonMode ? 'Exit Compare' : 'Compare'}
-                </Button>
-              )}
-              
-              {selectedGrades.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearComparison}
-                  style={{ minHeight: '44px' }}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Clear
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openComparisonModal}
+                className="transition-all duration-300"
+                style={{ minHeight: '44px' }}
+              >
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                Compare Grades
+              </Button>
             </div>
           </div>
 
-          {/* Grade Display */}
-          <div className={`grid gap-6 ${
-            comparisonMode && selectedGrades.length > 1
-              ? (isMobile ? 'grid-cols-1' : `grid-cols-${Math.min(selectedGrades.length, maxGrades)}`)
-              : (isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3')
-          }`}>
-            {comparisonMode && selectedGrades.length > 1
-              ? selectedGrades.map(gradeIndex => 
-                  renderGradeCard(currentGrades[gradeIndex], gradeIndex, true)
-                )
-              : currentGrades.map((grade, gradeIndex) => 
-                  renderGradeCard(grade, gradeIndex, selectedGrades.includes(gradeIndex))
-                )
-            }
-          </div>
-
-          {/* Mobile Swipe Indicator */}
-          {isMobile && !comparisonMode && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="flex justify-center mt-6"
+          {/* Grade Carousel */}
+          <div className="relative max-w-2xl mx-auto">
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevGrade}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all -translate-x-4"
+              style={{ minHeight: '44px', minWidth: '44px' }}
             >
-              <div className="flex items-center space-x-2 px-4 py-2 rounded-full bg-muted/50 backdrop-blur text-muted-foreground">
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <button
+              onClick={nextGrade}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all translate-x-4"
+              style={{ minHeight: '44px', minWidth: '44px' }}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+
+            {/* Grade Card */}
+            <div className="mx-8">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  animate={{ x: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-primary"
+                  key={`${selectedEngine}-${currentGradeIndex}`}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ 
+                    duration: 0.5, 
+                    ease: [0.16, 1, 0.3, 1]
+                  }}
+                >
+                  <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5">
+                    <CardContent className="p-0">
+                      {/* Header */}
+                      <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white p-4 relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/10" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12" />
+                        
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-xl lg:text-2xl font-bold">{currentGrade.name}</h4>
+                            <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              {currentGrade.highlight}
+                            </Badge>
+                          </div>
+                          <p className="text-white/90 text-sm mb-3">{currentGrade.description}</p>
+                          
+                          <div className="pt-3 border-t border-white/20">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-2xl lg:text-3xl font-bold">
+                                  AED {currentGrade.fullPrice.toLocaleString()}
+                                </div>
+                                <div className="text-white/80 text-sm">From AED {currentGrade.monthlyEMI}/month</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Grade Image */}
+                      <div className="relative overflow-hidden h-64 lg:h-80">
+                        <img
+                          src={currentGrade.image}
+                          alt={`${currentGrade.name} Grade`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
+                          onLoad={() => handleImageLoad(currentGradeIndex)}
+                          onError={() => handleImageLoad(currentGradeIndex)}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4 lg:p-6">
+                        {/* Key Features */}
+                        <div className="mb-6">
+                          <h5 className="font-bold text-foreground mb-3">Key Features</h5>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {currentGrade.features.map((feature: string, idx: number) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                <span className="text-sm text-muted-foreground">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                          <Button
+                            onClick={selectCurrentGrade}
+                            className={`transition-all duration-300 ${
+                              selectedGrade === currentGrade.name
+                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                : `bg-gradient-to-r ${currentEngineData.brandColor}`
+                            }`}
+                            style={{ minHeight: '44px' }}
+                          >
+                            {selectedGrade === currentGrade.name ? (
+                              <>
+                                <Check className="h-4 w-4 mr-2" />
+                                Selected
+                              </>
+                            ) : (
+                              'Select Grade'
+                            )}
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            style={{ minHeight: '44px' }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Spec
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            style={{ minHeight: '44px' }}
+                          >
+                            <Wrench className="h-4 w-4 mr-2" />
+                            Configure
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center space-x-2 mt-6">
+              {currentGrades.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentGradeIndex(index)}
+                  className={`rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    index === currentGradeIndex 
+                      ? 'bg-primary w-8 h-3' 
+                      : 'bg-gray-300 w-3 h-3 hover:bg-primary/50'
+                  }`}
                 />
-                <span className="text-xs font-medium">Tap + to select grades for comparison</span>
-              </div>
-            </motion.div>
-          )}
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      {/* Grade Comparison Modal */}
+      <GradeComparisonModal
+        isOpen={showComparisonModal}
+        onClose={() => setShowComparisonModal(false)}
+        currentEngineData={currentEngineData}
+        onGradeSelect={setSelectedGrade}
+        selectedGrade={selectedGrade}
+      />
     </section>
   );
 };
