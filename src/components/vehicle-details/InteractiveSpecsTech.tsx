@@ -1,5 +1,4 @@
 
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,10 +17,15 @@ import {
   Check,
   Download,
   Wrench,
-  Sparkles
+  Sparkles,
+  ArrowUpDown,
+  X,
+  Plus,
+  Minus
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useToast } from "@/hooks/use-toast";
 import { useSwipeable } from "@/hooks/use-swipeable";
 
@@ -37,7 +41,7 @@ const luxuryVariants = {
     y: 20,
     transition: { 
       duration: 0.6, 
-      ease: [0.25, 0.1, 0.25, 1.0] // BMW-inspired timing
+      ease: [0.25, 0.1, 0.25, 1.0]
     }
   },
   center: {
@@ -55,29 +59,34 @@ const luxuryVariants = {
     y: -20,
     transition: { 
       duration: 0.4, 
-      ease: [0.77, 0, 0.175, 1] // Tesla-inspired exit
+      ease: [0.77, 0, 0.175, 1]
     }
   }
 };
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
-  const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [selectedGrades, setSelectedGrades] = useState<number[]>([0]);
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [imageLoading, setImageLoading] = useState<Record<number, boolean>>({});
   const isMobile = useIsMobile();
+  const { deviceCategory } = useDeviceInfo();
   const { toast } = useToast();
 
+  // Determine max grades based on device
+  const maxGrades = ['smallMobile', 'standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 2 : 3;
+
   const engines = [
-  {
-    name: "2.5L Hybrid",
-    power: "218 HP",
-    torque: "221 lb-ft", 
-    efficiency: "25.2 km/L",
-    description: "Advanced hybrid powertrain with seamless electric assist",
-    brandColor: "from-neutral-900 via-neutral-800 to-neutral-700", // Matte black gradient
-    accentColor: "bg-neutral-900", // Solid matte black
-    icon: <Zap className="h-5 w-5" />,
-    grades: [
+    {
+      name: "2.5L Hybrid",
+      power: "218 HP",
+      torque: "221 lb-ft", 
+      efficiency: "25.2 km/L",
+      description: "Advanced hybrid powertrain with seamless electric assist",
+      brandColor: "from-neutral-900 via-neutral-800 to-neutral-700",
+      accentColor: "bg-neutral-900",
+      icon: <Zap className="h-5 w-5" />,
+      grades: [
         {
           name: "Hybrid SE",
           fullPrice: 94900,
@@ -140,7 +149,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
       description: "Powerful V6 engine for enhanced performance",
-      brandColor: "from-red-600 via-red-500 to-orange-500", // Tesla-inspired
+      brandColor: "from-red-600 via-red-500 to-orange-500",
       accentColor: "bg-red-500",
       icon: <Gauge className="h-5 w-5" />,
       grades: [
@@ -204,29 +213,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
   const currentEngineData = engines.find(e => e.name === selectedEngine) || engines[0];
   const currentGrades = currentEngineData.grades;
-  const currentGrade = currentGrades[currentGradeIndex];
-
-  const nextGrade = () => {
-    setCurrentGradeIndex((prev) => (prev + 1) % currentGrades.length);
-    setImageLoading(true);
-  };
-
-  const prevGrade = () => {
-    setCurrentGradeIndex((prev) => (prev - 1 + currentGrades.length) % currentGrades.length);
-    setImageLoading(true);
-  };
-
-  const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: nextGrade,
-    onSwipeRight: prevGrade,
-    threshold: 50,
-    debug: false
-  });
 
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
-    setCurrentGradeIndex(0);
-    setImageLoading(true);
+    setSelectedGrades([0]);
+    setComparisonMode(false);
+    setImageLoading({});
     
     toast({
       title: "Engine Selected",
@@ -234,36 +226,182 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
     });
   };
 
-  const handleDownloadSpec = (gradeName: string) => {
-    toast({
-      title: "Preparing Download",
-      description: "Your specification sheet is being prepared...",
-    });
-    
-    setTimeout(() => {
+  const handleGradeToggle = (gradeIndex: number) => {
+    if (selectedGrades.includes(gradeIndex)) {
+      setSelectedGrades(prev => prev.filter(i => i !== gradeIndex));
+    } else if (selectedGrades.length < maxGrades) {
+      setSelectedGrades(prev => [...prev, gradeIndex]);
+    } else {
       toast({
-        title: "Download Complete",
-        description: `${gradeName} specification sheet downloaded successfully.`,
+        title: "Maximum Reached",
+        description: `You can compare up to ${maxGrades} grades at once.`,
       });
-    }, 2000);
+    }
   };
 
-  const handleConfigure = (gradeName: string) => {
-    // Dispatch custom event to open car builder with pre-filled config
-    const event = new CustomEvent('openCarBuilder', {
-      detail: {
-        step: 2, // Start at grade selection since engine is already chosen
-        config: {
-          modelYear: '2024',
-          engine: selectedEngine,
-          grade: gradeName,
-          exteriorColor: '',
-          interiorColor: '',
-          accessories: []
-        }
-      }
-    });
-    window.dispatchEvent(event);
+  const handleComparisonModeToggle = () => {
+    if (selectedGrades.length < 2) {
+      toast({
+        title: "Select More Grades",
+        description: "Please select at least 2 grades to compare.",
+      });
+      return;
+    }
+    setComparisonMode(!comparisonMode);
+  };
+
+  const handleImageLoad = (gradeIndex: number) => {
+    setImageLoading(prev => ({ ...prev, [gradeIndex]: false }));
+  };
+
+  const handleImageLoadStart = (gradeIndex: number) => {
+    setImageLoading(prev => ({ ...prev, [gradeIndex]: true }));
+  };
+
+  const clearComparison = () => {
+    setSelectedGrades([0]);
+    setComparisonMode(false);
+  };
+
+  const renderGradeCard = (grade: any, gradeIndex: number, isSelected: boolean) => {
+    const isLoading = imageLoading[gradeIndex];
+    
+    return (
+      <motion.div
+        key={`${selectedEngine}-${gradeIndex}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: gradeIndex * 0.1 }}
+        className={`relative ${isMobile ? 'min-w-0' : ''}`}
+      >
+        <Card className={`overflow-hidden transition-all duration-300 h-full ${
+          isSelected 
+            ? 'ring-2 ring-primary shadow-xl border-primary/50' 
+            : 'border-border hover:border-primary/30 hover:shadow-lg'
+        }`}>
+          {/* Selection Toggle */}
+          <div className="absolute top-3 right-3 z-20">
+            <Button
+              size="sm"
+              variant={isSelected ? "default" : "outline"}
+              className={`rounded-full p-2 transition-all duration-300 ${
+                isSelected 
+                  ? 'bg-primary text-primary-foreground shadow-lg' 
+                  : 'bg-white/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground'
+              }`}
+              onClick={() => handleGradeToggle(gradeIndex)}
+              style={{ minWidth: '44px', minHeight: '44px' }}
+            >
+              {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Grade Header */}
+          <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6'}`}>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  {grade.name}
+                </h4>
+                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {grade.highlight}
+                </Badge>
+              </div>
+              <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                {grade.description}
+              </p>
+              
+              <div className="pt-3 border-t border-white/20">
+                <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                  AED {grade.fullPrice.toLocaleString()}
+                </div>
+                <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  From AED {grade.monthlyEMI}/month
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <CardContent className="p-0">
+            {/* Grade Image */}
+            <div className={`relative overflow-hidden ${isMobile ? 'h-48' : 'h-64'}`}>
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div 
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-gradient-to-r from-muted via-muted/50 to-muted animate-pulse flex items-center justify-center"
+                  >
+                    <div className="text-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
+                      />
+                      <div className="text-muted-foreground font-medium">Loading...</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <img
+                src={grade.image}
+                alt={`${grade.name} Grade`}
+                className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${
+                  isLoading ? 'opacity-0' : 'opacity-100'
+                }`}
+                loading="lazy"
+                onLoadStart={() => handleImageLoadStart(gradeIndex)}
+                onLoad={() => handleImageLoad(gradeIndex)}
+                onError={() => handleImageLoad(gradeIndex)}
+              />
+            </div>
+
+            {/* Grade Content */}
+            <div className={isMobile ? 'p-4' : 'p-6'}>
+              {/* Key Features */}
+              <div className="mb-6">
+                <h5 className={`font-bold text-foreground mb-3 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  Key Features
+                </h5>
+                <div className="space-y-2">
+                  {grade.features.slice(0, 3).map((feature: string, idx: number) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size={isMobile ? "sm" : "default"}
+                  style={{ minHeight: '44px' }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Spec
+                </Button>
+                <Button
+                  className={`w-full bg-gradient-to-r ${currentEngineData.brandColor}`}
+                  size={isMobile ? "sm" : "default"}
+                  style={{ minHeight: '44px' }}
+                >
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Configure Grade
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
   };
 
   return (
@@ -283,11 +421,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Choose Your Configuration
           </h2>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Start by selecting your preferred engine, then explore the available grades.
+            Select your preferred engine and compare grades side-by-side.
           </p>
         </motion.div>
 
-        {/* Step 1: BMW/Tesla/Mercedes-Inspired Engine Selection */}
+        {/* Step 1: Engine Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -296,7 +434,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
         >
           <h3 className="text-2xl font-bold text-center mb-8">Step 1: Choose Your Powertrain</h3>
           
-          {/* Side-by-side layout for all screens */}
           <div className="grid grid-cols-2 gap-3 max-w-4xl mx-auto">
             {engines.map((engine, index) => (
               <motion.div
@@ -312,7 +449,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                 }}
                 whileTap={{ scale: 0.98 }}
                 className="h-full"
-                style={{ minHeight: '44px' }} // Minimum touch target
+                style={{ minHeight: '44px' }}
               >
                 <Card 
                   className={`cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] h-full relative overflow-hidden ${
@@ -321,9 +458,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       : 'border border-border hover:border-primary/50 hover:shadow-lg'
                   }`}
                   onClick={() => handleEngineChange(engine.name)}
-                  style={{ minHeight: '44px' }} // Ensure minimum touch target
+                  style={{ minHeight: '44px' }}
                 >
-                  {/* Luxury gradient background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${engine.brandColor} opacity-0 transition-opacity duration-500 ${
                     selectedEngine === engine.name ? 'opacity-10' : ''
                   }`} />
@@ -376,7 +512,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       </div>
                     )}
 
-                    {/* Mercedes-inspired selection indicator */}
                     {selectedEngine === engine.name && (
                       <motion.div
                         initial={{ width: 0 }}
@@ -392,281 +527,87 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Enhanced Cinematic Grade Selection */}
+        {/* Step 2: Grade Selection & Comparison */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-8"
         >
-          <h3 className="text-2xl font-bold text-center mb-8">
-            Step 2: Available Grades for {selectedEngine}
-          </h3>
-
-          {/* Cinematic Grade Carousel */}
-          <div className="relative">
-            {/* Enhanced Navigation Buttons */}
-            <motion.button
-              onClick={prevGrade}
-              whileHover={{ scale: 1.1, x: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-20 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border-2 border-primary/20 hover:shadow-2xl transition-all duration-300 ${
-                isMobile ? 'p-2 -translate-x-1' : 'p-3 -translate-x-3'
-              }`}
-              style={{ minWidth: '44px', minHeight: '44px' }}
-              aria-label="Previous grade"
-            >
-              <ChevronLeft className={`text-primary ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-            </motion.button>
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-bold">
+              Step 2: Select & Compare Grades
+            </h3>
             
-            <motion.button
-              onClick={nextGrade}
-              whileHover={{ scale: 1.1, x: 2 }}
-              whileTap={{ scale: 0.95 }}
-              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-20 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border-2 border-primary/20 hover:shadow-2xl transition-all duration-300 ${
-                isMobile ? 'p-2 translate-x-1' : 'p-3 translate-x-3'
-              }`}
-              style={{ minWidth: '44px', minHeight: '44px' }}
-              aria-label="Next grade"
-            >
-              <ChevronRight className={`text-primary ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-            </motion.button>
-
-            {/* Enhanced Grade Card with Advanced Swipe */}
-            <div 
-              ref={swipeableRef}
-              className={`${isMobile ? 'mx-6 touch-manipulation' : 'mx-12'}`}
-              style={{ touchAction: 'pan-y pinch-zoom' }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${selectedEngine}-${currentGradeIndex}`}
-                  variants={luxuryVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="w-full"
+            {/* Comparison Controls */}
+            <div className="flex items-center space-x-4">
+              {selectedGrades.length > 0 && (
+                <Badge variant="secondary" className="px-3 py-1">
+                  {selectedGrades.length} selected
+                </Badge>
+              )}
+              
+              {selectedGrades.length > 1 && (
+                <Button
+                  variant={comparisonMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleComparisonModeToggle}
+                  className="transition-all duration-300"
+                  style={{ minHeight: '44px' }}
                 >
-                  <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-white via-white to-muted/10 backdrop-blur-sm max-w-5xl mx-auto">
-                    <CardContent className="p-0max-h-[calc(100vh-10rem)] overflow-y-auto"> 
-                      {/* Luxury Header with Premium Gradient */}
-                      <div className={`bg-gradient-to-r ${currentEngineData.brandColor} text-white relative overflow-hidden ${isMobile ? 'p-4' : 'p-6 lg:p-8'}`}>
-                        {/* Animated background pattern */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/5" />
-                        <div className="absolute top-0 left-0 w-full h-full opacity-20" 
-                             style={{
-                               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M30 0L30 60M0 30L60 30M15 15L45 45M15 45L45 15'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                             }} />
-                        
-                        <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}`}>
-                              {currentGrade.name}
-                            </h4>
-                            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              {currentGrade.highlight}
-                            </Badge>
-                          </div>
-                          <p className={`text-white/90 mb-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                            {currentGrade.description}
-                          </p>
-                          
-                          {/* Premium Pricing Display */}
-                          <div className="pt-4 border-t border-white/20">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
-                                  AED {currentGrade.fullPrice.toLocaleString()}
-                                </div>
-                                <div className={`text-white/80 ${isMobile ? 'text-sm' : 'text-base'}`}>
-                                  Starting from AED {currentGrade.monthlyEMI}/month
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Enhanced Content */}
-                      <div className={isMobile ? 'p-4' : 'p-6 lg:p-8'}>
-                        {/* Professional Loading State */}
-                        <div className={`mb-6 rounded-xl overflow-hidden relative ${
-                          isMobile ? 'w-full' : ''
-                        }`}>
-                          <AnimatePresence>
-                            {imageLoading && (
-                              <motion.div 
-                                initial={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-10 animate-pulse flex items-center justify-center ${
-                                  isMobile ? 'h-80' : 'h-64 lg:h-96'
-                                }`}
-                              >
-                                <div className="text-center">
-                                  <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2"
-                                  />
-                                  <div className="text-muted-foreground font-medium">Loading premium experience...</div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                          <motion.img
-                             src={currentGrade.image}
-  alt={`${currentGrade.name} Grade`}
-  className={`mx-auto max-w-full transition-opacity duration-500 ${
-    isMobile ? 'h-auto max-h-80' : 'h-auto max-h-[30rem] lg:max-h-[36rem]'
-  } ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-  style={{ objectFit: "contain", objectPosition: "center" }}
-  loading="lazy"
-  onLoad={() => setImageLoading(false)}
-  onError={() => setImageLoading(false)}
-  initial={{ scale: 1.05 }}
-  animate={{ scale: 1 }}
-  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
-                          />
-                        </div>
-
-                        <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          {/* Enhanced Key Features */}
-                          <div>
-                            <h5 className={`font-bold text-foreground mb-4 flex items-center ${isMobile ? 'text-base' : 'text-lg'}`}>
-                              <div className={`w-2 h-2 rounded-full ${currentEngineData.accentColor} mr-2`} />
-                              Key Features
-                            </h5>
-                            <div className="space-y-3">
-                              {currentGrade.features.map((feature, idx) => (
-                                <motion.div 
-                                  key={feature} 
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.1 * idx, ease: [0.25, 0.1, 0.25, 1.0] }}
-                                  className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all duration-300"
-                                >
-                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>{feature}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Enhanced Specifications */}
-                          <div>
-                            <Accordion type="single" collapsible className="w-full">
-                              <AccordionItem value="specifications" className="border-0">
-                                <AccordionTrigger className={`${isMobile ? 'text-base' : 'text-lg'} font-bold hover:no-underline`}>
-                                  <div className="flex items-center space-x-2">
-                                    <Settings className="h-5 w-5" />
-                                    <span>Full Specifications</span>
-                                  </div>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  <div className={`grid grid-cols-1 gap-4 pt-4 ${isMobile ? 'text-sm' : ''}`}>
-                                    <div className="space-y-4">
-                                      {Object.entries(currentGrade.specs).map(([key, value], idx) => (
-                                        <motion.div 
-                                          key={key} 
-                                          initial={{ opacity: 0, y: 10 }}
-                                          animate={{ opacity: 1, y: 0 }}
-                                          transition={{ delay: 0.1 * idx }}
-                                          className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-muted/20 to-transparent"
-                                        >
-                                          <span className="text-muted-foreground capitalize font-medium">
-                                            {key.replace(/([A-Z])/g, ' $1')}
-                                          </span>
-                                          <span className="font-bold text-foreground">{value}</span>
-                                        </motion.div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
-                            </Accordion>
-                          </div>
-                        </div>
-
-                        {/* Enhanced Action Buttons */}
-                        <div className={`grid gap-4 mt-8 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
-                          <Button
-                            onClick={() => handleDownloadSpec(currentGrade.name)}
-                            variant="outline"
-                            className="w-full border-2 hover:shadow-lg transition-all duration-300"
-                            size={isMobile ? "default" : "lg"}
-                            style={{ minHeight: '44px' }}
-                          >
-                            <Download className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Download Spec Sheet
-                          </Button>
-                          
-                          <Button
-                            onClick={() => handleConfigure(currentGrade.name)}
-                            className={`w-full bg-gradient-to-r ${currentEngineData.brandColor} hover:shadow-xl transition-all duration-300 border-0`}
-                            size={isMobile ? "default" : "lg"}
-                            style={{ minHeight: '44px' }}
-                          >
-                            <Wrench className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                            Configure This Grade
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Enhanced Indicators */}
-            <div className="flex justify-center space-x-3 mt-8">
-              {currentGrades.map((_, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => {
-                    setCurrentGradeIndex(index);
-                    setImageLoading(true);
-                  }}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`rounded-full transition-all duration-300 ${
-                    index === currentGradeIndex 
-                      ? `bg-gradient-to-r ${currentEngineData.brandColor} w-8 h-3 shadow-lg` 
-                      : 'bg-muted-foreground/30 w-3 h-3 hover:bg-muted-foreground/50'
-                  }`}
-                  style={{ minWidth: '44px', minHeight: '44px' }}
-                  aria-label={`Go to grade ${index + 1}`}
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  {comparisonMode ? 'Exit Compare' : 'Compare'}
+                </Button>
+              )}
+              
+              {selectedGrades.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearComparison}
+                  style={{ minHeight: '44px' }}
                 >
-                  {isMobile && (
-                    <div className={`rounded-full ${
-                      index === currentGradeIndex 
-                        ? `bg-gradient-to-r ${currentEngineData.brandColor} w-6 h-2` 
-                        : 'bg-muted-foreground/30 w-2 h-2'
-                    } mx-auto`} />
-                  )}
-                </motion.button>
-              ))}
+                  <X className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+              )}
             </div>
-
-            {/* Enhanced Mobile Swipe Indicator */}
-            {isMobile && (
-  <motion.div 
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 1 }}
-    className="flex justify-center mt-6"
-  >
-    <div className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur text-white shadow-sm">
-      <motion.div
-        animate={{ x: [0, 5, -5, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="w-2 h-2 rounded-full bg-primary"
-      />
-      <span className="text-xs font-medium opacity-80">Swipe to explore grades</span>
-    </div>
-  </motion.div>
-)}
           </div>
+
+          {/* Grade Display */}
+          <div className={`grid gap-6 ${
+            comparisonMode && selectedGrades.length > 1
+              ? (isMobile ? 'grid-cols-1' : `grid-cols-${Math.min(selectedGrades.length, maxGrades)}`)
+              : (isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3')
+          }`}>
+            {comparisonMode && selectedGrades.length > 1
+              ? selectedGrades.map(gradeIndex => 
+                  renderGradeCard(currentGrades[gradeIndex], gradeIndex, true)
+                )
+              : currentGrades.map((grade, gradeIndex) => 
+                  renderGradeCard(grade, gradeIndex, selectedGrades.includes(gradeIndex))
+                )
+            }
+          </div>
+
+          {/* Mobile Swipe Indicator */}
+          {isMobile && !comparisonMode && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="flex justify-center mt-6"
+            >
+              <div className="flex items-center space-x-2 px-4 py-2 rounded-full bg-muted/50 backdrop-blur text-muted-foreground">
+                <motion.div
+                  animate={{ x: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-2 h-2 rounded-full bg-primary"
+                />
+                <span className="text-xs font-medium">Tap + to select grades for comparison</span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </section>
