@@ -303,7 +303,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`h-auto p-3 flex flex-col items-start transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-[#9E1B32]' 
+                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
                   : 'hover:border-red-300'
               }`}
               disabled={selectedGrades.length >= 2 && !selectedGrades.includes(index)}
@@ -404,9 +404,9 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     </Badge>
                   )}
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-red-600" />
+                    <ChevronUp className="h-4 w-4 text-[#9E1B32]" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-red-600" />
+                    <ChevronDown className="h-4 w-4 text-[#9E1B32]" />
                   )}
                 </div>
               </button>
@@ -453,7 +453,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                                     {hasDiff && (
                                       <ComparisonIcon className={`h-3 w-3 ${
                                         comparison === 'better' ? 'text-green-600' :
-                                        comparison === 'worse' ? 'text-red-600' :
+                                        comparison === 'worse' ? 'text-[#9E1B32]' :
                                         'text-gray-500'
                                       }`} />
                                     )}
@@ -513,7 +513,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-[#9E1B32]' 
+                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
                   : 'hover:border-red-300'
               }`}
             >
@@ -564,7 +564,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       {/* Price with red accent */}
                       <div className="mb-4 p-2 bg-red-50 rounded-lg border border-gray-200">
                         <div className="font-bold text-xl text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
-                        <div className="text-sm text-red-600">From AED {grade.monthlyEMI}/month</div>
+                        <div className="text-sm text-[#9E1B32]">From AED {grade.monthlyEMI}/month</div>
                       </div>
 
                       {/* Updated Action Buttons */}
@@ -645,7 +645,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                             {hasDiff && (
                               <ComparisonIcon className={`h-3 w-3 ${
                                 comparison === 'better' ? 'text-green-600' :
-                                comparison === 'worse' ? 'text-red-600' :
+                                comparison === 'worse' ? 'text-[#9E1B32]' :
                                 'text-gray-500'
                               }`} />
                             )}
@@ -678,11 +678,11 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
         <DialogHeader className="border-b border-gray-200 pb-4">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-red-600" />
+              <Sparkles className="h-5 w-5 text-[#9E1B32]" />
               <span className="text-gray-900 dark:text-white">Compare {currentEngineData.name} Grades</span>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-red-50">
-              <X className="h-4 w-4 text-red-600" />
+              <X className="h-4 w-4 text-[#9E1B32]" />
             </Button>
           </DialogTitle>
         </DialogHeader>
