@@ -354,26 +354,26 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     </div>
                     
                     {/* Updated Action Buttons */}
-                    <div className="grid grid-cols-2 gap-1 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
-                        onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
-                      >
-                        <Car className="h-3 w-3 mr-1" />
-                        Test Drive
-                      </Button>
-                      
-                      <Button
-                        size="sm"
-                        className="text-xs bg-red-600 hover:bg-red-700"
-                        onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
-                      >
-                        <Wrench className="h-3 w-3 mr-1" />
-                        Configure
-                      </Button>
-                    </div>
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-2 w-full">
+  <Button
+    size="sm"
+    variant="outline"
+    className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50 flex items-center justify-center"
+    onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+  >
+    <Car className="h-3 w-3 mr-1" />
+    Test Drive
+  </Button>
+
+  <Button
+    size="sm"
+    className="text-xs bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
+    onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+  >
+    <Wrench className="h-3 w-3 mr-1" />
+    Configure
+  </Button>
+</div>
                   </div>
                 </CardContent>
               </Card>
@@ -394,12 +394,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             <Card key={section.id} className="overflow-hidden border border-gray-200">
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full p-3 flex items-center justify-between bg-muted/30 border-b hover:bg-muted/40 transition-colors"
+                className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
               >
                 <h3 className="font-bold text-sm text-left text-gray-900 dark:text-white">{section.title}</h3>
                 <div className="flex items-center gap-2">
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
                       {filteredItems.length} differences
                     </Badge>
                   )}
@@ -606,10 +606,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
+                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
                   {section.title}
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
                       {filteredItems.length} differences
                     </Badge>
                   )}
@@ -620,7 +620,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                   const values = selectedGrades.map(i => item.getValue(grades[i]));
                   
                   return (
-                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-muted/50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
+                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-red-50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
                       <div className={`font-medium ${hasDiff ? 'text-red-700' : 'text-foreground'} flex items-center gap-1`}>
                         {item.label}
                         {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
@@ -638,8 +638,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                               ? comparison === 'better'
                                 ? 'font-semibold text-green-700 bg-green-50 p-2 rounded'
                                 : comparison === 'worse'
-                                ? 'font-semibold text-red-700 bg-muted/50 p-2 rounded'
-                                : 'font-semibold text-red-700 bg-muted/50 p-2 rounded'
+                                ? 'font-semibold text-red-700 bg-red-50 p-2 rounded'
+                                : 'font-semibold text-red-700 bg-red-50 p-2 rounded'
                               : 'text-muted-foreground'
                           }`}>
                             {hasDiff && (
@@ -664,7 +664,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Download Comparison */}
       <div className="flex justify-center pt-6 border-t border-gray-300 dark:border-zinc-700">
-        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-muted/50">
+        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
           <Download className="h-4 w-4 mr-2" />
           Download Comparison PDF
         </Button>
