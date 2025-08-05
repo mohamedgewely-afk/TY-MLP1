@@ -46,7 +46,7 @@ const defaultMedia: MediaItem[] = [
   { 
     type: "video", 
     url: "https://www.youtube.com/watch?v=hZ004GL6bss",
-    thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=1200&q=80",
+    thumbnail: "https://i.ytimg.com/an_webp/GhcLRrSUP3c/mqdefault_6s.webp?du=3000&sqp=CO6Hx8QG&rs=AOn4CLCCLTlrdBG45b3BYvSq4PL73AD_Ow",
     title: "Dynamic Demo",
     description: "See the hybrid system in action"
   },
