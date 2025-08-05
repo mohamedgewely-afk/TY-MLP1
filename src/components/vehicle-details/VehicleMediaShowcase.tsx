@@ -21,38 +21,38 @@ interface MediaItem {
 const defaultMedia: MediaItem[] = [
   { 
     type: "image", 
-    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/hero/camry-24-hero-desktop-d.jpg",
+    url: "https://content.presspage.com/uploads/1523/800_18lc300.jpg?10000",
     title: "Exterior Profile",
     description: "Aerodynamic design meets premium styling"
   },
   { 
     type: "image", 
-    url: "https://www.toyota.com/content/dam/toyota/vehicles/2024/camry/images/desktop/gallery/camry-24-gallery-desktop-a.jpg",
+    url: "https://content.presspage.com/uploads/1523/800_24lc300.jpg?10000",
     title: "Interior Luxury",
     description: "Sophisticated cabin with premium materials"
   },
   { 
     type: "image", 
-    url: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80",
+    url: "https://content.presspage.com/uploads/1523/800_20lc300.jpg?10000",
     title: "Technology Hub",
     description: "Advanced infotainment and connectivity"
   },
   { 
     type: "image", 
-    url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
+    url: "https://content.presspage.com/uploads/1523/800_9lc300.jpg?10000",
     title: "Hybrid Performance",
     description: "Efficient power delivery system"
   },
   { 
     type: "video", 
-    url: "https://www.w3schools.com/html/mov_bbb.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=1200&q=80",
+    url: "https://www.youtube.com/watch?v=hZ004GL6bss",
+    thumbnail: "https://content.presspage.com/uploads/1523/800_8lc300.jpg?10000",
     title: "Dynamic Demo",
     description: "See the hybrid system in action"
   },
   { 
     type: "360", 
-    url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=1200&q=80",
+    url: "https://www.youtube.com/watch?v=RpR5hSHKWYE",
     title: "360° View",
     description: "Interactive exterior exploration"
   },
