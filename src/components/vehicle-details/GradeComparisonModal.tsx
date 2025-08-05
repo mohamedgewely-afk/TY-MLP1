@@ -20,7 +20,11 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
-  ArrowUpDown
+  ArrowUpDown,
+  Car,
+  TrendingUp,
+  TrendingDown,
+  Equal
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -36,6 +40,39 @@ interface GradeComparisonModalProps {
 const hasDifferences = (getValue: (grade: any) => string, grades: any[]) => {
   const values = grades.map(getValue);
   return new Set(values).size > 1;
+};
+
+// Helper function to determine if a value is better (higher price, better performance, etc.)
+const getValueComparison = (currentValue: string, allValues: string[], itemLabel: string) => {
+  if (!hasDifferences(() => currentValue, allValues.map(v => ({ getValue: () => v })))) {
+    return 'equal';
+  }
+  
+  // For prices, higher is typically "worse" from consumer perspective
+  if (itemLabel.toLowerCase().includes('price') || itemLabel.toLowerCase().includes('emi')) {
+    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
+    const minValue = Math.min(...numericValues);
+    return currentNumeric === minValue ? 'better' : 'worse';
+  }
+  
+  // For performance metrics (acceleration - lower is better)
+  if (itemLabel.toLowerCase().includes('acceleration')) {
+    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
+    const minValue = Math.min(...numericValues);
+    return currentNumeric === minValue ? 'better' : 'worse';
+  }
+  
+  // For efficiency, higher is typically better
+  if (itemLabel.toLowerCase().includes('economy') || itemLabel.toLowerCase().includes('efficiency')) {
+    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
+    const maxValue = Math.max(...numericValues);
+    return currentNumeric === maxValue ? 'better' : 'worse';
+  }
+  
+  return 'different';
 };
 
 const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
@@ -70,11 +107,11 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
     );
   };
 
-  // Comprehensive comparison sections
+  // Comprehensive comparison sections with Toyota red styling
   const comparisonSections = [
     {
       id: 'pricing',
-      title: "Pricing",
+      title: "Pricing & Value",
       items: [
         { 
           label: "Base Price", 
@@ -89,6 +126,11 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
         { 
           label: "Insurance (Annual)", 
           getValue: (grade: any) => `AED ${Math.round(grade.fullPrice * 0.035).toLocaleString()}`,
+          isHighlightable: true
+        },
+        { 
+          label: "Value Score", 
+          getValue: (grade: any) => grade.name === "SE" ? "★★★★☆" : grade.name === "XLE" ? "★★★★★" : "★★★☆☆",
           isHighlightable: true
         }
       ]
@@ -142,30 +184,40 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           label: "Tank Capacity", 
           getValue: (grade: any) => grade.specs.tankCapacity || "50L",
           isHighlightable: false
+        },
+        { 
+          label: "Annual Fuel Cost", 
+          getValue: (grade: any) => "AED 3,200",
+          isHighlightable: false
         }
       ]
     },
     {
       id: 'comfort',
-      title: "Comfort & Convenience",
+      title: "Comfort & Interior",
       items: [
         { 
-          label: "Seating", 
-          getValue: (grade: any) => grade.name === "Base" ? "Fabric Seats" : 
-                                   grade.name === "SE" ? "Sport Fabric" : "Premium Leather",
+          label: "Seating Material", 
+          getValue: (grade: any) => grade.name === "SE" ? "Sport Fabric" : 
+                                   grade.name === "XLE" ? "SofTex Leatherette" : "Premium Leather",
           isHighlightable: true
         },
         { 
           label: "Climate Control", 
-          getValue: (grade: any) => grade.name === "Base" ? "Manual A/C" : 
-                                   grade.name === "SE" ? "Auto A/C" : "Dual-Zone Climate",
+          getValue: (grade: any) => grade.name === "SE" ? "Manual A/C" : 
+                                   grade.name === "XLE" ? "Auto A/C" : "Dual-Zone Climate",
           isHighlightable: true
         },
         { 
           label: "Infotainment", 
-          getValue: (grade: any) => grade.name === "Base" ? "7-inch Display" : 
-                                   grade.name === "SE" ? "8-inch Touch" : "10-inch Premium",
+          getValue: (grade: any) => grade.name === "SE" ? "8-inch Display" : 
+                                   grade.name === "XLE" ? "9-inch Touch" : "10-inch Premium",
           isHighlightable: true
+        },
+        { 
+          label: "Seating Configuration", 
+          getValue: (grade: any) => "5 Seats",
+          isHighlightable: false
         }
       ]
     },
@@ -175,30 +227,35 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       items: [
         { 
           label: "Airbags", 
-          getValue: (grade: any) => grade.name === "Base" ? "6 Airbags" : "8 Airbags",
+          getValue: (grade: any) => grade.name === "SE" ? "7 Airbags" : "10 Airbags",
           isHighlightable: true
         },
         { 
           label: "Toyota Safety Sense", 
-          getValue: (grade: any) => grade.name === "Base" ? "TSS 2.0" : "TSS 2.5+",
+          getValue: (grade: any) => grade.name === "SE" ? "TSS 2.0" : "TSS 2.5+",
           isHighlightable: true
         },
         { 
           label: "Parking Assist", 
-          getValue: (grade: any) => grade.name === "Base" ? "Rear Camera" : 
-                                   grade.name === "SE" ? "Rear Camera + Sensors" : "360° View",
+          getValue: (grade: any) => grade.name === "SE" ? "Rear Camera" : 
+                                   grade.name === "XLE" ? "Rear Camera + Sensors" : "360° View",
           isHighlightable: true
+        },
+        { 
+          label: "Security System", 
+          getValue: (grade: any) => "Anti-theft + Immobilizer",
+          isHighlightable: false
         }
       ]
     },
     {
       id: 'technology',
-      title: "Technology",
+      title: "Technology & Connectivity",
       items: [
         { 
           label: "Audio System", 
-          getValue: (grade: any) => grade.name === "Base" ? "6 Speakers" : 
-                                   grade.name === "SE" ? "Premium 8 Speakers" : "JBL Premium",
+          getValue: (grade: any) => grade.name === "SE" ? "6 Speakers" : 
+                                   grade.name === "XLE" ? "Premium 8 Speakers" : "JBL Premium 9 Speakers",
           isHighlightable: true
         },
         { 
@@ -208,7 +265,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
         },
         { 
           label: "Wireless Charging", 
-          getValue: (grade: any) => grade.name === "Base" ? "Not Available" : "Available",
+          getValue: (grade: any) => grade.name === "SE" ? "Not Available" : "Available",
+          isHighlightable: true
+        },
+        { 
+          label: "Connected Services", 
+          getValue: (grade: any) => grade.name === "Limited" ? "Toyota Connect Pro" : "Toyota Connect",
           isHighlightable: true
         }
       ]
@@ -239,12 +301,19 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               variant={selectedGrades.includes(index) ? "default" : "outline"}
               size="sm"
               onClick={() => toggleGradeSelection(index)}
-              className="h-auto p-3 flex flex-col items-start"
+              className={`h-auto p-3 flex flex-col items-start transition-all duration-300 ${
+                selectedGrades.includes(index) 
+                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
+                  : 'hover:border-red-300'
+              }`}
               disabled={selectedGrades.length >= 2 && !selectedGrades.includes(index)}
             >
               <div className="flex items-center gap-2 mb-1">
                 {selectedGrades.includes(index) && <Check className="h-3 w-3" />}
                 <span className="font-bold text-sm">{grade.name}</span>
+                {grade.highlight === "Most Popular" && (
+                  <Badge className="bg-red-100 text-red-700 text-xs px-1 py-0">Popular</Badge>
+                )}
               </div>
               <span className="text-xs opacity-80">AED {grade.fullPrice.toLocaleString()}</span>
             </Button>
@@ -259,10 +328,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           {selectedGrades.map(gradeIndex => {
             const grade = grades[gradeIndex];
             return (
-              <Card key={grade.name} className="overflow-hidden">
+              <Card key={grade.name} className="overflow-hidden border-2 border-red-100 hover:border-red-200 transition-colors">
                 <CardContent className="p-3">
-                  {/* Small Grade Image */}
-                  <div className="h-16 mb-2 overflow-hidden rounded-lg">
+                  {/* Small Grade Image with red accent */}
+                  <div className="h-16 mb-2 overflow-hidden rounded-lg border-2 border-red-100">
                     <img
                       src={grade.image}
                       alt={grade.name}
@@ -271,33 +340,40 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                   </div>
                   
                   <div className="text-center">
-                    <h4 className="font-bold text-sm">{grade.name}</h4>
-                    <Badge variant="secondary" className="text-xs mt-1">
+                    <h4 className="font-bold text-sm text-red-900">{grade.name}</h4>
+                    <Badge variant="secondary" className={`text-xs mt-1 ${
+                      grade.highlight === "Most Popular" 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
                       {grade.highlight}
                     </Badge>
                     <div className="mt-2">
-                      <div className="font-bold text-sm">AED {grade.fullPrice.toLocaleString()}</div>
+                      <div className="font-bold text-sm text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">AED {grade.monthlyEMI}/month</div>
                     </div>
                     
-                    <Button
-                      onClick={() => onGradeSelect(grade.name)}
-                      className={`w-full mt-2 text-xs ${
-                        selectedGrade === grade.name
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-primary hover:bg-primary/90'
-                      }`}
-                      size="sm"
-                    >
-                      {selectedGrade === grade.name ? (
-                        <>
-                          <Check className="h-3 w-3 mr-1" />
-                          Selected
-                        </>
-                      ) : (
-                        'Select'
-                      )}
-                    </Button>
+                    {/* Updated Action Buttons */}
+                    <div className="grid grid-cols-2 gap-1 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs border-red-200 hover:bg-red-50"
+                        onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                      >
+                        <Car className="h-3 w-3 mr-1" />
+                        Test Drive
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        className="text-xs bg-red-600 hover:bg-red-700"
+                        onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                      >
+                        <Wrench className="h-3 w-3 mr-1" />
+                        Configure
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -315,22 +391,22 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           if (showOnlyDifferences && filteredItems.length === 0) return null;
 
           return (
-            <Card key={section.id} className="overflow-hidden">
+            <Card key={section.id} className="overflow-hidden border border-red-100">
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full p-3 flex items-center justify-between bg-muted/30 border-b hover:bg-muted/50 transition-colors"
+                className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
               >
-                <h3 className="font-bold text-sm text-left">{section.title}</h3>
+                <h3 className="font-bold text-sm text-left text-red-900">{section.title}</h3>
                 <div className="flex items-center gap-2">
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
                       {filteredItems.length} differences
                     </Badge>
                   )}
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="h-4 w-4 text-red-600" />
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4 text-red-600" />
                   )}
                 </div>
               </button>
@@ -351,23 +427,40 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                         
                         return (
                           <div key={item.label} className="p-3">
-                            <div className={`text-xs font-medium mb-2 ${hasDiff ? 'text-primary' : 'text-muted-foreground'}`}>
+                            <div className={`text-xs font-medium mb-2 ${hasDiff ? 'text-red-700' : 'text-muted-foreground'} flex items-center gap-1`}>
                               {item.label}
-                              {hasDiff && <ArrowUpDown className="h-3 w-3 inline ml-1" />}
+                              {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              {selectedGrades.map((gradeIndex, idx) => (
-                                <div 
-                                  key={gradeIndex}
-                                  className={`text-xs p-2 rounded-lg ${
-                                    hasDiff 
-                                      ? 'bg-primary/10 border border-primary/20 font-semibold' 
-                                      : 'bg-muted/50'
-                                  }`}
-                                >
-                                  {values[idx]}
-                                </div>
-                              ))}
+                              {selectedGrades.map((gradeIndex, idx) => {
+                                const comparison = hasDiff ? getValueComparison(values[idx], values, item.label) : 'equal';
+                                const ComparisonIcon = comparison === 'better' ? TrendingUp : 
+                                                     comparison === 'worse' ? TrendingDown : Equal;
+                                
+                                return (
+                                  <div 
+                                    key={gradeIndex}
+                                    className={`text-xs p-2 rounded-lg flex items-center gap-1 ${
+                                      hasDiff 
+                                        ? comparison === 'better'
+                                          ? 'bg-green-50 border border-green-200 text-green-800 font-semibold'
+                                          : comparison === 'worse'
+                                          ? 'bg-red-50 border border-red-200 text-red-800 font-semibold'
+                                          : 'bg-red-50 border border-red-200 font-semibold'
+                                        : 'bg-muted/50'
+                                    }`}
+                                  >
+                                    {hasDiff && (
+                                      <ComparisonIcon className={`h-3 w-3 ${
+                                        comparison === 'better' ? 'text-green-600' :
+                                        comparison === 'worse' ? 'text-red-600' :
+                                        'text-gray-500'
+                                      }`} />
+                                    )}
+                                    {values[idx]}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         );
@@ -383,10 +476,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3 pt-4">
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} className="border-red-200 hover:bg-red-50">
           Close
         </Button>
-        <Button>
+        <Button className="bg-red-600 hover:bg-red-700">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
         </Button>
@@ -399,12 +492,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       {/* Grade Selection */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Select Grades to Compare</h3>
+          <h3 className="text-lg font-bold text-red-900">Select Grades to Compare</h3>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-red-200 hover:bg-red-50"
           >
             {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showOnlyDifferences ? "Show All Specifications" : "Show Only Differences"}
@@ -418,10 +511,17 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               variant={selectedGrades.includes(index) ? "default" : "outline"}
               size="sm"
               onClick={() => toggleGradeSelection(index)}
-              className="transition-all duration-300"
+              className={`transition-all duration-300 ${
+                selectedGrades.includes(index) 
+                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
+                  : 'hover:border-red-300'
+              }`}
             >
               {selectedGrades.includes(index) && <Check className="h-3 w-3 mr-1" />}
               {grade.name}
+              {grade.highlight === "Most Popular" && (
+                <Badge className="bg-red-100 text-red-700 text-xs ml-1">Popular</Badge>
+              )}
             </Button>
           ))}
         </div>
@@ -436,10 +536,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             {selectedGrades.map(gradeIndex => {
               const grade = grades[gradeIndex];
               return (
-                <Card key={grade.name} className="overflow-hidden">
+                <Card key={grade.name} className="overflow-hidden border-2 border-red-100 hover:border-red-200 transition-colors">
                   <CardContent className="p-0">
-                    {/* Small Grade Image */}
-                    <div className="h-32 overflow-hidden">
+                    {/* Grade Image with red accent */}
+                    <div className="h-32 overflow-hidden border-b-2 border-red-100">
                       <img
                         src={grade.image}
                         alt={grade.name}
@@ -450,43 +550,44 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     {/* Grade Info */}
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-lg">{grade.name}</h4>
-                        <Badge variant="secondary" className="text-xs">
+                        <h4 className="font-bold text-lg text-red-900">{grade.name}</h4>
+                        <Badge variant="secondary" className={`text-xs ${
+                          grade.highlight === "Most Popular" 
+                            ? 'bg-red-100 text-red-700' 
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
                           {grade.highlight}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
                       
-                      {/* Price */}
-                      <div className="mb-4">
-                        <div className="font-bold text-xl">AED {grade.fullPrice.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground">From AED {grade.monthlyEMI}/month</div>
+                      {/* Price with red accent */}
+                      <div className="mb-4 p-2 bg-red-50 rounded-lg border border-red-100">
+                        <div className="font-bold text-xl text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
+                        <div className="text-sm text-red-600">From AED {grade.monthlyEMI}/month</div>
                       </div>
 
-                      {/* Action Buttons */}
+                      {/* Updated Action Buttons */}
                       <div className="space-y-2">
-                        <Button
-                          onClick={() => onGradeSelect(grade.name)}
-                          className={`w-full text-xs ${
-                            selectedGrade === grade.name
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-primary hover:bg-primary/90'
-                          }`}
-                          size="sm"
-                        >
-                          {selectedGrade === grade.name ? (
-                            <>
-                              <Check className="h-3 w-3 mr-1" />
-                              Selected
-                            </>
-                          ) : (
-                            'Select Grade'
-                          )}
-                        </Button>
-                        <Button variant="outline" size="sm" className="w-full text-xs">
-                          <Wrench className="h-3 w-3 mr-1" />
-                          Configure
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm" 
+                            className="text-xs border-red-200 hover:bg-red-50"
+                            onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                          >
+                            <Car className="h-3 w-3 mr-1" />
+                            Test Drive
+                          </Button>
+                          <Button
+                            size="sm" 
+                            className="text-xs bg-red-600 hover:bg-red-700"
+                            onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                          >
+                            <Wrench className="h-3 w-3 mr-1" />
+                            Configure
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -505,10 +606,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-primary flex items-center gap-2">
+                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-red-200 pb-2">
                   {section.title}
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
                       {filteredItems.length} differences
                     </Badge>
                   )}
@@ -516,21 +617,38 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                 
                 {filteredItems.map(item => {
                   const hasDiff = hasDifferences(item.getValue, selectedGrades.map(i => grades[i]));
+                  const values = selectedGrades.map(i => item.getValue(grades[i]));
                   
                   return (
-                    <div key={item.label} className="grid gap-4 py-3 border-b border-border" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
-                      <div className={`font-medium ${hasDiff ? 'text-primary' : 'text-foreground'} flex items-center gap-1`}>
+                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-red-50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
+                      <div className={`font-medium ${hasDiff ? 'text-red-700' : 'text-foreground'} flex items-center gap-1`}>
                         {item.label}
-                        {hasDiff && <ArrowUpDown className="h-3 w-3" />}
+                        {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
                       </div>
-                      {selectedGrades.map(gradeIndex => {
+                      {selectedGrades.map((gradeIndex, idx) => {
                         const grade = grades[gradeIndex];
                         const value = item.getValue(grade);
+                        const comparison = hasDiff ? getValueComparison(value, values, item.label) : 'equal';
+                        const ComparisonIcon = comparison === 'better' ? TrendingUp : 
+                                             comparison === 'worse' ? TrendingDown : Equal;
                         
                         return (
-                          <div key={gradeIndex} className={`text-sm ${
-                            hasDiff ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                          <div key={gradeIndex} className={`text-sm flex items-center gap-1 ${
+                            hasDiff 
+                              ? comparison === 'better'
+                                ? 'font-semibold text-green-700 bg-green-50 p-2 rounded'
+                                : comparison === 'worse'
+                                ? 'font-semibold text-red-700 bg-red-50 p-2 rounded'
+                                : 'font-semibold text-red-700 bg-red-50 p-2 rounded'
+                              : 'text-muted-foreground'
                           }`}>
+                            {hasDiff && (
+                              <ComparisonIcon className={`h-3 w-3 ${
+                                comparison === 'better' ? 'text-green-600' :
+                                comparison === 'worse' ? 'text-red-600' :
+                                'text-gray-500'
+                              }`} />
+                            )}
                             {value}
                           </div>
                         );
@@ -545,8 +663,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       </div>
 
       {/* Download Comparison */}
-      <div className="flex justify-center pt-6 border-t border-border">
-        <Button variant="outline" size="lg">
+      <div className="flex justify-center pt-6 border-t border-red-200">
+        <Button variant="outline" size="lg" className="border-red-200 hover:bg-red-50">
           <Download className="h-4 w-4 mr-2" />
           Download Comparison PDF
         </Button>
@@ -556,15 +674,15 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto`}>
-        <DialogHeader>
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto border-2 border-red-100`}>
+        <DialogHeader className="border-b border-red-100 pb-4">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span>Compare {currentEngineData.name} Grades</span>
+              <Sparkles className="h-5 w-5 text-red-600" />
+              <span className="text-red-900">Compare {currentEngineData.name} Grades</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-red-50">
+              <X className="h-4 w-4 text-red-600" />
             </Button>
           </DialogTitle>
         </DialogHeader>
