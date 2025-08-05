@@ -328,10 +328,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           {selectedGrades.map(gradeIndex => {
             const grade = grades[gradeIndex];
             return (
-              <Card key={grade.name} className="overflow-hidden border-2 border-red-100 hover:border-red-200 transition-colors">
+              <Card key={grade.name} className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 dark:border-zinc-700 transition-colors">
                 <CardContent className="p-3">
                   {/* Small Grade Image with red accent */}
-                  <div className="h-16 mb-2 overflow-hidden rounded-lg border-2 border-red-100">
+                  <div className="h-16 mb-2 overflow-hidden rounded-lg border-2 border-gray-200">
                     <img
                       src={grade.image}
                       alt={grade.name}
@@ -358,7 +358,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs border-red-200 hover:bg-red-50"
+                        className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
                         onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                       >
                         <Car className="h-3 w-3 mr-1" />
@@ -391,7 +391,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           if (showOnlyDifferences && filteredItems.length === 0) return null;
 
           return (
-            <Card key={section.id} className="overflow-hidden border border-red-100">
+            <Card key={section.id} className="overflow-hidden border border-gray-200">
               <button
                 onClick={() => toggleSection(section.id)}
                 className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
@@ -445,8 +445,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                                         ? comparison === 'better'
                                           ? 'bg-green-50 border border-green-200 text-green-800 font-semibold'
                                           : comparison === 'worse'
-                                          ? 'bg-red-50 border border-red-200 text-red-800 font-semibold'
-                                          : 'bg-red-50 border border-red-200 font-semibold'
+                                          ? 'bg-red-50 border border-gray-300 dark:border-zinc-700 text-red-800 font-semibold'
+                                          : 'bg-red-50 border border-gray-300 dark:border-zinc-700 font-semibold'
                                         : 'bg-muted/50'
                                     }`}
                                   >
@@ -476,7 +476,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3 pt-4">
-        <Button variant="outline" onClick={onClose} className="border-red-200 hover:bg-red-50">
+        <Button variant="outline" onClick={onClose} className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
           Close
         </Button>
         <Button className="bg-red-600 hover:bg-red-700">
@@ -497,7 +497,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-            className="flex items-center gap-2 border-red-200 hover:bg-red-50"
+            className="flex items-center gap-2 border-gray-300 dark:border-zinc-700 hover:bg-red-50"
           >
             {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showOnlyDifferences ? "Show All Specifications" : "Show Only Differences"}
@@ -536,10 +536,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             {selectedGrades.map(gradeIndex => {
               const grade = grades[gradeIndex];
               return (
-                <Card key={grade.name} className="overflow-hidden border-2 border-red-100 hover:border-red-200 transition-colors">
+                <Card key={grade.name} className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 dark:border-zinc-700 transition-colors">
                   <CardContent className="p-0">
                     {/* Grade Image with red accent */}
-                    <div className="h-32 overflow-hidden border-b-2 border-red-100">
+                    <div className="h-32 overflow-hidden border-b-2 border-gray-200">
                       <img
                         src={grade.image}
                         alt={grade.name}
@@ -562,7 +562,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
                       
                       {/* Price with red accent */}
-                      <div className="mb-4 p-2 bg-red-50 rounded-lg border border-red-100">
+                      <div className="mb-4 p-2 bg-red-50 rounded-lg border border-gray-200">
                         <div className="font-bold text-xl text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
                         <div className="text-sm text-red-600">From AED {grade.monthlyEMI}/month</div>
                       </div>
@@ -573,7 +573,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                           <Button
                             variant="outline"
                             size="sm" 
-                            className="text-xs border-red-200 hover:bg-red-50"
+                            className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
                             onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                           >
                             <Car className="h-3 w-3 mr-1" />
@@ -606,7 +606,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-red-200 pb-2">
+                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
                   {section.title}
                   {showOnlyDifferences && filteredItems.length > 0 && (
                     <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
@@ -663,8 +663,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       </div>
 
       {/* Download Comparison */}
-      <div className="flex justify-center pt-6 border-t border-red-200">
-        <Button variant="outline" size="lg" className="border-red-200 hover:bg-red-50">
+      <div className="flex justify-center pt-6 border-t border-gray-300 dark:border-zinc-700">
+        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
           <Download className="h-4 w-4 mr-2" />
           Download Comparison PDF
         </Button>
@@ -674,8 +674,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto border-2 border-red-100`}>
-        <DialogHeader className="border-b border-red-100 pb-4">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto border-2 border-gray-200`}>
+        <DialogHeader className="border-b border-gray-200 pb-4">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Sparkles className="h-5 w-5 text-red-600" />
