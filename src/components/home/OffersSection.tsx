@@ -33,7 +33,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Get 0% APR financing for up to 60 months on select Toyota models.",
       discount: "0% APR",
       validUntil: "December 31, 2024",
-      image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/62301a41-e12b-4cd4-8be6-7cfddbd8bdba/items/bd7a1520-edfa-4312-a950-5699bf4114fe/renditions/aa4c707f-7c97-4105-a2c1-acdf1e604fc2?binary=true&mformat=true",
       category: "Financing",
       terms: ["Subject to approved credit", "Select models only", "May not be combined with other offers"]
     },
@@ -43,7 +43,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Get up to AED 5,000 cash back on your new Toyota purchase.",
       discount: "AED 5,000",
       validUntil: "January 15, 2025",
-      image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/2c9a7268-c9d3-4609-b7d7-ad28ae2374fa/items/5fd4b9bd-c2b8-4b9f-8eaa-46106d40b290/renditions/45e02ab3-8a09-487e-9d35-3065e03bf8f2?binary=true&mformat=true",
       category: "Cash Back",
       terms: ["Must finance through Toyota Financial", "Cannot be combined with 0% APR offer", "New vehicle purchases only"]
     },
@@ -53,7 +53,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Current Toyota owners get an additional AED 2,500 loyalty bonus.",
       discount: "AED 2,500",
       validUntil: "March 31, 2025",
-      image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/62301a41-e12b-4cd4-8be6-7cfddbd8bdba/items/eed05ec6-363d-40a1-b776-dece1cee4482/renditions/7274d827-3cca-4828-a3ea-873611934ba2?binary=true&mformat=true",
       category: "Loyalty",
       terms: ["Must own a Toyota for at least 2 years", "Trade-in required", "Proof of ownership required"]
     },
@@ -63,7 +63,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Recent graduates get special pricing and financing options.",
       discount: "Up to AED 3,000",
       validUntil: "June 30, 2025",
-      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/62301a41-e12b-4cd4-8be6-7cfddbd8bdba/items/6071111b-1ed2-4327-84d2-a1c5e02194c2/renditions/2330bd15-fc2c-44c3-b6b7-2a8109f05484?binary=true&mformat=true",
       category: "Graduate",
       terms: ["Graduated within 2 years", "Proof of graduation required", "Subject to credit approval"]
     },
@@ -73,7 +73,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Get extra value for your trade-in vehicle with our special promotion.",
       discount: "Up to AED 4,000",
       validUntil: "April 30, 2025",
-      image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/2c9a7268-c9d3-4609-b7d7-ad28ae2374fa/items/5fd4b9bd-c2b8-4b9f-8eaa-46106d40b290/renditions/45e02ab3-8a09-487e-9d35-3065e03bf8f2?binary=true&mformat=true",
       category: "Trade-In",
       terms: ["Valid trade-in required", "Cannot be combined with other offers", "Market evaluation applies"]
     },
@@ -83,7 +83,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({ onOfferClick }) => {
       description: "Special pricing for active military personnel and veterans.",
       discount: "AED 1,500",
       validUntil: "December 31, 2024",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/62301a41-e12b-4cd4-8be6-7cfddbd8bdba/items/d5300d2b-da5b-4415-b11d-a0dca6bf5770/renditions/e4061dbc-a622-446c-b6d8-3092c2eec316?binary=true&mformat=true",
       category: "Military",
       terms: ["Valid military ID required", "Active duty and veterans eligible", "Cannot be combined with other offers"]
     }
