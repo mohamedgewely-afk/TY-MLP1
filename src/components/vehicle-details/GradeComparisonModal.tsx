@@ -550,7 +550,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     {/* Grade Info */}
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-lg text-red-900">{grade.name}</h4>
+                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{grade.name}</h4>
                         <Badge variant="secondary" className={`text-xs ${
                           grade.highlight === "Most Popular" 
                             ? 'bg-red-100 text-red-700' 
@@ -679,7 +679,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Sparkles className="h-5 w-5 text-red-600" />
-              <span className="text-red-900">Compare {currentEngineData.name} Grades</span>
+              <span className="text-gray-900 dark:text-white">Compare {currentEngineData.name} Grades</span>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-red-50">
               <X className="h-4 w-4 text-red-600" />
