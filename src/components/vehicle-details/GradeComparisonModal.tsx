@@ -354,7 +354,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     </div>
                     
                     {/* Updated Action Buttons */}
-                    <div className="grid grid-cols-2 gap-1 mt-2">
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-2">
                       <Button
                         size="sm"
                         variant="outline"
