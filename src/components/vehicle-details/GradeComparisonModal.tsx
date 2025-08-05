@@ -340,7 +340,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                   </div>
                   
                   <div className="text-center">
-                    <h4 className="font-bold text-sm text-red-900">{grade.name}</h4>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white">{grade.name}</h4>
                     <Badge variant="secondary" className={`text-xs mt-1 ${
                       grade.highlight === "Most Popular" 
                         ? 'bg-red-100 text-red-700' 
@@ -396,7 +396,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                 onClick={() => toggleSection(section.id)}
                 className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
               >
-                <h3 className="font-bold text-sm text-left text-red-900">{section.title}</h3>
+                <h3 className="font-bold text-sm text-left text-gray-900 dark:text-white">{section.title}</h3>
                 <div className="flex items-center gap-2">
                   {showOnlyDifferences && filteredItems.length > 0 && (
                     <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
@@ -492,7 +492,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       {/* Grade Selection */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-red-900">Select Grades to Compare</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Grades to Compare</h3>
           <Button
             variant="outline"
             size="sm"
