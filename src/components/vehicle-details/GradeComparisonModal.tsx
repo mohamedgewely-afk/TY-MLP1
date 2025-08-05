@@ -303,7 +303,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`h-auto p-3 flex flex-col items-start transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
+                  ? 'bg-red-600 hover:bg-red-700 border-[#9E1B32]' 
                   : 'hover:border-red-300'
               }`}
               disabled={selectedGrades.length >= 2 && !selectedGrades.includes(index)}
@@ -349,7 +349,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       {grade.highlight}
                     </Badge>
                     <div className="mt-2">
-                      <div className="font-bold text-sm text-[#9E1B32]">AED {grade.fullPrice.toLocaleString()}</div>
+                      <div className="font-bold text-sm text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">AED {grade.monthlyEMI}/month</div>
                     </div>
                     
@@ -358,7 +358,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-neutral-50"
+                        className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
                         onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                       >
                         <Car className="h-3 w-3 mr-1" />
@@ -367,7 +367,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       
                       <Button
                         size="sm"
-                        className="text-xs bg-red-600 hover:bg-[#7e1528]"
+                        className="text-xs bg-red-600 hover:bg-red-700"
                         onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                       >
                         <Wrench className="h-3 w-3 mr-1" />
@@ -394,7 +394,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             <Card key={section.id} className="overflow-hidden border border-gray-200">
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full p-3 flex items-center justify-between bg-neutral-50 border-b hover:bg-red-100 transition-colors"
+                className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
               >
                 <h3 className="font-bold text-sm text-left text-gray-900 dark:text-white">{section.title}</h3>
                 <div className="flex items-center gap-2">
@@ -445,8 +445,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                                         ? comparison === 'better'
                                           ? 'bg-green-50 border border-green-200 text-green-800 font-semibold'
                                           : comparison === 'worse'
-                                          ? 'bg-neutral-50 border border-gray-300 dark:border-zinc-700 text-[#9E1B32] font-semibold'
-                                          : 'bg-neutral-50 border border-gray-300 dark:border-zinc-700 font-semibold'
+                                          ? 'bg-red-50 border border-gray-300 dark:border-zinc-700 text-red-800 font-semibold'
+                                          : 'bg-red-50 border border-gray-300 dark:border-zinc-700 font-semibold'
                                         : 'bg-muted/50'
                                     }`}
                                   >
@@ -476,7 +476,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3 pt-4">
-        <Button variant="outline" onClick={onClose} className="border-gray-300 dark:border-zinc-700 hover:bg-neutral-50">
+        <Button variant="outline" onClick={onClose} className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
           Close
         </Button>
         <Button className="bg-red-600 hover:bg-red-700">
@@ -497,7 +497,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-            className="flex items-center gap-2 border-gray-300 dark:border-zinc-700 hover:bg-neutral-50"
+            className="flex items-center gap-2 border-gray-300 dark:border-zinc-700 hover:bg-red-50"
           >
             {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showOnlyDifferences ? "Show All Specifications" : "Show Only Differences"}
@@ -513,7 +513,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
+                  ? 'bg-red-600 hover:bg-red-700 border-[#9E1B32]' 
                   : 'hover:border-red-300'
               }`}
             >
@@ -562,8 +562,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
                       
                       {/* Price with red accent */}
-                      <div className="mb-4 p-2 bg-neutral-50 rounded-lg border border-gray-200">
-                        <div className="font-bold text-xl text-[#9E1B32]">AED {grade.fullPrice.toLocaleString()}</div>
+                      <div className="mb-4 p-2 bg-red-50 rounded-lg border border-gray-200">
+                        <div className="font-bold text-xl text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
                         <div className="text-sm text-red-600">From AED {grade.monthlyEMI}/month</div>
                       </div>
 
@@ -573,7 +573,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                           <Button
                             variant="outline"
                             size="sm" 
-                            className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-neutral-50"
+                            className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
                             onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                           >
                             <Car className="h-3 w-3 mr-1" />
@@ -606,7 +606,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-[#9E1B32] flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
+                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
                   {section.title}
                   {showOnlyDifferences && filteredItems.length > 0 && (
                     <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
@@ -620,7 +620,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                   const values = selectedGrades.map(i => item.getValue(grades[i]));
                   
                   return (
-                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-neutral-50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
+                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-red-50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
                       <div className={`font-medium ${hasDiff ? 'text-red-700' : 'text-foreground'} flex items-center gap-1`}>
                         {item.label}
                         {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
@@ -638,8 +638,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                               ? comparison === 'better'
                                 ? 'font-semibold text-green-700 bg-green-50 p-2 rounded'
                                 : comparison === 'worse'
-                                ? 'font-semibold text-red-700 bg-neutral-50 p-2 rounded'
-                                : 'font-semibold text-red-700 bg-neutral-50 p-2 rounded'
+                                ? 'font-semibold text-red-700 bg-red-50 p-2 rounded'
+                                : 'font-semibold text-red-700 bg-red-50 p-2 rounded'
                               : 'text-muted-foreground'
                           }`}>
                             {hasDiff && (
@@ -664,7 +664,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Download Comparison */}
       <div className="flex justify-center pt-6 border-t border-gray-300 dark:border-zinc-700">
-        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-neutral-50">
+        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
           <Download className="h-4 w-4 mr-2" />
           Download Comparison PDF
         </Button>
@@ -681,7 +681,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               <Sparkles className="h-5 w-5 text-red-600" />
               <span className="text-gray-900 dark:text-white">Compare {currentEngineData.name} Grades</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-neutral-50">
+            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-red-50">
               <X className="h-4 w-4 text-red-600" />
             </Button>
           </DialogTitle>
