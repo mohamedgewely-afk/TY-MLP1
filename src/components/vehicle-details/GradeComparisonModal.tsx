@@ -354,11 +354,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     </div>
                     
                     {/* Updated Action Buttons */}
-                    <div className="grid grid-cols-2 gap-1 mt-2 w-full max-w-full">
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-2 w-full">
   <Button
     size="sm"
     variant="outline"
-    className="text-[11px] leading-tight px-1 py-1 border-gray-300 dark:border-zinc-700 hover:bg-red-50 flex items-center justify-center whitespace-normal"
+    className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50 flex items-center justify-center"
+    onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
   >
     <Car className="h-3 w-3 mr-1" />
     Test Drive
@@ -366,7 +367,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
   <Button
     size="sm"
-    className="text-[11px] leading-tight px-1 py-1 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center whitespace-normal"
+    className="text-xs bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
+    onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
   >
     <Wrench className="h-3 w-3 mr-1" />
     Configure
