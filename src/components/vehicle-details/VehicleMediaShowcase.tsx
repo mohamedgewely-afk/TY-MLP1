@@ -45,8 +45,8 @@ const defaultMedia: MediaItem[] = [
   },
   { 
     type: "video", 
-    url: "https://www.youtube.com/watch?v=hZ004GL6bss",
-    thumbnail: "https://i.ytimg.com/an_webp/GhcLRrSUP3c/mqdefault_6s.webp?du=3000&sqp=CO6Hx8QG&rs=AOn4CLCCLTlrdBG45b3BYvSq4PL73AD_Ow",
+    url: "https://www.youtube.com/watch?v=vVHRErdPFtg",
+    thumbnail: "https://i.ytimg.com/an_webp/vVHRErdPFtg/mqdefault_6s.webp?du=3000&sqp=CKCJx8QG&rs=AOn4CLDd8NlBDnBBfZwHLUgBv4LsY8CAVw",
     title: "Dynamic Demo",
     description: "See the hybrid system in action"
   },
