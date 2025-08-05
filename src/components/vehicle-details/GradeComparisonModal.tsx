@@ -354,7 +354,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                     </div>
                     
                     {/* Updated Action Buttons */}
-                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-2">
+                    <div className="grid grid-cols-2 gap-1 mt-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -606,15 +606,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
-                  {section.title}
-                  {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-                      {filteredItems.length} differences
-                    </Badge>
-                  )}
-                </h3>
-                
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-200 pb-2">
+  {section.title}
+  <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 border border-red-400">
+    {filteredItems.length} diff
+  </Badge>
+</h3>
                 {filteredItems.map(item => {
                   const hasDiff = hasDifferences(item.getValue, selectedGrades.map(i => grades[i]));
                   const values = selectedGrades.map(i => item.getValue(grades[i]));
