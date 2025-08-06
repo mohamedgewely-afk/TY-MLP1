@@ -168,7 +168,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Main Builder Dialog */}
+      {/* Main Builder Dialog - Full Screen Desktop Experience */}
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>
@@ -201,7 +201,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
           <DialogContent 
-            className="max-w-7xl max-h-[90vh] w-full"
+            className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 border-0 bg-background overflow-hidden"
             aria-describedby="car-builder-description"
           >
             <VisuallyHidden>
