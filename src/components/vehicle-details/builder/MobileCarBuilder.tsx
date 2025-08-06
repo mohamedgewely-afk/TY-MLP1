@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
@@ -127,7 +126,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding } = useResponsiveSize();
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const resetButtonRef = useRef<HTMLButtonButton>(null);
+  const resetButtonRef = useRef<HTMLButtonElement>(null);
   const exitButtonRef = useRef<HTMLButtonElement>(null);
 
   // Enhanced haptic feedback integration
