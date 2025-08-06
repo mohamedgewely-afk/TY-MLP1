@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -134,26 +135,26 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     if (step < 3) return null;
     
     const stockStatus = getStockStatus();
-    const badgeSize = deviceCategory === 'smallMobile' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-xs';
+    const badgeSize = deviceCategory === 'smallMobile' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm';
     
     switch (stockStatus) {
       case 'available':
         return (
-          <div className={`flex items-center gap-2 ${badgeSize} bg-green-100 text-green-800 rounded-full font-medium`}>
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div className={`inline-flex items-center gap-2 ${badgeSize} bg-green-50 text-green-700 rounded-full font-medium border border-green-200`}>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             In Stock
           </div>
         );
       case 'pipeline':
         return (
-          <div className={`flex items-center gap-2 ${badgeSize} bg-orange-100 text-orange-800 rounded-full font-medium`}>
+          <div className={`inline-flex items-center gap-2 ${badgeSize} bg-orange-50 text-orange-700 rounded-full font-medium border border-orange-200`}>
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             Pipeline - 2-3 weeks
           </div>
         );
       case 'unavailable':
         return (
-          <div className={`flex items-center gap-2 ${badgeSize} bg-red-100 text-red-800 rounded-full font-medium`}>
+          <div className={`inline-flex items-center gap-2 ${badgeSize} bg-red-50 text-red-700 rounded-full font-medium border border-red-200`}>
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
             No Stock
           </div>
@@ -165,10 +166,10 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 
   const getButtonHeight = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'min-h-[44px]';
-      case 'standardMobile': return 'min-h-[48px]';
-      case 'largeMobile': return 'min-h-[52px]';
-      default: return 'min-h-[44px]';
+      case 'smallMobile': return 'min-h-[48px]';
+      case 'standardMobile': return 'min-h-[52px]';
+      case 'largeMobile': return 'min-h-[56px]';
+      default: return 'min-h-[48px]';
     }
   };
 
@@ -186,23 +187,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   return (
     <div className="relative flex flex-col h-full">
       <motion.div
-        initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
-        animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, x: -100, filter: "blur(5px)" }}
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
         transition={{ 
-          duration: 0.6, 
+          duration: 0.4, 
           type: "spring", 
-          stiffness: 100, 
-          damping: 20,
-          ease: [0.25, 0.46, 0.45, 0.94]
+          stiffness: 120, 
+          damping: 20
         }}
         className="flex-1 overflow-hidden"
       >
-        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} overflow-y-auto premium-scrollbar`}>
+        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-3' : 'py-4'} overflow-y-auto`}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
           >
             {renderContent()}
           </motion.div>
@@ -213,16 +213,15 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       <AnimatePresence>
         {getStockBadge() && (
           <motion.div 
-            className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} flex justify-center`}
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            className={`${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-2' : 'py-3'} flex justify-center bg-background/95 backdrop-blur-sm border-t border-border/50`}
+            initial={{ opacity: 0, y: 15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.4 }}
+            exit={{ opacity: 0, y: -15, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="pulse-glow"
             >
               {getStockBadge()}
             </motion.div>
@@ -230,78 +229,49 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         )}
       </AnimatePresence>
       
-      {/* Enhanced Continue Button with Luxury Effects */}
+      {/* Enhanced Continue Button */}
       <motion.div 
-        className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-2' : 'py-3'} bg-gradient-to-t from-background via-background/98 to-background/90 backdrop-blur-xl z-30 border-t border-border/30`}
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
+        className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-4' : 'py-5'} bg-background/98 backdrop-blur-sm z-30 border-t border-border`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
         >
           <Button 
             ref={buttonRef}
             onClick={handleButtonClick}
             disabled={!canProceed()}
-            className={`w-full text-primary-foreground rounded-lg font-bold shadow-lg transition-all duration-300 relative overflow-hidden luxury-button ${getButtonHeight()} ${
+            className={`w-full text-primary-foreground rounded-xl font-semibold shadow-lg transition-all duration-300 relative overflow-hidden ${getButtonHeight()} ${
               !canProceed() 
-                ? 'bg-muted text-muted-foreground cursor-not-allowed' 
+                ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border' 
                 : step >= 3 && getStockStatus() === 'available'
-                  ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 premium-gradient'
+                  ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-green-500/25'
                   : step >= 3 && getStockStatus() === 'pipeline'
-                    ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 premium-gradient'
+                    ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-orange-500/25'
                     : step >= 3 && getStockStatus() === 'unavailable'
-                      ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 premium-gradient'
-                      : 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 premium-gradient'
-            } ${buttonSize} gradient-shift`}
+                      ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-red-500/25'
+                      : 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 shadow-primary/25'
+            } ${buttonSize}`}
             size="sm"
           >
-            {/* Premium button glow effect */}
-            <motion.div
-              className="absolute inset-0 rounded-lg opacity-0 bg-gradient-to-r from-white/20 to-white/5"
-              animate={{ 
-                opacity: [0, 0.3, 0],
-                scale: [1, 1.05, 1]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            
             {/* Enhanced button content */}
             <motion.span 
               className="relative z-10 flex items-center justify-center"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
-              <motion.span 
-                className={textSize.sm}
-                animate={canProceed() ? { 
-                  textShadow: [
-                    '0 1px 2px rgba(0,0,0,0.1)',
-                    '0 2px 4px rgba(0,0,0,0.2)',
-                    '0 1px 2px rgba(0,0,0,0.1)'
-                  ]
-                } : {}}
-                transition={{ 
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
+              <span className={textSize.sm}>
                 {getCTAText()}
-              </motion.span>
+              </span>
               
               {step < 4 && (
                 <motion.div
                   animate={{ 
-                    x: [0, 4, 0],
-                    scale: [1, 1.1, 1]
+                    x: [0, 3, 0]
                   }}
                   transition={{ 
                     duration: 1.5,
@@ -309,23 +279,22 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                     ease: "easeInOut"
                   }}
                 >
-                  <ArrowRight className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <ArrowRight className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'}`} />
                 </motion.div>
               )}
               
               {step === 4 && (
                 <motion.div
                   animate={{ 
-                    rotate: [0, 360],
-                    scale: [1, 1.2, 1]
+                    rotate: [0, 180, 360]
                   }}
                   transition={{ 
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "linear"
                   }}
                 >
-                  <Sparkles className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <Sparkles className={`ml-2 ${deviceCategory === 'smallMobile' ? 'h-4 w-4' : 'h-5 w-5'}`} />
                 </motion.div>
               )}
             </motion.span>

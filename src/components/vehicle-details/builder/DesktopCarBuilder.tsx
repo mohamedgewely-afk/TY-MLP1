@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
@@ -33,113 +34,92 @@ interface DesktopCarBuilderProps {
   onReset: () => void;
 }
 
-// Premium cinematic entrance variants for desktop
+// Premium entrance variants optimized for desktop
 const containerVariants = {
   hidden: { 
     opacity: 0,
-    scale: 0.92,
-    rotateY: -10,
-    filter: "blur(20px)"
+    scale: 0.98
   },
   visible: { 
     opacity: 1,
     scale: 1,
-    rotateY: 0,
-    filter: "blur(0px)",
     transition: {
-      duration: 1.2,
+      duration: 0.6,
       ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.2
+      staggerChildren: 0.1
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    filter: "blur(10px)",
-    transition: { duration: 0.6 }
+    scale: 0.98,
+    transition: { duration: 0.4 }
   }
 };
 
-// Enhanced left panel with 3D depth
+// Enhanced left panel
 const leftPanelVariants = {
   hidden: { 
-    x: -150, 
-    opacity: 0,
-    rotateY: 25,
-    filter: "blur(15px)"
+    x: -50, 
+    opacity: 0
   },
   visible: { 
     x: 0, 
     opacity: 1,
-    rotateY: 0,
-    filter: "blur(0px)",
     transition: { 
-      duration: 1.0, 
-      ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.3
-    }
-  }
-};
-
-// Enhanced right panel with premium entrance
-const rightPanelVariants = {
-  hidden: { 
-    x: 150, 
-    opacity: 0,
-    rotateY: -25,
-    filter: "blur(15px)"
-  },
-  visible: { 
-    x: 0, 
-    opacity: 1,
-    rotateY: 0,
-    filter: "blur(0px)",
-    transition: { 
-      duration: 1.0, 
-      ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.5
-    }
-  }
-};
-
-// Premium header animation with floating effect
-const headerVariants = {
-  hidden: { 
-    y: -100, 
-    opacity: 0,
-    scale: 0.9,
-    filter: "blur(10px)"
-  },
-  visible: { 
-    y: 0, 
-    opacity: 1,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: { 
-      duration: 0.8, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
       delay: 0.2
     }
   }
 };
 
-// Enhanced image reveal with cinematic effects
-const imageVariants = {
+// Enhanced right panel
+const rightPanelVariants = {
   hidden: { 
-    scale: 1.6, 
-    opacity: 0,
-    filter: "blur(30px)",
-    rotateY: 15
+    x: 50, 
+    opacity: 0
   },
   visible: { 
-    scale: 1.1, 
+    x: 0, 
     opacity: 1,
-    filter: "blur(0px)",
-    rotateY: 0,
     transition: { 
-      duration: 2.0, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.8
+      delay: 0.3
+    }
+  }
+};
+
+// Premium header animation
+const headerVariants = {
+  hidden: { 
+    y: -40, 
+    opacity: 0
+  },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.5, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.1
+    }
+  }
+};
+
+// Enhanced image reveal
+const imageVariants = {
+  hidden: { 
+    scale: 1.1, 
+    opacity: 0
+  },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    transition: { 
+      duration: 0.8, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.4
     }
   }
 };
@@ -187,31 +167,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       });
     }
   }, []);
-
-  // Enhanced mouse tracking for premium effects
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-        
-        // Subtle parallax effect
-        containerRef.current.style.setProperty('--mouse-x', `${x}`);
-        containerRef.current.style.setProperty('--mouse-y', `${y}`);
-      }
-    };
-
-    if (containerRef.current) {
-      containerRef.current.addEventListener('mousemove', handleMouseMove);
-    }
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('mousemove', handleMouseMove);
-      }
-    };
-  }, []);
   
   const getCurrentVehicleImage = () => {
     const exteriorColors = [
@@ -249,35 +204,31 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-background overflow-hidden flex perspective-1000"
-      style={{
-        background: `radial-gradient(circle at ${50 + (parseInt(containerRef.current?.style.getPropertyValue('--mouse-x') || '0') * 20)}% ${50 + (parseInt(containerRef.current?.style.getPropertyValue('--mouse-y') || '0') * 10)}%, rgba(255,255,255,0.05) 0%, transparent 50%)`
-      }}
+      className="relative h-full w-full bg-background overflow-hidden flex"
     >
       {/* Enhanced Left Side - Interactive Car Image */}
       <motion.div 
         variants={leftPanelVariants}
-        className="w-1/2 h-full relative bg-gradient-to-br from-muted/30 to-card/30 overflow-hidden"
+        className="w-3/5 h-full relative bg-gradient-to-br from-muted/5 to-muted/10 overflow-hidden"
       >
-        {/* Premium Header with Reset button */}
+        {/* Premium Header */}
         <motion.div 
           variants={headerVariants}
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 glass-desktop backdrop-blur-xl border-b border-border/20"
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-8 bg-background/95 backdrop-blur-sm border-b border-border"
         >
           <div className="flex items-center gap-4">
             <motion.button
               ref={step > 1 ? backButtonRef : closeButtonRef}
               onClick={handleBackClick}
-              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+              className="p-4 rounded-xl bg-background/95 backdrop-blur-sm border border-border hover:bg-muted transition-all duration-200 shadow-sm hover:shadow-md"
               whileHover={{ 
-                scale: 1.1, 
-                y: -4,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+                scale: 1.05, 
+                y: -2
               }}
               whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
             >
               {step > 1 ? (
                 <ArrowLeft className="h-6 w-6 text-foreground" />
@@ -289,16 +240,15 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <motion.button
               ref={resetButtonRef}
               onClick={handleResetClick}
-              className="p-4 rounded-xl glass-desktop backdrop-blur-xl border border-border/30 hover:bg-secondary/20 transition-all duration-300 luxury-button cursor-magnetic"
+              className="p-4 rounded-xl bg-background/95 backdrop-blur-sm border border-border hover:bg-muted transition-all duration-200 shadow-sm hover:shadow-md"
               whileHover={{ 
-                scale: 1.1, 
-                y: -4,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.15)"
+                scale: 1.05, 
+                y: -2
               }}
               whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
             >
               <RotateCcw className="h-6 w-6 text-foreground" />
             </motion.button>
@@ -306,35 +256,16 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
           <motion.div 
             className="text-center"
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
           >
-            <motion.h1 
-              className="text-3xl font-bold text-foreground luxury-text"
-              animate={{ 
-                scale: [1, 1.02, 1],
-                textShadow: [
-                  '0 4px 8px rgba(0,0,0,0.1)',
-                  '0 6px 12px rgba(0,0,0,0.15)',
-                  '0 4px 8px rgba(0,0,0,0.1)'
-                ]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
+            <h1 className="text-3xl font-semibold text-foreground">
               Build Your {vehicle.name}
-            </motion.h1>
-            <motion.p 
-              className="text-sm text-primary font-medium"
-              animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium mt-1">
               Step {step} of 4
-            </motion.p>
+            </p>
           </motion.div>
 
           <div className="w-32" />
@@ -347,101 +278,51 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           layoutId="vehicle-image"
           key={config.exteriorColor + config.grade + config.modelYear + config.engine}
         >
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-background/10 z-10" />
+          
           <motion.img 
             src={getCurrentVehicleImage()}
             alt="Vehicle Preview"
-            className="w-full h-full object-cover scale-110 gpu-accelerated"
-            initial={{ scale: 1.4, opacity: 0, filter: "blur(30px)" }}
+            className="w-full h-full object-cover"
+            initial={{ scale: 1.2, opacity: 0 }}
             animate={{ 
-              scale: 1.1, 
-              opacity: 1, 
-              filter: "blur(0px)"
+              scale: 1.05, 
+              opacity: 1
             }}
             transition={{ 
-              duration: 1.5, 
+              duration: 1.0, 
               ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.8
+              delay: 0.5
             }}
             whileHover={{
-              scale: 1.15,
-              transition: { duration: 0.8 }
+              scale: 1.08,
+              transition: { duration: 0.6 }
             }}
           />
           
-          {/* Premium gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/30" />
-          
-          {/* Enhanced floating particles */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(12)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-3 h-3 bg-primary/5 rounded-full"
-                style={{
-                  top: `${10 + i * 7}%`,
-                  left: `${5 + i * 8}%`,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  rotate: [0, 360],
-                  opacity: [0.2, 0.6, 0.2],
-                  scale: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 4 + i * 0.3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.1
-                }}
-              />
-            ))}
-          </div>
-          
           {/* Enhanced Vehicle Info Overlay */}
           <motion.div 
-            className="absolute bottom-8 left-8 right-8 text-foreground"
-            initial={{ opacity: 0, y: 40, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
+            className="absolute bottom-8 left-8 right-8 z-20"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
           >
             <motion.div 
-              className="glass-desktop backdrop-blur-xl rounded-2xl p-8 border border-border/30 max-w-md shadow-2xl premium-card"
+              className="bg-background/95 backdrop-blur-sm rounded-2xl p-6 border border-border max-w-md shadow-xl"
               whileHover={{ 
-                scale: 1.05,
-                y: -8,
-                boxShadow: "0 25px 50px rgba(0,0,0,0.25)"
+                scale: 1.02,
+                y: -4
               }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
             >
-              <motion.h3 
-                className="text-2xl font-bold mb-2 premium-gradient-text"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
+              <h3 className="text-2xl font-semibold text-foreground mb-2">
                 {config.modelYear} {vehicle.name}
-              </motion.h3>
-              <p className="text-primary text-lg font-medium">{config.grade} • {config.engine}</p>
-              <p className="text-muted-foreground text-base">{config.exteriorColor} Exterior</p>
-              <motion.div 
-                className="mt-4 text-3xl font-black text-primary"
-                animate={{ 
-                  scale: [1, 1.05, 1],
-                  textShadow: [
-                    '0 2px 4px rgba(0,0,0,0.1)',
-                    '0 4px 8px rgba(0,0,0,0.2)',
-                    '0 2px 4px rgba(0,0,0,0.1)'
-                  ]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
+              </h3>
+              <p className="text-muted-foreground text-lg mb-1">{config.grade} • {config.engine}</p>
+              <p className="text-muted-foreground text-base mb-4">{config.exteriorColor} Exterior</p>
+              <div className="text-3xl font-bold text-primary">
                 AED {calculateTotalPrice().toLocaleString()}
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -450,45 +331,46 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       {/* Enhanced Right Side - Configuration Panel */}
       <motion.div 
         variants={rightPanelVariants}
-        className="w-1/2 h-full flex flex-col glass-desktop backdrop-blur-xl border-l border-border/30"
+        className="w-2/5 h-full flex flex-col bg-background/95 backdrop-blur-sm border-l border-border"
       >
-        {/* Enhanced Progress with Premium Effects */}
+        {/* Progress */}
         <motion.div 
-          className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20"
-          initial={{ opacity: 0, y: 20 }}
+          className="px-8 py-6 bg-background/95 backdrop-blur-sm border-b border-border"
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
         >
           <MobileProgress currentStep={step} totalSteps={4} />
         </motion.div>
 
-        {/* Enhanced Content Area */}
+        {/* Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Enhanced Choice Collector & Specs */}
+          {/* Choice Collector & Specs */}
           <motion.div 
-            className="px-6 py-4 glass-desktop backdrop-blur-sm border-b border-border/20"
-            initial={{ opacity: 0, x: 20 }}
+            className="px-8 py-6 bg-background/95 backdrop-blur-sm border-b border-border"
+            initial={{ opacity: 0, x: 15 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.0, duration: 0.5 }}
+            transition={{ delay: 0.7, duration: 0.4 }}
           >
             <ChoiceCollector config={config} step={step} />
             {showSpecs && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.4 }}
+                className="mt-4"
               >
                 <CollapsibleSpecs config={config} />
               </motion.div>
             )}
           </motion.div>
 
-          {/* Enhanced Step Content */}
+          {/* Step Content */}
           <motion.div 
             className="flex-1 overflow-hidden"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
           >
             <AnimatePresence mode="wait">
               <MobileStepContent
@@ -505,12 +387,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </AnimatePresence>
           </motion.div>
 
-          {/* Enhanced Summary - hide duplicate payment button on step 4 */}
+          {/* Summary */}
           <motion.div 
-            className="glass-desktop backdrop-blur-xl border-t border-border/30"
-            initial={{ opacity: 0, y: 30 }}
+            className="bg-background/95 backdrop-blur-sm border-t border-border"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
           >
             <MobileSummary 
               config={config}

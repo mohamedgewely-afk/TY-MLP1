@@ -22,9 +22,7 @@ import {
   ChevronUp,
   ArrowUpDown,
   Car,
-  TrendingUp,
-  TrendingDown,
-  Equal
+  Star
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,39 +40,6 @@ const hasDifferences = (getValue: (grade: any) => string, grades: any[]) => {
   return new Set(values).size > 1;
 };
 
-// Helper function to determine if a value is better (higher price, better performance, etc.)
-const getValueComparison = (currentValue: string, allValues: string[], itemLabel: string) => {
-  if (!hasDifferences(() => currentValue, allValues.map(v => ({ getValue: () => v })))) {
-    return 'equal';
-  }
-  
-  // For prices, higher is typically "worse" from consumer perspective
-  if (itemLabel.toLowerCase().includes('price') || itemLabel.toLowerCase().includes('emi')) {
-    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
-    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
-    const minValue = Math.min(...numericValues);
-    return currentNumeric === minValue ? 'better' : 'worse';
-  }
-  
-  // For performance metrics (acceleration - lower is better)
-  if (itemLabel.toLowerCase().includes('acceleration')) {
-    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
-    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
-    const minValue = Math.min(...numericValues);
-    return currentNumeric === minValue ? 'better' : 'worse';
-  }
-  
-  // For efficiency, higher is typically better
-  if (itemLabel.toLowerCase().includes('economy') || itemLabel.toLowerCase().includes('efficiency')) {
-    const numericValues = allValues.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
-    const currentNumeric = parseFloat(currentValue.replace(/[^\d.]/g, ''));
-    const maxValue = Math.max(...numericValues);
-    return currentNumeric === maxValue ? 'better' : 'worse';
-  }
-  
-  return 'different';
-};
-
 const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
   isOpen,
   onClose,
@@ -84,7 +49,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 }) => {
   const [selectedGrades, setSelectedGrades] = useState<number[]>([0, 1]);
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['pricing', 'engine']);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['pricing', 'engine', 'specs']);
   const isMobile = useIsMobile();
 
   const grades = currentEngineData.grades;
@@ -107,7 +72,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
     );
   };
 
-  // Comprehensive comparison sections with Toyota red styling
+  // Enhanced comparison sections with key specs restored
   const comparisonSections = [
     {
       id: 'pricing',
@@ -129,8 +94,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: true
         },
         { 
-          label: "Value Score", 
-          getValue: (grade: any) => grade.name === "SE" ? "★★★★☆" : grade.name === "XLE" ? "★★★★★" : "★★★☆☆",
+          label: "Value Rating", 
+          getValue: (grade: any) => grade.name === "SE" ? "4/5" : grade.name === "XLE" ? "5/5" : "3/5",
           isHighlightable: true
         }
       ]
@@ -140,19 +105,19 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       title: "Engine & Performance",
       items: [
         { 
-          label: "Engine", 
+          label: "Engine Type", 
           getValue: (grade: any) => grade.specs.engine,
           isHighlightable: false
         },
         { 
-          label: "Power", 
+          label: "Power Output", 
           getValue: (grade: any) => grade.specs.power,
-          isHighlightable: false
+          isHighlightable: true
         },
         { 
           label: "Torque", 
           getValue: (grade: any) => grade.specs.torque,
-          isHighlightable: false
+          isHighlightable: true
         },
         { 
           label: "Transmission", 
@@ -160,15 +125,15 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: false
         },
         { 
-          label: "Acceleration (0-60)", 
+          label: "0-100 km/h", 
           getValue: (grade: any) => grade.specs.acceleration,
           isHighlightable: true
         }
       ]
     },
     {
-      id: 'efficiency',
-      title: "Efficiency & Environment",
+      id: 'specs',
+      title: "Key Specifications",
       items: [
         { 
           label: "Fuel Economy", 
@@ -176,18 +141,18 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: true
         },
         { 
-          label: "CO2 Emissions", 
-          getValue: (grade: any) => grade.specs.co2Emissions,
-          isHighlightable: true
-        },
-        { 
-          label: "Tank Capacity", 
-          getValue: (grade: any) => grade.specs.tankCapacity || "50L",
+          label: "Seating Capacity", 
+          getValue: (grade: any) => "5 Passengers",
           isHighlightable: false
         },
         { 
-          label: "Annual Fuel Cost", 
-          getValue: (grade: any) => "AED 3,200",
+          label: "Boot Space", 
+          getValue: (grade: any) => grade.name === "SE" ? "470L" : "450L",
+          isHighlightable: true
+        },
+        { 
+          label: "Ground Clearance", 
+          getValue: (grade: any) => "140mm",
           isHighlightable: false
         }
       ]
@@ -209,14 +174,14 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: true
         },
         { 
-          label: "Infotainment", 
+          label: "Infotainment Screen", 
           getValue: (grade: any) => grade.name === "SE" ? "8-inch Display" : 
                                    grade.name === "XLE" ? "9-inch Touch" : "10-inch Premium",
           isHighlightable: true
         },
         { 
-          label: "Seating Configuration", 
-          getValue: (grade: any) => "5 Seats",
+          label: "Steering Adjustment", 
+          getValue: (grade: any) => "Tilt & Telescopic",
           isHighlightable: false
         }
       ]
@@ -242,8 +207,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: true
         },
         { 
-          label: "Security System", 
-          getValue: (grade: any) => "Anti-theft + Immobilizer",
+          label: "ABS & EBD", 
+          getValue: (grade: any) => "Standard",
           isHighlightable: false
         }
       ]
@@ -269,8 +234,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           isHighlightable: true
         },
         { 
-          label: "Connected Services", 
-          getValue: (grade: any) => grade.name === "Limited" ? "Toyota Connect Pro" : "Toyota Connect",
+          label: "USB Ports", 
+          getValue: (grade: any) => grade.name === "SE" ? "2 Ports" : "4 Ports",
           isHighlightable: true
         }
       ]
@@ -278,23 +243,23 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
   ];
 
   const renderMobileComparison = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Grade Selection - Mobile optimized for 2 grades */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Select 2 Grades to Compare</h3>
+          <h3 className="text-lg font-semibold text-foreground">Select 2 Grades to Compare</h3>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-border hover:bg-muted"
           >
             {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showOnlyDifferences ? "Show All" : "Differences"}
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {grades.map((grade: any, index: number) => (
             <Button
               key={grade.name}
@@ -303,16 +268,19 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`h-auto p-3 flex flex-col items-start transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
-                  : 'hover:border-red-300'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                  : 'hover:bg-muted border-border'
               }`}
               disabled={selectedGrades.length >= 2 && !selectedGrades.includes(index)}
             >
               <div className="flex items-center gap-2 mb-1">
                 {selectedGrades.includes(index) && <Check className="h-3 w-3" />}
-                <span className="font-bold text-sm">{grade.name}</span>
+                <span className="font-semibold text-sm">{grade.name}</span>
                 {grade.highlight === "Most Popular" && (
-                  <Badge className="bg-red-100 text-red-700 text-xs px-1 py-0">Popular</Badge>
+                  <Badge className="bg-orange-100 text-orange-700 text-xs px-1 py-0 border-orange-200">
+                    <Star className="h-2 w-2 mr-1" />
+                    Popular
+                  </Badge>
                 )}
               </div>
               <span className="text-xs opacity-80">AED {grade.fullPrice.toLocaleString()}</span>
@@ -323,57 +291,58 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
       {/* Mobile Side-by-Side Comparison */}
       <div className="space-y-4">
-        {/* Grade Headers with Images */}
+        {/* Grade Headers with Images - Fixed for Mobile */}
         <div className="grid grid-cols-2 gap-3">
           {selectedGrades.map(gradeIndex => {
             const grade = grades[gradeIndex];
             return (
-              <Card key={grade.name} className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 dark:border-zinc-700 transition-colors">
+              <Card key={grade.name} className="overflow-hidden border border-border shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-3">
-                  {/* Small Grade Image with red accent */}
-                  <div className="h-16 mb-2 overflow-hidden rounded-lg border-2 border-gray-200">
+                  {/* Fixed Grade Image - Proper aspect ratio */}
+                  <div className="aspect-[4/3] mb-3 overflow-hidden rounded-lg border border-border">
                     <img
                       src={grade.image}
                       alt={grade.name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   </div>
                   
-                  <div className="text-center">
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white">{grade.name}</h4>
-                    <Badge variant="secondary" className={`text-xs mt-1 ${
+                  <div className="text-center space-y-2">
+                    <h4 className="font-semibold text-sm text-foreground">{grade.name}</h4>
+                    <Badge variant="secondary" className={`text-xs ${
                       grade.highlight === "Most Popular" 
-                        ? 'bg-red-100 text-red-700' 
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-orange-100 text-orange-700 border-orange-200' 
+                        : 'bg-muted text-muted-foreground'
                     }`}>
                       {grade.highlight}
                     </Badge>
-                    <div className="mt-2">
-                      <div className="font-bold text-sm text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-sm text-foreground">AED {grade.fullPrice.toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">AED {grade.monthlyEMI}/month</div>
                     </div>
                     
-                    {/* Updated Action Buttons */}
-                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-2 w-full">
-  <Button
-    size="sm"
-    variant="outline"
-    className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50 flex items-center justify-center"
-    onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
-  >
-    <Car className="h-3 w-3 mr-1" />
-    Test Drive
-  </Button>
+                    {/* Action Buttons - Fixed spacing */}
+                    <div className="flex flex-col gap-2 mt-3 w-full">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-8 border-border hover:bg-muted"
+                        onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                      >
+                        <Car className="h-3 w-3 mr-1.5" />
+                        Test Drive
+                      </Button>
 
-  <Button
-    size="sm"
-    className="text-xs bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
-    onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
-  >
-    <Wrench className="h-3 w-3 mr-1" />
-    Configure
-  </Button>
-</div>
+                      <Button
+                        size="sm"
+                        className="text-xs h-8 bg-primary hover:bg-primary/90"
+                        onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                      >
+                        <Wrench className="h-3 w-3 mr-1.5" />
+                        Configure
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -391,22 +360,22 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
           if (showOnlyDifferences && filteredItems.length === 0) return null;
 
           return (
-            <Card key={section.id} className="overflow-hidden border border-gray-200">
+            <Card key={section.id} className="overflow-hidden border border-border">
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full p-3 flex items-center justify-between bg-red-50 border-b hover:bg-red-100 transition-colors"
+                className="w-full p-4 flex items-center justify-between bg-muted/50 border-b hover:bg-muted transition-colors"
               >
-                <h3 className="font-bold text-sm text-left text-gray-900 dark:text-white">{section.title}</h3>
+                <h3 className="font-semibold text-sm text-left text-foreground">{section.title}</h3>
                 <div className="flex items-center gap-2">
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                    <Badge variant="secondary" className="text-xs">
                       {filteredItems.length} differences
                     </Badge>
                   )}
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-red-600" />
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-red-600" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
               </button>
@@ -427,40 +396,23 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                         
                         return (
                           <div key={item.label} className="p-3">
-                            <div className={`text-xs font-medium mb-2 ${hasDiff ? 'text-red-700' : 'text-muted-foreground'} flex items-center gap-1`}>
+                            <div className={`text-xs font-medium mb-2 ${hasDiff ? 'text-foreground' : 'text-muted-foreground'} flex items-center gap-1`}>
                               {item.label}
-                              {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
+                              {hasDiff && <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              {selectedGrades.map((gradeIndex, idx) => {
-                                const comparison = hasDiff ? getValueComparison(values[idx], values, item.label) : 'equal';
-                                const ComparisonIcon = comparison === 'better' ? TrendingUp : 
-                                                     comparison === 'worse' ? TrendingDown : Equal;
-                                
-                                return (
-                                  <div 
-                                    key={gradeIndex}
-                                    className={`text-xs p-2 rounded-lg flex items-center gap-1 ${
-                                      hasDiff 
-                                        ? comparison === 'better'
-                                          ? 'bg-green-50 border border-green-200 text-green-800 font-semibold'
-                                          : comparison === 'worse'
-                                          ? 'bg-red-50 border border-gray-300 dark:border-zinc-700 text-red-800 font-semibold'
-                                          : 'bg-red-50 border border-gray-300 dark:border-zinc-700 font-semibold'
-                                        : 'bg-muted/50'
-                                    }`}
-                                  >
-                                    {hasDiff && (
-                                      <ComparisonIcon className={`h-3 w-3 ${
-                                        comparison === 'better' ? 'text-green-600' :
-                                        comparison === 'worse' ? 'text-red-600' :
-                                        'text-gray-500'
-                                      }`} />
-                                    )}
-                                    {values[idx]}
-                                  </div>
-                                );
-                              })}
+                              {selectedGrades.map((gradeIndex, idx) => (
+                                <div 
+                                  key={gradeIndex}
+                                  className={`text-xs p-2 rounded-md ${
+                                    hasDiff 
+                                      ? 'bg-muted border border-border font-medium'
+                                      : 'bg-background'
+                                  }`}
+                                >
+                                  {values[idx]}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         );
@@ -475,11 +427,11 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-3 pt-4">
-        <Button variant="outline" onClick={onClose} className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
+      <div className="flex gap-3 pt-4">
+        <Button variant="outline" onClick={onClose} className="flex-1 border-border hover:bg-muted">
           Close
         </Button>
-        <Button className="bg-red-600 hover:bg-red-700">
+        <Button className="flex-1 bg-primary hover:bg-primary/90">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
         </Button>
@@ -492,12 +444,12 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       {/* Grade Selection */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Grades to Compare</h3>
+          <h3 className="text-lg font-semibold text-foreground">Select Grades to Compare</h3>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-            className="flex items-center gap-2 border-gray-300 dark:border-zinc-700 hover:bg-red-50"
+            className="flex items-center gap-2 border-border hover:bg-muted"
           >
             {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showOnlyDifferences ? "Show All Specifications" : "Show Only Differences"}
@@ -513,14 +465,17 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
               onClick={() => toggleGradeSelection(index)}
               className={`transition-all duration-300 ${
                 selectedGrades.includes(index) 
-                  ? 'bg-red-600 hover:bg-red-700 border-red-600' 
-                  : 'hover:border-red-300'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                  : 'hover:bg-muted border-border'
               }`}
             >
               {selectedGrades.includes(index) && <Check className="h-3 w-3 mr-1" />}
               {grade.name}
               {grade.highlight === "Most Popular" && (
-                <Badge className="bg-red-100 text-red-700 text-xs ml-1">Popular</Badge>
+                <Badge className="bg-orange-100 text-orange-700 text-xs ml-1 border-orange-200">
+                  <Star className="h-2 w-2 mr-1" />
+                  Popular
+                </Badge>
               )}
             </Button>
           ))}
@@ -530,61 +485,62 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       {/* Desktop Comparison Table */}
       <div className="overflow-x-auto">
         <div className="min-w-full">
-          {/* Header Row with Grade Images and Info */}
+          {/* Header Row with Grade Images and Info - Fixed for Desktop */}
           <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
             <div></div>
             {selectedGrades.map(gradeIndex => {
               const grade = grades[gradeIndex];
               return (
-                <Card key={grade.name} className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 dark:border-zinc-700 transition-colors">
+                <Card key={grade.name} className="overflow-hidden border border-border shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-0">
-                    {/* Grade Image with red accent */}
-                    <div className="h-32 overflow-hidden border-b-2 border-gray-200">
+                    {/* Fixed Grade Image - Proper aspect ratio for desktop */}
+                    <div className="aspect-[16/9] overflow-hidden border-b border-border">
                       <img
                         src={grade.image}
                         alt={grade.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     </div>
                     
                     {/* Grade Info */}
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{grade.name}</h4>
+                        <h4 className="font-semibold text-lg text-foreground">{grade.name}</h4>
                         <Badge variant="secondary" className={`text-xs ${
                           grade.highlight === "Most Popular" 
-                            ? 'bg-red-100 text-red-700' 
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-orange-100 text-orange-700 border-orange-200' 
+                            : 'bg-muted text-muted-foreground'
                         }`}>
                           {grade.highlight}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
                       
-                      {/* Price with red accent */}
-                      <div className="mb-4 p-2 bg-red-50 rounded-lg border border-gray-200">
-                        <div className="font-bold text-xl text-red-800">AED {grade.fullPrice.toLocaleString()}</div>
-                        <div className="text-sm text-red-600">From AED {grade.monthlyEMI}/month</div>
+                      {/* Price */}
+                      <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
+                        <div className="font-semibold text-xl text-foreground">AED {grade.fullPrice.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">From AED {grade.monthlyEMI}/month</div>
                       </div>
 
-                      {/* Updated Action Buttons */}
+                      {/* Action Buttons - Fixed spacing */}
                       <div className="space-y-2">
                         <div className="grid grid-cols-2 gap-2">
                           <Button
                             variant="outline"
                             size="sm" 
-                            className="text-xs border-gray-300 dark:border-zinc-700 hover:bg-red-50"
+                            className="text-xs border-border hover:bg-muted"
                             onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                           >
-                            <Car className="h-3 w-3 mr-1" />
+                            <Car className="h-3 w-3 mr-1.5" />
                             Test Drive
                           </Button>
                           <Button
                             size="sm" 
-                            className="text-xs bg-red-600 hover:bg-red-700"
+                            className="text-xs bg-primary hover:bg-primary/90"
                             onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
                           >
-                            <Wrench className="h-3 w-3 mr-1" />
+                            <Wrench className="h-3 w-3 mr-1.5" />
                             Configure
                           </Button>
                         </div>
@@ -606,10 +562,10 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
             return (
               <div key={section.title} className="mb-8">
-                <h3 className="text-lg font-bold mb-4 text-red-800 flex items-center gap-2 border-b border-gray-300 dark:border-zinc-700 pb-2">
+                <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2 border-b border-border pb-2">
                   {section.title}
                   {showOnlyDifferences && filteredItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                    <Badge variant="secondary" className="text-xs">
                       {filteredItems.length} differences
                     </Badge>
                   )}
@@ -620,35 +576,21 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                   const values = selectedGrades.map(i => item.getValue(grades[i]));
                   
                   return (
-                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-red-50/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
-                      <div className={`font-medium ${hasDiff ? 'text-red-700' : 'text-foreground'} flex items-center gap-1`}>
+                    <div key={item.label} className="grid gap-4 py-3 border-b border-border hover:bg-muted/30 transition-colors" style={{ gridTemplateColumns: `200px repeat(${selectedGrades.length}, 1fr)` }}>
+                      <div className={`font-medium ${hasDiff ? 'text-foreground' : 'text-muted-foreground'} flex items-center gap-1`}>
                         {item.label}
-                        {hasDiff && <ArrowUpDown className="h-3 w-3 text-red-500" />}
+                        {hasDiff && <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
                       </div>
                       {selectedGrades.map((gradeIndex, idx) => {
                         const grade = grades[gradeIndex];
                         const value = item.getValue(grade);
-                        const comparison = hasDiff ? getValueComparison(value, values, item.label) : 'equal';
-                        const ComparisonIcon = comparison === 'better' ? TrendingUp : 
-                                             comparison === 'worse' ? TrendingDown : Equal;
                         
                         return (
-                          <div key={gradeIndex} className={`text-sm flex items-center gap-1 ${
+                          <div key={gradeIndex} className={`text-sm ${
                             hasDiff 
-                              ? comparison === 'better'
-                                ? 'font-semibold text-green-700 bg-green-50 p-2 rounded'
-                                : comparison === 'worse'
-                                ? 'font-semibold text-red-700 bg-red-50 p-2 rounded'
-                                : 'font-semibold text-red-700 bg-red-50 p-2 rounded'
+                              ? 'font-medium text-foreground bg-muted/50 p-2 rounded border border-border'
                               : 'text-muted-foreground'
                           }`}>
-                            {hasDiff && (
-                              <ComparisonIcon className={`h-3 w-3 ${
-                                comparison === 'better' ? 'text-green-600' :
-                                comparison === 'worse' ? 'text-red-600' :
-                                'text-gray-500'
-                              }`} />
-                            )}
                             {value}
                           </div>
                         );
@@ -663,8 +605,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
       </div>
 
       {/* Download Comparison */}
-      <div className="flex justify-center pt-6 border-t border-gray-300 dark:border-zinc-700">
-        <Button variant="outline" size="lg" className="border-gray-300 dark:border-zinc-700 hover:bg-red-50">
+      <div className="flex justify-center pt-6 border-t border-border">
+        <Button variant="outline" size="lg" className="border-border hover:bg-muted">
           <Download className="h-4 w-4 mr-2" />
           Download Comparison PDF
         </Button>
@@ -674,15 +616,15 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto border-2 border-gray-200`}>
-        <DialogHeader className="border-b border-gray-200 pb-4">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto border border-border shadow-xl`}>
+        <DialogHeader className="border-b border-border pb-4">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-red-600" />
-              <span className="text-gray-900 dark:text-white">Compare {currentEngineData.name} Grades</span>
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="text-foreground">Compare {currentEngineData.name} Grades</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-red-50">
-              <X className="h-4 w-4 text-red-600" />
+            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full p-2 hover:bg-muted">
+              <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
         </DialogHeader>
