@@ -22,8 +22,8 @@ const BREAKPOINTS = {
   standardMobile: { min: 360, max: 390 },   // iPhone 12 mini, 13 mini, standard phones
   largeMobile: { min: 390, max: 430 },      // iPhone 12, 13, 14 Pro, most modern phones
   extraLargeMobile: { min: 430, max: 600 }, // iPhone 14 Pro Max, Plus models, fold phones
-  tablet: { min: 600, max: 768 },           // iPad mini, small tablets, large fold phones
-  desktop: { min: 768, max: Infinity }      // Desktop and large tablets
+  tablet: { min: 600, max: 1024 },          // Tablets - expanded range
+  desktop: { min: 1024, max: Infinity }     // Desktop and large tablets
 };
 
 const getDeviceCategory = (width: number): DeviceCategory => {
@@ -31,7 +31,7 @@ const getDeviceCategory = (width: number): DeviceCategory => {
   if (width < 390) return 'standardMobile';  
   if (width < 430) return 'largeMobile';
   if (width < 600) return 'extraLargeMobile'; // Expanded for very large phones
-  if (width < 768) return 'tablet';
+  if (width < 1024) return 'tablet';          // Fixed tablet detection
   return 'desktop';
 };
 
@@ -110,11 +110,11 @@ const detectDevice = (): DeviceInfo => {
     viewport: `${width}x${height}`,
     screen: `${window.screen.width}x${window.screen.height}`,
     pixelRatio: window.devicePixelRatio,
-    breakpointUsed: width < 375 ? 'smallMobile' : 
-                   width < 414 ? 'standardMobile' : 
+    breakpointUsed: width < 360 ? 'smallMobile' : 
+                   width < 390 ? 'standardMobile' : 
                    width < 430 ? 'largeMobile' : 
-                   width < 500 ? 'extraLargeMobile' :
-                   width < 768 ? 'tablet' : 'desktop',
+                   width < 600 ? 'extraLargeMobile' :
+                   width < 1024 ? 'tablet' : 'desktop',
     shouldShowMobileNav: isMobile ? '✅' : '❌'
   });
 
@@ -218,53 +218,57 @@ export function useResponsiveSize() {
   const { deviceCategory } = useDeviceInfo();
   
   return React.useMemo(() => ({
-    containerPadding: deviceCategory === 'smallMobile' ? 'px-2 safe-area-inset' : 
-                     deviceCategory === 'standardMobile' ? 'px-3 safe-area-inset' :
-                     ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 'px-6',
+    containerPadding: deviceCategory === 'smallMobile' ? 'px-3 safe-area-inset' : 
+                     deviceCategory === 'standardMobile' ? 'px-4 safe-area-inset' :
+                     ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 
+                     deviceCategory === 'tablet' ? 'px-6 safe-area-inset' : 'px-6',
     
-    buttonSize: deviceCategory === 'smallMobile' ? 'text-xs py-2.5 px-3 touch-target' :
+    buttonSize: deviceCategory === 'smallMobile' ? 'text-sm py-2.5 px-3 touch-target' :
                 deviceCategory === 'standardMobile' ? 'text-sm py-3 px-4 touch-target' :
                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
-                'text-base py-4 px-6',
+                deviceCategory === 'tablet' ? 'text-base py-4 px-6' : 'text-base py-4 px-6',
     
     cardSpacing: ['smallMobile', 'standardMobile'].includes(deviceCategory) ? 'gap-3' :
-                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 'gap-6',
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 
+                 deviceCategory === 'tablet' ? 'gap-6' : 'gap-6',
     
     textSize: {
       xs: deviceCategory === 'smallMobile' ? 'text-xs' : 
-          deviceCategory === 'standardMobile' ? 'text-sm' : 'text-sm',
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm' : 'text-sm',
       sm: deviceCategory === 'smallMobile' ? 'text-sm' : 
-          deviceCategory === 'standardMobile' ? 'text-base' : 'text-base',
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-base' : 'text-base',
       base: deviceCategory === 'smallMobile' ? 'text-base' : 
-            deviceCategory === 'standardMobile' ? 'text-lg' : 'text-lg',
+            ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-lg' : 'text-lg',
       lg: deviceCategory === 'smallMobile' ? 'text-lg' : 
-          deviceCategory === 'standardMobile' ? 'text-xl' : 'text-xl',
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-xl' : 'text-xl',
       xl: deviceCategory === 'smallMobile' ? 'text-xl' : 
-          deviceCategory === 'standardMobile' ? 'text-2xl' : 'text-2xl'
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-2xl' : 'text-2xl'
     },
 
     mobilePadding: {
-      xs: deviceCategory === 'smallMobile' ? 'p-1.5' : 
-          deviceCategory === 'standardMobile' ? 'p-2' : 'p-3',
-      sm: deviceCategory === 'smallMobile' ? 'p-2' : 
-          deviceCategory === 'standardMobile' ? 'p-3' : 'p-4',
-      md: deviceCategory === 'smallMobile' ? 'p-3' : 
-          deviceCategory === 'standardMobile' ? 'p-4' : 'p-6',
-      lg: deviceCategory === 'smallMobile' ? 'p-4' : 
-          deviceCategory === 'standardMobile' ? 'p-6' : 'p-8'
+      xs: deviceCategory === 'smallMobile' ? 'p-2' : 
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'p-2' : 'p-3',
+      sm: deviceCategory === 'smallMobile' ? 'p-3' : 
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'p-3' : 'p-4',
+      md: deviceCategory === 'smallMobile' ? 'p-4' : 
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'p-4' : 'p-6',
+      lg: deviceCategory === 'smallMobile' ? 'p-5' : 
+          ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'p-6' : 'p-8'
     },
 
     // Enhanced responsive utilities
     imageHeight: deviceCategory === 'smallMobile' ? 'h-36' :
                  deviceCategory === 'standardMobile' ? 'h-40' :
-                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'h-48' : 'h-52',
+                 ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'h-48' : 
+                 deviceCategory === 'tablet' ? 'h-56' : 'h-52',
     
     touchTarget: deviceCategory === 'smallMobile' ? 'min-h-[44px] min-w-[44px]' :
-                 deviceCategory === 'standardMobile' ? 'min-h-[48px] min-w-[48px]' :
+                 ['standardMobile', 'largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'min-h-[48px] min-w-[48px]' :
                  'min-h-[52px] min-w-[52px]',
     
     maxWidth: deviceCategory === 'smallMobile' ? 'max-w-xs' :
               deviceCategory === 'standardMobile' ? 'max-w-sm' :
-              ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'max-w-md' : 'max-w-lg'
+              ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'max-w-md' : 
+              deviceCategory === 'tablet' ? 'max-w-2xl' : 'max-w-lg'
   }), [deviceCategory]);
 }

@@ -2,8 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, CreditCard } from "lucide-react";
+import { Check, Car, Palette, Package, CreditCard, Calendar, Zap } from "lucide-react";
 
 interface ReviewStepProps {
   config: {
@@ -16,109 +15,175 @@ interface ReviewStepProps {
   };
   calculateTotalPrice: () => number;
   handlePayment: () => void;
-  showPaymentButton?: boolean;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ 
-  config, 
-  calculateTotalPrice, 
-  handlePayment,
-  showPaymentButton = true
-}) => {
-  const configItems = [
-    { label: "Model Year", value: config.modelYear },
-    { label: "Engine", value: config.engine },
-    { label: "Grade", value: config.grade },
-    { label: "Exterior Color", value: config.exteriorColor },
-    { label: "Interior Color", value: config.interiorColor },
+const ReviewStep: React.FC<ReviewStepProps> = ({ config, calculateTotalPrice, handlePayment }) => {
+  const accessories = [
+    { name: "Premium Sound System", price: 1200 },
+    { name: "Sunroof", price: 800 },
+    { name: "Navigation System", price: 600 },
+    { name: "Heated Seats", price: 400 },
+    { name: "Backup Camera", price: 300 },
+    { name: "Alloy Wheels", price: 900 }
   ];
 
+  const selectedAccessories = accessories.filter(acc => 
+    config.accessories.includes(acc.name)
+  );
+
+  const accessoriesTotal = selectedAccessories.reduce((total, acc) => total + acc.price, 0);
+  const totalPrice = calculateTotalPrice();
+
   return (
-    <div className="p-6 pb-8">
-      <motion.h2 
-        className="text-2xl font-bold text-center mb-8 text-foreground"
+    <div className="p-4 space-y-4">
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="text-center mb-4"
       >
-        Review Your Configuration
-      </motion.h2>
-      
-      <div className="space-y-6">
-        {/* Configuration Summary */}
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-bold mb-4">Your Selection</h3>
-            <div className="space-y-3">
-              {configItems.map((item, index) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex justify-between items-center py-2 border-b border-border last:border-b-0"
-                >
-                  <span className="text-muted-foreground">{item.label}</span>
-                  <span className="font-medium">{item.value}</span>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Check className="h-5 w-5 text-green-500" />
+          <h2 className="text-xl font-bold text-foreground">Review Your Configuration</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Confirm your selections before proceeding
+        </p>
+      </motion.div>
 
-        {/* Accessories */}
-        {config.accessories.length > 0 && (
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-bold mb-4">Selected Accessories</h3>
-              <div className="space-y-2">
-                {config.accessories.map((accessory, index) => (
-                  <motion.div
-                    key={accessory}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center space-x-3"
-                  >
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">{accessory}</span>
-                  </motion.div>
-                ))}
+      {/* Compact Configuration Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.4 }}
+        className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20"
+      >
+        <div className="grid grid-cols-2 gap-4">
+          {/* Model & Engine */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Model Year</p>
+                <p className="font-semibold text-foreground">{config.modelYear}</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Total Price */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <span className="text-xl font-bold">Total Price</span>
-              <span className="text-2xl font-black text-primary">
-                AED {calculateTotalPrice().toLocaleString()}
-              </span>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Engine</p>
+                <p className="font-semibold text-foreground">{config.engine}</p>
+              </div>
+            </div>
+          </div>
 
-        {/* Payment Button - only show if showPaymentButton is true */}
-        {showPaymentButton && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Button 
-              onClick={handlePayment}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg"
-              size="lg"
-            >
-              <CreditCard className="mr-3 h-5 w-5" />
-              Proceed to Payment
-            </Button>
-          </motion.div>
-        )}
-      </div>
+          {/* Grade & Colors */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Car className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Grade</p>
+                <p className="font-semibold text-foreground">{config.grade}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Colors</p>
+                <p className="font-semibold text-foreground text-xs">
+                  {config.exteriorColor} / {config.interiorColor}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Accessories - Compact Layout */}
+      {selectedAccessories.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="bg-card rounded-xl p-4 border border-border"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Package className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-foreground">Selected Accessories</h3>
+          </div>
+          
+          <div className="space-y-2">
+            {selectedAccessories.map((accessory, index) => (
+              <div key={index} className="flex items-center justify-between py-1">
+                <span className="text-sm text-foreground">{accessory.name}</span>
+                <span className="text-sm font-medium text-foreground">
+                  +AED {accessory.price.toLocaleString()}
+                </span>
+              </div>
+            ))}
+            <div className="border-t pt-2 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Accessories Total</span>
+                <span className="text-sm font-bold text-primary">
+                  +AED {accessoriesTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Pricing Summary - Compact */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border border-green-200"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-green-600" />
+            <h3 className="text-lg font-bold text-green-800">Total Price</h3>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-green-600">
+              AED {totalPrice.toLocaleString()}
+            </div>
+            <div className="text-sm text-green-700">
+              From AED 2,850/month
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-green-700">Down Payment</p>
+            <p className="font-semibold text-green-800">AED 2,000</p>
+          </div>
+          <div>
+            <p className="text-green-700">Est. Delivery</p>
+            <p className="font-semibold text-green-800">2-3 weeks</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Action Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+        className="pt-2"
+      >
+        <Button
+          onClick={handlePayment}
+          className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-4 rounded-xl shadow-lg transition-all duration-300"
+        >
+          <CreditCard className="mr-2 h-5 w-5" />
+          Reserve Now - AED 2,000
+        </Button>
+      </motion.div>
     </div>
   );
 };
