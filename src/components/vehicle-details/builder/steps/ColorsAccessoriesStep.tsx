@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Palette, Package, ChevronLeft, ChevronRight } from "lucide-react";
@@ -15,7 +14,26 @@ interface ColorsAccessoriesStepProps {
   setConfig: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const exteriorColors = [
+interface ExteriorColor {
+  name: string;
+  image: string;
+  price: number;
+}
+
+interface InteriorColor {
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+}
+
+interface Accessory {
+  name: string;
+  price: number;
+  description: string;
+}
+
+const exteriorColors: ExteriorColor[] = [
   { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", price: 0 },
   { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 500 },
   { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", price: 300 },
@@ -23,13 +41,13 @@ const exteriorColors = [
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 600 }
 ];
 
-const interiorColors = [
+const interiorColors: InteriorColor[] = [
   { name: "Black Leather", price: 0, description: "Premium black leather interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
   { name: "Beige Leather", price: 800, description: "Luxurious beige leather interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
   { name: "Gray Fabric", price: -500, description: "Comfortable gray fabric interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" }
 ];
 
-const accessories = [
+const accessories: Accessory[] = [
   { name: "Premium Sound System", price: 1200, description: "JBL premium audio with 12 speakers" },
   { name: "Sunroof", price: 800, description: "Panoramic glass roof with electric controls" },
   { name: "Navigation System", price: 600, description: "Advanced GPS with real-time traffic" },
@@ -111,7 +129,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
     threshold: 40
   });
 
-  const getCurrentItem = () => {
+  const getCurrentItem = (): ExteriorColor | InteriorColor | Accessory | null => {
     switch (activeSection) {
       case 0: return exteriorColors[exteriorIndex];
       case 1: return interiorColors[interiorIndex];
@@ -233,14 +251,14 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                   <div className="text-center">
                     <div className="mb-4">
                       <img 
-                        src={currentItem.image} 
-                        alt={currentItem.name} 
+                        src={(currentItem as ExteriorColor).image} 
+                        alt={(currentItem as ExteriorColor).name} 
                         className="w-32 h-20 object-cover rounded-lg mx-auto border-2 border-border/50" 
                       />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    {currentItem.price > 0 && (
-                      <p className="text-primary font-medium">+AED {currentItem.price}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as ExteriorColor).name}</h3>
+                    {(currentItem as ExteriorColor).price > 0 && (
+                      <p className="text-primary font-medium">+AED {(currentItem as ExteriorColor).price}</p>
                     )}
                   </div>
                 )}
@@ -250,16 +268,16 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                   <div className="text-center">
                     <div className="mb-4">
                       <img 
-                        src={currentItem.image} 
-                        alt={currentItem.name} 
+                        src={(currentItem as InteriorColor).image} 
+                        alt={(currentItem as InteriorColor).name} 
                         className="w-32 h-20 object-cover rounded-lg mx-auto border-2 border-border/50" 
                       />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">{currentItem.description}</p>
-                    {currentItem.price !== 0 && (
-                      <p className={`font-bold ${currentItem.price > 0 ? 'text-primary' : 'text-green-600'}`}>
-                        {currentItem.price > 0 ? '+' : ''}AED {currentItem.price.toLocaleString()}
+                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as InteriorColor).name}</h3>
+                    <p className="text-muted-foreground text-sm mb-3">{(currentItem as InteriorColor).description}</p>
+                    {(currentItem as InteriorColor).price !== 0 && (
+                      <p className={`font-bold ${(currentItem as InteriorColor).price > 0 ? 'text-primary' : 'text-green-600'}`}>
+                        {(currentItem as InteriorColor).price > 0 ? '+' : ''}AED {(currentItem as InteriorColor).price.toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -270,11 +288,11 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                   <div>
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-foreground">{currentItem.name}</h3>
-                        <p className="text-muted-foreground text-sm">{currentItem.description}</p>
+                        <h3 className="text-lg font-bold text-foreground">{(currentItem as Accessory).name}</h3>
+                        <p className="text-muted-foreground text-sm">{(currentItem as Accessory).description}</p>
                       </div>
                       <div className="text-right ml-4">
-                        <p className="text-primary font-bold">+AED {currentItem.price.toLocaleString()}</p>
+                        <p className="text-primary font-bold">+AED {(currentItem as Accessory).price.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>

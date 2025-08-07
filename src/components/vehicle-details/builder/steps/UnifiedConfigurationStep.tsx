@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Calendar, Zap, Star, Palette, Package, ChevronLeft, ChevronRight } from "lucide-react";
@@ -425,7 +424,7 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="text-2xl font-bold text-foreground">{(currentItem as ModelYear).year}</h4>
-                        <p className="text-sm text-muted-foreground">{currentItem.description}</p>
+                        <p className="text-sm text-muted-foreground">{(currentItem as ModelYear).description}</p>
                       </div>
                       <div className="text-right">
                         <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
@@ -441,7 +440,7 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="text-xl font-bold text-foreground">{(currentItem as Engine).name}</h4>
-                        <p className="text-sm text-muted-foreground">{currentItem.description}</p>
+                        <p className="text-sm text-muted-foreground">{(currentItem as Engine).description}</p>
                       </div>
                       <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
                         {(currentItem as Engine).badge}
@@ -480,7 +479,7 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                         {(currentItem as Grade).badge}
                       </div>
                     </div>
-                    <p className="text-muted-foreground text-sm mb-4">{currentItem.description}</p>
+                    <p className="text-muted-foreground text-sm mb-4">{(currentItem as Grade).description}</p>
                     <div className="text-center">
                       <div className="text-xl font-bold text-foreground">{(currentItem as Grade).price}</div>
                       <div className="text-sm text-muted-foreground">AED {(currentItem as Grade).monthlyEMI}/month</div>
