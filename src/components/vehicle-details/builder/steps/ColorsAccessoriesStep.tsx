@@ -250,7 +250,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 {activeSection === 1 && (
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">{currentItem.description}</p>
+                    <p className="text-muted-foreground text-sm mb-3">{(currentItem as any).description}</p>
                     {currentItem.price !== 0 && (
                       <p className={`font-bold ${currentItem.price > 0 ? 'text-primary' : 'text-green-600'}`}>
                         {currentItem.price > 0 ? '+' : ''}AED {currentItem.price.toLocaleString()}
@@ -264,7 +264,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <h3 className="text-lg font-bold text-foreground">{currentItem.name}</h3>
-                        <p className="text-muted-foreground text-sm">{currentItem.description}</p>
+                        <p className="text-muted-foreground text-sm">{(currentItem as any).description}</p>
                       </div>
                       <div className="text-right ml-4">
                         <p className="text-primary font-bold">+AED {currentItem.price.toLocaleString()}</p>

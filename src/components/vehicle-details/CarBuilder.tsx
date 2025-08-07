@@ -123,7 +123,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   };
 
   const goNext = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 2) setStep(step + 1); // Updated to 2 steps
   };
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
@@ -165,7 +165,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+        </AlertDialogFooter>
       </AlertDialog>
 
       {/* Main Builder Dialog - Full Screen Desktop Experience */}
