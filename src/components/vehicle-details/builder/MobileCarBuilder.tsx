@@ -7,8 +7,8 @@ import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
+import { useSwipeable } from "@/hooks/use-swipeable";
 import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
-import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
 
 interface BuilderConfig {
   modelYear: string;
@@ -191,10 +191,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return `${baseClass} ${sizeClass}`;
   };
 
-  // Enhanced swipe with luxury haptic feedback - only for main step navigation
-  const swipeableRef = useSwipeableEnhanced<HTMLDivElement>({
+  // Enhanced swipe with luxury haptic feedback
+  const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
-      if (step < 2) {
+      if (step < 4) {
         contextualHaptic.swipeNavigation();
         goNext();
       }
@@ -205,14 +205,11 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         goBack();
       }
     },
-    enableVerticalSwipe: false,
-    enableHorizontalSwipe: true,
-    swipeContext: 'MobileCarBuilder-MainNavigation',
     threshold: 50,
     preventDefaultTouchmoveEvent: false
   });
 
-  // Fixed button click handlers with proper reset functionality
+  // Fixed button click handlers
   const handleBackClick = () => {
     contextualHaptic.stepProgress();
     if (step > 1) {
@@ -224,11 +221,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const handleResetClick = () => {
     contextualHaptic.resetAction();
-    console.log('Reset button clicked'); // Debug log
     onReset();
   };
 
-  const handleCloseClick = () => {
+  const handleExitClick = () => {
     contextualHaptic.exitAction();
     onClose();
   };
@@ -242,14 +238,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/5 overflow-hidden flex flex-col mobile-viewport"
       ref={swipeableRef}
     >
-      {/* Enhanced Header Layout - improved visibility and button layout */}
+      {/* Fixed Header Layout */}
       <motion.div 
         variants={headerVariants}
         className={`relative z-30 flex items-center justify-between bg-background/98 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-4 py-3 safe-area-inset-top`}
       >
         <div className="flex items-center gap-2">
           <motion.button
-            ref={backButtonRef}
+            ref={step > 1 ? backButtonRef : closeButtonRef}
             onClick={handleBackClick}
             className={getTouchButtonClass()}
             whileHover={{ scale: 1.02 }}
@@ -278,13 +274,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
           <p className="text-xs text-muted-foreground font-medium">
-            Step {step} of 2
+            Step {step} of 4
           </p>
         </motion.div>
 
         <motion.button
-          ref={closeButtonRef}
-          onClick={handleCloseClick}
+          ref={exitButtonRef}
+          onClick={handleExitClick}
           className={getTouchButtonClass()}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -293,15 +289,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.button>
       </motion.div>
 
-      {/* Enhanced Vehicle Image with improved text contrast */}
+      {/* Fixed Vehicle Image with better text visibility */}
       <motion.div 
         variants={imageVariants}
         className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/20 flex-shrink-0`}
         key={config.exteriorColor + config.grade}
       >
-        {/* Enhanced gradient overlays for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 z-10" />
+        {/* Improved gradient overlays for text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 z-10" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
@@ -320,33 +316,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           loading="lazy"
         />
         
-        {/* Enhanced Vehicle Info Overlay with better contrast and positioning */}
+        {/* Fixed Vehicle Info Overlay with better contrast */}
         <motion.div 
           className="absolute bottom-3 left-3 right-3 z-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <div className="bg-black/90 backdrop-blur-xl rounded-xl p-4 border border-white/30 shadow-2xl">
+          <div className="bg-background/95 backdrop-blur-xl rounded-xl p-3 border border-border/30 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-white truncate mb-1">
+                <h3 className="text-sm font-bold text-foreground truncate mb-1">
                   {config.modelYear} {vehicle.name}
                 </h3>
-                <div className="flex items-center gap-2 text-white/90 mb-1">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <span className="text-xs font-medium">{config.grade}</span>
-                  <div className="w-1 h-1 bg-white/60 rounded-full"></div>
+                  <div className="w-1 h-1 bg-muted-foreground/60 rounded-full"></div>
                   <span className="text-xs">{config.engine}</span>
                 </div>
-                <p className="text-white/80 text-xs">
+                <p className="text-muted-foreground text-xs">
                   {config.exteriorColor} Exterior
                 </p>
               </div>
               <div className="text-right ml-3">
-                <div className="text-base font-bold text-white mb-0.5">
+                <div className="text-base font-bold text-primary mb-0.5">
                   AED {calculateTotalPrice().toLocaleString()}
                 </div>
-                <div className="text-xs text-white/80">
+                <div className="text-xs text-muted-foreground">
                   From AED 2,850/mo
                 </div>
               </div>
@@ -360,7 +356,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         variants={contentVariants}
         className="flex-shrink-0 bg-background/98 border-b border-border/10"
       >
-        <MobileProgress currentStep={step} totalSteps={2} />
+        <MobileProgress currentStep={step} totalSteps={4} />
       </motion.div>
 
       {/* Choice Collector - Fixed layout */}
@@ -371,7 +367,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <ChoiceCollector config={config} step={step} />
       </motion.div>
 
-      {/* Step Content - Enhanced with swipe-only interface */}
+      {/* Step Content - Fixed scrolling */}
       <motion.div 
         variants={contentVariants}
         className="flex-1 overflow-hidden bg-background/95"
@@ -402,7 +398,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           step={step}
           reserveAmount={2000}
           deviceCategory={deviceCategory}
-          showPaymentButton={step !== 2}
+          showPaymentButton={step !== 4}
         />
       </motion.div>
     </motion.div>

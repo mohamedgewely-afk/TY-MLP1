@@ -1,330 +1,245 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Palette, Package, ChevronLeft, ChevronRight } from "lucide-react";
-import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
-import SwipeIndicators from "../SwipeIndicators";
-import { contextualHaptic } from "@/utils/haptic";
+
+import React from "react";
+import { motion } from "framer-motion";
+import { Check, Palette, Sofa, Package, Plus, Minus } from "lucide-react";
 
 interface ColorsAccessoriesStepProps {
-  config: { 
-    exteriorColor: string; 
-    interiorColor: string; 
-    accessories: string[] 
-  };
+  config: { exteriorColor: string; interiorColor: string; accessories: string[] };
   setConfig: React.Dispatch<React.SetStateAction<any>>;
 }
 
-interface ExteriorColor {
-  name: string;
-  image: string;
-  price: number;
-}
-
-interface InteriorColor {
-  name: string;
-  price: number;
-  description: string;
-  image: string;
-}
-
-interface Accessory {
-  name: string;
-  price: number;
-  description: string;
-}
-
-const exteriorColors: ExteriorColor[] = [
-  { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", price: 0 },
-  { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 500 },
-  { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", price: 300 },
-  { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", price: 400 },
-  { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 600 }
+const exteriorColors = [
+  { name: "Pearl White", color: "#F8F9FA", price: 0, popular: true },
+  { name: "Midnight Black", color: "#1A1B23", price: 500, popular: true },
+  { name: "Silver Metallic", color: "#8B9DC3", price: 300, popular: false },
+  { name: "Deep Blue", color: "#1E3A8A", price: 400, popular: false },
+  { name: "Ruby Red", color: "#DC2626", price: 600, popular: false }
 ];
 
-const interiorColors: InteriorColor[] = [
-  { name: "Black Leather", price: 0, description: "Premium black leather interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
-  { name: "Beige Leather", price: 800, description: "Luxurious beige leather interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
-  { name: "Gray Fabric", price: -500, description: "Comfortable gray fabric interior", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" }
+const interiorColors = [
+  { name: "Black Leather", color: "#1F2937", price: 0, material: "Premium Leather" },
+  { name: "Beige Leather", color: "#F3E8D0", price: 800, material: "Premium Leather" },
+  { name: "Gray Fabric", color: "#6B7280", price: -500, material: "Sport Fabric" }
 ];
 
-const accessories: Accessory[] = [
-  { name: "Premium Sound System", price: 1200, description: "JBL premium audio with 12 speakers" },
-  { name: "Sunroof", price: 800, description: "Panoramic glass roof with electric controls" },
-  { name: "Navigation System", price: 600, description: "Advanced GPS with real-time traffic" },
-  { name: "Heated Seats", price: 400, description: "Front and rear seat heating" },
-  { name: "Backup Camera", price: 300, description: "360-degree surround view camera" },
-  { name: "Alloy Wheels", price: 900, description: "18-inch premium alloy wheels" }
+const accessories = [
+  { name: "Premium Sound System", price: 1200, category: "Entertainment" },
+  { name: "Sunroof", price: 800, category: "Comfort" },
+  { name: "Navigation System", price: 600, category: "Technology" },
+  { name: "Heated Seats", price: 400, category: "Comfort" },
+  { name: "Backup Camera", price: 300, category: "Safety" },
+  { name: "Alloy Wheels", price: 900, category: "Style" }
 ];
 
 const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, setConfig }) => {
-  // Section management: 0=exterior, 1=interior, 2=accessories
-  const [activeSection, setActiveSection] = useState(0);
-  const [exteriorIndex, setExteriorIndex] = useState(0);
-  const [interiorIndex, setInteriorIndex] = useState(0);
-  const [accessoryIndex, setAccessoryIndex] = useState(0);
-
-  const handleHorizontalSwipe = (direction: 'left' | 'right') => {
-    contextualHaptic.selectionChange();
-    
-    if (direction === 'left') {
-      // Navigate forward through sections or items within sections
-      switch (activeSection) {
-        case 0: // Exterior Colors
-          if (exteriorIndex < exteriorColors.length - 1) {
-            setExteriorIndex(exteriorIndex + 1);
-          } else {
-            setActiveSection(1);
-            setInteriorIndex(0);
-          }
-          break;
-        case 1: // Interior Colors
-          if (interiorIndex < interiorColors.length - 1) {
-            setInteriorIndex(interiorIndex + 1);
-          } else {
-            setActiveSection(2);
-            setAccessoryIndex(0);
-          }
-          break;
-        case 2: // Accessories
-          if (accessoryIndex < accessories.length - 1) {
-            setAccessoryIndex(accessoryIndex + 1);
-          }
-          break;
-      }
-    } else {
-      // Navigate backward through sections or items within sections
-      switch (activeSection) {
-        case 0: // Exterior Colors
-          if (exteriorIndex > 0) {
-            setExteriorIndex(exteriorIndex - 1);
-          }
-          break;
-        case 1: // Interior Colors
-          if (interiorIndex > 0) {
-            setInteriorIndex(interiorIndex - 1);
-          } else {
-            setActiveSection(0);
-            setExteriorIndex(exteriorColors.length - 1);
-          }
-          break;
-        case 2: // Accessories
-          if (accessoryIndex > 0) {
-            setAccessoryIndex(accessoryIndex - 1);
-          } else {
-            setActiveSection(1);
-            setInteriorIndex(interiorColors.length - 1);
-          }
-          break;
-      }
-    }
+  const toggleAccessory = (accessoryName: string) => {
+    setConfig(prev => ({
+      ...prev,
+      accessories: prev.accessories.includes(accessoryName)
+        ? prev.accessories.filter(acc => acc !== accessoryName)
+        : [...prev.accessories, accessoryName]
+    }));
   };
-
-  const swipeableRef = useSwipeableEnhanced({
-    onSwipeLeft: () => handleHorizontalSwipe('left'),
-    onSwipeRight: () => handleHorizontalSwipe('right'),
-    enableHorizontalSwipe: true,
-    enableVerticalSwipe: false,
-    swipeContext: 'ColorsAccessoriesStep',
-    debug: false,
-    threshold: 40
-  });
-
-  const getCurrentItem = (): ExteriorColor | InteriorColor | Accessory | null => {
-    switch (activeSection) {
-      case 0: return exteriorColors[exteriorIndex];
-      case 1: return interiorColors[interiorIndex];
-      case 2: return accessories[accessoryIndex];
-      default: return null;
-    }
-  };
-
-  const handleSelection = () => {
-    contextualHaptic.selectionChange();
-    const currentItem = getCurrentItem();
-    if (!currentItem) return;
-    
-    switch (activeSection) {
-      case 0:
-        setConfig(prev => ({ ...prev, exteriorColor: currentItem.name }));
-        break;
-      case 1:
-        setConfig(prev => ({ ...prev, interiorColor: currentItem.name }));
-        break;
-      case 2:
-        const isSelected = config.accessories.includes(currentItem.name);
-        setConfig(prev => ({
-          ...prev,
-          accessories: isSelected
-            ? prev.accessories.filter(acc => acc !== currentItem.name)
-            : [...prev.accessories, currentItem.name]
-        }));
-        break;
-    }
-  };
-
-  const getSectionInfo = () => {
-    const sections = [
-      { title: "Exterior Color", icon: <Palette className="h-5 w-5 text-primary" />, description: "Select exterior finish" },
-      { title: "Interior Color", icon: <Palette className="h-5 w-5 text-primary" />, description: "Choose interior finish" },
-      { title: "Accessories", icon: <Package className="h-5 w-5 text-primary" />, description: "Add premium features" }
-    ];
-    return sections[activeSection];
-  };
-
-  const isSelected = () => {
-    const currentItem = getCurrentItem();
-    if (!currentItem) return false;
-
-    switch (activeSection) {
-      case 0: return config.exteriorColor === currentItem.name;
-      case 1: return config.interiorColor === currentItem.name;
-      case 2: return config.accessories.includes(currentItem.name);
-      default: return false;
-    }
-  };
-
-  const sectionInfo = getSectionInfo();
-  const currentItem = getCurrentItem();
 
   return (
-    <div ref={swipeableRef} className="h-full flex flex-col relative">
-      {/* Swipe hint */}
-      <motion.div 
-        className="text-center py-2 bg-muted/20 rounded-lg mb-4"
-        initial={{ opacity: 0, y: -10 }}
+    <div className="p-4 space-y-6">
+      {/* Exterior Colors */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <ChevronLeft className="h-3 w-3" />
-          <span>Swipe left/right to select colors & accessories</span>
-          <ChevronRight className="h-3 w-3" />
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Palette className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Exterior Color</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">Choose your preferred exterior color</p>
         </div>
-      </motion.div>
-
-      <div className="text-center mb-6">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {sectionInfo.icon}
-          <h2 className="text-xl font-bold text-foreground">
-            {sectionInfo.title}
-          </h2>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          {sectionInfo.description}
-        </p>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center px-4">
-        <AnimatePresence mode="wait">
-          {currentItem && (
-            <motion.div
-              key={`${activeSection}-${currentItem.name}`}
-              initial={{ opacity: 0, x: 50, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -50, scale: 0.95 }}
-              transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
-              className="w-full max-w-md"
-            >
-              <div
-                className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg p-6 ${
-                  isSelected()
+        
+        <div className="grid grid-cols-2 gap-3">
+          {exteriorColors.map((color, index) => {
+            const isSelected = config.exteriorColor === color.name;
+            
+            return (
+              <motion.div
+                key={color.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-3 ${
+                  isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
                     : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
                 }`}
-                onClick={handleSelection}
+                onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {/* Selection indicator */}
-                {isSelected() && (
+                {isSelected && (
                   <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute top-4 right-4 z-20"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-2 right-2 z-10"
                   >
-                    <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
-                      <Check className="h-4 w-4" />
+                    <div className="bg-primary text-primary-foreground rounded-full p-1">
+                      <Check className="h-3 w-3" />
                     </div>
                   </motion.div>
                 )}
+                
+                <div className="text-center">
+                  <div 
+                    className="w-12 h-12 mx-auto mb-2 rounded-lg border-2 border-border/50 shadow-inner"
+                    style={{ backgroundColor: color.color }}
+                  />
+                  <h4 className="text-sm font-semibold text-foreground truncate">{color.name}</h4>
+                  <p className="text-xs text-muted-foreground">
+                    {color.price > 0 ? `+AED ${color.price}` : 'Included'}
+                  </p>
+                  {color.popular && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                      Popular
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
 
-                {/* Exterior Color Content */}
-                {activeSection === 0 && (
-                  <div className="text-center">
-                    <div className="mb-4">
-                      <img 
-                        src={(currentItem as ExteriorColor).image} 
-                        alt={(currentItem as ExteriorColor).name} 
-                        className="w-32 h-20 object-cover rounded-lg mx-auto border-2 border-border/50" 
-                      />
+      {/* Interior Colors */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+      >
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sofa className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Interior Color</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">Choose your interior materials and colors</p>
+        </div>
+        
+        <div className="space-y-3">
+          {interiorColors.map((color, index) => {
+            const isSelected = config.interiorColor === color.name;
+            
+            return (
+              <motion.div
+                key={color.name}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (index + 5) * 0.1, duration: 0.4 }}
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                  isSelected 
+                    ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
+                    : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
+                }`}
+                onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Selection indicator */}
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-3 right-3"
+                  >
+                    <div className="bg-primary text-primary-foreground rounded-full p-1">
+                      <Check className="h-3 w-3" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as ExteriorColor).name}</h3>
-                    {(currentItem as ExteriorColor).price > 0 && (
-                      <p className="text-primary font-medium">+AED {(currentItem as ExteriorColor).price}</p>
+                  </motion.div>
+                )}
+                
+                <div className="flex items-center gap-4">
+                  <div 
+                    className="w-10 h-10 rounded-lg border-2 border-border/50 shadow-inner flex-shrink-0"
+                    style={{ backgroundColor: color.color }}
+                  />
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-foreground">{color.name}</h4>
+                    <p className="text-sm text-muted-foreground">{color.material}</p>
+                    <p className="text-sm text-foreground font-medium">
+                      {color.price > 0 ? `+AED ${color.price}` : color.price < 0 ? `AED ${color.price}` : 'Included'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Accessories */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+      >
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Package className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Accessories</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">Add optional features to enhance your vehicle</p>
+        </div>
+        
+        <div className="space-y-3">
+          {accessories.map((accessory, index) => {
+            const isSelected = config.accessories.includes(accessory.name);
+            
+            return (
+              <motion.div
+                key={accessory.name}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (index + 8) * 0.1, duration: 0.4 }}
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                  isSelected 
+                    ? 'bg-primary/10 border-primary shadow-lg' 
+                    : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
+                }`}
+                onClick={() => toggleAccessory(accessory.name)}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="text-base font-semibold text-foreground">{accessory.name}</h4>
+                      <span className="px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md">
+                        {accessory.category}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground">+AED {accessory.price}</p>
+                  </div>
+                  
+                  <motion.div
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
+                      isSelected 
+                        ? 'bg-primary border-primary text-primary-foreground' 
+                        : 'border-border bg-background hover:border-primary/50'
+                    }`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {isSelected ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
                     )}
-                  </div>
-                )}
-
-                {/* Interior Color Content */}
-                {activeSection === 1 && (
-                  <div className="text-center">
-                    <div className="mb-4">
-                      <img 
-                        src={(currentItem as InteriorColor).image} 
-                        alt={(currentItem as InteriorColor).name} 
-                        className="w-32 h-20 object-cover rounded-lg mx-auto border-2 border-border/50" 
-                      />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as InteriorColor).name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">{(currentItem as InteriorColor).description}</p>
-                    {(currentItem as InteriorColor).price !== 0 && (
-                      <p className={`font-bold ${(currentItem as InteriorColor).price > 0 ? 'text-primary' : 'text-green-600'}`}>
-                        {(currentItem as InteriorColor).price > 0 ? '+' : ''}AED {(currentItem as InteriorColor).price.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Accessories Content */}
-                {activeSection === 2 && (
-                  <div>
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-foreground">{(currentItem as Accessory).name}</h3>
-                        <p className="text-muted-foreground text-sm">{(currentItem as Accessory).description}</p>
-                      </div>
-                      <div className="text-right ml-4">
-                        <p className="text-primary font-bold">+AED {(currentItem as Accessory).price.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Progress indicators */}
-      <div className="flex justify-center items-center gap-4 py-4">
-        <SwipeIndicators
-          total={3}
-          current={activeSection}
-          direction="horizontal"
-          className="mr-4"
-        />
-        <SwipeIndicators
-          total={
-            activeSection === 0 ? exteriorColors.length :
-            activeSection === 1 ? interiorColors.length :
-            accessories.length
-          }
-          current={
-            activeSection === 0 ? exteriorIndex :
-            activeSection === 1 ? interiorIndex :
-            accessoryIndex
-          }
-          direction="horizontal"
-        />
-      </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
     </div>
   );
 };

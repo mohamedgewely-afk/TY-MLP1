@@ -1,10 +1,7 @@
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Calendar, Zap, ChevronLeft, ChevronRight } from "lucide-react";
-import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
-import SwipeIndicators from "../SwipeIndicators";
-import { contextualHaptic } from "@/utils/haptic";
+import React from "react";
+import { motion } from "framer-motion";
+import { Check, Calendar, Zap } from "lucide-react";
 
 interface ModelYearEngineStepProps {
   config: { modelYear: string; engine: string };
@@ -42,108 +39,43 @@ const engines = [
 ];
 
 const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setConfig }) => {
-  const [activeSection, setActiveSection] = useState(0); // 0: model years, 1: engines
-  const [yearIndex, setYearIndex] = useState(0);
-  const [engineIndex, setEngineIndex] = useState(0);
-
-  const handleHorizontalSwipe = (direction: 'left' | 'right') => {
-    contextualHaptic.selectionChange();
-    
-    if (activeSection === 0) {
-      // Model year navigation
-      if (direction === 'left' && yearIndex < modelYears.length - 1) {
-        setYearIndex(yearIndex + 1);
-      } else if (direction === 'right' && yearIndex > 0) {
-        setYearIndex(yearIndex - 1);
-      } else if (direction === 'left' && yearIndex === modelYears.length - 1) {
-        // Move to engines section
-        setActiveSection(1);
-        setEngineIndex(0);
-      }
-    } else {
-      // Engine navigation
-      if (direction === 'left' && engineIndex < engines.length - 1) {
-        setEngineIndex(engineIndex + 1);
-      } else if (direction === 'right' && engineIndex > 0) {
-        setEngineIndex(engineIndex - 1);
-      } else if (direction === 'right' && engineIndex === 0) {
-        // Move back to model years
-        setActiveSection(0);
-        setYearIndex(modelYears.length - 1);
-      }
-    }
-  };
-
-  const swipeableRef = useSwipeableEnhanced({
-    onSwipeLeft: () => handleHorizontalSwipe('left'),
-    onSwipeRight: () => handleHorizontalSwipe('right'),
-    enableHorizontalSwipe: true,
-    enableVerticalSwipe: false,
-    swipeContext: 'ModelYearEngineStep',
-    debug: false,
-    threshold: 40
-  });
-
-  const currentYear = modelYears[yearIndex];
-  const currentEngine = engines[engineIndex];
-
-  const handleYearSelect = (year: string) => {
-    contextualHaptic.selectionChange();
-    setConfig(prev => ({ ...prev, modelYear: year }));
-  };
-
-  const handleEngineSelect = (engine: string) => {
-    contextualHaptic.selectionChange();
-    setConfig(prev => ({ ...prev, engine: engine }));
-  };
-
   return (
-    <div ref={swipeableRef} className="h-full flex flex-col relative">
-      {/* Swipe hint */}
-      <motion.div 
-        className="text-center py-2 bg-muted/20 rounded-lg mb-4"
-        initial={{ opacity: 0, y: -10 }}
+    <div className="p-4 space-y-6">
+      {/* Model Year Selection */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <ChevronLeft className="h-3 w-3" />
-          <span>Swipe left/right to navigate</span>
-          <ChevronRight className="h-3 w-3" />
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Select Model Year</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">Choose your preferred model year</p>
         </div>
-      </motion.div>
-
-      <div className="flex-1 flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          {activeSection === 0 ? (
-            <motion.div
-              key="model-year"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 50 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-sm"
-            >
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-bold text-foreground">Select Model Year</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">Choose your preferred model year</p>
-              </div>
-              
+        
+        <div className="grid grid-cols-1 gap-3">
+          {modelYears.map((year, index) => {
+            const isSelected = config.modelYear === year.year;
+            
+            return (
               <motion.div
-                className={`rounded-xl cursor-pointer transition-all duration-300 border-2 p-6 ${
-                  config.modelYear === currentYear.year
+                key={year.year}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                  isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
                     : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
                 }`}
-                onClick={() => handleYearSelect(currentYear.year)}
+                onClick={() => setConfig(prev => ({ ...prev, modelYear: year.year }))}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                layout
               >
-                {config.modelYear === currentYear.year && (
+                {/* Selection indicator */}
+                {isSelected && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -157,46 +89,56 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-2xl font-bold text-foreground">{currentYear.year}</h4>
-                    <p className="text-sm text-muted-foreground">{currentYear.description}</p>
+                    <h4 className="text-xl font-bold text-foreground">{year.year}</h4>
+                    <p className="text-sm text-muted-foreground">{year.description}</p>
                   </div>
                   <div className="text-right">
-                    <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
-                      {currentYear.badge}
+                    <span className="px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md border">
+                      {year.badge}
                     </span>
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="engine"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-sm"
-            >
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-bold text-foreground">Select Engine</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">Choose your preferred engine type</p>
-              </div>
-              
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Engine Selection */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+      >
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Zap className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Select Engine</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">Choose your preferred engine type</p>
+        </div>
+        
+        <div className="space-y-3">
+          {engines.map((engine, index) => {
+            const isSelected = config.engine === engine.name;
+            
+            return (
               <motion.div
-                className={`rounded-xl cursor-pointer transition-all duration-300 border-2 p-6 ${
-                  config.engine === currentEngine.name
+                key={engine.name}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (index + 3) * 0.1, duration: 0.4 }}
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                  isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
                     : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
                 }`}
-                onClick={() => handleEngineSelect(currentEngine.name)}
+                onClick={() => setConfig(prev => ({ ...prev, engine: engine.name }))}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                layout
               >
-                {config.engine === currentEngine.name && (
+                {/* Selection indicator */}
+                {isSelected && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -210,46 +152,31 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                 
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="text-xl font-bold text-foreground">{currentEngine.name}</h4>
-                    <p className="text-sm text-muted-foreground">{currentEngine.description}</p>
+                    <h4 className="text-lg font-bold text-foreground">{engine.name}</h4>
+                    <p className="text-sm text-muted-foreground">{engine.description}</p>
                   </div>
-                  <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
-                    {currentEngine.badge}
+                  <span className="px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md border">
+                    {engine.badge}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-4">
                     <div>
-                      <span className="font-medium text-foreground">{currentEngine.power}</span>
+                      <span className="font-medium text-foreground">{engine.power}</span>
                       <p className="text-xs text-muted-foreground">Power</p>
                     </div>
                     <div>
-                      <span className="font-medium text-foreground">{currentEngine.efficiency}</span>
+                      <span className="font-medium text-foreground">{engine.efficiency}</span>
                       <p className="text-xs text-muted-foreground">Fuel Economy</p>
                     </div>
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Progress indicators */}
-      <div className="flex justify-center items-center gap-4 py-4">
-        <SwipeIndicators
-          total={2}
-          current={activeSection}
-          direction="horizontal"
-          className="mr-4"
-        />
-        <SwipeIndicators
-          total={activeSection === 0 ? modelYears.length : engines.length}
-          current={activeSection === 0 ? yearIndex : engineIndex}
-          direction="horizontal"
-        />
-      </div>
+            );
+          })}
+        </div>
+      </motion.div>
     </div>
   );
 };
