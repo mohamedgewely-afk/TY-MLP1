@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Palette, Package, ChevronUp, ChevronDown } from "lucide-react";
+import { Check, Palette, Package, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
 import SwipeIndicators from "../SwipeIndicators";
 import { contextualHaptic } from "@/utils/haptic";
@@ -20,9 +20,9 @@ const exteriorColors = [
 ];
 
 const interiorColors = [
-  { name: "Black Leather", price: 0 },
-  { name: "Beige Leather", price: 800 },
-  { name: "Gray Fabric", price: -500 }
+  { name: "Black Leather", price: 0, description: "Premium black leather interior" },
+  { name: "Beige Leather", price: 800, description: "Luxurious beige leather interior" },
+  { name: "Gray Fabric", price: -500, description: "Comfortable gray fabric interior" }
 ];
 
 const accessories = [
@@ -40,62 +40,54 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
   const [interiorIndex, setInteriorIndex] = useState(0);
   const [accessoryIndex, setAccessoryIndex] = useState(0);
 
-  const handleVerticalSwipe = (direction: 'up' | 'down') => {
+  const handleHorizontalSwipe = (direction: 'left' | 'right') => {
     contextualHaptic.selectionChange();
     
     if (activeSection === 0) {
       // Exterior colors navigation
-      if (direction === 'up' && exteriorIndex > 0) {
+      if (direction === 'left' && exteriorIndex < exteriorColors.length - 1) {
+        setExteriorIndex(exteriorIndex + 1);
+      } else if (direction === 'right' && exteriorIndex > 0) {
         setExteriorIndex(exteriorIndex - 1);
-      } else if (direction === 'down') {
-        if (exteriorIndex < exteriorColors.length - 1) {
-          setExteriorIndex(exteriorIndex + 1);
-        } else {
-          // Move to interior section
-          setActiveSection(1);
-          setInteriorIndex(0);
-        }
+      } else if (direction === 'left' && exteriorIndex === exteriorColors.length - 1) {
+        // Move to interior section
+        setActiveSection(1);
+        setInteriorIndex(0);
       }
     } else if (activeSection === 1) {
       // Interior colors navigation
-      if (direction === 'up') {
-        if (interiorIndex > 0) {
-          setInteriorIndex(interiorIndex - 1);
-        } else {
-          // Move back to exterior
-          setActiveSection(0);
-          setExteriorIndex(exteriorColors.length - 1);
-        }
-      } else if (direction === 'down') {
-        if (interiorIndex < interiorColors.length - 1) {
-          setInteriorIndex(interiorIndex + 1);
-        } else {
-          // Move to accessories section
-          setActiveSection(2);
-          setAccessoryIndex(0);
-        }
+      if (direction === 'left' && interiorIndex < interiorColors.length - 1) {
+        setInteriorIndex(interiorIndex + 1);
+      } else if (direction === 'right' && interiorIndex > 0) {
+        setInteriorIndex(interiorIndex - 1);
+      } else if (direction === 'right' && interiorIndex === 0) {
+        // Move back to exterior
+        setActiveSection(0);
+        setExteriorIndex(exteriorColors.length - 1);
+      } else if (direction === 'left' && interiorIndex === interiorColors.length - 1) {
+        // Move to accessories section
+        setActiveSection(2);
+        setAccessoryIndex(0);
       }
     } else {
       // Accessories navigation
-      if (direction === 'up') {
-        if (accessoryIndex > 0) {
-          setAccessoryIndex(accessoryIndex - 1);
-        } else {
-          // Move back to interior
-          setActiveSection(1);
-          setInteriorIndex(interiorColors.length - 1);
-        }
-      } else if (direction === 'down' && accessoryIndex < accessories.length - 1) {
+      if (direction === 'left' && accessoryIndex < accessories.length - 1) {
         setAccessoryIndex(accessoryIndex + 1);
+      } else if (direction === 'right' && accessoryIndex > 0) {
+        setAccessoryIndex(accessoryIndex - 1);
+      } else if (direction === 'right' && accessoryIndex === 0) {
+        // Move back to interior
+        setActiveSection(1);
+        setInteriorIndex(interiorColors.length - 1);
       }
     }
   };
 
   const swipeableRef = useSwipeableEnhanced({
-    onSwipeUp: () => handleVerticalSwipe('up'),
-    onSwipeDown: () => handleVerticalSwipe('down'),
-    enableHorizontalSwipe: false,
-    enableVerticalSwipe: true,
+    onSwipeLeft: () => handleHorizontalSwipe('left'),
+    onSwipeRight: () => handleHorizontalSwipe('right'),
+    enableHorizontalSwipe: true,
+    enableVerticalSwipe: false,
     swipeContext: 'ColorsAccessoriesStep',
     debug: false,
     threshold: 40
@@ -186,9 +178,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         transition={{ delay: 0.5 }}
       >
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <ChevronUp className="h-3 w-3" />
-          <span>Swipe up/down to browse options</span>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronLeft className="h-3 w-3" />
+          <span>Swipe left/right to browse options</span>
+          <ChevronRight className="h-3 w-3" />
         </div>
       </motion.div>
 
@@ -211,9 +203,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           {currentItem && (
             <motion.div
               key={`${activeSection}-${getCurrentItem()?.name}`}
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -50, scale: 0.95 }}
+              initial={{ opacity: 0, x: 50, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -50, scale: 0.95 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
               className="w-full max-w-md"
             >
@@ -258,7 +250,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 {activeSection === 1 && (
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">Premium interior finish</p>
+                    <p className="text-muted-foreground text-sm mb-3">{currentItem.description}</p>
                     {currentItem.price !== 0 && (
                       <p className={`font-bold ${currentItem.price > 0 ? 'text-primary' : 'text-green-600'}`}>
                         {currentItem.price > 0 ? '+' : ''}AED {currentItem.price.toLocaleString()}
@@ -297,7 +289,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         <SwipeIndicators
           total={activeSection === 0 ? exteriorColors.length : activeSection === 1 ? interiorColors.length : accessories.length}
           current={activeSection === 0 ? exteriorIndex : activeSection === 1 ? interiorIndex : accessoryIndex}
-          direction="vertical"
+          direction="horizontal"
         />
       </div>
     </div>

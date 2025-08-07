@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Star, Zap, Shield, Crown, ChevronUp, ChevronDown } from "lucide-react";
+import { Check, Star, Zap, Shield, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
 import SwipeIndicators from "../SwipeIndicators";
 import { contextualHaptic } from "@/utils/haptic";
@@ -61,21 +61,21 @@ const grades = [
 const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handleVerticalSwipe = (direction: 'up' | 'down') => {
+  const handleHorizontalSwipe = (direction: 'left' | 'right') => {
     contextualHaptic.selectionChange();
     
-    if (direction === 'up' && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    } else if (direction === 'down' && currentIndex < grades.length - 1) {
+    if (direction === 'left' && currentIndex < grades.length - 1) {
       setCurrentIndex(currentIndex + 1);
+    } else if (direction === 'right' && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
   const swipeableRef = useSwipeableEnhanced({
-    onSwipeUp: () => handleVerticalSwipe('up'),
-    onSwipeDown: () => handleVerticalSwipe('down'),
-    enableHorizontalSwipe: false,
-    enableVerticalSwipe: true,
+    onSwipeLeft: () => handleHorizontalSwipe('left'),
+    onSwipeRight: () => handleHorizontalSwipe('right'),
+    enableHorizontalSwipe: true,
+    enableVerticalSwipe: false,
     swipeContext: 'GradeCarouselStep',
     debug: false,
     threshold: 40
@@ -100,9 +100,9 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         transition={{ delay: 0.5 }}
       >
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <ChevronUp className="h-3 w-3" />
-          <span>Swipe up/down to browse grades</span>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronLeft className="h-3 w-3" />
+          <span>Swipe left/right to browse grades</span>
+          <ChevronRight className="h-3 w-3" />
         </div>
       </motion.div>
 
@@ -119,9 +119,9 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.95 }}
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -50, scale: 0.95 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
             className="w-full max-w-md"
           >
@@ -200,7 +200,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         <SwipeIndicators
           total={grades.length}
           current={currentIndex}
-          direction="vertical"
+          direction="horizontal"
         />
       </div>
     </div>

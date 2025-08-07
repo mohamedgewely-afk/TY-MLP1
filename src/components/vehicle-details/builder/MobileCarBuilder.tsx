@@ -205,14 +205,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         goBack();
       }
     },
-    enableVerticalSwipe: false, // Disable vertical swipe for main container
+    enableVerticalSwipe: false,
     enableHorizontalSwipe: true,
     swipeContext: 'MobileCarBuilder-MainNavigation',
     threshold: 50,
     preventDefaultTouchmoveEvent: false
   });
 
-  // Fixed button click handlers
+  // Fixed button click handlers with proper reset functionality
   const handleBackClick = () => {
     contextualHaptic.stepProgress();
     if (step > 1) {
@@ -224,6 +224,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const handleResetClick = () => {
     contextualHaptic.resetAction();
+    console.log('Reset button clicked'); // Debug log
     onReset();
   };
 
@@ -241,7 +242,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/5 overflow-hidden flex flex-col mobile-viewport"
       ref={swipeableRef}
     >
-      {/* Fixed Header Layout */}
+      {/* Enhanced Header Layout - improved visibility */}
       <motion.div 
         variants={headerVariants}
         className={`relative z-30 flex items-center justify-between bg-background/98 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-4 py-3 safe-area-inset-top`}
@@ -292,15 +293,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.button>
       </motion.div>
 
-      {/* Fixed Vehicle Image with better text visibility */}
+      {/* Enhanced Vehicle Image with improved text contrast */}
       <motion.div 
         variants={imageVariants}
         className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/20 flex-shrink-0`}
         key={config.exteriorColor + config.grade}
       >
-        {/* Improved gradient overlays for text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 z-10" />
+        {/* Enhanced gradient overlays for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50 z-10" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
@@ -319,33 +320,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           loading="lazy"
         />
         
-        {/* Fixed Vehicle Info Overlay with better contrast */}
+        {/* Enhanced Vehicle Info Overlay with better contrast and positioning */}
         <motion.div 
           className="absolute bottom-3 left-3 right-3 z-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <div className="bg-background/95 backdrop-blur-xl rounded-xl p-3 border border-border/30 shadow-lg">
+          <div className="bg-black/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-foreground truncate mb-1">
+                <h3 className="text-sm font-bold text-white truncate mb-1">
                   {config.modelYear} {vehicle.name}
                 </h3>
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <div className="flex items-center gap-2 text-white/80 mb-1">
                   <span className="text-xs font-medium">{config.grade}</span>
-                  <div className="w-1 h-1 bg-muted-foreground/60 rounded-full"></div>
+                  <div className="w-1 h-1 bg-white/60 rounded-full"></div>
                   <span className="text-xs">{config.engine}</span>
                 </div>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-white/70 text-xs">
                   {config.exteriorColor} Exterior
                 </p>
               </div>
               <div className="text-right ml-3">
-                <div className="text-base font-bold text-primary mb-0.5">
+                <div className="text-base font-bold text-white mb-0.5">
                   AED {calculateTotalPrice().toLocaleString()}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-white/70">
                   From AED 2,850/mo
                 </div>
               </div>

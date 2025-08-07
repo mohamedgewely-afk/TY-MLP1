@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Calendar, Zap, ChevronUp, ChevronDown } from "lucide-react";
+import { Check, Calendar, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
 import SwipeIndicators from "../SwipeIndicators";
 import { contextualHaptic } from "@/utils/haptic";
@@ -46,43 +46,39 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
   const [yearIndex, setYearIndex] = useState(0);
   const [engineIndex, setEngineIndex] = useState(0);
 
-  const handleVerticalSwipe = (direction: 'up' | 'down') => {
+  const handleHorizontalSwipe = (direction: 'left' | 'right') => {
     contextualHaptic.selectionChange();
     
     if (activeSection === 0) {
       // Model year navigation
-      if (direction === 'up' && yearIndex > 0) {
+      if (direction === 'left' && yearIndex < modelYears.length - 1) {
+        setYearIndex(yearIndex + 1);
+      } else if (direction === 'right' && yearIndex > 0) {
         setYearIndex(yearIndex - 1);
-      } else if (direction === 'down') {
-        if (yearIndex < modelYears.length - 1) {
-          setYearIndex(yearIndex + 1);
-        } else {
-          // Move to engines section
-          setActiveSection(1);
-          setEngineIndex(0);
-        }
+      } else if (direction === 'left' && yearIndex === modelYears.length - 1) {
+        // Move to engines section
+        setActiveSection(1);
+        setEngineIndex(0);
       }
     } else {
       // Engine navigation
-      if (direction === 'up') {
-        if (engineIndex > 0) {
-          setEngineIndex(engineIndex - 1);
-        } else {
-          // Move back to model years
-          setActiveSection(0);
-          setYearIndex(modelYears.length - 1);
-        }
-      } else if (direction === 'down' && engineIndex < engines.length - 1) {
+      if (direction === 'left' && engineIndex < engines.length - 1) {
         setEngineIndex(engineIndex + 1);
+      } else if (direction === 'right' && engineIndex > 0) {
+        setEngineIndex(engineIndex - 1);
+      } else if (direction === 'right' && engineIndex === 0) {
+        // Move back to model years
+        setActiveSection(0);
+        setYearIndex(modelYears.length - 1);
       }
     }
   };
 
   const swipeableRef = useSwipeableEnhanced({
-    onSwipeUp: () => handleVerticalSwipe('up'),
-    onSwipeDown: () => handleVerticalSwipe('down'),
-    enableHorizontalSwipe: false,
-    enableVerticalSwipe: true,
+    onSwipeLeft: () => handleHorizontalSwipe('left'),
+    onSwipeRight: () => handleHorizontalSwipe('right'),
+    enableHorizontalSwipe: true,
+    enableVerticalSwipe: false,
     swipeContext: 'ModelYearEngineStep',
     debug: false,
     threshold: 40
@@ -111,9 +107,9 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
         transition={{ delay: 0.5 }}
       >
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <ChevronUp className="h-3 w-3" />
-          <span>Swipe up/down to navigate</span>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronLeft className="h-3 w-3" />
+          <span>Swipe left/right to navigate</span>
+          <ChevronRight className="h-3 w-3" />
         </div>
       </motion.div>
 
@@ -251,7 +247,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
         <SwipeIndicators
           total={activeSection === 0 ? modelYears.length : engines.length}
           current={activeSection === 0 ? yearIndex : engineIndex}
-          direction="vertical"
+          direction="horizontal"
         />
       </div>
     </div>
