@@ -1,7 +1,10 @@
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Check, Star, Zap, Shield, Crown } from "lucide-react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Star, Zap, Shield, Crown, ChevronUp, ChevronDown } from "lucide-react";
+import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
+import SwipeIndicators from "../SwipeIndicators";
+import { contextualHaptic } from "@/utils/haptic";
 
 interface GradeCarouselStepProps {
   config: { grade: string };
@@ -56,41 +59,79 @@ const grades = [
 ];
 
 const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleVerticalSwipe = (direction: 'up' | 'down') => {
+    contextualHaptic.selectionChange();
+    
+    if (direction === 'up' && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else if (direction === 'down' && currentIndex < grades.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const swipeableRef = useSwipeableEnhanced({
+    onSwipeUp: () => handleVerticalSwipe('up'),
+    onSwipeDown: () => handleVerticalSwipe('down'),
+    enableHorizontalSwipe: false,
+    enableVerticalSwipe: true,
+    swipeContext: 'GradeCarouselStep',
+    debug: false,
+    threshold: 40
+  });
+
+  const currentGrade = grades[currentIndex];
+  const IconComponent = currentGrade.icon;
+  const isSelected = config.grade === currentGrade.name;
+
+  const handleGradeSelect = (gradeName: string) => {
+    contextualHaptic.selectionChange();
+    setConfig(prev => ({ ...prev, grade: gradeName }));
+  };
+
   return (
-    <div className="p-4 space-y-4">
+    <div ref={swipeableRef} className="h-full flex flex-col relative">
+      {/* Swipe hint */}
       <motion.div 
-        className="text-center mb-6"
-        initial={{ opacity: 0, y: 20 }}
+        className="text-center py-2 bg-muted/20 rounded-lg mb-4"
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ delay: 0.5 }}
       >
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <ChevronUp className="h-3 w-3" />
+          <span>Swipe up/down to browse grades</span>
+          <ChevronDown className="h-3 w-3" />
+        </div>
+      </motion.div>
+
+      <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-foreground mb-2">
           Select Your Grade
         </h2>
         <p className="text-muted-foreground text-sm">
           Choose the perfect combination of features and luxury
         </p>
-      </motion.div>
+      </div>
       
-      <div className="space-y-4">
-        {grades.map((grade, index) => {
-          const IconComponent = grade.icon;
-          const isSelected = config.grade === grade.name;
-          
-          return (
-            <motion.div
-              key={grade.name}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.95 }}
+            transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
+            className="w-full max-w-md"
+          >
+            <div
               className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg ${
                 isSelected 
                   ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20 scale-[1.02]' 
                   : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl hover:scale-[1.01]'
               }`}
-              onClick={() => setConfig(prev => ({ ...prev, grade: grade.name }))}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              onClick={() => handleGradeSelect(currentGrade.name)}
             >
               {/* Selection indicator */}
               {isSelected && (
@@ -105,13 +146,13 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                 </motion.div>
               )}
               
-              <div className="relative z-10 flex items-center p-4">
+              <div className="relative z-10 p-6">
                 {/* Grade Image */}
-                <div className="flex-shrink-0 mr-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-border/50 bg-muted/50">
+                <div className="flex justify-center mb-4">
+                  <div className="w-24 h-16 rounded-xl overflow-hidden border-2 border-border/50 bg-muted/50 shadow-md">
                     <img
-                      src={grade.image}
-                      alt={grade.name}
+                      src={currentGrade.image}
+                      alt={currentGrade.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
@@ -119,25 +160,23 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                 </div>
                 
                 {/* Grade Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4 text-primary" />
-                      <h3 className="text-lg font-bold text-foreground">{grade.name}</h3>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium border ${grade.badgeColor}`}>
-                        {grade.badge}
-                      </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <IconComponent className="h-5 w-5 text-primary" />
+                    <h3 className="text-2xl font-bold text-foreground">{currentGrade.name}</h3>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium border ${currentGrade.badgeColor}`}>
+                      {currentGrade.badge}
                     </div>
                   </div>
                   
-                  <p className="text-muted-foreground text-sm mb-3">{grade.description}</p>
+                  <p className="text-muted-foreground text-sm mb-4">{currentGrade.description}</p>
                   
-                  {/* Features - Fixed to prevent horizontal scroll */}
-                  <div className="grid grid-cols-1 gap-1 mb-3">
-                    {grade.features.map((feature, idx) => (
+                  {/* Features */}
+                  <div className="space-y-2 mb-4">
+                    {currentGrade.features.map((feature, idx) => (
                       <span 
                         key={idx}
-                        className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/30"
+                        className="inline-block text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full border border-border/30 mr-2 mb-1"
                       >
                         • {feature}
                       </span>
@@ -145,35 +184,24 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                   </div>
                   
                   {/* Pricing */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-base font-bold text-foreground">{grade.price}</div>
-                      <div className="text-xs text-muted-foreground">AED {grade.monthlyEMI}/month</div>
-                    </div>
-                    
-                    {/* Selection indicator */}
-                    <div className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
-                      isSelected 
-                        ? 'bg-primary border-primary shadow-md' 
-                        : 'border-border bg-background hover:border-primary/50'
-                    }`}>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.1 }}
-                          className="w-full h-full flex items-center justify-center"
-                        >
-                          <div className="w-2 h-2 bg-primary-foreground rounded-full" />
-                        </motion.div>
-                      )}
-                    </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-foreground">{currentGrade.price}</div>
+                    <div className="text-sm text-muted-foreground">AED {currentGrade.monthlyEMI}/month</div>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          );
-        })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Progress indicators */}
+      <div className="flex justify-center py-4">
+        <SwipeIndicators
+          total={grades.length}
+          current={currentIndex}
+          direction="vertical"
+        />
       </div>
     </div>
   );

@@ -7,8 +7,8 @@ import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
-import { useSwipeable } from "@/hooks/use-swipeable";
 import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
+import { useSwipeableEnhanced } from "@/hooks/use-swipeable-enhanced";
 
 interface BuilderConfig {
   modelYear: string;
@@ -191,8 +191,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return `${baseClass} ${sizeClass}`;
   };
 
-  // Enhanced swipe with luxury haptic feedback
-  const swipeableRef = useSwipeable<HTMLDivElement>({
+  // Enhanced swipe with luxury haptic feedback - only for main step navigation
+  const swipeableRef = useSwipeableEnhanced<HTMLDivElement>({
     onSwipeLeft: () => {
       if (step < 4) {
         contextualHaptic.swipeNavigation();
@@ -205,6 +205,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         goBack();
       }
     },
+    enableVerticalSwipe: false, // Disable vertical swipe for main container
+    enableHorizontalSwipe: true,
+    swipeContext: 'MobileCarBuilder-MainNavigation',
     threshold: 50,
     preventDefaultTouchmoveEvent: false
   });
@@ -367,7 +370,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <ChoiceCollector config={config} step={step} />
       </motion.div>
 
-      {/* Step Content - Fixed scrolling */}
+      {/* Step Content - Enhanced with swipe-only interface */}
       <motion.div 
         variants={contentVariants}
         className="flex-1 overflow-hidden bg-background/95"
