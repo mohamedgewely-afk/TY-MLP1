@@ -18,14 +18,58 @@ interface UnifiedConfigurationStepProps {
   setConfig: React.Dispatch<React.SetStateAction<any>>;
 }
 
-// Data arrays
-const modelYears = [
+// Define proper types for each data structure
+interface ModelYear {
+  year: string;
+  description: string;
+  badge: string;
+}
+
+interface Engine {
+  name: string;
+  description: string;
+  power: string;
+  efficiency: string;
+  badge: string;
+}
+
+interface Grade {
+  name: string;
+  description: string;
+  image: string;
+  price: string;
+  monthlyEMI: string;
+  features: string[];
+  badge: string;
+  badgeColor: string;
+}
+
+interface ExteriorColor {
+  name: string;
+  image: string;
+  price: number;
+}
+
+interface InteriorColor {
+  name: string;
+  price: number;
+  description: string;
+}
+
+interface Accessory {
+  name: string;
+  price: number;
+  description: string;
+}
+
+// Data arrays with proper typing
+const modelYears: ModelYear[] = [
   { year: "2025", description: "Latest Model", badge: "New" },
   { year: "2024", description: "Current Year", badge: "Popular" },
   { year: "2023", description: "Previous Year", badge: "Value" }
 ];
 
-const engines = [
+const engines: Engine[] = [
   { 
     name: "3.5L V6", 
     description: "Powerful & Efficient",
@@ -49,7 +93,7 @@ const engines = [
   }
 ];
 
-const grades = [
+const grades: Grade[] = [
   { 
     name: "Base", 
     description: "Essential features for everyday driving",
@@ -92,7 +136,7 @@ const grades = [
   }
 ];
 
-const exteriorColors = [
+const exteriorColors: ExteriorColor[] = [
   { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", price: 0 },
   { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 500 },
   { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", price: 300 },
@@ -100,13 +144,13 @@ const exteriorColors = [
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", price: 600 }
 ];
 
-const interiorColors = [
+const interiorColors: InteriorColor[] = [
   { name: "Black Leather", price: 0, description: "Premium black leather interior" },
   { name: "Beige Leather", price: 800, description: "Luxurious beige leather interior" },
   { name: "Gray Fabric", price: -500, description: "Comfortable gray fabric interior" }
 ];
 
-const accessories = [
+const accessories: Accessory[] = [
   { name: "Premium Sound System", price: 1200, description: "JBL premium audio with 12 speakers" },
   { name: "Sunroof", price: 800, description: "Panoramic glass roof with electric controls" },
   { name: "Navigation System", price: 600, description: "Advanced GPS with real-time traffic" },
@@ -239,7 +283,7 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
     threshold: 40
   });
 
-  const getCurrentItem = () => {
+  const getCurrentItem = (): ModelYear | Engine | Grade | ExteriorColor | InteriorColor | Accessory | null => {
     switch (activeSection) {
       case 0: return modelYears[yearIndex];
       case 1: return engines[engineIndex];
@@ -258,27 +302,28 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
     
     switch (activeSection) {
       case 0:
-        setConfig(prev => ({ ...prev, modelYear: currentItem.year }));
+        setConfig(prev => ({ ...prev, modelYear: (currentItem as ModelYear).year }));
         break;
       case 1:
-        setConfig(prev => ({ ...prev, engine: currentItem.name }));
+        setConfig(prev => ({ ...prev, engine: (currentItem as Engine).name }));
         break;
       case 2:
-        setConfig(prev => ({ ...prev, grade: currentItem.name }));
+        setConfig(prev => ({ ...prev, grade: (currentItem as Grade).name }));
         break;
       case 3:
-        setConfig(prev => ({ ...prev, exteriorColor: currentItem.name }));
+        setConfig(prev => ({ ...prev, exteriorColor: (currentItem as ExteriorColor).name }));
         break;
       case 4:
-        setConfig(prev => ({ ...prev, interiorColor: currentItem.name }));
+        setConfig(prev => ({ ...prev, interiorColor: (currentItem as InteriorColor).name }));
         break;
       case 5:
-        const isSelected = config.accessories.includes(currentItem.name);
+        const accessory = currentItem as Accessory;
+        const isSelected = config.accessories.includes(accessory.name);
         setConfig(prev => ({
           ...prev,
           accessories: isSelected
-            ? prev.accessories.filter(acc => acc !== currentItem.name)
-            : [...prev.accessories, currentItem.name]
+            ? prev.accessories.filter(acc => acc !== accessory.name)
+            : [...prev.accessories, accessory.name]
         }));
         break;
     }
@@ -301,12 +346,12 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
     if (!currentItem) return false;
 
     switch (activeSection) {
-      case 0: return config.modelYear === currentItem.year;
-      case 1: return config.engine === currentItem.name;
-      case 2: return config.grade === currentItem.name;
-      case 3: return config.exteriorColor === currentItem.name;
-      case 4: return config.interiorColor === currentItem.name;
-      case 5: return config.accessories.includes(currentItem.name);
+      case 0: return config.modelYear === (currentItem as ModelYear).year;
+      case 1: return config.engine === (currentItem as Engine).name;
+      case 2: return config.grade === (currentItem as Grade).name;
+      case 3: return config.exteriorColor === (currentItem as ExteriorColor).name;
+      case 4: return config.interiorColor === (currentItem as InteriorColor).name;
+      case 5: return config.accessories.includes((currentItem as Accessory).name);
       default: return false;
     }
   };
@@ -346,7 +391,7 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
         <AnimatePresence mode="wait">
           {currentItem && (
             <motion.div
-              key={`${activeSection}-${currentItem.name || currentItem.year}`}
+              key={`${activeSection}-${(currentItem as any).name || (currentItem as ModelYear).year}`}
               initial={{ opacity: 0, x: 50, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: -50, scale: 0.95 }}
@@ -379,12 +424,12 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                   <div className="text-center">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-2xl font-bold text-foreground">{currentItem.year}</h4>
+                        <h4 className="text-2xl font-bold text-foreground">{(currentItem as ModelYear).year}</h4>
                         <p className="text-sm text-muted-foreground">{currentItem.description}</p>
                       </div>
                       <div className="text-right">
                         <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
-                          {currentItem.badge}
+                          {(currentItem as ModelYear).badge}
                         </span>
                       </div>
                     </div>
@@ -395,21 +440,21 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                   <div className="text-center">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-xl font-bold text-foreground">{currentItem.name}</h4>
+                        <h4 className="text-xl font-bold text-foreground">{(currentItem as Engine).name}</h4>
                         <p className="text-sm text-muted-foreground">{currentItem.description}</p>
                       </div>
                       <span className="px-3 py-1 bg-muted/70 text-muted-foreground text-xs rounded-full border">
-                        {currentItem.badge}
+                        {(currentItem as Engine).badge}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-4">
                         <div>
-                          <span className="font-medium text-foreground">{currentItem.power}</span>
+                          <span className="font-medium text-foreground">{(currentItem as Engine).power}</span>
                           <p className="text-xs text-muted-foreground">Power</p>
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">{currentItem.efficiency}</span>
+                          <span className="font-medium text-foreground">{(currentItem as Engine).efficiency}</span>
                           <p className="text-xs text-muted-foreground">Fuel Economy</p>
                         </div>
                       </div>
@@ -422,23 +467,23 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                     <div className="flex justify-center mb-4">
                       <div className="w-24 h-16 rounded-xl overflow-hidden border-2 border-border/50 bg-muted/50 shadow-md">
                         <img
-                          src={currentItem.image}
-                          alt={currentItem.name}
+                          src={(currentItem as Grade).image}
+                          alt={(currentItem as Grade).name}
                           className="w-full h-full object-cover"
                           loading="lazy"
                         />
                       </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-3">
-                      <h3 className="text-2xl font-bold text-foreground">{currentItem.name}</h3>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium border ${currentItem.badgeColor}`}>
-                        {currentItem.badge}
+                      <h3 className="text-2xl font-bold text-foreground">{(currentItem as Grade).name}</h3>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium border ${(currentItem as Grade).badgeColor}`}>
+                        {(currentItem as Grade).badge}
                       </div>
                     </div>
                     <p className="text-muted-foreground text-sm mb-4">{currentItem.description}</p>
                     <div className="text-center">
-                      <div className="text-xl font-bold text-foreground">{currentItem.price}</div>
-                      <div className="text-sm text-muted-foreground">AED {currentItem.monthlyEMI}/month</div>
+                      <div className="text-xl font-bold text-foreground">{(currentItem as Grade).price}</div>
+                      <div className="text-sm text-muted-foreground">AED {(currentItem as Grade).monthlyEMI}/month</div>
                     </div>
                   </div>
                 )}
@@ -447,25 +492,25 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                   <div className="text-center">
                     <div className="mb-4">
                       <img 
-                        src={currentItem.image} 
-                        alt={currentItem.name} 
+                        src={(currentItem as ExteriorColor).image} 
+                        alt={(currentItem as ExteriorColor).name} 
                         className="w-32 h-20 object-cover rounded-lg mx-auto border-2 border-border/50" 
                       />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    {currentItem.price > 0 && (
-                      <p className="text-primary font-medium">+AED {currentItem.price}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as ExteriorColor).name}</h3>
+                    {(currentItem as ExteriorColor).price > 0 && (
+                      <p className="text-primary font-medium">+AED {(currentItem as ExteriorColor).price}</p>
                     )}
                   </div>
                 )}
 
                 {activeSection === 4 && (
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-foreground mb-2">{currentItem.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">{currentItem.description}</p>
-                    {currentItem.price !== 0 && (
-                      <p className={`font-bold ${currentItem.price > 0 ? 'text-primary' : 'text-green-600'}`}>
-                        {currentItem.price > 0 ? '+' : ''}AED {currentItem.price.toLocaleString()}
+                    <h3 className="text-xl font-bold text-foreground mb-2">{(currentItem as InteriorColor).name}</h3>
+                    <p className="text-muted-foreground text-sm mb-3">{(currentItem as InteriorColor).description}</p>
+                    {(currentItem as InteriorColor).price !== 0 && (
+                      <p className={`font-bold ${(currentItem as InteriorColor).price > 0 ? 'text-primary' : 'text-green-600'}`}>
+                        {(currentItem as InteriorColor).price > 0 ? '+' : ''}AED {(currentItem as InteriorColor).price.toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -475,11 +520,11 @@ const UnifiedConfigurationStep: React.FC<UnifiedConfigurationStepProps> = ({ con
                   <div>
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-foreground">{currentItem.name}</h3>
-                        <p className="text-muted-foreground text-sm">{currentItem.description}</p>
+                        <h3 className="text-lg font-bold text-foreground">{(currentItem as Accessory).name}</h3>
+                        <p className="text-muted-foreground text-sm">{(currentItem as Accessory).description}</p>
                       </div>
                       <div className="text-right ml-4">
-                        <p className="text-primary font-bold">+AED {currentItem.price.toLocaleString()}</p>
+                        <p className="text-primary font-bold">+AED {(currentItem as Accessory).price.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
