@@ -197,9 +197,11 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
 
                       {/* Grade Name and Price */}
                       <h4 className="text-base font-semibold text-foreground mb-1">
+  {grade.name}
+</h4>
 <p className="text-sm font-medium text-primary mb-1">
-                        {grade.price > 0 ? `+AED ${grade.price.toLocaleString()}` : 'Base Price'}
-                      </p>
+  {grade.price > 0 ? `+AED ${grade.price.toLocaleString()}` : 'Base Price'}
+</p>
                       
                       {/* Description */}
                       <p className="text-xs text-muted-foreground mb-3">{grade.description}</p>
