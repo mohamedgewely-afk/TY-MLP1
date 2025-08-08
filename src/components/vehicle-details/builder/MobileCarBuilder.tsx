@@ -272,7 +272,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <h1 className="text-xs font-bold text-foreground truncate leading-none">
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
-          <p className="text-[10px] text-muted-foreground font-medium leading-none">
+          <p className="text-[8px] text-muted-foreground font-medium leading-none">
             Step {step} of 4
           </p>
         </motion.div>
@@ -324,11 +324,11 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <div className="p-1.5">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-[11px] font-semibold text-foreground truncate mb-0.5 leading-tight">
+                <h3 className="text-[9px] font-semibold text-foreground truncate mb-0.5 leading-tight">
                   {config.modelYear} {vehicle.name}
                 </h3>
                 <div className="flex items-center gap-1.5 text-muted-foreground mb-0.5">
-                  <span className="text-[10px] font-medium">{config.grade || 'Select Grade'}</span>
+                  <span className="text-[8px] font-medium">{config.grade || 'Select Grade'}</span>
                   {config.grade && (
                     <>
                       <div className="w-0.5 h-0.5 bg-muted-foreground/60 rounded-full"></div>
