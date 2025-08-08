@@ -121,7 +121,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
               const IconComponent = grade.icon;
               
               return (
-                <div key={grade.name} className="w-full flex-shrink-0 px-2">
+                <div key={grade.name} className="flex-shrink-0 px-2 w-full sm:w-[320px] md:w-[400px] lg:w-[480px]">
                   <motion.div
                     className={`relative rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${
                       isSelected 
@@ -170,7 +170,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                     )}
                     
                     {/* Grade Image */}
-                    <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                    <div className="relative h-32 md:h-40 lg:h-52 overflow-hidden rounded-t-2xl">
                       <img
                         src={grade.image}
                         alt={grade.name}
