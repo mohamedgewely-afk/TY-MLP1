@@ -8,12 +8,13 @@ interface ModelYearEngineStepProps {
   setConfig: React.Dispatch<React.SetStateAction<any>>;
 }
 
+// Only 2 model years as requested
 const modelYears = [
   { year: "2025", description: "Latest Model", badge: "New" },
-  { year: "2024", description: "Current Year", badge: "Popular" },
-  { year: "2023", description: "Previous Year", badge: "Value" }
+  { year: "2024", description: "Current Year", badge: "Popular" }
 ];
 
+// Only 2 engine options as requested
 const engines = [
   { 
     name: "3.5L V6", 
@@ -21,13 +22,6 @@ const engines = [
     power: "295 HP",
     efficiency: "8.1L/100km",
     badge: "Recommended"
-  },
-  { 
-    name: "4.0L V6", 
-    description: "Maximum Performance",
-    power: "375 HP", 
-    efficiency: "9.2L/100km",
-    badge: "Performance"
   },
   { 
     name: "2.5L Hybrid", 
@@ -55,7 +49,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
           <p className="text-sm text-muted-foreground">Choose your preferred model year</p>
         </div>
         
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {modelYears.map((year, index) => {
             const isSelected = config.modelYear === year.year;
             
@@ -87,16 +81,12 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                   </motion.div>
                 )}
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xl font-bold text-foreground">{year.year}</h4>
-                    <p className="text-sm text-muted-foreground">{year.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md border">
-                      {year.badge}
-                    </span>
-                  </div>
+                <div className="text-center">
+                  <h4 className="text-xl font-bold text-foreground">{year.year}</h4>
+                  <p className="text-sm text-muted-foreground">{year.description}</p>
+                  <span className="inline-block mt-2 px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md border">
+                    {year.badge}
+                  </span>
                 </div>
               </motion.div>
             );
@@ -127,7 +117,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                 key={engine.name}
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: (index + 3) * 0.1, duration: 0.4 }}
+                transition={{ delay: (index + 2) * 0.1, duration: 0.4 }}
                 className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
                   isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 

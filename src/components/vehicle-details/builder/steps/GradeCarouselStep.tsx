@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Star, Zap, Shield, Crown } from "lucide-react";
+import { Check, Star, Zap, Shield, Crown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface GradeCarouselStepProps {
   config: { grade: string };
@@ -56,8 +57,33 @@ const grades = [
 ];
 
 const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const selectedIndex = grades.findIndex(grade => grade.name === config.grade);
+    return selectedIndex >= 0 ? selectedIndex : 0;
+  });
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % grades.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + grades.length) % grades.length);
+  };
+
+  const swipeRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: nextSlide,
+    onSwipeRight: prevSlide,
+    threshold: 50,
+    preventDefaultTouchmoveEvent: true,
+    debug: false
+  });
+
+  const selectCurrentGrade = () => {
+    setConfig(prev => ({ ...prev, grade: grades[currentIndex].name }));
+  };
+
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-6">
       <motion.div 
         className="text-center mb-6"
         initial={{ opacity: 0, y: 20 }}
@@ -68,112 +94,126 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
           Select Your Grade
         </h2>
         <p className="text-muted-foreground text-sm">
-          Choose the perfect combination of features and luxury
+          Swipe left/right to explore grades
         </p>
       </motion.div>
       
-      <div className="space-y-4">
-        {grades.map((grade, index) => {
-          const IconComponent = grade.icon;
-          const isSelected = config.grade === grade.name;
-          
-          return (
-            <motion.div
-              key={grade.name}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg ${
-                isSelected 
-                  ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20 scale-[1.02]' 
-                  : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl hover:scale-[1.01]'
-              }`}
-              onClick={() => setConfig(prev => ({ ...prev, grade: grade.name }))}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* Selection indicator */}
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="absolute top-4 right-4 z-20"
-                >
-                  <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
-                    <Check className="h-4 w-4" />
-                  </div>
-                </motion.div>
-              )}
+      {/* Swipeable Grade Carousel */}
+      <div className="relative">
+        <div ref={swipeRef} className="overflow-hidden rounded-2xl">
+          <motion.div
+            className="flex"
+            animate={{ x: -currentIndex * 100 + "%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {grades.map((grade, index) => {
+              const IconComponent = grade.icon;
+              const isSelected = config.grade === grade.name;
+              const isCurrent = index === currentIndex;
               
-              <div className="relative z-10 flex items-center p-4">
-                {/* Grade Image */}
-                <div className="flex-shrink-0 mr-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-border/50 bg-muted/50">
-                    <img
-                      src={grade.image}
-                      alt={grade.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
-                
-                {/* Grade Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4 text-primary" />
-                      <h3 className="text-lg font-bold text-foreground">{grade.name}</h3>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium border ${grade.badgeColor}`}>
+              return (
+                <motion.div
+                  key={grade.name}
+                  className="w-full flex-shrink-0 px-2"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div
+                    className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg ${
+                      isSelected 
+                        ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20' 
+                        : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl'
+                    }`}
+                    onClick={selectCurrentGrade}
+                  >
+                    {/* Selection indicator */}
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="absolute top-4 right-4 z-20"
+                      >
+                        <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Grade Image */}
+                    <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                      <img
+                        src={grade.image}
+                        alt={grade.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-medium border ${grade.badgeColor}`}>
                         {grade.badge}
                       </div>
                     </div>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-sm mb-3">{grade.description}</p>
-                  
-                  {/* Features - Fixed to prevent horizontal scroll */}
-                  <div className="grid grid-cols-1 gap-1 mb-3">
-                    {grade.features.map((feature, idx) => (
-                      <span 
-                        key={idx}
-                        className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/30"
-                      >
-                        • {feature}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  {/* Pricing */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-base font-bold text-foreground">{grade.price}</div>
-                      <div className="text-xs text-muted-foreground">AED {grade.monthlyEMI}/month</div>
-                    </div>
                     
-                    {/* Selection indicator */}
-                    <div className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
-                      isSelected 
-                        ? 'bg-primary border-primary shadow-md' 
-                        : 'border-border bg-background hover:border-primary/50'
-                    }`}>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.1 }}
-                          className="w-full h-full flex items-center justify-center"
-                        >
-                          <div className="w-2 h-2 bg-primary-foreground rounded-full" />
-                        </motion.div>
-                      )}
+                    {/* Grade Content */}
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <IconComponent className="h-5 w-5 text-primary" />
+                        <h3 className="text-xl font-bold text-foreground">{grade.name}</h3>
+                      </div>
+                      
+                      <p className="text-muted-foreground text-sm mb-4">{grade.description}</p>
+                      
+                      {/* Features */}
+                      <div className="grid grid-cols-1 gap-2 mb-4">
+                        {grade.features.map((feature, idx) => (
+                          <span 
+                            key={idx}
+                            className="text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg border border-border/30 flex items-center gap-2"
+                          >
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* Pricing */}
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-foreground mb-1">{grade.price}</div>
+                        <div className="text-sm text-muted-foreground">AED {grade.monthlyEMI}/month</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-105"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={nextSlide}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-105"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        {/* Dots Indicator */}
+        <div className="flex justify-center gap-2 mt-4">
+          {grades.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                index === currentIndex ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
