@@ -234,13 +234,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/5 overflow-hidden flex flex-col"
+      className="relative w-full min-h-screen bg-gradient-to-br from-background via-background to-muted/5 overflow-y-auto flex flex-col"
       ref={swipeableRef}
     >
       {/* Header - Compact */}
       <motion.div 
         variants={headerVariants}
-        className="relative z-30 flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-3 py-2"
+        className="relative z-30 flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-2 py-1"
       >
         <div className="flex items-center gap-1.5">
           <motion.button
@@ -269,10 +269,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
 
         <motion.div className="text-center flex-1 mx-2">
-          <h1 className="text-sm font-bold text-foreground truncate">
+          <h1 className="text-xs font-bold text-foreground truncate leading-none">
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
-          <p className="text-xs text-muted-foreground font-medium">
+          <<p className="text-[10px] text-muted-foreground font-medium leading-none">
             Step {step} of 4
           </p>
         </motion.div>
@@ -321,14 +321,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <div className="bg-background/80 backdrop-blur-md rounded-lg p-2 border border-border/20 shadow-sm">
+          <div className="bg-background/80 backdrop-blur-md rounded-lg p-1.5 border border-border/20 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-bold text-foreground truncate mb-0.5">
+                <h3 className="text-[11px] font-semibold text-foreground truncate mb-0.5 leading-tight">
                   {config.modelYear} {vehicle.name}
                 </h3>
                 <div className="flex items-center gap-1.5 text-muted-foreground mb-0.5">
-                  <span className="text-xs font-medium">{config.grade || 'Select Grade'}</span>
+                  <span className="text-[10px] font-medium">{config.grade || 'Select Grade'}</span>
                   {config.grade && (
                     <>
                       <div className="w-0.5 h-0.5 bg-muted-foreground/60 rounded-full"></div>
@@ -364,7 +364,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Choice Collector - Compact */}
       <motion.div 
         variants={contentVariants}
-        className="px-3 py-2 flex-shrink-0 bg-background/95 border-b border-border/10"
+        className="px-2 py-1 flex-shrink-0 bg-background/95 border-b border-border/10"
       >
         <ChoiceCollector config={config} step={step} />
       </motion.div>
@@ -393,7 +393,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Summary - Always Visible */}
       <motion.div 
         variants={contentVariants}
-        className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl"
+        className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl px-2 py-1"
       >
         <MobileSummary 
           config={config}
