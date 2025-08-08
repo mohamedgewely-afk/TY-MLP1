@@ -165,22 +165,24 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     const exteriorColors = [
       { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
       { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
-      { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" }
+      { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" },
+      { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
+      { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" }
     ];
     
     const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
     return colorData?.image || exteriorColors[0].image;
   };
 
-  // Fixed responsive image height
+  // Fixed responsive image height for better display
   const getImageHeight = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'h-40';
-      case 'standardMobile': return 'h-44';
-      case 'largeMobile': return 'h-48';
-      case 'extraLargeMobile': return 'h-52';
-      case 'tablet': return 'h-56';
-      default: return 'h-44';
+      case 'smallMobile': return 'h-36';
+      case 'standardMobile': return 'h-40';
+      case 'largeMobile': return 'h-44';
+      case 'extraLargeMobile': return 'h-48';
+      case 'tablet': return 'h-52';
+      default: return 'h-40';
     }
   };
 
@@ -221,7 +223,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const handleResetClick = () => {
     contextualHaptic.resetAction();
-    onReset();
+    // Ensure onReset is properly called
+    if (onReset) {
+      onReset();
+    }
   };
 
   const handleExitClick = () => {
@@ -289,20 +294,20 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </motion.button>
       </motion.div>
 
-      {/* Fixed Vehicle Image with better text visibility */}
+      {/* Fixed Vehicle Image with better aspect ratio and visibility */}
       <motion.div 
         variants={imageVariants}
         className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/20 flex-shrink-0`}
         key={config.exteriorColor + config.grade}
       >
         {/* Improved gradient overlays for text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/30 via-transparent to-background/30 z-10" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-contain object-center"
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ 
             scale: 1, 
@@ -383,6 +388,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             handlePayment={handlePayment}
             goNext={goNext}
             deviceCategory={deviceCategory}
+            onReset={onReset}
           />
         </AnimatePresence>
       </motion.div>

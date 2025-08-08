@@ -30,6 +30,7 @@ interface MobileStepContentProps {
   handlePayment: () => void;
   goNext: () => void;
   deviceCategory: DeviceCategory;
+  onReset?: () => void;
 }
 
 const MobileStepContent: React.FC<MobileStepContentProps> = ({
@@ -40,7 +41,8 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   calculateTotalPrice,
   handlePayment,
   goNext,
-  deviceCategory
+  deviceCategory,
+  onReset
 }) => {
   const { t } = useLanguage();
   const { containerPadding, buttonSize, textSize } = useResponsiveSize();
@@ -62,7 +64,9 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     const exteriorColors = [
       { name: "Pearl White", stock: 'available' },
       { name: "Midnight Black", stock: 'pipeline' },
-      { name: "Silver Metallic", stock: 'unavailable' }
+      { name: "Silver Metallic", stock: 'unavailable' },
+      { name: "Deep Blue", stock: 'available' },
+      { name: "Ruby Red", stock: 'pipeline' }
     ];
     
     const interiorColors = [
@@ -84,20 +88,20 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
   };
 
   const getCTAText = () => {
-    if (step >= 3) {
+    if (step >= 4) {
       const stockStatus = getStockStatus();
       switch (stockStatus) {
         case 'available':
-          return t('builder.buyNow');
+          return t('builder.buyNow') || 'Buy Now';
         case 'pipeline':
-          return t('builder.reserveNow');
+          return t('builder.reserveNow') || 'Reserve Now';
         case 'unavailable':
-          return t('builder.registerInterest');
+          return t('builder.registerInterest') || 'Register Interest';
         default:
-          return t('builder.continue');
+          return t('builder.continue') || 'Continue';
       }
     }
-    return t('builder.continue');
+    return t('builder.continue') || 'Continue';
   };
 
   // Check if current step can proceed
@@ -125,7 +129,13 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       case 3:
         return <ColorsAccessoriesStep config={config} setConfig={setConfig} />;
       case 4:
-        return <ReviewStep config={config} calculateTotalPrice={calculateTotalPrice} handlePayment={handlePayment} />;
+        return (
+          <ReviewStep 
+            config={config} 
+            calculateTotalPrice={calculateTotalPrice} 
+            handlePayment={handlePayment} 
+          />
+        );
       default:
         return null;
     }

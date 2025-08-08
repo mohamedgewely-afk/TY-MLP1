@@ -93,9 +93,19 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         <h2 className="text-xl font-bold text-foreground mb-2">
           Select Your Grade
         </h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-sm mb-3">
           Swipe left/right to explore grades
         </p>
+        {!config.grade && (
+          <motion.div 
+            className="bg-orange-50 text-orange-700 px-4 py-2 rounded-lg border border-orange-200"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <p className="text-sm font-medium">👆 Tap the card below to select your grade</p>
+          </motion.div>
+        )}
       </motion.div>
       
       {/* Swipeable Grade Carousel */}
@@ -120,8 +130,10 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                   <div
                     className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20' 
-                        : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl'
+                        ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20 ring-2 ring-primary/20' 
+                        : isCurrent
+                          ? 'bg-card/95 backdrop-blur-sm border-primary/50 hover:border-primary/70 hover:shadow-xl ring-1 ring-primary/10'
+                          : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl'
                     }`}
                     onClick={selectCurrentGrade}
                   >
@@ -132,8 +144,21 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         animate={{ scale: 1, opacity: 1 }}
                         className="absolute top-4 right-4 z-20"
                       >
-                        <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+                        <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
                           <Check className="h-4 w-4" />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Current slide indicator */}
+                    {isCurrent && !isSelected && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="absolute top-4 right-4 z-20"
+                      >
+                        <div className="bg-primary/20 text-primary rounded-full p-2 border-2 border-primary/30">
+                          <IconComponent className="h-4 w-4" />
                         </div>
                       </motion.div>
                     )}
@@ -143,7 +168,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                       <img
                         src={grade.image}
                         alt={grade.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -179,6 +204,24 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         <div className="text-2xl font-bold text-foreground mb-1">{grade.price}</div>
                         <div className="text-sm text-muted-foreground">AED {grade.monthlyEMI}/month</div>
                       </div>
+
+                      {/* Selection Call to Action */}
+                      {isCurrent && (
+                        <motion.div 
+                          className="mt-4 text-center"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <div className={`text-sm font-medium px-4 py-2 rounded-lg ${
+                            isSelected 
+                              ? 'bg-primary/10 text-primary border border-primary/20' 
+                              : 'bg-muted/30 text-muted-foreground border border-border/50'
+                          }`}>
+                            {isSelected ? '✓ Selected' : 'Tap to Select'}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
