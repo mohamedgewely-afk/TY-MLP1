@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Palette, Sofa, Package, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Palette, Sofa, Package, Plus, Minus, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -133,14 +133,14 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
   });
 
   return (
-    <div className="p-3 space-y-4 h-full overflow-y-auto">
-      {/* Exterior Colors Carousel - Compact */}
+    <div className="p-3 space-y-3 h-full overflow-y-auto">
+      {/* Exterior Colors Carousel */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="text-center mb-3">
+        <div className="text-center mb-2">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Palette className="h-4 w-4 text-primary" />
             <h3 className="text-base font-bold text-foreground">Exterior Color</h3>
@@ -171,8 +171,8 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                       }`}
                       onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
                     >
-                      {/* Compact Car Image */}
-                      <div className="relative h-32 overflow-hidden">
+                      {/* Car Image */}
+                      <div className="relative h-28 overflow-hidden">
                         <img
                           src={color.image}
                           alt={color.name}
@@ -180,10 +180,10 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         
-                        {/* Color swatch - smaller */}
+                        {/* Color swatch */}
                         <div className="absolute top-2 left-2">
                           <div 
-                            className="w-6 h-6 rounded-full border-2 border-white shadow-lg"
+                            className="w-5 h-5 rounded-full border-2 border-white shadow-lg"
                             style={{ backgroundColor: color.color }}
                           />
                         </div>
@@ -236,7 +236,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
             <ChevronRight className="h-3 w-3" />
           </button>
 
-          {/* Compact Dots Indicator */}
+          {/* Dots Indicator */}
           <div className="flex justify-center gap-1 mt-2">
             {exteriorColors.map((_, index) => (
               <button
@@ -254,15 +254,15 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         </div>
       </motion.div>
 
-      {/* Interior Colors and Accessories Tabs - Compact */}
+      {/* Interior Colors and Accessories Tabs */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.3 }}
         className="flex-1"
       >
         <Tabs defaultValue="interior" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mb-3">
+          <TabsList className="grid w-full grid-cols-2 mb-2">
             <TabsTrigger value="interior" className="flex items-center gap-2 text-xs">
               <Sofa className="h-3 w-3" />
               Interior
@@ -274,15 +274,22 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           </TabsList>
           
           <TabsContent value="interior" className="mt-0 flex-1">
-            <div className="text-center mb-3">
+            <div className="text-center mb-2">
               <h3 className="text-base font-bold text-foreground mb-1">Interior Color</h3>
               <p className="text-xs text-muted-foreground">Choose your interior materials</p>
               {!config.interiorColor && (
-                <p className="text-xs text-red-500 font-medium mt-1">⚠️ Please select an interior color</p>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center gap-2 mt-2 text-xs text-red-500 font-medium bg-red-50 rounded-lg p-2 border border-red-200"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Please select an interior color</span>
+                </motion.div>
               )}
             </div>
             
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
               {interiorColors.map((color, index) => {
                 const isSelected = config.interiorColor === color.name;
                 
@@ -316,7 +323,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                     
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-10 h-10 rounded-lg border-2 border-border/50 shadow-inner flex-shrink-0"
+                        className="w-8 h-8 rounded-lg border-2 border-border/50 shadow-inner flex-shrink-0"
                         style={{ backgroundColor: color.color }}
                       />
                       <div className="flex-1 min-w-0">
@@ -334,7 +341,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           </TabsContent>
           
           <TabsContent value="accessories" className="mt-0 flex-1">
-            <div className="text-center mb-3">
+            <div className="text-center mb-2">
               <h3 className="text-base font-bold text-foreground mb-1">Accessories</h3>
               <p className="text-xs text-muted-foreground">Swipe to explore optional features</p>
             </div>
@@ -352,7 +359,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                     return (
                       <div key={accessory.name} className="w-full flex-shrink-0 px-1">
                         <div
-                          className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                          className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-3 ${
                             isSelected 
                               ? 'bg-primary/10 border-primary shadow-lg' 
                               : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
@@ -361,17 +368,17 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                         >
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                              <h4 className="text-lg font-semibold text-foreground">{accessory.name}</h4>
+                              <h4 className="text-base font-semibold text-foreground">{accessory.name}</h4>
                               <span className="px-2 py-0.5 bg-muted/70 text-muted-foreground text-xs rounded-md">
                                 {accessory.category}
                               </span>
                             </div>
                             
-                            <p className="text-xs text-muted-foreground mb-3">{accessory.description}</p>
-                            <p className="text-base font-bold text-foreground mb-3">+AED {accessory.price}</p>
+                            <p className="text-xs text-muted-foreground mb-2">{accessory.description}</p>
+                            <p className="text-sm font-bold text-foreground mb-3">+AED {accessory.price}</p>
                             
                             <motion.div
-                              className={`w-10 h-10 mx-auto rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
+                              className={`w-8 h-8 mx-auto rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                                 isSelected 
                                   ? 'bg-primary border-primary text-primary-foreground' 
                                   : 'border-border bg-background hover:border-primary/50'
@@ -408,7 +415,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 <ChevronRight className="h-3 w-3" />
               </button>
 
-              {/* Compact Dots Indicator */}
+              {/* Dots Indicator */}
               <div className="flex justify-center gap-1 mt-2">
                 {accessories.map((_, index) => (
                   <button

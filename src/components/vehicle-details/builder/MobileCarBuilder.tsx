@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
@@ -34,76 +35,72 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-// Luxury entrance variants with professional automotive styling
 const getContainerVariants = (deviceCategory: DeviceCategory) => ({
   hidden: { 
     opacity: 0,
-    scale: 0.96,
-    y: 20
+    scale: 0.98,
+    y: 10
   },
   visible: { 
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      duration: 0.6,
+      duration: 0.4,
       ease: [0.25, 0.46, 0.45, 0.94],
       staggerChildren: 0.1
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.96,
-    y: -20,
-    transition: { duration: 0.4 }
+    scale: 0.98,
+    y: -10,
+    transition: { duration: 0.3 }
   }
 });
 
-// Premium header animation with automotive flair
 const headerVariants = {
   hidden: { 
-    y: -40, 
+    y: -20, 
     opacity: 0
   },
   visible: { 
     y: 0, 
     opacity: 1,
     transition: { 
-      duration: 0.5, 
+      duration: 0.3, 
       ease: [0.25, 0.46, 0.45, 0.94],
       delay: 0.1
     }
   }
 };
 
-// Enhanced image reveal with professional photography style
 const imageVariants = {
   hidden: { 
-    scale: 1.1, 
+    scale: 1.05, 
     opacity: 0
   },
   visible: { 
     scale: 1, 
     opacity: 1,
     transition: { 
-      duration: 0.8, 
+      duration: 0.5, 
       ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.3
+      delay: 0.2
     }
   }
 };
 
-// Content animation with luxury timing
 const contentVariants = {
   hidden: { 
-    y: 30, 
+    y: 15, 
     opacity: 0
   },
   visible: { 
     y: 0, 
     opacity: 1,
     transition: { 
-      duration: 0.5, 
+      duration: 0.4, 
       ease: [0.25, 0.46, 0.45, 0.94]
     }
   }
@@ -129,34 +126,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const resetButtonRef = useRef<HTMLButtonElement>(null);
   const exitButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Enhanced haptic feedback integration
   useEffect(() => {
     if (backButtonRef.current) {
       addLuxuryHapticToButton(backButtonRef.current, {
         type: 'luxuryPress',
         onPress: true,
-        onHover: true
+        onHover: false
       });
     }
     if (closeButtonRef.current) {
       addLuxuryHapticToButton(closeButtonRef.current, {
         type: 'luxuryPress',
         onPress: true,
-        onHover: true
+        onHover: false
       });
     }
     if (resetButtonRef.current) {
       addLuxuryHapticToButton(resetButtonRef.current, {
         type: 'premiumError',
         onPress: true,
-        onHover: true
+        onHover: false
       });
     }
     if (exitButtonRef.current) {
       addLuxuryHapticToButton(exitButtonRef.current, {
         type: 'luxuryPress',
         onPress: true,
-        onHover: true
+        onHover: false
       });
     }
   }, []);
@@ -174,44 +170,43 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return colorData?.image || exteriorColors[0].image;
   };
 
-  // Fixed responsive image height for better display
   const getImageHeight = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'h-36';
-      case 'standardMobile': return 'h-40';
-      case 'largeMobile': return 'h-44';
-      case 'extraLargeMobile': return 'h-48';
-      case 'tablet': return 'h-52';
-      default: return 'h-40';
+      case 'smallMobile': return 'h-48';
+      case 'standardMobile': return 'h-52';
+      case 'largeMobile': return 'h-56';
+      case 'extraLargeMobile': return 'h-60';
+      case 'tablet': return 'h-64';
+      default: return 'h-52';
     }
   };
 
-  // Fixed button styling
   const getTouchButtonClass = () => {
-    const baseClass = 'touch-target rounded-xl bg-background/95 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background/98 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md';
-    const sizeClass = deviceCategory === 'smallMobile' ? 'p-2.5 min-h-[44px] min-w-[44px]' : 'p-3 min-h-[48px] min-w-[48px]';
+    const baseClass = 'touch-target rounded-lg bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background/95 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md';
+    const sizeClass = deviceCategory === 'smallMobile' ? 'p-2 min-h-[40px] min-w-[40px]' : 'p-2.5 min-h-[44px] min-w-[44px]';
     return `${baseClass} ${sizeClass}`;
   };
 
-  // Enhanced swipe with luxury haptic feedback
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
-      if (step < 4) {
+      // Only allow step navigation on specific steps that don't have internal swipe content
+      if (step === 1 && step < 4) {
         contextualHaptic.swipeNavigation();
         goNext();
       }
     },
     onSwipeRight: () => {
-      if (step > 1) {
+      if (step === 1 && step > 1) {
         contextualHaptic.swipeNavigation();
         goBack();
+      } else if (step === 1) {
+        onClose();
       }
     },
-    threshold: 50,
+    threshold: 80,
     preventDefaultTouchmoveEvent: false
   });
 
-  // Fixed button click handlers
   const handleBackClick = () => {
     contextualHaptic.stepProgress();
     if (step > 1) {
@@ -223,7 +218,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const handleResetClick = () => {
     contextualHaptic.resetAction();
-    // Ensure onReset is properly called
     if (onReset) {
       onReset();
     }
@@ -240,15 +234,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/5 overflow-hidden flex flex-col mobile-viewport"
+      className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/5 overflow-hidden flex flex-col"
       ref={swipeableRef}
     >
-      {/* Fixed Header Layout */}
+      {/* Header - Compact */}
       <motion.div 
         variants={headerVariants}
-        className={`relative z-30 flex items-center justify-between bg-background/98 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-4 py-3 safe-area-inset-top`}
+        className="relative z-30 flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-3 py-2"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <motion.button
             ref={step > 1 ? backButtonRef : closeButtonRef}
             onClick={handleBackClick}
@@ -257,9 +251,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             whileTap={{ scale: 0.98 }}
           >
             {step > 1 ? (
-              <ArrowLeft className="h-5 w-5 text-foreground" />
+              <ArrowLeft className="h-4 w-4 text-foreground" />
             ) : (
-              <X className="h-5 w-5 text-foreground" />
+              <X className="h-4 w-4 text-foreground" />
             )}
           </motion.button>
 
@@ -270,12 +264,12 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <RotateCcw className="h-5 w-5 text-foreground" />
+            <RotateCcw className="h-4 w-4 text-foreground" />
           </motion.button>
         </div>
 
-        <motion.div className="text-center flex-1 mx-3">
-          <h1 className="text-base font-bold text-foreground truncate">
+        <motion.div className="text-center flex-1 mx-2">
+          <h1 className="text-sm font-bold text-foreground truncate">
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
           <p className="text-xs text-muted-foreground font-medium">
@@ -290,61 +284,64 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <LogOut className="h-5 w-5 text-foreground" />
+          <LogOut className="h-4 w-4 text-foreground" />
         </motion.button>
       </motion.div>
 
-      {/* Fixed Vehicle Image with better aspect ratio and visibility */}
+      {/* Vehicle Image - Fixed and Properly Visible */}
       <motion.div 
         variants={imageVariants}
-        className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/20 flex-shrink-0`}
+        className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/10 flex-shrink-0 bg-muted/20`}
         key={config.exteriorColor + config.grade}
       >
-        {/* Improved gradient overlays for text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20 z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/30 via-transparent to-background/30 z-10" />
+        {/* Minimal gradient for text readability only */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent z-10" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain object-center"
-          initial={{ scale: 1.1, opacity: 0 }}
+          className="w-full h-full object-contain object-center scale-95"
+          initial={{ scale: 1.02, opacity: 0 }}
           animate={{ 
-            scale: 1, 
+            scale: 0.95, 
             opacity: 1
           }}
           transition={{ 
-            duration: 0.8, 
+            duration: 0.5, 
             ease: [0.25, 0.46, 0.45, 0.94],
-            delay: 0.3
+            delay: 0.2
           }}
           loading="lazy"
         />
         
-        {/* Fixed Vehicle Info Overlay with better contrast */}
+        {/* Compact Vehicle Info Overlay */}
         <motion.div 
-          className="absolute bottom-3 left-3 right-3 z-20"
-          initial={{ opacity: 0, y: 20 }}
+          className="absolute bottom-2 left-2 right-2 z-20"
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <div className="bg-background/95 backdrop-blur-xl rounded-xl p-3 border border-border/30 shadow-lg">
+          <div className="bg-background/80 backdrop-blur-md rounded-lg p-2 border border-border/20 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-foreground truncate mb-1">
+                <h3 className="text-xs font-bold text-foreground truncate mb-0.5">
                   {config.modelYear} {vehicle.name}
                 </h3>
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <span className="text-xs font-medium">{config.grade}</span>
-                  <div className="w-1 h-1 bg-muted-foreground/60 rounded-full"></div>
-                  <span className="text-xs">{config.engine}</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-0.5">
+                  <span className="text-xs font-medium">{config.grade || 'Select Grade'}</span>
+                  {config.grade && (
+                    <>
+                      <div className="w-0.5 h-0.5 bg-muted-foreground/60 rounded-full"></div>
+                      <span className="text-xs">{config.engine}</span>
+                    </>
+                  )}
                 </div>
                 <p className="text-muted-foreground text-xs">
                   {config.exteriorColor} Exterior
                 </p>
               </div>
-              <div className="text-right ml-3">
-                <div className="text-base font-bold text-primary mb-0.5">
+              <div className="text-right ml-2">
+                <div className="text-sm font-bold text-primary mb-0.5">
                   AED {calculateTotalPrice().toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -359,15 +356,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Progress Bar */}
       <motion.div 
         variants={contentVariants}
-        className="flex-shrink-0 bg-background/98 border-b border-border/10"
+        className="flex-shrink-0 bg-background/95 border-b border-border/10"
       >
         <MobileProgress currentStep={step} totalSteps={4} />
       </motion.div>
 
-      {/* Choice Collector - Fixed layout */}
+      {/* Choice Collector - Compact */}
       <motion.div 
         variants={contentVariants}
-        className="px-4 py-3 flex-shrink-0 bg-background/98 border-b border-border/10"
+        className="px-3 py-2 flex-shrink-0 bg-background/95 border-b border-border/10"
       >
         <ChoiceCollector config={config} step={step} />
       </motion.div>
@@ -393,10 +390,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Summary - Fixed layout */}
+      {/* Summary - Always Visible */}
       <motion.div 
         variants={contentVariants}
-        className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl safe-area-inset-bottom"
+        className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl"
       >
         <MobileSummary 
           config={config}

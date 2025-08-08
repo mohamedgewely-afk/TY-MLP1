@@ -39,9 +39,9 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
     switch (deviceCategory) {
       case 'smallMobile': return 'gap-1';
       case 'standardMobile': return 'gap-1.5';
-      case 'largeMobile': return 'gap-2';
+      case 'largeMobile': return 'gap-1.5';
       case 'extraLargeMobile': return 'gap-2';
-      default: return 'gap-2';
+      default: return 'gap-1.5';
     }
   };
 
@@ -66,11 +66,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
   const textSizes = getTextSize();
 
   return (
-    <motion.div
-      initial={{ y: 50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className={`bg-card/98 backdrop-blur-xl border-t border-border px-3 py-2`}
-    >
+    <div className="bg-card/98 backdrop-blur-xl border-t border-border px-3 py-2">
       <Card className="border-0 shadow-none bg-transparent">
         <CardContent className="p-0">
           <div className={`grid grid-cols-3 ${getGridSpacing()} text-center mb-2`}>
@@ -96,7 +92,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

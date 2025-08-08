@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight, Star, Zap, Shield, Crown } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Star, Zap, Shield, Crown, AlertTriangle } from "lucide-react";
 import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface GradeCarouselStepProps {
@@ -16,7 +16,8 @@ const grades = [
     features: ["Manual AC", "Fabric Seats", "Basic Audio", "Manual Windows"],
     icon: Shield,
     description: "Essential features for everyday driving",
-    highlight: "Great Value"
+    highlight: "Great Value",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true"
   },
   { 
     name: "SE", 
@@ -25,7 +26,8 @@ const grades = [
     icon: Star,
     description: "Enhanced comfort and convenience",
     highlight: "Most Popular",
-    popular: true
+    popular: true,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true"
   },
   { 
     name: "XLE", 
@@ -33,7 +35,8 @@ const grades = [
     features: ["Dual Climate", "Heated Seats", "Premium Audio", "Keyless Entry"],
     icon: Zap,
     description: "Premium comfort and technology",
-    highlight: "Best Features"
+    highlight: "Best Features",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true"
   },
   { 
     name: "Limited", 
@@ -41,7 +44,8 @@ const grades = [
     features: ["Leather Seats", "Sunroof", "Navigation", "Advanced Safety"],
     icon: Crown,
     description: "Luxury features and premium materials",
-    highlight: "Luxury"
+    highlight: "Luxury",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true"
   },
   { 
     name: "Platinum", 
@@ -49,7 +53,8 @@ const grades = [
     features: ["Premium Leather", "Heated/Cooled Seats", "JBL Audio", "All Safety Features"],
     icon: Crown,
     description: "The ultimate in luxury and technology",
-    highlight: "Ultimate"
+    highlight: "Ultimate",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true"
   }
 ];
 
@@ -82,23 +87,24 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
   });
 
   return (
-    <div className="p-4 space-y-4 h-full">
+    <div className="p-3 space-y-4 h-full">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="text-center mb-4"
+        transition={{ duration: 0.3 }}
+        className="text-center mb-3"
       >
-        <h3 className="text-xl font-bold text-foreground mb-2">Choose Your Grade</h3>
-        <p className="text-sm text-muted-foreground">Swipe to explore different trim levels</p>
+        <h3 className="text-lg font-bold text-foreground mb-1">Choose Your Grade</h3>
+        <p className="text-xs text-muted-foreground">Swipe to explore different trim levels</p>
         {!config.grade && (
-          <motion.p 
+          <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-sm text-red-500 font-medium mt-2 bg-red-50 rounded-lg p-2 border border-red-200"
+            className="flex items-center justify-center gap-2 mt-2 text-xs text-red-500 font-medium bg-red-50 rounded-lg p-2 border border-red-200"
           >
-            ⚠️ Please select a grade to continue
-          </motion.p>
+            <AlertTriangle className="h-4 w-4" />
+            <span>Please select a grade to continue</span>
+          </motion.div>
         )}
       </motion.div>
 
@@ -115,7 +121,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
               const IconComponent = grade.icon;
               
               return (
-                <div key={grade.name} className="w-full flex-shrink-0 px-3">
+                <div key={grade.name} className="w-full flex-shrink-0 px-2">
                   <motion.div
                     className={`relative rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${
                       isSelected 
@@ -125,7 +131,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                           : 'bg-card border-border hover:border-primary/30 hover:shadow-lg'
                     }`}
                     onClick={() => selectGrade(grade.name, index)}
-                    whileHover={{ y: -4 }}
+                    whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {/* Selection indicator */}
@@ -133,10 +139,10 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                       <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        className="absolute top-4 right-4 z-10"
+                        className="absolute top-3 right-3 z-10"
                       >
                         <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
-                          <Check className="h-5 w-5" />
+                          <Check className="h-4 w-4" />
                         </div>
                       </motion.div>
                     )}
@@ -146,9 +152,9 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                       <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-4 left-4 z-10"
+                        className="absolute top-3 left-3 z-10"
                       >
-                        <div className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full font-bold shadow-lg">
+                        <div className="px-2 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full font-bold shadow-lg">
                           {grade.highlight}
                         </div>
                       </motion.div>
@@ -156,41 +162,52 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
 
                     {/* Highlight badge for non-popular grades */}
                     {!grade.popular && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <div className="px-3 py-1.5 bg-muted/90 text-muted-foreground text-xs rounded-full font-medium border border-border">
+                      <div className="absolute top-3 left-3 z-10">
+                        <div className="px-2 py-1 bg-muted/90 text-muted-foreground text-xs rounded-full font-medium border border-border">
                           {grade.highlight}
                         </div>
                       </div>
                     )}
                     
-                    <div className="p-6 text-center">
+                    {/* Grade Image */}
+                    <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                      <img
+                        src={grade.image}
+                        alt={grade.name}
+                        className="w-full h-full object-cover object-center"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+
+                    <div className="p-4 text-center">
                       {/* Grade Icon */}
                       <motion.div 
-                        className="flex justify-center mb-4"
+                        className="flex justify-center mb-3"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                       >
-                        <div className={`p-4 rounded-full ${
+                        <div className={`p-3 rounded-full ${
                           isSelected ? 'bg-primary/20' : 'bg-muted/50'
                         }`}>
-                          <IconComponent className={`h-8 w-8 ${
+                          <IconComponent className={`h-6 w-6 ${
                             isSelected ? 'text-primary' : 'text-muted-foreground'
                           }`} />
                         </div>
                       </motion.div>
 
                       {/* Grade Name and Price */}
-                      <h4 className="text-2xl font-bold text-foreground mb-2">{grade.name}</h4>
-                      <p className="text-lg font-semibold text-primary mb-3">
+                      <h4 className="text-xl font-bold text-foreground mb-2">{grade.name}</h4>
+                      <p className="text-base font-semibold text-primary mb-2">
                         {grade.price > 0 ? `+AED ${grade.price.toLocaleString()}` : 'Base Price'}
                       </p>
                       
                       {/* Description */}
-                      <p className="text-sm text-muted-foreground mb-4">{grade.description}</p>
+                      <p className="text-xs text-muted-foreground mb-3">{grade.description}</p>
                       
                       {/* Key Features */}
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold text-foreground mb-2">Key Features:</h5>
-                        <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <h5 className="text-xs font-semibold text-foreground mb-2">Key Features:</h5>
+                        <div className="grid grid-cols-2 gap-1">
                           {grade.features.slice(0, 4).map((feature, featureIndex) => (
                             <motion.div
                               key={featureIndex}
@@ -210,9 +227,9 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg"
+                          className="mt-3 p-2 bg-primary/5 border border-primary/20 rounded-lg"
                         >
-                          <p className="text-sm font-medium text-primary">
+                          <p className="text-xs font-medium text-primary">
                             👆 Tap to select this grade
                           </p>
                         </motion.div>
@@ -223,9 +240,9 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg"
+                          className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg"
                         >
-                          <p className="text-sm font-medium text-green-700">
+                          <p className="text-xs font-medium text-green-700">
                             ✅ Selected - Ready to continue
                           </p>
                         </motion.div>
@@ -241,25 +258,25 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
         {/* Navigation Arrows */}
         <button
           onClick={prevGrade}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4" />
         </button>
         
         <button
           onClick={nextGrade}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-4 w-4" />
         </button>
 
         {/* Dots Indicator */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-2 mt-4">
           {grades.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentGradeIndex(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
                 index === currentGradeIndex ? 'bg-primary scale-125 shadow-lg' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
               }`}
             />

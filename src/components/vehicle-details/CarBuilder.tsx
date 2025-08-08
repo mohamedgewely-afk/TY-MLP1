@@ -33,9 +33,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const [config, setConfig] = useState<BuilderConfig>({
     modelYear: "2025",
     engine: "3.5L V6",
-    grade: "Base",
+    grade: "",
     exteriorColor: "Pearl White",
-    interiorColor: "Black Leather",
+    interiorColor: "",
     accessories: []
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -49,22 +49,22 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     try {
       setIsResetting(true);
       
-      // Use requestAnimationFrame to ensure smooth UI updates
-      await new Promise(resolve => {
-        requestAnimationFrame(() => {
+      // Use setTimeout to ensure smooth UI updates without blocking
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
           setConfig({
             modelYear: "2025",
             engine: "3.5L V6",
-            grade: "",  // Start with empty grade to force selection
+            grade: "",
             exteriorColor: "Pearl White",
-            interiorColor: "", // Start with empty interior to force selection
+            interiorColor: "",
             accessories: []
           });
           setStep(1);
           setShowConfirmation(false);
           setShowResetDialog(false);
-          resolve(void 0);
-        });
+          resolve();
+        }, 100); // Small delay to prevent UI blocking
       });
       
       toast({
@@ -203,7 +203,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Main Builder Dialog - Full Screen Desktop Experience */}
+      {/* Main Builder Dialog */}
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>
