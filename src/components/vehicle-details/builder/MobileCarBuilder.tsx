@@ -321,7 +321,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <div className="bg-background/60 backdrop-blur-md rounded-lg p-1.5 border border-border/0 shadow-sm">
+          <div className="p-1.5">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <h3 className="text-[11px] font-semibold text-foreground truncate mb-0.5 leading-tight">
