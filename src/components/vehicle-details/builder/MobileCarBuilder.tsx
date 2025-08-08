@@ -295,7 +295,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         key={config.exteriorColor + config.grade}
       >
         {/* Minimal gradient for text readability only */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/2 via-transparent to-transparent z-10" />
         
         <motion.img 
           src={getCurrentVehicleImage()}
