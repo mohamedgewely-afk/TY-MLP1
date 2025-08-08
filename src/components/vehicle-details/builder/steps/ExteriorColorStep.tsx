@@ -33,16 +33,20 @@ const ExteriorColorStep: React.FC<ExteriorColorStepProps> = ({ config, setConfig
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3 }}
             className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
-              config.exteriorColor === color.name 
-                ? 'bg-primary/10 border-primary shadow-lg' 
-                : 'bg-card border-border hover:border-primary/50'
-            }`}
+  config.exteriorColor === color.name 
+    ? 'bg-primary/10 border-primary shadow-lg' 
+    : 'bg-card border-border hover:border-primary/50'
+} w-full sm:w-[480px] mx-auto`}
             onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-center space-x-4">
-              <img src={color.image} alt={color.name} className="w-20 h-12 object-cover rounded-lg" />
+              <img 
+  src={color.image} 
+  alt={color.name} 
+  className="w-20 h-12 sm:w-32 sm:h-20 object-cover rounded-lg"
+/>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-foreground">{color.name}</h3>
                 {color.price > 0 && (
