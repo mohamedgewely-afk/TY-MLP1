@@ -15,7 +15,7 @@ const MobileProgress: React.FC<MobileProgressProps> = ({
   const { containerPadding, mobilePadding } = useResponsiveSize();
   
   return (
-    <div className={`${containerPadding} py-2`}>
+    <div className={`${containerPadding} py-1`}>
       <div className="w-full bg-muted/30 rounded-full h-1 overflow-hidden">
         <motion.div
           className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"

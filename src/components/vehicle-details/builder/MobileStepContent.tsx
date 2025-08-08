@@ -174,14 +174,14 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
     }
   };
 
-  const getButtonHeight = () => {
-    switch (deviceCategory) {
-      case 'smallMobile': return 'min-h-[48px]';
-      case 'standardMobile': return 'min-h-[52px]';
-      case 'largeMobile': return 'min-h-[56px]';
-      default: return 'min-h-[48px]';
-    }
-  };
+const getButtonHeight = () => {
+  switch (deviceCategory) {
+    case 'smallMobile': return 'h-10'; // 40px
+    case 'standardMobile': return 'h-11'; // 44px
+    case 'largeMobile': return 'h-12'; // 48px
+    default: return 'h-10'; // fallback
+  }
+};
 
   // Enhanced button click handler with haptic feedback
   const handleButtonClick = () => {
@@ -208,7 +208,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
         }}
         className="flex-1 overflow-hidden"
       >
-        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-3' : 'py-4'} overflow-y-auto`}>
+        <div className={`h-full ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-1.5' : 'py-2'} overflow-y-auto`}>
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -241,7 +241,7 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
       
       {/* Enhanced Continue Button */}
       <motion.div 
-        className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-4' : 'py-5'} bg-background/98 backdrop-blur-sm z-30 border-t border-border`}
+        className={`sticky bottom-0 left-0 right-0 ${containerPadding} ${deviceCategory === 'smallMobile' ? 'py-2' : 'py-2'} bg-background/98 backdrop-blur-sm z-30 border-t border-border`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
