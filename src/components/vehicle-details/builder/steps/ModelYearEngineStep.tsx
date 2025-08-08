@@ -59,7 +59,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
-                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border p-2 ${
                   isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
                     : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
@@ -118,7 +118,7 @@ const ModelYearEngineStep: React.FC<ModelYearEngineStepProps> = ({ config, setCo
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: (index + 2) * 0.1, duration: 0.4 }}
-                className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                className={`relative rounded-xl cursor-pointer transition-all duration-300 border p-2 ${
                   isSelected 
                     ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
                     : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
