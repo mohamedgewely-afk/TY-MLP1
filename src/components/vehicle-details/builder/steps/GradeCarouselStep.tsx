@@ -87,20 +87,20 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
   });
 
   return (
-    <div className="p-3 space-y-4 h-full">
+    <div className="p-2 pt-1 space-y-2 h-full">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="text-center mb-3"
       >
-        <h3 className="text-lg font-bold text-foreground mb-1">Choose Your Grade</h3>
-        <p className="text-xs text-muted-foreground">Swipe to explore different trim levels</p>
+        <h3 className="text-sm font-semibold text-foreground mb-0.5">Choose Your Grade</h3>
+<p className="text-[10px] text-muted-foreground leading-tight">Swipe to explore trim levels</p>
         {!config.grade && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center justify-center gap-2 mt-2 text-xs text-red-500 font-medium bg-red-50 rounded-lg p-2 border border-red-200"
+            className="flex items-center justify-center gap-1 mt-1 text-[10px] text-red-500 font-medium bg-red-50 rounded-md p-1.5 border border-red-200"
           >
             <AlertTriangle className="h-4 w-4" />
             <span>Please select a grade to continue</span>
@@ -180,24 +180,24 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
 
-                    <div className="p-4 text-center">
+                    <div className="p-2 text-center">
                       {/* Grade Icon */}
                       <motion.div 
                         className="flex justify-center mb-3"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                       >
-                        <div className={`p-3 rounded-full ${
+                        <div className={`p-2 rounded-full ${
                           isSelected ? 'bg-primary/20' : 'bg-muted/50'
                         }`}>
-                          <IconComponent className={`h-6 w-6 ${
+                          <IconComponent className={`h-5 w-5 ${
                             isSelected ? 'text-primary' : 'text-muted-foreground'
                           }`} />
                         </div>
                       </motion.div>
 
                       {/* Grade Name and Price */}
-                      <h4 className="text-xl font-bold text-foreground mb-2">{grade.name}</h4>
-                      <p className="text-base font-semibold text-primary mb-2">
+                      <h4 className="text-base font-semibold text-foreground mb-1">
+<p className="text-sm font-medium text-primary mb-1">
                         {grade.price > 0 ? `+AED ${grade.price.toLocaleString()}` : 'Base Price'}
                       </p>
                       
@@ -214,7 +214,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: featureIndex * 0.1 }}
-                              className="text-xs text-muted-foreground bg-muted/30 rounded-md px-2 py-1"
+                              className="text-[10px] text-muted-foreground bg-muted/30 rounded px-1.5 py-0.5"
                             >
                               {feature}
                             </motion.div>
@@ -227,7 +227,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-3 p-2 bg-primary/5 border border-primary/20 rounded-lg"
+                          className="mt-2 p-1.5 text-[10px] bg-primary/5 border border-primary/20 rounded-lg"
                         >
                           <p className="text-xs font-medium text-primary">
                             👆 Tap to select this grade
@@ -240,7 +240,7 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg"
+                          className="mt-2 p-1.5 text-[10px] bg-green-50 border border-green-200 rounded-lg"
                         >
                           <p className="text-xs font-medium text-green-700">
                             ✅ Selected - Ready to continue
