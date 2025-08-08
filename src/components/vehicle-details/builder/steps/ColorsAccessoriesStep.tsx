@@ -133,23 +133,23 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
   });
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Exterior Colors Carousel */}
+    <div className="p-3 space-y-4 h-full overflow-y-auto">
+      {/* Exterior Colors Carousel - Compact */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="text-center mb-4">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Palette className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-bold text-foreground">Exterior Color</h3>
+        <div className="text-center mb-3">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Palette className="h-4 w-4 text-primary" />
+            <h3 className="text-base font-bold text-foreground">Exterior Color</h3>
           </div>
-          <p className="text-sm text-muted-foreground">Swipe to explore exterior colors</p>
+          <p className="text-xs text-muted-foreground">Swipe to explore colors</p>
         </div>
         
         <div className="relative">
-          <div ref={exteriorSwipeRef} className="overflow-hidden rounded-2xl">
+          <div ref={exteriorSwipeRef} className="overflow-hidden rounded-xl">
             <motion.div
               className="flex"
               animate={{ x: -exteriorColorIndex * 100 + "%" }}
@@ -160,9 +160,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                 const isCurrent = index === exteriorColorIndex;
                 
                 return (
-                  <div key={color.name} className="w-full flex-shrink-0 px-2">
+                  <div key={color.name} className="w-full flex-shrink-0 px-1">
                     <div
-                      className={`relative rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${
+                      className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${
                         isSelected 
                           ? 'bg-primary/10 border-primary shadow-lg ring-2 ring-primary/20' 
                           : isCurrent
@@ -171,19 +171,19 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                       }`}
                       onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
                     >
-                      {/* Car Image with better aspect ratio */}
-                      <div className="relative h-48 overflow-hidden">
+                      {/* Compact Car Image */}
+                      <div className="relative h-32 overflow-hidden">
                         <img
                           src={color.image}
                           alt={color.name}
-                          className="w-full h-full object-cover object-center"
+                          className="w-full h-full object-cover object-center scale-110"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         
-                        {/* Color swatch */}
-                        <div className="absolute top-4 left-4">
+                        {/* Color swatch - smaller */}
+                        <div className="absolute top-2 left-2">
                           <div 
-                            className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
+                            className="w-6 h-6 rounded-full border-2 border-white shadow-lg"
                             style={{ backgroundColor: color.color }}
                           />
                         </div>
@@ -193,24 +193,24 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute top-4 right-4"
+                            className="absolute top-2 right-2"
                           >
-                            <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
-                              <Check className="h-4 w-4" />
+                            <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
+                              <Check className="h-3 w-3" />
                             </div>
                           </motion.div>
                         )}
                         
                         {color.popular && (
-                          <div className="absolute top-4 right-4 px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded-full">
+                          <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-primary/90 text-primary-foreground text-xs rounded-full">
                             Popular
                           </div>
                         )}
                       </div>
                       
-                      <div className="p-4 text-center">
-                        <h4 className="text-lg font-semibold text-foreground mb-1">{color.name}</h4>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="p-2 text-center">
+                        <h4 className="text-sm font-semibold text-foreground mb-0.5 truncate">{color.name}</h4>
+                        <p className="text-xs text-muted-foreground">
                           {color.price > 0 ? `+AED ${color.price}` : 'Included'}
                         </p>
                       </div>
@@ -224,20 +224,20 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
           {/* Navigation Arrows */}
           <button
             onClick={prevExteriorColor}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-1.5 shadow-lg transition-all duration-200"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3 w-3" />
           </button>
           
           <button
             onClick={nextExteriorColor}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-1.5 shadow-lg transition-all duration-200"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3 w-3" />
           </button>
 
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-4">
+          {/* Compact Dots Indicator */}
+          <div className="flex justify-center gap-1 mt-2">
             {exteriorColors.map((_, index) => (
               <button
                 key={index}
@@ -245,7 +245,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                   setExteriorColorIndex(index);
                   setConfig(prev => ({ ...prev, exteriorColor: exteriorColors[index].name }));
                 }}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                   index === exteriorColorIndex ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
                 }`}
               />
@@ -254,47 +254,51 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
         </div>
       </motion.div>
 
-      {/* Interior Colors and Accessories Tabs */}
+      {/* Interior Colors and Accessories Tabs - Compact */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+        className="flex-1"
       >
-        <Tabs defaultValue="interior" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="interior" className="flex items-center gap-2">
-              <Sofa className="h-4 w-4" />
+        <Tabs defaultValue="interior" className="w-full h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 mb-3">
+            <TabsTrigger value="interior" className="flex items-center gap-2 text-xs">
+              <Sofa className="h-3 w-3" />
               Interior
             </TabsTrigger>
-            <TabsTrigger value="accessories" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
+            <TabsTrigger value="accessories" className="flex items-center gap-2 text-xs">
+              <Package className="h-3 w-3" />
               Accessories
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="interior" className="mt-6">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-foreground mb-2">Interior Color</h3>
-              <p className="text-sm text-muted-foreground">Choose your interior materials and colors</p>
+          <TabsContent value="interior" className="mt-0 flex-1">
+            <div className="text-center mb-3">
+              <h3 className="text-base font-bold text-foreground mb-1">Interior Color</h3>
+              <p className="text-xs text-muted-foreground">Choose your interior materials</p>
+              {!config.interiorColor && (
+                <p className="text-xs text-red-500 font-medium mt-1">⚠️ Please select an interior color</p>
+              )}
             </div>
             
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2">
               {interiorColors.map((color, index) => {
                 const isSelected = config.interiorColor === color.name;
                 
                 return (
                   <motion.div
                     key={color.name}
-                    initial={{ opacity: 0, x: -30 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.4 }}
-                    className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
+                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                    className={`relative rounded-lg cursor-pointer transition-all duration-300 border-2 p-3 ${
                       isSelected 
-                        ? 'bg-primary/10 border-primary shadow-lg scale-[1.02]' 
+                        ? 'bg-primary/10 border-primary shadow-lg scale-[1.02] ring-2 ring-primary/20' 
                         : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
                     }`}
                     onClick={() => setConfig(prev => ({ ...prev, interiorColor: color.name }))}
-                    whileHover={{ y: -2 }}
+                    whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {/* Selection indicator */}
@@ -302,7 +306,7 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-3 right-3"
+                        className="absolute top-2 right-2"
                       >
                         <div className="bg-primary text-primary-foreground rounded-full p-1">
                           <Check className="h-3 w-3" />
@@ -310,15 +314,15 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                       </motion.div>
                     )}
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <div 
-                        className="w-12 h-12 rounded-lg border-2 border-border/50 shadow-inner flex-shrink-0"
+                        className="w-10 h-10 rounded-lg border-2 border-border/50 shadow-inner flex-shrink-0"
                         style={{ backgroundColor: color.color }}
                       />
-                      <div className="flex-1">
-                        <h4 className="text-base font-semibold text-foreground">{color.name}</h4>
-                        <p className="text-sm text-muted-foreground">{color.material}</p>
-                        <p className="text-sm text-foreground font-medium">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground truncate">{color.name}</h4>
+                        <p className="text-xs text-muted-foreground">{color.material}</p>
+                        <p className="text-xs text-foreground font-medium">
                           {color.price > 0 ? `+AED ${color.price}` : color.price < 0 ? `AED ${color.price}` : 'Included'}
                         </p>
                       </div>
@@ -329,14 +333,14 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
             </div>
           </TabsContent>
           
-          <TabsContent value="accessories" className="mt-6">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-foreground mb-2">Accessories</h3>
-              <p className="text-sm text-muted-foreground">Swipe to explore optional features</p>
+          <TabsContent value="accessories" className="mt-0 flex-1">
+            <div className="text-center mb-3">
+              <h3 className="text-base font-bold text-foreground mb-1">Accessories</h3>
+              <p className="text-xs text-muted-foreground">Swipe to explore optional features</p>
             </div>
             
             <div className="relative">
-              <div ref={accessorySwipeRef} className="overflow-hidden rounded-2xl">
+              <div ref={accessorySwipeRef} className="overflow-hidden rounded-xl">
                 <motion.div
                   className="flex"
                   animate={{ x: -accessoryIndex * 100 + "%" }}
@@ -346,9 +350,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                     const isSelected = config.accessories.includes(accessory.name);
                     
                     return (
-                      <div key={accessory.name} className="w-full flex-shrink-0 px-2">
+                      <div key={accessory.name} className="w-full flex-shrink-0 px-1">
                         <div
-                          className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-6 ${
+                          className={`relative rounded-xl cursor-pointer transition-all duration-300 border-2 p-4 ${
                             isSelected 
                               ? 'bg-primary/10 border-primary shadow-lg' 
                               : 'bg-card border-border hover:border-primary/30 hover:shadow-md'
@@ -356,18 +360,18 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                           onClick={() => toggleAccessory(accessory.name)}
                         >
                           <div className="text-center">
-                            <div className="flex items-center justify-center gap-3 mb-3">
-                              <h4 className="text-xl font-semibold text-foreground">{accessory.name}</h4>
-                              <span className="px-2 py-1 bg-muted/70 text-muted-foreground text-xs rounded-md">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <h4 className="text-lg font-semibold text-foreground">{accessory.name}</h4>
+                              <span className="px-2 py-0.5 bg-muted/70 text-muted-foreground text-xs rounded-md">
                                 {accessory.category}
                               </span>
                             </div>
                             
-                            <p className="text-sm text-muted-foreground mb-4">{accessory.description}</p>
-                            <p className="text-lg font-bold text-foreground mb-4">+AED {accessory.price}</p>
+                            <p className="text-xs text-muted-foreground mb-3">{accessory.description}</p>
+                            <p className="text-base font-bold text-foreground mb-3">+AED {accessory.price}</p>
                             
                             <motion.div
-                              className={`w-12 h-12 mx-auto rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
+                              className={`w-10 h-10 mx-auto rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                                 isSelected 
                                   ? 'bg-primary border-primary text-primary-foreground' 
                                   : 'border-border bg-background hover:border-primary/50'
@@ -376,9 +380,9 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
                               whileTap={{ scale: 0.9 }}
                             >
                               {isSelected ? (
-                                <Minus className="h-5 w-5" />
+                                <Minus className="h-4 w-4" />
                               ) : (
-                                <Plus className="h-5 w-5" />
+                                <Plus className="h-4 w-4" />
                               )}
                             </motion.div>
                           </div>
@@ -392,25 +396,25 @@ const ColorsAccessoriesStep: React.FC<ColorsAccessoriesStepProps> = ({ config, s
               {/* Navigation Arrows */}
               <button
                 onClick={prevAccessory}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200"
+                className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-1.5 shadow-lg transition-all duration-200"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3 w-3" />
               </button>
               
               <button
                 onClick={nextAccessory}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200"
+                className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-1.5 shadow-lg transition-all duration-200"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3" />
               </button>
 
-              {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-4">
+              {/* Compact Dots Indicator */}
+              <div className="flex justify-center gap-1 mt-2">
                 {accessories.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setAccessoryIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                       index === accessoryIndex ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
                     }`}
                   />

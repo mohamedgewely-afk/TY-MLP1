@@ -29,6 +29,7 @@ interface BuilderConfig {
 const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => {
   const [step, setStep] = useState(1);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [config, setConfig] = useState<BuilderConfig>({
     modelYear: "2025",
     engine: "3.5L V6",
@@ -43,22 +44,43 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
 
-  const handleReset = useCallback(() => {
-    setConfig({
-      modelYear: "2025",
-      engine: "3.5L V6",
-      grade: "Base",
-      exteriorColor: "Pearl White",
-      interiorColor: "Black Leather",
-      accessories: []
-    });
-    setStep(1);
-    setShowConfirmation(false);
-    setShowResetDialog(false);
-    toast({
-      title: "Configuration Reset",
-      description: "Your vehicle configuration has been reset to default values.",
-    });
+  // Fixed reset handler to prevent freezing
+  const handleReset = useCallback(async () => {
+    try {
+      setIsResetting(true);
+      
+      // Use requestAnimationFrame to ensure smooth UI updates
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          setConfig({
+            modelYear: "2025",
+            engine: "3.5L V6",
+            grade: "",  // Start with empty grade to force selection
+            exteriorColor: "Pearl White",
+            interiorColor: "", // Start with empty interior to force selection
+            accessories: []
+          });
+          setStep(1);
+          setShowConfirmation(false);
+          setShowResetDialog(false);
+          resolve(void 0);
+        });
+      });
+      
+      toast({
+        title: "Configuration Reset",
+        description: "Your vehicle configuration has been reset to default values.",
+      });
+    } catch (error) {
+      console.error('Reset error:', error);
+      toast({
+        title: "Reset Error",
+        description: "There was an issue resetting the configuration.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResetting(false);
+    }
   }, [toast]);
 
   const calculateTotalPrice = useCallback(() => {
@@ -162,8 +184,21 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+            <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleReset}
+              disabled={isResetting}
+              className="relative"
+            >
+              {isResetting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Resetting...
+                </>
+              ) : (
+                'Reset'
+              )}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

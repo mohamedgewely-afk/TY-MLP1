@@ -1,7 +1,7 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Star, Zap, Shield, Crown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Star, Zap, Shield, Crown } from "lucide-react";
 import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface GradeCarouselStepProps {
@@ -12,219 +12,227 @@ interface GradeCarouselStepProps {
 const grades = [
   { 
     name: "Base", 
-    description: "Essential features for everyday driving",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-    price: "From AED 89,000",
-    monthlyEMI: "1,850",
-    features: ["Manual A/C", "6 Speakers", "Basic Interior"],
+    price: 0, 
+    features: ["Manual AC", "Fabric Seats", "Basic Audio", "Manual Windows"],
     icon: Shield,
-    badge: "Value",
-    badgeColor: "bg-blue-50 text-blue-700 border-blue-200"
+    description: "Essential features for everyday driving",
+    highlight: "Great Value"
   },
   { 
     name: "SE", 
-    description: "Sport edition with enhanced performance",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-    price: "From AED 95,000",
-    monthlyEMI: "1,980",
-    features: ["Sport Seats", "8-inch Display", "Rear Camera"],
-    icon: Zap,
-    badge: "Sport",
-    badgeColor: "bg-red-50 text-red-700 border-red-200"
+    price: 2000, 
+    features: ["Auto AC", "Power Windows", "Bluetooth", "Cruise Control"],
+    icon: Star,
+    description: "Enhanced comfort and convenience",
+    highlight: "Most Popular",
+    popular: true
   },
   { 
     name: "XLE", 
-    description: "Premium comfort and convenience",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-    price: "From AED 110,000",
-    monthlyEMI: "2,290",
-    features: ["Leather Trim", "Premium Audio", "Auto Climate"],
-    icon: Star,
-    badge: "Most Popular",
-    badgeColor: "bg-orange-50 text-orange-700 border-orange-200"
+    price: 4000, 
+    features: ["Dual Climate", "Heated Seats", "Premium Audio", "Keyless Entry"],
+    icon: Zap,
+    description: "Premium comfort and technology",
+    highlight: "Best Features"
   },
   { 
     name: "Limited", 
-    description: "Luxury features and premium materials",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-    price: "From AED 125,000",
-    monthlyEMI: "2,600",
-    features: ["Premium Leather", "9-inch Touch", "Heated Seats"],
+    price: 6000, 
+    features: ["Leather Seats", "Sunroof", "Navigation", "Advanced Safety"],
     icon: Crown,
-    badge: "Luxury",
-    badgeColor: "bg-purple-50 text-purple-700 border-purple-200"
+    description: "Luxury features and premium materials",
+    highlight: "Luxury"
+  },
+  { 
+    name: "Platinum", 
+    price: 10000, 
+    features: ["Premium Leather", "Heated/Cooled Seats", "JBL Audio", "All Safety Features"],
+    icon: Crown,
+    description: "The ultimate in luxury and technology",
+    highlight: "Ultimate"
   }
 ];
 
 const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
-  const [currentIndex, setCurrentIndex] = useState(() => {
+  const [currentGradeIndex, setCurrentGradeIndex] = useState(() => {
     const selectedIndex = grades.findIndex(grade => grade.name === config.grade);
     return selectedIndex >= 0 ? selectedIndex : 0;
   });
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % grades.length);
+  const nextGrade = () => {
+    const newIndex = (currentGradeIndex + 1) % grades.length;
+    setCurrentGradeIndex(newIndex);
   };
 
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + grades.length) % grades.length);
+  const prevGrade = () => {
+    const newIndex = (currentGradeIndex - 1 + grades.length) % grades.length;
+    setCurrentGradeIndex(newIndex);
   };
 
-  const swipeRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: nextSlide,
-    onSwipeRight: prevSlide,
+  const selectGrade = (gradeName: string, index: number) => {
+    setConfig(prev => ({ ...prev, grade: gradeName }));
+    setCurrentGradeIndex(index);
+  };
+
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: nextGrade,
+    onSwipeRight: prevGrade,
     threshold: 50,
-    preventDefaultTouchmoveEvent: true,
-    debug: false
+    preventDefaultTouchmoveEvent: true
   });
 
-  const selectCurrentGrade = () => {
-    setConfig(prev => ({ ...prev, grade: grades[currentIndex].name }));
-  };
-
   return (
-    <div className="p-4 space-y-6">
-      <motion.div 
-        className="text-center mb-6"
+    <div className="p-4 space-y-4 h-full">
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="text-center mb-4"
       >
-        <h2 className="text-xl font-bold text-foreground mb-2">
-          Select Your Grade
-        </h2>
-        <p className="text-muted-foreground text-sm mb-3">
-          Swipe left/right to explore grades
-        </p>
+        <h3 className="text-xl font-bold text-foreground mb-2">Choose Your Grade</h3>
+        <p className="text-sm text-muted-foreground">Swipe to explore different trim levels</p>
         {!config.grade && (
-          <motion.div 
-            className="bg-orange-50 text-orange-700 px-4 py-2 rounded-lg border border-orange-200"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-sm text-red-500 font-medium mt-2 bg-red-50 rounded-lg p-2 border border-red-200"
           >
-            <p className="text-sm font-medium">👆 Tap the card below to select your grade</p>
-          </motion.div>
+            ⚠️ Please select a grade to continue
+          </motion.p>
         )}
       </motion.div>
-      
-      {/* Swipeable Grade Carousel */}
+
       <div className="relative">
-        <div ref={swipeRef} className="overflow-hidden rounded-2xl">
+        <div ref={swipeableRef} className="overflow-hidden rounded-2xl">
           <motion.div
             className="flex"
-            animate={{ x: -currentIndex * 100 + "%" }}
+            animate={{ x: -currentGradeIndex * 100 + "%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
             {grades.map((grade, index) => {
-              const IconComponent = grade.icon;
               const isSelected = config.grade === grade.name;
-              const isCurrent = index === currentIndex;
+              const isCurrent = index === currentGradeIndex;
+              const IconComponent = grade.icon;
               
               return (
-                <motion.div
-                  key={grade.name}
-                  className="w-full flex-shrink-0 px-2"
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 border-2 shadow-lg ${
+                <div key={grade.name} className="w-full flex-shrink-0 px-3">
+                  <motion.div
+                    className={`relative rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary shadow-primary/20 ring-2 ring-primary/20' 
+                        ? 'bg-primary/10 border-primary shadow-2xl ring-4 ring-primary/20 scale-[1.02]' 
                         : isCurrent
-                          ? 'bg-card/95 backdrop-blur-sm border-primary/50 hover:border-primary/70 hover:shadow-xl ring-1 ring-primary/10'
-                          : 'bg-card/95 backdrop-blur-sm border-border hover:border-primary/30 hover:shadow-xl'
+                          ? 'bg-card border-primary/50 hover:border-primary/70 hover:shadow-xl ring-2 ring-primary/10'
+                          : 'bg-card border-border hover:border-primary/30 hover:shadow-lg'
                     }`}
-                    onClick={selectCurrentGrade}
+                    onClick={() => selectGrade(grade.name, index)}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {/* Selection indicator */}
                     {isSelected && (
                       <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="absolute top-4 right-4 z-20"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        className="absolute top-4 right-4 z-10"
                       >
                         <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
-                          <Check className="h-4 w-4" />
+                          <Check className="h-5 w-5" />
                         </div>
                       </motion.div>
                     )}
-
-                    {/* Current slide indicator */}
-                    {isCurrent && !isSelected && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="absolute top-4 right-4 z-20"
+                    
+                    {/* Popular badge */}
+                    {grade.popular && (
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-4 left-4 z-10"
                       >
-                        <div className="bg-primary/20 text-primary rounded-full p-2 border-2 border-primary/30">
-                          <IconComponent className="h-4 w-4" />
+                        <div className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full font-bold shadow-lg">
+                          {grade.highlight}
                         </div>
                       </motion.div>
                     )}
+
+                    {/* Highlight badge for non-popular grades */}
+                    {!grade.popular && (
+                      <div className="absolute top-4 left-4 z-10">
+                        <div className="px-3 py-1.5 bg-muted/90 text-muted-foreground text-xs rounded-full font-medium border border-border">
+                          {grade.highlight}
+                        </div>
+                      </div>
+                    )}
                     
-                    {/* Grade Image */}
-                    <div className="relative h-48 overflow-hidden rounded-t-2xl">
-                      <img
-                        src={grade.image}
-                        alt={grade.name}
-                        className="w-full h-full object-cover object-center"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-medium border ${grade.badgeColor}`}>
-                        {grade.badge}
-                      </div>
-                    </div>
-                    
-                    {/* Grade Content */}
-                    <div className="p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <IconComponent className="h-5 w-5 text-primary" />
-                        <h3 className="text-xl font-bold text-foreground">{grade.name}</h3>
-                      </div>
+                    <div className="p-6 text-center">
+                      {/* Grade Icon */}
+                      <motion.div 
+                        className="flex justify-center mb-4"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                      >
+                        <div className={`p-4 rounded-full ${
+                          isSelected ? 'bg-primary/20' : 'bg-muted/50'
+                        }`}>
+                          <IconComponent className={`h-8 w-8 ${
+                            isSelected ? 'text-primary' : 'text-muted-foreground'
+                          }`} />
+                        </div>
+                      </motion.div>
+
+                      {/* Grade Name and Price */}
+                      <h4 className="text-2xl font-bold text-foreground mb-2">{grade.name}</h4>
+                      <p className="text-lg font-semibold text-primary mb-3">
+                        {grade.price > 0 ? `+AED ${grade.price.toLocaleString()}` : 'Base Price'}
+                      </p>
                       
-                      <p className="text-muted-foreground text-sm mb-4">{grade.description}</p>
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground mb-4">{grade.description}</p>
                       
-                      {/* Features */}
-                      <div className="grid grid-cols-1 gap-2 mb-4">
-                        {grade.features.map((feature, idx) => (
-                          <span 
-                            key={idx}
-                            className="text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg border border-border/30 flex items-center gap-2"
-                          >
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                            {feature}
-                          </span>
-                        ))}
-                      </div>
-                      
-                      {/* Pricing */}
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-foreground mb-1">{grade.price}</div>
-                        <div className="text-sm text-muted-foreground">AED {grade.monthlyEMI}/month</div>
+                      {/* Key Features */}
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-semibold text-foreground mb-2">Key Features:</h5>
+                        <div className="grid grid-cols-2 gap-2">
+                          {grade.features.slice(0, 4).map((feature, featureIndex) => (
+                            <motion.div
+                              key={featureIndex}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: featureIndex * 0.1 }}
+                              className="text-xs text-muted-foreground bg-muted/30 rounded-md px-2 py-1"
+                            >
+                              {feature}
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
 
-                      {/* Selection Call to Action */}
-                      {isCurrent && (
-                        <motion.div 
-                          className="mt-4 text-center"
+                      {/* Selection Call-to-Action */}
+                      {isCurrent && !isSelected && (
+                        <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
+                          className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg"
                         >
-                          <div className={`text-sm font-medium px-4 py-2 rounded-lg ${
-                            isSelected 
-                              ? 'bg-primary/10 text-primary border border-primary/20' 
-                              : 'bg-muted/30 text-muted-foreground border border-border/50'
-                          }`}>
-                            {isSelected ? '✓ Selected' : 'Tap to Select'}
-                          </div>
+                          <p className="text-sm font-medium text-primary">
+                            👆 Tap to select this grade
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {/* Selected confirmation */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg"
+                        >
+                          <p className="text-sm font-medium text-green-700">
+                            ✅ Selected - Ready to continue
+                          </p>
                         </motion.div>
                       )}
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
               );
             })}
           </motion.div>
@@ -232,27 +240,27 @@ const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig
 
         {/* Navigation Arrows */}
         <button
-          onClick={prevSlide}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-105"
+          onClick={prevGrade}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         
         <button
-          onClick={nextSlide}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background border border-border rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-105"
+          onClick={nextGrade}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/90 hover:bg-background border border-border rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
 
         {/* Dots Indicator */}
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-6">
           {grades.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                index === currentIndex ? 'bg-primary scale-125' : 'bg-muted-foreground/30'
+              onClick={() => setCurrentGradeIndex(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                index === currentGradeIndex ? 'bg-primary scale-125 shadow-lg' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
               }`}
             />
           ))}
