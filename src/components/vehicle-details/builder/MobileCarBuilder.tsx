@@ -172,12 +172,12 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const getImageHeight = () => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'h-48';
-      case 'standardMobile': return 'h-52';
-      case 'largeMobile': return 'h-56';
-      case 'extraLargeMobile': return 'h-60';
-      case 'tablet': return 'h-64';
-      default: return 'h-52';
+      case 'smallMobile': return 'h-28';
+      case 'standardMobile': return 'h-32';
+      case 'largeMobile': return 'h-36';
+      case 'extraLargeMobile': return 'h-40';
+      case 'tablet': return 'h-44';
+      default: return 'h-32';
     }
   };
 
@@ -372,7 +372,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Step Content - Fixed scrolling */}
       <motion.div 
         variants={contentVariants}
-        className="flex-1 overflow-hidden bg-background/95"
+        className="flex-1 overflow-hidden bg-background/95 px-2 py-2"
       >
         <AnimatePresence mode="wait">
           <MobileStepContent
