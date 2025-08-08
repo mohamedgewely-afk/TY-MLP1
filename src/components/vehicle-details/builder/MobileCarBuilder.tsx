@@ -272,7 +272,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <h1 className="text-xs font-bold text-foreground truncate leading-none">
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
-          <<p className="text-[10px] text-muted-foreground font-medium leading-none">
+          <p className="text-[10px] text-muted-foreground font-medium leading-none">
             Step {step} of 4
           </p>
         </motion.div>
