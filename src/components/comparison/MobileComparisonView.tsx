@@ -54,7 +54,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col max-h-screen">
       {/* Header - Fixed and responsive */}
       <div className="flex-shrink-0 bg-background border-b shadow-sm z-10">
         <div className={`flex items-center justify-between ${containerPadding} py-3`}>
@@ -122,7 +122,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
       </div>
 
       {/* Content Area - Scrollable with Swipe */}
-      <div className="flex-1 overflow-y-auto" ref={swipeableRef}>
+      <div className="flex-1 overflow-y-auto overscroll-contain" ref={swipeableRef}>
         <AnimatePresence mode="wait">
           {viewMode === 'overview' ? (
             <motion.div
