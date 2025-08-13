@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, Play, Pause, Share2, Bookmark, Grid3X3, Eye, Info, ArrowLeft, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Maximize2, X, Play, Pause, Eye, Grid3X3, Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
@@ -20,77 +20,65 @@ interface ImageData {
   description?: string;
 }
 
-// Enhanced gallery images with proper categorization
 const getGalleryImages = (vehicle: VehicleModel): ImageData[] => [
   {
     url: vehicle.image,
     alt: `${vehicle.name} - Main View`,
     category: 'exterior',
-    title: 'Front View',
-    description: 'Bold and dynamic front design'
+    title: 'Exterior Design',
+    description: 'Bold and dynamic styling'
   },
   {
     url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     alt: `${vehicle.name} - Rear View`,
     category: 'exterior',
     title: 'Rear Design',
-    description: 'Sleek LED tail lights and aerodynamic profile'
+    description: 'Sophisticated LED lighting'
   },
   {
     url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
-    alt: `${vehicle.name} - Interior Dashboard`,
+    alt: `${vehicle.name} - Interior`,
     category: 'interior',
     title: 'Premium Interior',
-    description: 'Luxurious cabin with advanced technology'
+    description: 'Luxurious cabin experience'
   },
   {
     url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/50d87eac-d48e-42f3-81b6-dcaa8a7e052a/renditions/15967074-ba68-442a-b403-d7a62a10171f?binary=true&mformat=true",
-    alt: `${vehicle.name} - Infotainment System`,
+    alt: `${vehicle.name} - Technology`,
     category: 'interior',
-    title: 'Smart Technology',
-    description: 'Connected intelligence at your fingertips'
+    title: 'Advanced Technology',
+    description: 'Connected intelligence'
   },
   {
     url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/27becc9e-3b15-436e-a603-df509955cba9/renditions/e6cec4c7-f5aa-4560-b91f-49ed9ab26956?binary=true&mformat=true",
-    alt: `${vehicle.name} - Hybrid Engine`,
+    alt: `${vehicle.name} - Engine`,
     category: 'engine',
-    title: 'Hybrid Powertrain',
-    description: 'Advanced hybrid technology for efficiency'
+    title: 'Efficient Performance',
+    description: 'Advanced powertrain technology'
   },
   {
     url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
-    alt: `${vehicle.name} - Lifestyle Shot`,
+    alt: `${vehicle.name} - Lifestyle`,
     category: 'lifestyle',
-    title: 'Urban Adventure',
-    description: 'Perfect companion for city adventures'
+    title: 'Adventure Ready',
+    description: 'Perfect for every journey'
   }
 ];
 
 const categoryColors = {
-  exterior: 'from-blue-500 to-cyan-500',
-  interior: 'from-purple-500 to-pink-500',
-  engine: 'from-orange-500 to-red-500',
-  lifestyle: 'from-green-500 to-emerald-500'
+  exterior: 'bg-blue-500',
+  interior: 'bg-purple-500',
+  engine: 'bg-orange-500',
+  lifestyle: 'bg-green-500'
 };
 
 const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isAutoplay, setIsAutoplay] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [showInfo, setShowInfo] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
-  
-  const galleryRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const autoplayRef = useRef<NodeJS.Timeout>();
-  
-  const x = useMotionValue(0);
-  const opacity = useTransform(x, [-100, 0, 100], [0.5, 1, 0.5]);
+  const [isAutoplay, setIsAutoplay] = useState(false);
+  const [favorites, setFavorites] = useState<number[]>([]);
   
   const images = getGalleryImages(vehicle);
   const filteredImages = selectedCategory === 'all' 
@@ -99,59 +87,21 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   
   const currentImage = filteredImages[currentIndex];
   
-  // Preload images for smooth transitions
-  const preloadImage = useCallback((url: string) => {
-    if (preloadedImages.has(url)) return;
-    
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      setPreloadedImages(prev => new Set([...prev, url]));
-    };
-  }, [preloadedImages]);
-  
-  // Preload adjacent images
-  useEffect(() => {
-    const preloadIndices = [
-      currentIndex - 1,
-      currentIndex,
-      currentIndex + 1
-    ].filter(i => i >= 0 && i < filteredImages.length);
-    
-    preloadIndices.forEach(i => {
-      preloadImage(filteredImages[i].url);
-    });
-  }, [currentIndex, filteredImages, preloadImage]);
-  
-  // Navigation functions
   const goToNext = useCallback(() => {
     setCurrentIndex(prev => (prev + 1) % filteredImages.length);
-    setIsZoomed(false);
-    setZoomLevel(1);
   }, [filteredImages.length]);
   
   const goToPrevious = useCallback(() => {
     setCurrentIndex(prev => (prev - 1 + filteredImages.length) % filteredImages.length);
-    setIsZoomed(false);
-    setZoomLevel(1);
   }, [filteredImages.length]);
   
   // Auto-play functionality
   useEffect(() => {
-    if (isAutoplay && !isFullscreen) {
-      autoplayRef.current = setInterval(goToNext, 4000);
-    } else {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-      }
+    if (isAutoplay) {
+      const interval = setInterval(goToNext, 4000);
+      return () => clearInterval(interval);
     }
-    
-    return () => {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-      }
-    };
-  }, [isAutoplay, isFullscreen, goToNext]);
+  }, [isAutoplay, goToNext]);
   
   // Keyboard navigation
   useEffect(() => {
@@ -170,16 +120,10 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
         case 'Escape':
           e.preventDefault();
           setIsFullscreen(false);
-          setIsZoomed(false);
-          setZoomLevel(1);
           break;
         case ' ':
           e.preventDefault();
           setIsAutoplay(prev => !prev);
-          break;
-        case 'i':
-          e.preventDefault();
-          setShowInfo(prev => !prev);
           break;
       }
     };
@@ -195,52 +139,6 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
     threshold: 50
   });
   
-  // Pan handlers for zoomed images
-  const handlePan = (event: any, info: PanInfo) => {
-    if (isZoomed) {
-      x.set(info.offset.x);
-    }
-  };
-  
-  const handlePanEnd = (event: any, info: PanInfo) => {
-    if (isZoomed) {
-      x.set(0);
-      return;
-    }
-    
-    const threshold = 50;
-    const velocity = info.velocity.x;
-    
-    if (Math.abs(info.offset.x) > threshold || Math.abs(velocity) > 500) {
-      if (info.offset.x > 0) {
-        goToPrevious();
-      } else {
-        goToNext();
-      }
-    }
-    x.set(0);
-  };
-  
-  // Zoom functions
-  const handleZoomIn = () => {
-    const newZoom = Math.min(zoomLevel * 1.5, 3);
-    setZoomLevel(newZoom);
-    setIsZoomed(newZoom > 1);
-  };
-  
-  const handleZoomOut = () => {
-    const newZoom = Math.max(zoomLevel / 1.5, 1);
-    setZoomLevel(newZoom);
-    setIsZoomed(newZoom > 1);
-  };
-  
-  const resetZoom = () => {
-    setZoomLevel(1);
-    setIsZoomed(false);
-    x.set(0);
-  };
-  
-  // Categories
   const categories = [
     { key: 'all', label: 'All Views', count: images.length },
     { key: 'exterior', label: 'Exterior', count: images.filter(img => img.category === 'exterior').length },
@@ -248,15 +146,33 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
     { key: 'engine', label: 'Engine', count: images.filter(img => img.category === 'engine').length },
     { key: 'lifestyle', label: 'Lifestyle', count: images.filter(img => img.category === 'lifestyle').length }
   ].filter(cat => cat.count > 0);
+
+  const toggleFavorite = (index: number) => {
+    setFavorites(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
   
   return (
     <>
-      <div className="toyota-container">
+      <div className="toyota-container mb-8">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
+          {/* Header */}
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              Vehicle Gallery
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Discover every detail of the {vehicle.name}
+            </p>
+          </div>
+
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2 justify-center">
             {categories.map((category) => (
@@ -268,7 +184,11 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                   setSelectedCategory(category.key);
                   setCurrentIndex(0);
                 }}
-                className="rounded-full"
+                className={`rounded-full ${
+                  selectedCategory === category.key 
+                    ? 'bg-toyota-red text-white' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
                 {category.label}
                 <Badge variant="secondary" className="ml-2 text-xs">
@@ -279,81 +199,67 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
           </div>
           
           {/* Main Gallery */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-muted/30 to-background border-0 shadow-2xl">
+          <Card className="overflow-hidden shadow-xl">
             <div 
-              ref={galleryRef}
-              className="relative h-[400px] md:h-[600px] group cursor-pointer"
-              onClick={() => setIsFullscreen(true)}
               {...swipeHandlers}
+              className="relative aspect-video md:aspect-[16/10] bg-gray-100 dark:bg-gray-800 group cursor-pointer"
+              onClick={() => setIsFullscreen(true)}
             >
-              {/* Main Image */}
-              <motion.div
-                className="relative w-full h-full overflow-hidden"
-                style={{ opacity }}
-              >
-                <motion.img
-                  ref={imageRef}
-                  key={currentImage.url}
-                  src={currentImage.url}
-                  alt={currentImage.alt}
-                  className="w-full h-full object-cover transition-transform duration-700"
-                  initial={{ scale: 1.1, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  drag={isZoomed ? "x" : false}
-                  dragConstraints={{ left: -100, right: 100 }}
-                  onPan={handlePan}
-                  onPanEnd={handlePanEnd}
-                  style={{ scale: zoomLevel }}
-                />
-                
-                {/* Loading Overlay */}
-                {!preloadedImages.has(currentImage.url) && (
-                  <div className="absolute inset-0 bg-muted/50 flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-                
-                {/* Gradient Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/10" />
-              </motion.div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${currentIndex}-${selectedCategory}`}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0"
+                >
+                  <img
+                    src={currentImage.url}
+                    alt={currentImage.alt}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                </motion.div>
+              </AnimatePresence>
               
               {/* Navigation Controls */}
-              <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-12 w-12 rounded-full bg-white/80 backdrop-blur-md border-white/20 shadow-lg hover:bg-white/90 transition-all duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToPrevious();
-                  }}
-                  disabled={filteredImages.length <= 1}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-12 w-12 rounded-full bg-white/80 backdrop-blur-md border-white/20 shadow-lg hover:bg-white/90 transition-all duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNext();
-                  }}
-                  disabled={filteredImages.length <= 1}
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
-              </div>
+              {filteredImages.length > 1 && (
+                <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full bg-white/80 backdrop-blur-sm shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToPrevious();
+                    }}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full bg-white/80 backdrop-blur-sm shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToNext();
+                    }}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              )}
               
-              {/* Top Controls */}
-              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {/* Action Buttons */}
+              <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-md border-white/20"
+                  className="rounded-full bg-white/80 backdrop-blur-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsAutoplay(!isAutoplay);
@@ -365,7 +271,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-md border-white/20"
+                  className="rounded-full bg-white/80 backdrop-blur-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowThumbnails(!showThumbnails);
@@ -377,7 +283,19 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-md border-white/20"
+                  className="rounded-full bg-white/80 backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(currentIndex);
+                  }}
+                >
+                  <Heart className={`h-4 w-4 ${favorites.includes(currentIndex) ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-white/80 backdrop-blur-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsFullscreen(true);
@@ -388,13 +306,11 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
               </div>
               
               {/* Image Info */}
-              <div className="absolute bottom-4 left-4 right-4">
+              <div className="absolute bottom-4 left-4 right-4 text-white">
                 <div className="flex items-end justify-between">
-                  <div className="text-white">
+                  <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge 
-                        className={`bg-gradient-to-r ${categoryColors[currentImage.category]} text-white border-0`}
-                      >
+                      <Badge className={`${categoryColors[currentImage.category]} text-white border-0`}>
                         {currentImage.category.charAt(0).toUpperCase() + currentImage.category.slice(1)}
                       </Badge>
                       <span className="text-sm text-white/80">
@@ -409,12 +325,12 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                     )}
                   </div>
                   
-                  {/* Progress Indicator */}
+                  {/* Progress Dots */}
                   <div className="flex gap-1">
                     {filteredImages.map((_, index) => (
                       <button
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        className={`w-2 h-2 rounded-full transition-all ${
                           index === currentIndex
                             ? 'bg-white w-6'
                             : 'bg-white/50 hover:bg-white/80'
@@ -431,51 +347,34 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
             </div>
             
             {/* Thumbnail Strip */}
-            <AnimatePresence>
-              {showThumbnails && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="p-4 bg-gradient-to-r from-muted/50 to-background/50 backdrop-blur-sm"
-                >
-                  <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-                    {filteredImages.map((image, index) => (
-                      <motion.button
-                        key={`${image.url}-${index}`}
-                        className={`relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                          currentIndex === index
-                            ? 'border-primary shadow-lg scale-105'
-                            : 'border-transparent hover:border-primary/50'
-                        }`}
-                        onClick={() => setCurrentIndex(index)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.alt}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <div className={`absolute inset-0 bg-gradient-to-r ${categoryColors[image.category]} opacity-20`} />
-                        {currentIndex === index && (
-                          <motion.div
-                            layoutId="thumbnail-indicator"
-                            className="absolute inset-0 border-2 border-primary rounded-lg"
-                          />
-                        )}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showThumbnails && (
+              <div className="p-4 bg-gray-50 dark:bg-gray-800">
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {filteredImages.map((image, index) => (
+                    <button
+                      key={index}
+                      className={`flex-shrink-0 w-16 h-10 rounded overflow-hidden border-2 transition-all ${
+                        currentIndex === index
+                          ? 'border-toyota-red scale-105'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
+                      onClick={() => setCurrentIndex(index)}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </Card>
         </motion.div>
       </div>
       
-      {/* Fullscreen Gallery */}
+      {/* Fullscreen Modal */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div
@@ -483,176 +382,72 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black z-50 flex flex-col"
-            onClick={() => {
-              setIsFullscreen(false);
-              resetZoom();
-            }}
+            onClick={() => setIsFullscreen(false)}
           >
-            {/* Fullscreen Header */}
-            <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black/50 to-transparent">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsFullscreen(false);
-                    resetZoom();
-                  }}
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-                
-                <div className="text-white">
-                  <h3 className="font-bold">{currentImage.title || `${vehicle.name} Gallery`}</h3>
-                  <p className="text-sm text-white/80">
-                    {currentIndex + 1} of {filteredImages.length}
-                  </p>
-                </div>
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 bg-black/80 backdrop-blur-sm">
+              <div className="text-white">
+                <h3 className="font-bold text-lg">{currentImage.title}</h3>
+                <p className="text-sm text-gray-300">{currentIndex + 1} of {filteredImages.length}</p>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowInfo(!showInfo);
-                  }}
-                >
-                  <Info className="h-5 w-5" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsBookmarked(!isBookmarked);
-                  }}
-                >
-                  <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-white' : ''}`} />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Share functionality
-                  }}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Share2 className="h-5 w-5" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => setIsFullscreen(false)}
+                >
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
             </div>
             
-            {/* Fullscreen Image */}
-            <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+            {/* Image */}
+            <div className="flex-1 flex items-center justify-center p-4">
               <motion.img
                 key={currentImage.url}
                 src={currentImage.url}
                 alt={currentImage.alt}
-                className="max-h-full max-w-full object-contain cursor-grab active:cursor-grabbing"
+                className="max-w-full max-h-full object-contain"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                drag={isZoomed}
-                dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
-                style={{ scale: zoomLevel }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  if (isZoomed) {
-                    resetZoom();
-                  } else {
-                    handleZoomIn();
-                  }
-                }}
+                onClick={(e) => e.stopPropagation()}
               />
-              
-              {/* Zoom Controls */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-black/50 backdrop-blur-md rounded-full p-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20 h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleZoomOut();
-                  }}
-                  disabled={zoomLevel <= 1}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                
-                <span className="text-white text-sm min-w-[3rem] text-center">
-                  {Math.round(zoomLevel * 100)}%
-                </span>
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20 h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleZoomIn();
-                  }}
-                  disabled={zoomLevel >= 3}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20 h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    resetZoom();
-                  }}
-                  disabled={zoomLevel === 1}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
             
-            {/* Fullscreen Navigation */}
-            <div className="flex justify-between items-center p-4 bg-gradient-to-t from-black/50 to-transparent">
+            {/* Footer Navigation */}
+            <div className="flex justify-between items-center p-4 bg-black/80 backdrop-blur-sm">
               <Button
                 variant="ghost"
-                className="text-white hover:bg-white/20 flex items-center gap-2"
+                className="text-white hover:bg-white/20"
                 onClick={(e) => {
                   e.stopPropagation();
                   goToPrevious();
                 }}
                 disabled={filteredImages.length <= 1}
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5 mr-2" />
                 Previous
               </Button>
               
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAutoplay(!isAutoplay);
-                  }}
-                >
-                  {isAutoplay ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                </Button>
+              <div className="text-white">
+                {currentIndex + 1} / {filteredImages.length}
               </div>
               
               <Button
                 variant="ghost"
-                className="text-white hover:bg-white/20 flex items-center gap-2"
+                className="text-white hover:bg-white/20"
                 onClick={(e) => {
                   e.stopPropagation();
                   goToNext();
@@ -660,25 +455,9 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                 disabled={filteredImages.length <= 1}
               >
                 Next
-                <ArrowRight className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5 ml-2" />
               </Button>
             </div>
-            
-            {/* Image Info Overlay */}
-            <AnimatePresence>
-              {showInfo && currentImage.description && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className="absolute top-20 left-4 right-4 bg-black/80 backdrop-blur-md rounded-lg p-4 text-white"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <h4 className="font-bold mb-2">{currentImage.title}</h4>
-                  <p className="text-sm text-white/90">{currentImage.description}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
