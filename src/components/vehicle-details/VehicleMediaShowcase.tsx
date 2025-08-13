@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   ChevronLeft, 
@@ -40,7 +39,8 @@ import {
   RotateCw,
   FlipHorizontal,
   FlipVertical,
-  Palette
+  Palette,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
@@ -188,6 +188,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const parallaxX = useTransform(mouseX, [0, 1], [-10, 10]);
   const parallaxY = useTransform(mouseY, [0, 1], [-10, 10]);
 
+  // Filter media based on active filter
+  const filteredMedia = media.filter(m => 
+    activeFilter === 'all' ? true : m.type === activeFilter
+  );
+
   // Enhanced navigation with smooth animations
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % filteredMedia.length);
@@ -196,11 +201,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const prev = useCallback(() => {
     setCurrent((prev) => (prev - 1 + filteredMedia.length) % filteredMedia.length);
   }, [filteredMedia.length]);
-
-  // Filter media based on active filter
-  const filteredMedia = media.filter(m => 
-    activeFilter === 'all' ? true : m.type === activeFilter
-  );
 
   // Enhanced swipe functionality with luxury haptic feedback
   const swipeableRef = useSwipeable<HTMLDivElement>({
