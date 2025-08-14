@@ -1,11 +1,10 @@
-
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Car, Settings, Heart, Share2, Calculator, MapPin, Download } from 'lucide-react';
-import { VehicleModel } from '@/types/vehicle';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Car, Settings, Heart, Share2, Calculator, MapPin } from "lucide-react";
+import { VehicleModel } from "@/types/vehicle";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface ActionPanelProps {
   vehicle: VehicleModel;
@@ -16,13 +15,18 @@ interface ActionPanelProps {
   onFinanceCalculator: () => void;
 }
 
+const PANEL_H = {
+  base: "64px",   // <- tweak this
+  md: "80px",     // <- and this if you want responsive height
+};
+
 const ActionPanel: React.FC<ActionPanelProps> = ({
   vehicle,
   isFavorite,
   onToggleFavorite,
   onBookTestDrive,
   onCarBuilder,
-  onFinanceCalculator
+  onFinanceCalculator,
 }) => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -35,146 +39,127 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           text: `Check out this amazing ${vehicle.name} starting from AED ${vehicle.price.toLocaleString()}`,
           url: window.location.href,
         });
-      } catch (error) {
-        console.log('Error sharing:', error);
+      } catch (e) {
+        console.log("Error sharing:", e);
       }
     } else {
-      // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Link copied", description: "URL copied to clipboard." });
     }
   };
 
-  const handleBrochureDownload = () => {
-    toast({
-      title: "Brochure Download",
-      description: "Your brochure is being prepared and will be downloaded shortly.",
-    });
-    // Simulate brochure download
-    setTimeout(() => {
-      toast({
-        title: "Download Complete",
-        description: `${vehicle.name} brochure has been downloaded.`,
-      });
-    }, 2000);
-  };
-
-  // Mobile version is now handled by MobileStickyNav, so return null for mobile
-  if (isMobile) {
-    return null;
-  }
+  if (isMobile) return null;
 
   return (
     <motion.div
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.5 }}
-      className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
+      transition={{ duration: 0.5, delay: 0.2 }}
+      // SINGLE source of truth for height via CSS var
+      style={
+        {
+          // @ts-ignore – CSS var is fine
+          "--panel-h": PANEL_H.base,
+          "--panel-h-md": PANEL_H.md,
+        } as React.CSSProperties
+      }
+      className={[
+        "fixed left-0 right-0 bottom-0 z-40",
+        "bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg",
+        "border-t border-gray-200/50 shadow-2xl",
+        "h-[var(--panel-h)] md:h-[var(--panel-h-md)]",
+        "overflow-hidden", // prevent children from making it taller
+      ].join(" ")}
     >
-      <div className="w-full max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
-        {/* Compact Price Display */}
-        <div className="text-center mb-1">
-          <div className="flex items-center justify-center space-x-3 mb-0.5">
-            <span className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-black text-primary leading-none">
-              AED {vehicle.price.toLocaleString()}
-            </span>
-            <span className="text-xs sm:text-sm lg:text-base text-muted-foreground line-through leading-none">
-              AED {Math.round(vehicle.price * 1.15).toLocaleString()}
-            </span>
+      <div className="w-full max-w-[2560px] mx-auto h-full px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
+        {/* Use a single-row flex layout that fits inside the fixed height */}
+        <div className="h-full flex items-center gap-2 md:gap-3">
+          {/* Price cluster */}
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 leading-none">
+              <span className="text-lg md:text-xl font-black text-primary truncate">
+                AED {vehicle.price.toLocaleString()}
+              </span>
+              <span className="text-[10px] md:text-xs text-muted-foreground line-through">
+                AED {Math.round(vehicle.price * 1.15).toLocaleString()}
+              </span>
+            </div>
+            <p className="hidden md:block text-[11px] text-muted-foreground leading-none mt-1">
+              Starting price • Finance from AED 899/mo
+            </p>
           </div>
-          <p className="text-[10px] sm:text-xs text-muted-foreground leading-none">Starting price • Finance from AED 899/month</p>
+
+          {/* Actions */}
+          <div className="flex-1 flex items-center justify-end gap-1.5 md:gap-2 min-w-0">
+            {/* Primary buttons (fixed height) */}
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Button
+                onClick={onBookTestDrive}
+                className="h-9 md:h-10 px-3 md:px-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-lg shadow-lg text-xs md:text-sm"
+              >
+                <Car className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                Book Test Drive
+              </Button>
+
+              <Button
+                onClick={onCarBuilder}
+                variant="outline"
+                className="h-9 md:h-10 px-3 md:px-4 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-lg bg-white/50 backdrop-blur-sm text-xs md:text-sm"
+              >
+                <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                Build & Price
+              </Button>
+            </div>
+
+            {/* Icon actions (fixed height/width) */}
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Button
+                onClick={onFinanceCalculator}
+                variant="outline"
+                className="h-9 w-9 md:h-10 md:w-10 p-0 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg bg-white/50 backdrop-blur-sm"
+                aria-label="Finance"
+                title="Finance"
+              >
+                <Calculator className="h-4 w-4" />
+              </Button>
+
+              <Button
+                onClick={onToggleFavorite}
+                variant="outline"
+                className={[
+                  "h-9 w-9 md:h-10 md:w-10 p-0 rounded-lg backdrop-blur-sm",
+                  isFavorite
+                    ? "border-primary text-primary bg-primary/10"
+                    : "border border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50",
+                ].join(" ")}
+                aria-pressed={isFavorite}
+                aria-label="Favorite"
+                title="Favorite"
+              >
+                <Heart className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
+              </Button>
+
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="h-9 w-9 md:h-10 md:w-10 p-0 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg bg-white/50 backdrop-blur-sm"
+                aria-label="Share"
+                title="Share"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Compact Action Buttons Grid - Tighter Layout */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-1 sm:gap-1.5">
-          {/* Primary Actions - Compact */}
-          <motion.div 
-            whileHover={{ scale: 1.02 }} 
-            whileTap={{ scale: 0.98 }}
-            className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-6"
-          >
-            <Button 
-              onClick={onBookTestDrive}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
-              size="default"
-            >
-              <Car className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
-              Book Test Drive
-            </Button>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.02 }} 
-            whileTap={{ scale: 0.98 }}
-            className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-4"
-          >
-            <Button 
-              onClick={onCarBuilder}
-              variant="outline"
-              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
-              size="default"
-            >
-              <Settings className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
-              Build & Price
-            </Button>
-          </motion.div>
-
-          {/* Secondary Actions - Compact Icons */}
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1 2xl:col-span-1"
-          >
-            <Button 
-              onClick={onFinanceCalculator}
-              variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
-            >
-              <Calculator className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden sm:inline lg:hidden xl:inline">Finance</span>
-            </Button>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1 2xl:col-span-1"
-          >
-            <Button 
-              onClick={onToggleFavorite}
-              variant="outline"
-              className={`w-full py-0.5 sm:py-1 lg:py-1.5 rounded-lg border backdrop-blur-sm ${
-                isFavorite 
-                  ? "border-primary text-primary bg-primary/10" 
-                  : "border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50"
-              }`}
-            >
-              <Heart className="h-2 w-3 sm:h-4 sm:w-4" fill={isFavorite ? "currentColor" : "none"} />
-            </Button>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1 2xl:col-span-1"
-          >
-            <Button 
-              onClick={handleShare}
-              variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm"
-            >
-              <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Compact Quick Info */}
-        <div className="flex flex-wrap justify-center items-center space-x-1.5 sm:space-x-3 mt-0.5 text-xs sm:text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+        {/* Quick info row – keep it from affecting height by absolutely positioning, or hide on small screens */}
+        <div className="hidden xl:flex absolute left-1/2 -translate-x-1/2 bottom-1 text-xs text-muted-foreground items-center gap-3 pointer-events-none">
+          <span className="flex items-center">
+            <MapPin className="h-4 w-4 mr-1" />
             Available at all showrooms
-          </div>
-          <div className="hidden sm:block">• Free delivery</div>
-          <div className="hidden md:block">• 7-day return</div>
+          </span>
+          <span>• Free delivery</span>
+          <span>• 7-day return</span>
         </div>
       </div>
     </motion.div>
