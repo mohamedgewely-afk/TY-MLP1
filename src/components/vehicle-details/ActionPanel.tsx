@@ -65,23 +65,23 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
+      initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.5 }}
       className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
     >
-      <div className="w-full max-w-[2560px] mx-auto py-3 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="w-full max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
         {/* Compact Price Display */}
-        <div className="text-center mb-3">
+        <div className="text-center mb-1">
           <div className="flex items-center justify-center space-x-3 mb-1">
-            <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-primary">
+            <span className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-black text-primary leading-none">
               AED {vehicle.price.toLocaleString()}
             </span>
-            <span className="text-sm sm:text-base lg:text-lg text-muted-foreground line-through">
+            <span className="text-xs sm:text-sm lg:text-base text-muted-foreground line-through leading-none">
               AED {Math.round(vehicle.price * 1.15).toLocaleString()}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground">Starting price • Finance from AED 899/month</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground leading-none">Starting price • Finance from AED 899/month</p>
         </div>
 
         {/* Compact Action Buttons Grid - Tighter Layout */}
