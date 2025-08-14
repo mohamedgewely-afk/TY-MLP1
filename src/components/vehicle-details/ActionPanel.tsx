@@ -94,10 +94,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           >
             <Button 
               onClick={onBookTestDrive}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl shadow-lg text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
               size="default"
             >
-              <Car className="h-4 w-3 sm:h-3 sm:w-4 mr-2" />
+              <Car className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1"" />
               Book Test Drive
             </Button>
           </motion.div>
@@ -110,10 +110,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onCarBuilder}
               variant="outline"
-              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-sm sm:text-base"
+              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
               size="default"
             >
-              <Settings className="h-4 w-3 sm:h-3 sm:w-4 mr-2" />
+              <Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1"" />
               Build & Price
             </Button>
           </motion.div>
@@ -127,7 +127,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onFinanceCalculator}
               variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
             >
               <Calculator className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
               <span className="hidden sm:inline lg:hidden xl:inline">Finance</span>
@@ -142,7 +142,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onToggleFavorite}
               variant="outline"
-              className={`w-full py-1 sm:py-1.5 lg:py-2 rounded-xl border backdrop-blur-sm ${
+              className={`w-full py-0.5 sm:py-1 lg:py-1.5 rounded-lg border backdrop-blur-sm ${
                 isFavorite 
                   ? "border-primary text-primary bg-primary/10" 
                   : "border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50"
@@ -160,7 +160,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={handleShare}
               variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm"
             >
               <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
