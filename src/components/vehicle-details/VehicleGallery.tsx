@@ -87,7 +87,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
       url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
       alt: `${vehicle.name} - Infinite Journey`,
       title: 'Infinite Journey',
-      description: 'Redefining what's possible',
+      description: "Redefining what's possible",
       category: 'experience',
       isPremium: true,
       tags: ['Experience', 'Journey', 'Freedom']
