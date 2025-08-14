@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -45,6 +44,11 @@ interface MediaItem {
     technology?: string[];
   };
   isPremium?: boolean;
+  galleryImages?: {
+    url: string;
+    title: string;
+    description: string;
+  }[];
 }
 
 interface VehicleMediaShowcaseProps {
@@ -57,9 +61,10 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Enhanced media content with rich details
+  // Enhanced media content with rich details and multiple images per item
   const mediaItems: MediaItem[] = [
     {
       id: "performance",
@@ -74,7 +79,29 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         benefits: ["Superior acceleration", "Fuel efficiency", "Reduced emissions"],
         technology: ["Direct injection", "Variable valve timing", "Turbo lag elimination"]
       },
-      isPremium: true
+      isPremium: true,
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
+          title: "Engine Bay Overview",
+          description: "Complete view of the V6 twin-turbo engine"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1619976215249-72c1eb36042e?auto=format&fit=crop&w=1200&q=80",
+          title: "Turbocharger Detail",
+          description: "Advanced twin-turbo technology up close"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1486650547751-9f3f9db50009?auto=format&fit=crop&w=1200&q=80",
+          title: "Performance Specs",
+          description: "Technical specifications and performance data"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1544829099-b9a0c5303bea?auto=format&fit=crop&w=1200&q=80",
+          title: "Engine Control Unit",
+          description: "Advanced ECU and engine management systems"
+        }
+      ]
     },
     {
       id: "interior",
@@ -88,7 +115,29 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         specs: ["Leather-appointed seats", "12.3\" display", "Premium audio", "Climate zones"],
         benefits: ["Ultimate comfort", "Intuitive controls", "Personalized experience"],
         technology: ["Heated/ventilated seats", "Wireless charging", "Voice recognition"]
-      }
+      },
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80",
+          title: "Dashboard Overview",
+          description: "Premium dashboard with digital displays"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+          title: "Leather Seats",
+          description: "Hand-crafted leather seating with premium stitching"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?auto=format&fit=crop&w=1200&q=80",
+          title: "Center Console",
+          description: "Ergonomic center console with premium materials"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80",
+          title: "Rear Seating",
+          description: "Spacious rear passenger compartment"
+        }
+      ]
     },
     {
       id: "safety",
@@ -169,6 +218,18 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     }
   };
 
+  const nextModalImage = () => {
+    if (selectedMedia?.galleryImages) {
+      setModalImageIndex(prev => (prev + 1) % selectedMedia.galleryImages!.length);
+    }
+  };
+
+  const prevModalImage = () => {
+    if (selectedMedia?.galleryImages) {
+      setModalImageIndex(prev => (prev - 1 + selectedMedia.galleryImages!.length) % selectedMedia.galleryImages!.length);
+    }
+  };
+
   return (
     <div className="relative bg-gradient-to-b from-background to-muted/30">
       {/* Hero Header */}
@@ -244,7 +305,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         </div>
       </div>
 
-      {/* Detailed Modal */}
+      {/* Enhanced Detailed Modal with Image Gallery */}
       <AnimatePresence>
         {selectedMedia && (
           <motion.div
@@ -259,147 +320,192 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 50 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-background rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+              className="bg-background rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl"
             >
               {/* Modal Header */}
-              <div className="relative">
+              <div className="flex items-center justify-between p-6 border-b">
+                <div>
+                  <h3 className="text-2xl font-bold">{selectedMedia.title}</h3>
+                  <p className="text-muted-foreground">{selectedMedia.category}</p>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={closeModal}
-                  className="absolute top-4 right-4 z-10 bg-black/20 backdrop-blur-sm text-white hover:bg-black/40"
+                  className="hover:bg-muted"
                 >
                   <X className="h-5 w-5" />
                 </Button>
+              </div>
 
-                {/* Media Content */}
-                <div className="relative h-64 md:h-80 overflow-hidden">
-                  {selectedMedia.type === "video" ? (
-                    <div className="relative w-full h-full">
-                      <video
-                        ref={videoRef}
-                        src={selectedMedia.url}
-                        poster={selectedMedia.thumbnail}
+              <div className="grid md:grid-cols-2 max-h-[calc(95vh-80px)]">
+                {/* Image Gallery Section */}
+                <div className="relative">
+                  {/* Main Image Display */}
+                  <div className="relative h-64 md:h-96 bg-muted">
+                    {selectedMedia.galleryImages && selectedMedia.galleryImages[modalImageIndex] && (
+                      <img
+                        src={selectedMedia.galleryImages[modalImageIndex].url}
+                        alt={selectedMedia.galleryImages[modalImageIndex].title}
                         className="w-full h-full object-cover"
-                        onPlay={() => setIsPlaying(true)}
-                        onPause={() => setIsPlaying(false)}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
-                      {/* Video Controls */}
-                      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white">
-                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={toggleMute} className="text-white">
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <Badge className="bg-black/40 text-white">
-                          <Camera className="h-3 w-3 mr-1" />
-                          Video
-                        </Badge>
-                      </div>
+                    )}
+                    
+                    {/* Navigation Arrows */}
+                    {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={prevModalImage}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={nextModalImage}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Image Counter */}
+                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                      {modalImageIndex + 1} / {selectedMedia.galleryImages?.length || 1}
                     </div>
-                  ) : selectedMedia.type === "360" ? (
-                    <div className="relative w-full h-full bg-gradient-to-br from-blue-600 to-purple-600">
-                      <img src={selectedMedia.url} alt={selectedMedia.title} className="w-full h-full object-cover opacity-80" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                          className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full"
-                        />
+                  </div>
+
+                  {/* Thumbnail Strip */}
+                  {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
+                    <div className="p-4 bg-muted/30">
+                      <div className="flex gap-2 overflow-x-auto pb-2">
+                        {selectedMedia.galleryImages.map((img, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setModalImageIndex(index)}
+                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                              index === modalImageIndex ? 'border-primary' : 'border-transparent hover:border-primary/50'
+                            }`}
+                          >
+                            <img
+                              src={img.url}
+                              alt={img.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
                       </div>
-                      <Badge className="absolute top-4 left-4 bg-purple-500">
-                        <Eye className="h-3 w-3 mr-1" />
-                        360° View
-                      </Badge>
-                    </div>
-                  ) : (
-                    <div className="relative w-full h-full">
-                      <img src={selectedMedia.url} alt={selectedMedia.title} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     </div>
                   )}
 
-                  {/* Feature Badge */}
-                  <div className="absolute top-4 left-4">
-                    <div className="flex items-center space-x-2">
-                      <selectedMedia.icon className="h-5 w-5 text-white" />
-                      {selectedMedia.isPremium && (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
-                          <Award className="h-3 w-3 mr-1" />
-                          Premium
-                        </Badge>
+                  {/* Current Image Info */}
+                  {selectedMedia.galleryImages && selectedMedia.galleryImages[modalImageIndex] && (
+                    <div className="p-4 border-t">
+                      <h4 className="font-semibold mb-1">
+                        {selectedMedia.galleryImages[modalImageIndex].title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedMedia.galleryImages[modalImageIndex].description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content Section */}
+                <div className="p-6 overflow-y-auto">
+                  <div className="space-y-6">
+                    {/* Description */}
+                    <div>
+                      <p className="text-muted-foreground text-lg leading-relaxed">
+                        {selectedMedia.description}
+                      </p>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {selectedMedia.details.specs && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center">
+                            <Gauge className="h-4 w-4 mr-2" />
+                            Specifications
+                          </h4>
+                          <ul className="space-y-2">
+                            {selectedMedia.details.specs.map((spec, index) => (
+                              <li key={index} className="text-sm text-muted-foreground flex items-center">
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                                {spec}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {selectedMedia.details.benefits && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center">
+                            <Award className="h-4 w-4 mr-2" />
+                            Key Benefits
+                          </h4>
+                          <ul className="space-y-2">
+                            {selectedMedia.details.benefits.map((benefit, index) => (
+                              <li key={index} className="text-sm text-muted-foreground flex items-center">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
+                                {benefit}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {selectedMedia.details.technology && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center">
+                            <Cpu className="h-4 w-4 mr-2" />
+                            Technology
+                          </h4>
+                          <ul className="space-y-2">
+                            {selectedMedia.details.technology.map((tech, index) => (
+                              <li key={index} className="text-sm text-muted-foreground flex items-center">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
+                                {tech}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Modal Content */}
-              <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto">
-                <div className="space-y-6">
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-bold mb-2">{selectedMedia.title}</h3>
-                    <p className="text-muted-foreground text-lg">{selectedMedia.description}</p>
-                  </div>
-
-                  {/* Details Grid */}
-                  <div className="grid md:grid-cols-3 gap-6">
-                    {selectedMedia.details.specs && (
+                    {/* Additional Content Section */}
+                    <div className="space-y-4 pt-4 border-t">
+                      <h4 className="text-lg font-semibold">Why Choose This Feature?</h4>
                       <div className="space-y-3">
-                        <h4 className="font-semibold flex items-center">
-                          <Gauge className="h-4 w-4 mr-2" />
-                          Specifications
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.specs.map((spec, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-center">
-                              <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
-                              {spec}
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                          <div>
+                            <p className="font-medium">Enhanced Performance</p>
+                            <p className="text-sm text-muted-foreground">Optimized for maximum efficiency and power delivery</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                          <div>
+                            <p className="font-medium">Advanced Technology</p>
+                            <p className="text-sm text-muted-foreground">Latest innovations for superior driving experience</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                          <div>
+                            <p className="font-medium">Premium Quality</p>
+                            <p className="text-sm text-muted-foreground">Built with the finest materials and craftsmanship</p>
+                          </div>
+                        </div>
                       </div>
-                    )}
-
-                    {selectedMedia.details.benefits && (
-                      <div className="space-y-3">
-                        <h4 className="font-semibold flex items-center">
-                          <Award className="h-4 w-4 mr-2" />
-                          Key Benefits
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.benefits.map((benefit, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-center">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
-                              {benefit}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {selectedMedia.details.technology && (
-                      <div className="space-y-3">
-                        <h4 className="font-semibold flex items-center">
-                          <Cpu className="h-4 w-4 mr-2" />
-                          Technology
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.technology.map((tech, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-center">
-                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
-                              {tech}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
