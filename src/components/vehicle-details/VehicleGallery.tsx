@@ -12,7 +12,6 @@ import {
   Sparkles,
   Star,
   Circle,
-  Maximize2,
   Minimize2,
   ZoomIn,
   ZoomOut,
@@ -119,7 +118,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
     } catch {}
   }, [favorites]);
 
-  // Autoplay using rAF-friendly timeout loop (more accurate than setInterval)
+  // Autoplay with rAF
   useEffect(() => {
     if (!isAutoplay) return;
     let id: number;
@@ -147,7 +146,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
     setCurrentIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   }, [galleryImages.length]);
 
-  // Keyboard navigation only in fullscreen for safety
+  // Keyboard navigation in fullscreen
   useEffect(() => {
     if (!isFullscreen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -170,7 +169,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
       {/* Ambient radial glows */}
       <div className="pointer-events-none absolute inset-0 [background:radial-gradient(50rem_40rem_at_80%_-10%,rgba(239,68,68,.10),transparent_60%),radial-gradient(30rem_24rem_at_10%_110%,rgba(239,68,68,.08),transparent_60%)]" />
 
-      {/* Grid shimmer (lightweight) */}
+      {/* Grid shimmer */}
       <div className="absolute inset-0 opacity-10 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]">
         <div className="grid grid-cols-12 grid-rows-8 h-full w-full">
           {Array.from({ length: 96 }).map((_, i) => (
@@ -219,7 +218,9 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                   <div className="flex gap-2">
                     <Badge className={`bg-gradient-to-r ${BRAND_RED} text-white shadow`}>{image.category}</Badge>
                     {image.isPremium && (
-                      <Badge className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-black shadow">Premium</Badge>
+                      <Badge className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-black shadow">
+                        Premium
+                      </Badge>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -277,7 +278,14 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
       <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(circle_at_20%_30%,rgba(239,68,68,.12),transparent_40%),radial-gradient(circle_at_80%_70%,rgba(239,68,68,.08),transparent_40%)]">
         <svg className="absolute inset-0 w-full h-full" aria-hidden>
           {Array.from({ length: 90 }).map((_, i) => (
-            <circle key={i} cx={`${Math.random() * 100}%`} cy={`${Math.random() * 100}%`} r={Math.random() * 1.2 + 0.3} fill="currentColor" className="text-red-300/50" />
+            <circle
+              key={i}
+              cx={`${Math.random() * 100}%`}
+              cy={`${Math.random() * 100}%`}
+              r={Math.random() * 1.2 + 0.3}
+              fill="currentColor"
+              className="text-red-300/50"
+            />
           ))}
         </svg>
       </div>
@@ -317,8 +325,19 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
       <div className="relative z-10 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex gap-4 sm:gap-6 px-4 sm:px-6 snap-x snap-mandatory">
           {galleryImages.map((image, index) => (
-            <motion.div key={index} className="snap-center shrink-0 w-[85vw] sm:w-[60vw] lg:w-[40vw] rounded-3xl overflow-hidden border border-red-200/50 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow" whileHover={prefersReducedMotion ? {} : { y: -4 }}>
-              <button className="w-full text-left" onClick={() => { setCurrentIndex(index); setIsFullscreen(true); setZoom(1); }}>
+            <motion.div
+              key={index}
+              className="snap-center shrink-0 w-[85vw] sm:w-[60vw] lg:w-[40vw] rounded-3xl overflow-hidden border border-red-200/50 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow"
+              whileHover={prefersReducedMotion ? {} : { y: -4 }}
+            >
+              <button
+                className="w-full text-left"
+                onClick={() => {
+                  setCurrentIndex(index);
+                  setIsFullscreen(true);
+                  setZoom(1);
+                }}
+              >
                 <div className="aspect-[16/9] overflow-hidden">
                   <img src={image.url} alt={image.alt} loading="lazy" className="w-full h-full object-cover" />
                 </div>
@@ -335,279 +354,209 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   );
 
   // --- Render ---
-return (
-  <>
-    {/* Toyota ambient background */}
-    <div className="w-full mb-8 min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 relative overflow-hidden">
-      {/* Subtle top glow */}
-      <div className="pointer-events-none absolute inset-x-0 -top-40 h-64 bg-gradient-to-b from-red-500/10 to-transparent blur-3xl" />
+  return (
+    <>
+      <div className="w-full mb-8 min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 relative overflow-hidden">
+        {/* Subtle top glow */}
+        <div className="pointer-events-none absolute inset-x-0 -top-40 h-64 bg-gradient-to-b from-red-500/10 to-transparent blur-3xl" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="space-y-10 py-10"
-      >
-        {/* Header */}
-        <div className="text-center space-y-6 relative">
-          <div className="relative z-10">
-            <div className="flex items-center justify-center gap-4 mb-5">
-              <motion.div
-                className="h-px bg-gradient-to-r from-transparent via-red-600 to-transparent w-24"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.8 }}
-              />
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
-                <Circle className="h-7 w-7 text-red-600" />
-              </motion.div>
-              <motion.div
-                className="h-px bg-gradient-to-r from-transparent via-red-600 to-transparent w-24"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.8 }}
-              />
-            </div>
-
-            <motion.h2
-              className="text-4xl md:text-6xl font-black tracking-tight"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              Toyota {vehicle.name}{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700">
-                Gallery
-              </span>
-            </motion.h2>
-            <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto mt-2">
-              Experience the craftsmanship, innovation, and performance through a curated visual journey.
-            </p>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
-          <div className="flex bg-muted/40 backdrop-blur rounded-full p-1 border border-red-200/40">
-            <Button
-              variant={selectedView === "holographic" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setSelectedView("holographic")}
-              className="rounded-full px-5"
-            >
-              <Sparkles className="h-4 w-4 mr-2" /> Holographic
-            </Button>
-            <Button
-              variant={selectedView === "constellation" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setSelectedView("constellation")}
-              className="rounded-full px-5"
-            >
-              <Star className="h-4 w-4 mr-2" /> Constellation
-            </Button>
-            <Button
-              variant={selectedView === "infinite" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setSelectedView("infinite")}
-              className="rounded-full px-5"
-            >
-              <Circle className="h-4 w-4 mr-2" /> Infinite
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAutoplay((v) => !v)}
-              className="rounded-full px-5 border-red-200/40"
-            >
-              {isAutoplay ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}{" "}
-              {isAutoplay ? "Pause" : "Auto Play"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-2 sm:px-4">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedView}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.35 }}
-            >
-              {selectedView === "holographic" && <HolographicView />}
-              {selectedView === "constellation" && <ConstellationView />}
-              {selectedView === "infinite" && <InfiniteView />}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-
-    {/* Fullscreen Modal */}
-    <AnimatePresence>
-      {isFullscreen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex flex-col bg-black/95"
-          role="dialog"
-          aria-modal
-          onClick={() => setIsFullscreen(false)}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="space-y-10 py-10"
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black via-black/80 to-transparent">
-            <div className="text-white">
-              <h3 className="font-semibold text-lg sm:text-xl mb-0.5 tracking-wide">
-                {galleryImages[currentIndex]?.title}
-              </h3>
-              <p className="text-white/70 text-xs sm:text-sm line-clamp-1">
-                {galleryImages[currentIndex]?.description}
+          <div className="text-center space-y-6 relative">
+            <div className="relative z-10">
+              <div className="flex items-center justify-center gap-4 mb-5">
+                <motion.div
+                  className="h-px bg-gradient-to-r from-transparent via-red-600 to-transparent w-24"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.8 }}
+                />
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+                  <Circle className="h-7 w-7 text-red-600" />
+                </motion.div>
+                <motion.div
+                  className="h-px bg-gradient-to-r from-transparent via-red-600 to-transparent w-24"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.8 }}
+                />
+              </div>
+
+              <motion.h2
+                className="text-4xl md:text-6xl font-black tracking-tight"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                Toyota {vehicle.name} <span className={`text-transparent bg-clip-text bg-gradient-to-r ${BRAND_RED}`}>Gallery</span>
+              </motion.h2>
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto mt-2">
+                Experience the craftsmanship, innovation, and performance through a curated visual journey.
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="text-white/70 text-xs sm:text-sm font-mono">
-                {String(currentIndex + 1).padStart(2, "0")} / {String(galleryImages.length).padStart(2, "0")}
-              </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+            <div className="flex bg-muted/40 backdrop-blur rounded-full p-1 border border-red-200/40">
               <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/15 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsFullscreen(false);
-                }}
-                aria-label="Close"
+                variant={selectedView === "holographic" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedView("holographic")}
+                className="rounded-full px-5"
               >
-                <X className="h-5 w-5" />
+                <Sparkles className="h-4 w-4 mr-2" /> Holographic
+              </Button>
+              <Button
+                variant={selectedView === "constellation" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedView("constellation")}
+                className="rounded-full px-5"
+              >
+                <Star className="h-4 w-4 mr-2" /> Constellation
+              </Button>
+              <Button
+                variant={selectedView === "infinite" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedView("infinite")}
+                className="rounded-full px-5"
+              >
+                <Circle className="h-4 w-4 mr-2" /> Infinite
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAutoplay((v) => !v)}
+                className="rounded-full px-5 border-red-200/40"
+              >
+                {isAutoplay ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />} {isAutoplay ? "Pause" : "Auto Play"}
               </Button>
             </div>
           </div>
 
-          {/* Stage */}
-          <div
-            className="flex-1 flex items-center justify-center p-2 sm:p-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative max-w-[95vw] max-h-[78vh]">
-              <motion.img
-                key={galleryImages[currentIndex]?.url}
-                src={galleryImages[currentIndex]?.url}
-                alt={galleryImages[currentIndex]?.alt}
-                className="max-w-full max-h-full object-contain rounded-lg select-none"
-                initial={{ scale: 0.96, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.25 }}
-                style={{ transform: `scale(${zoom})` }}
-                draggable={false}
-              />
-
-              {/* Nav */}
-              {galleryImages.length > 1 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Previous image"
-                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 rounded-full"
-                    onClick={goToPrevious}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Next image"
-                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 rounded-full"
-                    onClick={goToNext}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                </>
-              )}
-            </div>
-
-            {/* Quick actions (safe‑area padding for mobile) */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
-                onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
+          {/* Content */}
+          <div className="px-2 sm:px-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedView}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.35 }}
               >
-                <ZoomOut className="h-4 w-4 mr-2" /> Zoom-
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
-                onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
-              >
-                <ZoomIn className="h-4 w-4 mr-2" /> Zoom+
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
-                onClick={() => setZoom(1)}
-              >
-                <Minimize2 className="h-4 w-4 mr-2" /> Reset
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
-                onClick={() => toggleFavorite(currentIndex)}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${favorites.includes(currentIndex) ? "fill-red-500 text-red-500" : ""}`} />
-                Favorite
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
-                onClick={() =>
-                  navigator.share?.({
-                    title: vehicle.name,
-                    url: galleryImages[currentIndex]?.url,
-                  })
-                }
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
-          </div>
-
-          {/* Dots */}
-          <div className="p-3 sm:p-4">
-            <div className="flex justify-center gap-2">
-              {galleryImages.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentIndex(idx);
-                  }}
-                  aria-label={`Go to image ${idx + 1}`}
-                  className={`transition-all duration-300 ${
-                    idx === currentIndex
-                      ? "w-10 h-2 bg-red-600 rounded-full"
-                      : "w-2 h-2 bg-white/40 hover:bg-white/70 rounded-full"
-                  }`}
-                />
-              ))}
-            </div>
+                {selectedView === "holographic" && <HolographicView />}
+                {selectedView === "constellation" && <ConstellationView />}
+                {selectedView === "infinite" && <InfiniteView />}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </motion.div>
-      )}
-    </AnimatePresence>
-  </>
-);
+      </div>
 
-export default VehicleGallery;
+      {/* Fullscreen Modal */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col bg-black/95"
+            role="dialog"
+            aria-modal
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-b from-black via-black/80 to-transparent">
+              <div className="text-white">
+                <h3 className="font-semibold text-lg sm:text-xl mb-0.5 tracking-wide">
+                  {galleryImages[currentIndex]?.title}
+                </h3>
+                <p className="text-white/70 text-xs sm:text-sm line-clamp-1">
+                  {galleryImages[currentIndex]?.description}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-white/70 text-xs sm:text-sm font-mono">
+                  {String(currentIndex + 1).padStart(2, "0")} / {String(galleryImages.length).padStart(2, "0")}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Close"
+                  className="text-white hover:bg-white/15 rounded-full"
+                  onClick={() => setIsFullscreen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Image stage */}
+            <div className="flex-1 flex items-center justify-center p-2 sm:p-4 relative">
+              <div className="relative max-w-[95vw] max-h-[80vh]">
+                <motion.img
+                  key={galleryImages[currentIndex]?.url}
+                  src={galleryImages[currentIndex]?.url}
+                  alt={galleryImages[currentIndex]?.alt}
+                  className="max-w-full max-h-full object-contain rounded-lg select-none"
+                  initial={{ scale: 0.96, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.25 }}
+                  style={{ transform: `scale(${zoom})` }}
+                  draggable={false}
+                />
+
+                {/* Nav */}
+                {galleryImages.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label="Previous image"
+                      className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 rounded-full"
+                      onClick={goToPrevious}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label="Next image"
+                      className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 rounded-full"
+                      onClick={goToNext}
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Quick actions */}
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
+                  onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
+                >
+                  <ZoomOut className="h-4 w-4 mr-2" /> Zoom-
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-full"
+                  onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+                >
+                  <ZoomIn className="h-4 w-4 mr-2" /> Zoom+
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text
