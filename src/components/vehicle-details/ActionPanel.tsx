@@ -73,7 +73,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       <div className="w-full max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
         {/* Compact Price Display */}
         <div className="text-center mb-1">
-          <div className="flex items-center justify-center space-x-3 mb-1">
+          <div className="flex items-center justify-center space-x-3 mb-0.5">
             <span className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-black text-primary leading-none">
               AED {vehicle.price.toLocaleString()}
             </span>
@@ -85,7 +85,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         </div>
 
         {/* Compact Action Buttons Grid - Tighter Layout */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-1 sm:gap-1.5">
           {/* Primary Actions - Compact */}
           <motion.div 
             whileHover={{ scale: 1.02 }} 
@@ -94,7 +94,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           >
             <Button 
               onClick={onBookTestDrive}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-2 sm:py-2.5 lg:py-3 rounded-xl shadow-lg text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl shadow-lg text-sm sm:text-base"
               size="default"
             >
               <Car className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
@@ -110,7 +110,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onCarBuilder}
               variant="outline"
-              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-2 sm:py-2.5 lg:py-3 rounded-xl bg-white/50 backdrop-blur-sm text-sm sm:text-base"
+              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-sm sm:text-base"
               size="default"
             >
               <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
@@ -127,7 +127,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onFinanceCalculator}
               variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 sm:py-2.5 lg:py-3 rounded-xl bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
             >
               <Calculator className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-1" />
               <span className="hidden sm:inline lg:hidden xl:inline">Finance</span>
@@ -142,7 +142,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onToggleFavorite}
               variant="outline"
-              className={`w-full py-2 sm:py-2.5 lg:py-3 rounded-xl border backdrop-blur-sm ${
+              className={`w-full py-1 sm:py-1.5 lg:py-2 rounded-xl border backdrop-blur-sm ${
                 isFavorite 
                   ? "border-primary text-primary bg-primary/10" 
                   : "border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50"
@@ -160,7 +160,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={handleShare}
               variant="outline"
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 sm:py-2.5 lg:py-3 rounded-xl bg-white/50 backdrop-blur-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm"
             >
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
@@ -168,7 +168,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         </div>
 
         {/* Compact Quick Info */}
-        <div className="flex flex-wrap justify-center items-center space-x-3 sm:space-x-6 mt-2 text-xs sm:text-sm text-muted-foreground">
+        <div className="flex flex-wrap justify-center items-center space-x-1.5 sm:space-x-3 mt-0.5 text-xs sm:text-sm text-muted-foreground">
           <div className="flex items-center">
             <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             Available at all showrooms
