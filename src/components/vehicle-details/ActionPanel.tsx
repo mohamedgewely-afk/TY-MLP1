@@ -97,7 +97,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl shadow-lg text-sm sm:text-base"
               size="default"
             >
-              <Car className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Car className="h-4 w-3 sm:h-3 sm:w-4 mr-2" />
               Book Test Drive
             </Button>
           </motion.div>
@@ -113,7 +113,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-sm sm:text-base"
               size="default"
             >
-              <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Settings className="h-4 w-3 sm:h-3 sm:w-4 mr-2" />
               Build & Price
             </Button>
           </motion.div>
@@ -129,7 +129,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               variant="outline"
               className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
             >
-              <Calculator className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-1" />
+              <Calculator className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
               <span className="hidden sm:inline lg:hidden xl:inline">Finance</span>
             </Button>
           </motion.div>
@@ -148,7 +148,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   : "border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50"
               }`}
             >
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5" fill={isFavorite ? "currentColor" : "none"} />
+              <Heart className="h-2 w-3 sm:h-4 sm:w-4" fill={isFavorite ? "currentColor" : "none"} />
             </Button>
           </motion.div>
 
@@ -162,7 +162,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               variant="outline"
               className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-1 sm:py-1.5 lg:py-2 rounded-xl bg-white/50 backdrop-blur-sm"
             >
-              <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </motion.div>
         </div>
