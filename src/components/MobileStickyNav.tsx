@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -17,13 +18,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VehicleModel } from "@/types/vehicle";
 
 interface MobileStickyNavProps {
-  onQuickView: () => void;
-  onCompare: () => void;
-  compareCount: number;
-  onFavorite: () => void;
-  favoriteCount: number;
+  activeItem?: string;
+  vehicle?: VehicleModel;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onBookTestDrive?: () => void;
+  onCarBuilder?: () => void;
+  onFinanceCalculator?: () => void;
+  onQuickView?: () => void;
+  onCompare?: () => void;
+  compareCount?: number;
+  onFavorite?: () => void;
+  favoriteCount?: number;
   showTestDriveButton?: boolean;
   showEnquireButton?: boolean;
   onTestDrive?: () => void;
@@ -31,18 +40,25 @@ interface MobileStickyNavProps {
   className?: string;
 }
 
-interface VehicleModel {
+interface VehicleModelData {
   name: string;
   image: string;
   category: string;
 }
 
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
-  onQuickView,
-  onCompare,
-  compareCount,
-  onFavorite,
-  favoriteCount,
+  activeItem,
+  vehicle,
+  isFavorite,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator,
+  onQuickView = () => {},
+  onCompare = () => {},
+  compareCount = 0,
+  onFavorite = () => {},
+  favoriteCount = 0,
   showTestDriveButton = false,
   showEnquireButton = false,
   onTestDrive,
@@ -67,7 +83,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
-  const vehicleModels = [
+  const vehicleModels: VehicleModelData[] = [
     {
       name: "Camry",
       image: "https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/7ad6ef76-e142-4094-b47d-965dcd346141/items/c39a5591-c85a-413a-b9e5-f980f1f24d4d/renditions/d5414b58-6e06-451d-9309-3233fe8a7002?binary=true",
@@ -117,7 +133,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   const categories = [...new Set(vehicleModels.map(vehicle => vehicle.category))];
 
-  const filterModels = (models: VehicleModel[]) => {
+  const filterModels = (models: VehicleModelData[]) => {
     let filtered = models;
     if (selectedCategory) {
       filtered = filtered.filter(vehicle => vehicle.category === selectedCategory);
@@ -140,7 +156,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     return filtered;
   };
 
-  const renderVehicleCard = (vehicle: VehicleModel) => (
+  const renderVehicleCard = (vehicle: VehicleModelData) => (
     <Card key={vehicle.name} className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         <img
@@ -244,7 +260,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           <Button onClick={onFavorite} variant="ghost" className="relative rounded-full">
             <Heart className="h-5 w-5" />
             Favorites
-            {favoriteCount > 0 && (
+            {favoriteCount > 0 && (  
               <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2 py-0">
                 {favoriteCount}
               </div>
@@ -276,7 +292,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         {(showTestDriveButton || showEnquireButton) && (
           <div className="flex justify-around p-2 border-t">
             {showTestDriveButton && (
-              <Button onClick={onTestDrive} variant="secondary" className="rounded-full">
+              <Button onClick={onTestDrive || onBookTestDrive} variant="secondary" className="rounded-full">
                 Book Test Drive
               </Button>
             )}
