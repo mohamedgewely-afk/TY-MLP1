@@ -68,14 +68,14 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   initial={{ y: 60, opacity: 0 }}
   animate={{ y: 0, opacity: 1 }}
   transition={{ duration: 0.5, delay: 0.5 }}
-  className="fixed left-0 right-0 bottom-0 z-40 relative backdrop-blur-sm border-t border-gray-200/40 shadow-xl"
+  className="fixed inset-x-0 bottom-0 z-40 backdrop-blur-sm border-t border-gray-200/40 shadow-xl"
 >
-  {/* Short glass overlay */}
+  {/* Short glass overlay – this is the “glass height” */}
   <div
     aria-hidden
-    className="pointer-events-none absolute inset-x-0 -top-8 h-10 bg-gradient-to-t from-white/90 via-white/60 to-transparent"
+    className="pointer-events-none absolute inset-x-0 -top-6 h-8 bg-gradient-to-t from-white/90 via-white/60 to-transparent"
   />
-      <div className="w-full max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
+      <div className="w-full max-w-[260px] sm:max-w-[300px]  max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
         {/* Compact Price Display */}
         <div className="text-center mb-1">
           <div className="flex items-center justify-center space-x-3 mb-0.5">
