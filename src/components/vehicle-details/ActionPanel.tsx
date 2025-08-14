@@ -97,7 +97,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
               size="default"
             >
-              <Car className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1"" />
+              <Car className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
               Book Test Drive
             </Button>
           </motion.div>
@@ -113,7 +113,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
               size="default"
             >
-              <Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1"" />
+              <Settings className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
               Build & Price
             </Button>
           </motion.div>
