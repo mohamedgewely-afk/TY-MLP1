@@ -70,7 +70,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       transition={{ duration: 0.5, delay: 0.5 }}
       className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
     >
-      <div className="w-full max-w-[260px] sm:max-w-[300px]  max-w-[2560px] mx-auto py-0 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
+      <div className="w-full max-w-[2560px] mx-auto py-1.5 px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
         {/* Compact Price Display */}
         <div className="text-center mb-1">
           <div className="flex items-center justify-center space-x-3 mb-0.5">
@@ -90,11 +90,11 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <motion.div 
             whileHover={{ scale: 1.02 }} 
             whileTap={{ scale: 0.98 }}
-            className="col-span-2 sm:col-span-2 md:col-span-2 lg:col-span-2 xl:col-span-3 2xl:col-span-3 justify-self-center"
+            className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-6"
           >
             <Button 
               onClick={onBookTestDrive}
-              className="w-full max-w-[260px] sm:max-w-[300px]  bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
               size="default"
             >
               <Car className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
@@ -105,12 +105,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <motion.div 
             whileHover={{ scale: 1.02 }} 
             whileTap={{ scale: 0.98 }}
-            className="col-span-2 sm:col-span-2 md:col-span-2 lg:col-span-2 xl:col-span-3 2xl:col-span-3 justify-self-center"
+            className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-4"
           >
             <Button 
               onClick={onCarBuilder}
               variant="outline"
-              className="w-full max-w-[260px] sm:max-w-[300px]  border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
+              className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
               size="default"
             >
               <Settings className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
@@ -127,7 +127,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={onFinanceCalculator}
               variant="outline"
-              className="w-full max-w-[260px] sm:max-w-[300px]  border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
             >
               <Calculator className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
               <span className="hidden sm:inline lg:hidden xl:inline">Finance</span>
@@ -160,7 +160,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <Button 
               onClick={handleShare}
               variant="outline"
-              className="w-full max-w-[260px] sm:max-w-[300px]  border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm"
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-0.5 sm:py-1 lg:py-1.5 rounded-lg bg-white/50 backdrop-blur-sm"
             >
               <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
