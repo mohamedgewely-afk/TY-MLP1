@@ -70,7 +70,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       transition={{ duration: 0.5, delay: 0.5 }}
       className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
     >
-      <div className="toyota-container py-4 max-w-screen-xl mx-auto px-4>
+      <div className="toyota-container py-4 max-w-screen-xl mx-auto px-4">
         {/* Price Display */}
         <div className="text-center mb-4">
           <div className="flex items-center justify-center space-x-4 mb-2">
