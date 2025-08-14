@@ -92,14 +92,14 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             whileTap={{ scale: 0.98 }}
             className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-6"
           >
-            <Button
-  onClick={onBookTestDrive}
-  size="sm" 
-  className="w-full h-auto min-h-[28px] px-3 py-0.5 sm:py-1 lg:py-1.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-lg shadow-lg text-xs sm:text-sm leading-none"
->
-  <Car className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
-  Book Test Drive
-</Button>
+            <Button 
+              onClick={onBookTestDrive}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-0.5 sm:py-1 lg:py-1.5 rounded-lg shadow-lg text-xs sm:text-sm"
+              size="default"
+            >
+              <Car className="h-3 w-3 sm:h-[14px] sm:w-[14px] mr-1" />
+              Book Test Drive
+            </Button>
           </motion.div>
 
           <motion.div 
