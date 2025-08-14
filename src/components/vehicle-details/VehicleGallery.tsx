@@ -1,3 +1,9 @@
+// add this as the FIRST line inside VehicleGallery()
+return (
+  <div style={{ padding: 24, background: 'repeating-linear-gradient(45deg,#EB0A1E,#EB0A1E 12px,#fff 12px,#fff 24px)' }}>
+    <strong>DEBUG: VehicleGallery OVERRIDE</strong>
+  </div>
+);
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
