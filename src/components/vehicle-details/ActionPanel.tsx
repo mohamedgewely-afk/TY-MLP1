@@ -70,7 +70,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       transition={{ duration: 0.5, delay: 0.5 }}
       className="fixed left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl"
     >
-      <div className="toyota-container py-4">
+      <div className="toyota-container py-4 max-w-screen-xl mx-auto px-4>
         {/* Price Display */}
         <div className="text-center mb-4">
           <div className="flex items-center justify-center space-x-4 mb-2">
@@ -85,12 +85,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         </div>
 
         {/* Action Buttons Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {/* Primary Actions */}
           <motion.div 
             whileHover={{ scale: 1.02 }} 
             whileTap={{ scale: 0.98 }}
-            className="lg:col-span-2"
+            className="col-span-2 sm:col-span-3 md:col-span-2"
           >
             <Button 
               onClick={onBookTestDrive}
@@ -105,7 +105,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <motion.div 
             whileHover={{ scale: 1.02 }} 
             whileTap={{ scale: 0.98 }}
-            className="lg:col-span-2"
+            className="col-span-2 sm:col-span-3 md:col-span-2"
           >
             <Button 
               onClick={onCarBuilder}
@@ -126,7 +126,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 rounded-xl bg-white/50 backdrop-blur-sm"
             >
               <Calculator className="h-5 w-5 mr-1" />
-              <span className="hidden sm:inline">Finance</span>
+              <span className="hidden md:inline">Finance</span>
             </Button>
           </motion.div>
 
