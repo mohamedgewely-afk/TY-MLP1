@@ -1,369 +1,1080 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUp, Car, Search, Heart, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Home, Search, Car, Menu, ShoppingBag, ChevronLeft, ChevronRight, Battery, Truck, Settings, Star, Phone, X, Share2, MapPin, Tag, Calculator, TrendingUp, Sliders, Plus, ChevronUp, Download, Heart, Zap, Bolt, Activity } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useDeviceInfo } from "@/hooks/use-device-info";
+import { useToast } from "@/hooks/use-toast";
+import { vehicles } from "@/data/vehicles";
+import { VehicleModel } from "@/types/vehicle";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+} from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface MobileStickyNavProps {
-  className?: string;
+  activeItem?: string;
+  onMenuToggle?: () => void;
+  // Vehicle action props (optional, for vehicle detail pages)
+  vehicle?: VehicleModel;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onBookTestDrive?: () => void;
+  onCarBuilder?: () => void;
+  onFinanceCalculator?: () => void;
 }
 
-const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ className = '' }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('new-cars');
-  const isMobile = useIsMobile();
+const vehicleCategories = [
+  { id: "all", name: "All", icon: <Car className="h-5 w-5" /> },
+  { id: "sedan", name: "Sedan", icon: <Car className="h-5 w-5" /> },
+  { id: "suv", name: "SUV", icon: <Truck className="h-5 w-5" /> },
+  { id: "hybrid", name: "Hybrid", icon: <Battery className="h-5 w-5" /> },
+  { id: "performance", name: "GR Performance", icon: <Star className="h-5 w-5" /> },
+  { id: "commercial", name: "Commercial", icon: <ShoppingBag className="h-5 w-5" /> },
+];
 
-  // Don't render on desktop
-  if (!isMobile) {
+const searchSuggestions = [
+  { term: "Camry Hybrid", category: "Sedan", icon: <Car className="h-5 w-5" /> },
+  { term: "RAV4", category: "SUV", icon: <Truck className="h-5 w-5" /> },
+  { term: "Corolla", category: "Sedan", icon: <Car className="h-5 w-5" /> },
+  { term: "Highlander", category: "SUV", icon: <Truck className="h-5 w-5" /> },
+  { term: "Prius", category: "Hybrid", icon: <Battery className="h-5 w-5" /> },
+  { term: "GR Supra", category: "Performance", icon: <Star className="h-5 w-5" /> },
+];
+
+const quickMenuItems = [
+  { title: "Book Service", icon: <Settings className="h-6 w-6" />, color: "bg-blue-500", link: "/service" },
+  { title: "Find Dealer", icon: <MapPin className="h-6 w-6" />, color: "bg-green-500", link: "/dealers" },
+  { title: "Offers & Deals", icon: <Tag className="h-6 w-6" />, color: "bg-orange-500", link: "/offers" },
+  { title: "Finance Calculator", icon: <Calculator className="h-6 w-6" />, color: "bg-purple-500", link: "/finance" },
+  { title: "Trade-In Value", icon: <TrendingUp className="h-6 w-6" />, color: "bg-cyan-500", link: "/trade-in" },
+  { title: "Contact Us", icon: <Phone className="h-6 w-6" />, color: "bg-red-500", link: "/contact" },
+];
+
+// Pre-owned vehicles data
+const preOwnedVehicles = [
+  {
+    name: "2022 Toyota Camry LE",
+    price: 89000,
+    mileage: "25,000 km",
+    year: 2022,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+    category: "sedan"
+  },
+  {
+    name: "2021 Toyota RAV4 XLE",
+    price: 95000,
+    mileage: "35,000 km",
+    year: 2021,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    category: "suv"
+  },
+  {
+    name: "2023 Toyota Prius Hybrid",
+    price: 78000,
+    mileage: "15,000 km",
+    year: 2023,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+    category: "hybrid"
+  },
+  {
+    name: "2020 Toyota Corolla SE",
+    price: 65000,
+    mileage: "45,000 km",
+    year: 2020,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    category: "sedan"
+  },
+  {
+    name: "2022 Toyota Highlander Limited",
+    price: 145000,
+    mileage: "20,000 km",
+    year: 2022,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    category: "suv"
+  },
+  {
+    name: "2021 Toyota GR Supra 3.0",
+    price: 185000,
+    mileage: "12,000 km",
+    year: 2021,
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+    category: "performance"
+  }
+];
+
+const MobileStickyNav: React.FC<MobileStickyNavProps> = ({ 
+  activeItem = "home", 
+  onMenuToggle,
+  vehicle,
+  isFavorite = false,
+  onToggleFavorite,
+  onBookTestDrive,
+  onCarBuilder,
+  onFinanceCalculator
+}) => {
+  const { isMobile, isTablet, deviceCategory, screenSize, isInitialized, deviceModel, isIPhone } = useDeviceInfo();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceRange, setPriceRange] = useState([50000, 200000]);
+  const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  const [debugVisible, setDebugVisible] = useState(false);
+  const [forceVisible, setForceVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isScrollingUp, setIsScrollingUp] = useState(false);
+  const { toast } = useToast();
+
+  // Enhanced device detection debugging and force visibility
+  useEffect(() => {
+    const viewportWidth = window.innerWidth;
+    const shouldForceVisible = viewportWidth <= 500; // Force visible for all screens <= 500px
+    
+    console.log('🔍 MobileStickyNav Enhanced Debug:', {
+      isMobile,
+      isTablet,
+      deviceCategory,
+      screenSize,
+      isInitialized,
+      deviceModel,
+      isIPhone,
+      viewportWidth,
+      shouldForceVisible,
+      userAgent: navigator.userAgent.substring(0, 100),
+      timestamp: new Date().toISOString(),
+      finalDecision: (isMobile || shouldForceVisible) ? 'SHOW STICKY NAV ✅' : 'HIDE STICKY NAV ❌'
+    });
+
+    setForceVisible(shouldForceVisible);
+
+    // Add visual debug indicator for real device testing
+    if (process.env.NODE_ENV === 'development') {
+      setDebugVisible(true);
+      setTimeout(() => setDebugVisible(false), 8000); // Show for 8 seconds
+    }
+  }, [isMobile, isTablet, deviceCategory, screenSize, isInitialized, deviceModel, isIPhone]);
+
+  // Shrink-on-scroll functionality with cinematic timing
+  useEffect(() => {
+    let ticking = false;
+    
+    const updateScrollState = () => {
+      const scrollY = window.scrollY;
+      const scrollThreshold = 100;
+      
+      // Determine scroll direction
+      const scrollingUp = scrollY < lastScrollY;
+      setIsScrollingUp(scrollingUp);
+      
+      // Update scroll state with hysteresis for smooth transitions
+      if (scrollY > scrollThreshold && !isScrolled) {
+        setIsScrolled(true);
+      } else if (scrollY <= scrollThreshold * 0.7 && isScrolled) {
+        setIsScrolled(false);
+      }
+      
+      setLastScrollY(scrollY);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollState);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY, isScrolled]);
+
+  const quickActionCards = [
+    {
+      id: "test-drive",
+      title: "Book Test Drive",
+      icon: <Car className="h-7 w-7" />,
+      color: "bg-gradient-to-br from-toyota-red to-red-600 text-white",
+      link: "/test-drive",
+      description: "Experience Toyota firsthand"
+    },
+    {
+      id: "offers",
+      title: "Latest Offers",
+      icon: <ShoppingBag className="h-7 w-7" />,
+      color: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
+      link: "/offers",
+      description: "Exclusive deals available"
+    },
+    {
+      id: "configure",
+      title: "Build & Price",
+      icon: <Settings className="h-7 w-7" />,
+      color: "bg-gradient-to-br from-green-500 to-green-600 text-white",
+      link: "/configure",
+      description: "Customize your Toyota"
+    },
+    {
+      id: "service",
+      title: "Service Booking",
+      icon: <Phone className="h-7 w-7" />,
+      color: "bg-gradient-to-br from-amber-500 to-amber-600 text-white",
+      link: "/service",
+      description: "Professional maintenance"
+    },
+  ];
+
+  const filteredVehicles = vehicles.filter(vehicle => 
+    selectedCategory === "all" || vehicle.category.toLowerCase() === selectedCategory
+  ).slice(0, 12);
+
+  const searchResults = vehicles.filter(vehicle =>
+    vehicle.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).slice(0, 8);
+
+  const filteredPreOwnedVehicles = preOwnedVehicles.filter(vehicle => {
+    const categoryMatch = selectedCategory === "all" || vehicle.category === selectedCategory;
+    const priceMatch = vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1];
+    return categoryMatch && priceMatch;
+  });
+  
+  const handleSectionToggle = (section: string) => {
+    if (activeSection === section) {
+      setActiveSection(null);
+      setIsMenuOpen(false);
+    } else {
+      setActiveSection(section);
+      setIsMenuOpen(true);
+    }
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+      setActiveSection(null);
+    } else {
+      setIsMenuOpen(true);
+      setActiveSection("quick-actions");
+    }
+  };
+
+  const handleShare = async () => {
+    if (!vehicle) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${vehicle.name} - Toyota UAE`,
+          text: `Check out this amazing ${vehicle.name} starting from AED ${vehicle.price.toLocaleString()}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "Vehicle link has been copied to clipboard.",
+      });
+    }
+  };
+
+  const handleBrochureDownload = () => {
+    if (!vehicle) return;
+    
+    toast({
+      title: "Brochure Download",
+      description: "Your brochure is being prepared and will be downloaded shortly.",
+    });
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${vehicle.name} brochure has been downloaded.`,
+      });
+    }, 2000);
+  };
+
+  const shouldShowNav = isInitialized && (isMobile || forceVisible);
+
+  if (!shouldShowNav) {
+    console.log('🚫 MobileStickyNav: Not showing - shouldShowNav:', shouldShowNav, {
+      isInitialized,
+      isMobile,
+      forceVisible,
+      deviceCategory,
+      screenSize: screenSize.width
+    });
     return null;
   }
 
-  const categories = [
-    {
-      id: 'new-cars',
-      label: 'New Cars',
-      vehicles: [
-        {
-          name: 'Camry',
-          price: 'AED 89,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/7ad6ef76-e142-4094-b47d-965dcd346141/items/c39a5591-c85a-413a-b9e5-f980f1f24d4d/renditions/d5414b58-6e06-451d-9309-3233fe8a7002?binary=true',
-          slug: 'camry'
-        },
-        {
-          name: 'Corolla',
-          price: 'AED 69,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/6668562b-e7cf-4230-9deb-900d5e8e2e53/items/f48d6e38-6f33-40c3-8e91-4bdf59fb3e60/renditions/505ee681-e3d2-41f3-95a5-c7b856a50048?binary=true',
-          slug: 'corolla'
-        },
-        {
-          name: 'RAV4',
-          price: 'AED 104,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/a5bffab2-6c0d-4698-bfe7-b4ab7114ec03/items/a8dbfe08-2cd5-4952-acf7-8dae2e49666d/renditions/bd938484-6fd4-4dc0-b0c9-8523c356964e?binary=true',
-          slug: 'rav4-hybrid'
-        },
-        {
-          name: 'Highlander',
-          price: 'AED 149,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/367b679d-7e64-4a14-bda0-a0ce1e8d1ce2/items/cfda750d-3631-4ad0-9489-25af5af99ec5/renditions/31f4c813-0a0e-4eaa-b1c2-151268277b59?binary=true',
-          slug: 'highlander'
-        },
-        {
-          name: 'Prius',
-          price: 'AED 99,900',
-          image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/187049c6-862a-49e6-a109-e2340652f3cd/items/a6d44ead-2ed7-4760-b9a5-c74462c8b13e/renditions/0871895b-d3bf-42e2-a91c-9e696b410e8d?binary=true&mformat=true',
-          slug: 'prius'
-        },
-        {
-          name: 'Land Cruiser',
-          price: 'AED 234,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/155ca245-b83a-4c78-beb3-c294b97544a3/items/abdc9c2f-4fbc-4d9d-92c2-4eac0d713d96/renditions/9aacd1cf-1c24-4e3a-9874-db036dde2fdc?binary=true',
-          slug: 'land-cruiser'
-        },
-        {
-          name: 'Yaris',
-          price: 'AED 54,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/b3eac42b-e400-4e0d-ab76-6c8a2df8f465/items/53649561-b41b-457a-8d6b-5a1d779f4cd6/renditions/2c3c9289-09f7-420e-8587-3e6ae42a5567?binary=true',
-          slug: 'yaris'
-        },
-        {
-          name: 'Fortuner',
-          price: 'AED 124,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/30fe3af9-5e61-403a-a2ed-eb0e9f0b3ca0/items/354a55f3-7aa4-43f6-a98f-9265a1ea8257/renditions/6c61ac4b-7466-4e58-962d-bbfeff425cff?binary=true',
-          slug: 'fortuner'
-        },
-        {
-          name: 'Hiace',
-          price: 'AED 79,900',
-          image: 'https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/62cfa484-93ad-4230-821a-8096c177027e/items/4568b91a-823f-42d7-9f16-eac193cce140/renditions/ca79f885-d1af-4cfc-aed4-9763209ffec3?binary=true',
-          slug: 'hiace'
-        }
-      ]
-    },
-    {
-      id: 'offers',
-      label: 'Offers',
-      vehicles: []
-    },
-    {
-      id: 'pre-owned',
-      label: 'Pre-Owned',
-      vehicles: []
-    },
-    {
-      id: 'services',
-      label: 'Services',
-      vehicles: []
-    }
-  ];
-
   return (
     <>
-      {/* Main Navigation Bar */}
-      <motion.div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg safe-area-pb ${className}`}
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      >
-        <div className="grid grid-cols-5 h-16">
-          {/* Home */}
-          <Link
-            to="/"
-            className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors"
-          >
-            <div className="p-1">
-              <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-            </div>
-            <span className="text-xs text-gray-600">Home</span>
-          </Link>
-
-          {/* Search */}
-          <button className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors">
-            <div className="p-1">
-              <Search className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600">Search</span>
-          </button>
-
-          {/* Menu (Center) */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors relative"
-          >
-            <motion.div
-              className="p-2 bg-primary rounded-full"
-              whileTap={{ scale: 0.95 }}
-            >
-              <AnimatePresence mode="wait">
-                {isExpanded ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-5 w-5 text-white" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-5 w-5 text-white" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-            <span className="text-xs text-primary font-medium">Menu</span>
-          </button>
-
-          {/* Favorites */}
-          <button className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors relative">
-            <div className="p-1">
-              <Heart className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600">Favorites</span>
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs p-0 flex items-center justify-center">
-              3
-            </Badge>
-          </button>
-
-          {/* Test Drive */}
-          <Link
-            to="/test-drive"
-            className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors"
-          >
-            <div className="p-1">
-              <Car className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs text-gray-600">Test Drive</span>
-          </Link>
+      {/* Enhanced Debug Indicator for Real Device Testing */}
+      {debugVisible && (
+        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-xs p-2 z-[9999] animate-fade-in">
+          <div className="text-center font-mono">
+            DEBUG: {deviceCategory} | {screenSize.width}x{screenSize.height} | {deviceModel} | Mobile: {isMobile ? '✅' : '❌'} | Forced: {forceVisible ? '✅' : '❌'}
+          </div>
         </div>
-      </motion.div>
+      )}
 
-      {/* Expanded Menu Overlay */}
+      {/* Overlay */}
       <AnimatePresence>
-        {isExpanded && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsExpanded(false)}
-              className="fixed inset-0 bg-black/50 z-40"
-            />
-
-            {/* Expanded Content */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-16 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[70vh] overflow-hidden"
-            >
-              {/* Handle */}
-              <div className="flex justify-center py-3">
-                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-              </div>
-
-              {/* Categories */}
-              <div className="px-4 pb-2">
-                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => setActiveCategory(category.id)}
-                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                        activeCategory === category.id
-                          ? 'bg-white text-primary shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      {category.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="overflow-y-auto pb-safe">
-                <AnimatePresence mode="wait">
-                  {categories.map((category) => {
-                    if (category.id !== activeCategory) return null;
-
-                    return (
-                      <motion.div
-                        key={category.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                        className="px-4"
-                      >
-                        {category.id === 'new-cars' && category.vehicles.length > 0 && (
-                          <div className="space-y-3">
-                            {category.vehicles.map((vehicle, index) => (
-                              <motion.div
-                                key={vehicle.slug}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                              >
-                                <Link
-                                  to={`/vehicle/${vehicle.slug}`}
-                                  onClick={() => setIsExpanded(false)}
-                                  className="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
-                                >
-                                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                                    <img
-                                      src={vehicle.image}
-                                      alt={vehicle.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                      onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.src = '/placeholder.svg';
-                                      }}
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-gray-900 truncate">
-                                      {vehicle.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                      Starting from {vehicle.price}
-                                    </p>
-                                  </div>
-                                  <ChevronUp className="h-5 w-5 text-gray-400 transform -rotate-90 group-hover:text-primary transition-colors" />
-                                </Link>
-                              </motion.div>
-                            ))}
-                          </div>
-                        )}
-
-                        {category.id === 'offers' && (
-                          <div className="text-center py-12">
-                            <div className="text-6xl mb-4">🎉</div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                              Special Offers
-                            </h3>
-                            <p className="text-gray-500 mb-6">
-                              Discover amazing deals on Toyota vehicles
-                            </p>
-                            <Button className="bg-primary hover:bg-primary/90">
-                              View All Offers
-                            </Button>
-                          </div>
-                        )}
-
-                        {category.id === 'pre-owned' && (
-                          <div className="text-center py-12">
-                            <div className="text-6xl mb-4">🚗</div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                              Pre-Owned Vehicles
-                            </h3>
-                            <p className="text-gray-500 mb-6">
-                              Quality certified pre-owned Toyota vehicles
-                            </p>
-                            <Link to="/pre-owned">
-                              <Button 
-                                className="bg-primary hover:bg-primary/90"
-                                onClick={() => setIsExpanded(false)}
-                              >
-                                Browse Pre-Owned
-                              </Button>
-                            </Link>
-                          </div>
-                        )}
-
-                        {category.id === 'services' && (
-                          <div className="space-y-3">
-                            {[
-                              { name: 'Service Booking', icon: '🔧', description: 'Schedule your vehicle service' },
-                              { name: 'Parts & Accessories', icon: '⚙️', description: 'Genuine Toyota parts' },
-                              { name: 'Warranty', icon: '🛡️', description: 'Comprehensive coverage' },
-                              { name: 'Insurance', icon: '📋', description: 'Protect your investment' },
-                              { name: 'Roadside Assistance', icon: '🚨', description: '24/7 support' },
-                            ].map((service, index) => (
-                              <motion.div
-                                key={service.name}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors group cursor-pointer"
-                              >
-                                <div className="text-2xl">{service.icon}</div>
-                                <div className="flex-1">
-                                  <h3 className="font-medium text-gray-900">
-                                    {service.name}
-                                  </h3>
-                                  <p className="text-sm text-gray-500">
-                                    {service.description}
-                                  </p>
-                                </div>
-                                <ChevronUp className="h-5 w-5 text-gray-400 transform -rotate-90 group-hover:text-primary transition-colors" />
-                              </motion.div>
-                            ))}
-                          </div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          </>
+        {(isMenuOpen || isActionsExpanded) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => {
+              setIsMenuOpen(false);
+              setActiveSection(null);
+              setIsActionsExpanded(false);
+            }}
+          />
         )}
       </AnimatePresence>
+
+      {/* Vehicle Actions Panel (for vehicle detail pages) */}
+      <AnimatePresence>
+        {isActionsExpanded && vehicle && (
+          <motion.div
+            initial={{ y: 300, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 300, opacity: 0 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="fixed left-4 right-4 bottom-24 z-50 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-gray-900">{vehicle.name}</h3>
+                <span className="text-lg font-bold text-primary">
+                  AED {vehicle.price.toLocaleString()}
+                </span>
+              </div>
+              <Button
+                onClick={() => setIsActionsExpanded(false)}
+                variant="outline"
+                size="sm"
+                className="p-2 rounded-full"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Main Actions */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  onClick={() => {
+                    onBookTestDrive?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 rounded-xl text-sm font-medium"
+                >
+                  <Car className="h-4 w-4 mr-2" />
+                  Test Drive
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  onClick={() => {
+                    onCarBuilder?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground py-3 rounded-xl bg-white/70 text-sm font-medium"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Secondary Actions */}
+            <div className="grid grid-cols-3 gap-2">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => {
+                    onFinanceCalculator?.();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Calculator className="h-4 w-4 mb-1" />
+                  Finance
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => {
+                    handleBrochureDownload();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Download className="h-4 w-4 mb-1" />
+                  Brochure
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => {
+                    handleShare();
+                    setIsActionsExpanded(false);
+                  }}
+                  variant="outline"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg bg-white/70 text-xs"
+                >
+                  <Share2 className="h-4 w-4 mb-1" />
+                  Share
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Quick Info */}
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <p className="text-xs text-muted-foreground text-center">
+                From AED 899/month • Free delivery • 7-day return
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Enhanced Sliding Menu from Bottom */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed bottom-16 left-0 right-0 bg-white dark:bg-black rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-hidden border-t-4 border-red-500"
+          >
+            {/* Enhanced Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-red-50 to-red-100 dark:from-black dark:to-gray-900">
+              <div>
+                <h3 className="font-bold text-lg text-black dark:text-red-500">Toyota Connect</h3>
+                <p className="text-sm text-red-600 dark:text-red-400">Your gateway to Toyota</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-full h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900 text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
+              {/* Quick Actions Section */}
+              {activeSection === "quick-actions" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Quick Actions</h4>
+                  
+                  <Carousel opts={{ align: "start" }} className="w-full mb-6">
+                    <CarouselContent>
+                      {quickActionCards.map((card) => (
+                        <CarouselItem key={card.id} className="basis-2/3 pl-4">
+                          <Link to={card.link} onClick={() => setIsMenuOpen(false)}>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Card className={cn("h-32 overflow-hidden", card.color)}>
+                                <CardContent className="flex flex-col justify-between h-full p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="space-y-1">
+                                      <h3 className="font-semibold text-base">{card.title}</h3>
+                                      <p className="text-xs opacity-90">{card.description}</p>
+                                    </div>
+                                    <div className="opacity-80">
+                                      {card.icon}
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end">
+                                    <ChevronRight className="h-4 w-4 opacity-70" />
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="h-12 text-left justify-start"
+                      onClick={() => handleSectionToggle("models")}
+                    >
+                      <Car className="h-4 w-4 mr-2" />
+                      Browse Models
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-12 text-left justify-start"
+                      onClick={() => handleSectionToggle("search")}
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Find Vehicle
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Enhanced Models Section */}
+              {activeSection === "models" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Browse Models</h4>
+                  
+                  {/* Category selector with swipe */}
+                  <div className="mb-6">
+                    <Carousel opts={{ align: "start" }} className="w-full">
+                      <CarouselContent>
+                        {vehicleCategories.map((category) => (
+                          <CarouselItem key={category.id} className="basis-auto pl-3">
+                            <motion.button
+                              onClick={() => handleCategoryClick(category.id)}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-4 rounded-xl transition-all min-w-[80px]",
+                                selectedCategory === category.id 
+                                  ? "bg-toyota-red text-white shadow-lg scale-105" 
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              )}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <span className="mb-2">{category.icon}</span>
+                              <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+                            </motion.button>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+
+                  {/* Vehicle carousel */}
+                  <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent>
+                      {filteredVehicles.map((vehicle) => (
+                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
+                          <Link 
+                            to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+                                  {vehicle.image && (
+                                    <img 
+                                      src={vehicle.image} 
+                                      alt={vehicle.name} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
+                                </div>
+                                <CardContent className="p-4">
+                                  <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-gray-100">{vehicle.name}</h3>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                    From AED {vehicle.price.toLocaleString()}
+                                  </p>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs bg-toyota-red/10 text-toyota-red px-2 py-1 rounded-full font-medium">
+                                      {vehicle.category}
+                                    </span>
+                                    <span className="text-toyota-red text-sm font-semibold flex items-center">
+                                      View <ChevronRight className="h-3 w-3 ml-1" />
+                                    </span>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+
+                  <div className="mt-6 text-center">
+                    <Link 
+                      to={`/new-cars${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+                      className="text-toyota-red font-semibold flex items-center justify-center hover:text-red-700 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      View All {selectedCategory !== 'all' ? vehicleCategories.find(c => c.id === selectedCategory)?.name : ''} Models
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Enhanced Search Section */}
+              {activeSection === "search" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Find Your Toyota</h4>
+                  
+                  {/* Search input */}
+                  <div className="relative mb-6">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search models, features..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-toyota-red focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    />
+                  </div>
+
+                  {searchQuery ? (
+                    /* Search results */
+                    <div className="space-y-3">
+                      <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400">Search Results</h5>
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent>
+                          {searchResults.map((vehicle) => (
+                            <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
+                              <Link 
+                                to={`/vehicle/${encodeURIComponent(vehicle.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                <Card className="h-24 overflow-hidden hover:shadow-lg transition-shadow">
+                                  <CardContent className="flex items-center h-full p-4">
+                                    <div className="w-16 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mr-3 flex-shrink-0">
+                                      {vehicle.image && (
+                                        <img 
+                                          src={vehicle.image} 
+                                          alt={vehicle.name} 
+                                          className="w-full h-full object-cover rounded-lg"
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{vehicle.name}</h3>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">AED {vehicle.price.toLocaleString()}</p>
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  </CardContent>
+                                </Card>
+                              </Link>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                      </Carousel>
+                    </div>
+                  ) : (
+                    /* Search suggestions */
+                    <div className="space-y-3">
+                      <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400">Popular Searches</h5>
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent>
+                          {searchSuggestions.map((suggestion) => (
+                            <CarouselItem key={suggestion.term} className="basis-auto pl-3">
+                              <button
+                                onClick={() => setSearchQuery(suggestion.term)}
+                                className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
+                              >
+                                {suggestion.icon}
+                                <span className="text-sm">{suggestion.term}</span>
+                              </button>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                      </Carousel>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Enhanced Pre-Owned Section */}
+              {activeSection === "pre-owned" && (
+                <motion.div 
+                  className="p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Pre-Owned Vehicles</h4>
+                  
+                  {/* Category selector with swipe */}
+                  <div className="mb-6">
+                    <Carousel opts={{ align: "start" }} className="w-full">
+                      <CarouselContent>
+                        {vehicleCategories.map((category) => (
+                          <CarouselItem key={category.id} className="basis-auto pl-3">
+                            <motion.button
+                              onClick={() => handleCategoryClick(category.id)}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-4 rounded-xl transition-all min-w-[80px]",
+                                selectedCategory === category.id 
+                                  ? "bg-toyota-red text-white shadow-lg scale-105" 
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              )}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <span className="mb-2">{category.icon}</span>
+                              <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+                            </motion.button>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+
+                  {/* Price Range Slider */}
+                  <div className="mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">Price Range</h5>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        AED {priceRange[0].toLocaleString()} - AED {priceRange[1].toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Sliders className="h-5 w-5 text-toyota-red" />
+                      <input
+                        type="range"
+                        min="30000"
+                        max="300000"
+                        step="10000"
+                        value={priceRange[0]}
+                        onChange={(e) => setPriceRange([Math.min(parseInt(e.target.value), priceRange[1]), priceRange[1]])}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <input
+                        type="range"
+                        min="30000"
+                        max="300000"
+                        step="10000"
+                        value={priceRange[1]}
+                        onChange={(e) => setPriceRange([priceRange[0], Math.max(parseInt(e.target.value), priceRange[0])])}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pre-owned vehicle carousel */}
+                  <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent>
+                      {filteredPreOwnedVehicles.map((vehicle) => (
+                        <CarouselItem key={vehicle.name} className="basis-2/3 pl-4">
+                          <Link 
+                            to={`/pre-owned/${encodeURIComponent(vehicle.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 relative">
+                                  <img 
+                                    src={vehicle.image} 
+                                    alt={vehicle.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute top-2 right-2">
+                                    <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                      {vehicle.year}
+                                    </span>
+                                  </div>
+                                </div>
+                                <CardContent className="p-4">
+                                  <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-gray-100">{vehicle.name}</h3>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm font-bold text-toyota-red">
+                                      AED {vehicle.price.toLocaleString()}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {vehicle.mileage}
+                                    </p>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs bg-toyota-red/10 text-toyota-red px-2 py-1 rounded-full font-medium">
+                                      Certified Pre-Owned
+                                    </span>
+                                    <span className="text-toyota-red text-sm font-semibold flex items-center">
+                                      View <ChevronRight className="h-3 w-3 ml-1" />
+                                    </span>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </Link>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+
+                  <div className="mt-6 text-center">
+                    <Link 
+                      to={`/pre-owned${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+                      className="text-toyota-red font-semibold flex items-center justify-center hover:text-red-700 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      View All Pre-Owned {selectedCategory !== 'all' ? vehicleCategories.find(c => c.id === selectedCategory)?.name : ''} Models
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Enhanced Main Sticky Nav with Shrink-on-Scroll */}
+      <motion.div 
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-[100]",
+          "bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg",
+          "border-t border-gray-200 dark:border-gray-800 shadow-2xl",
+          "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          // Force visibility classes with important modifiers
+          "!block !visible !opacity-100",
+          // Enhanced safe area support
+          "pb-safe-area-inset-bottom",
+          // Mobile-first display utility
+          "block",
+          // Force visibility for mobile screens up to 500px
+          "mobile-force-visible"
+        )}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ 
+          y: 0, 
+          opacity: 1,
+          height: isScrolled ? 'auto' : 'auto',
+          paddingTop: isScrolled ? '0.125rem' : '0.25rem',
+          paddingBottom: isScrolled ? '0.125rem' : '0.25rem'
+        }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20, 
+          delay: 0.1,
+          height: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+          paddingTop: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+          paddingBottom: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+        }}
+        style={{ 
+          paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))',
+          minHeight: isScrolled ? '56px' : '64px',
+          zIndex: 100,
+        }}
+      >
+        <motion.div 
+          className={cn(
+            "grid gap-1 px-2 items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            vehicle ? 'grid-cols-5' : 'grid-cols-4'
+          )}
+          animate={{
+            minHeight: isScrolled ? '48px' : '56px'
+          }}
+          transition={{
+            duration: 0.7,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+        >
+          <NavItem 
+            icon={<Car className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
+            label="Models"
+            to="#"
+            onClick={() => handleSectionToggle("models")}
+            isActive={activeItem === "models" || activeSection === "models"}
+            isScrolled={isScrolled}
+          />
+          <NavItem 
+            icon={<ShoppingBag className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
+            label="Pre-Owned"
+            to="#"
+            onClick={() => handleSectionToggle("pre-owned")}
+            isActive={activeItem === "pre-owned" || activeSection === "pre-owned"}
+            isScrolled={isScrolled}
+          />
+          
+          {/* Vehicle Actions Item (only shown on vehicle detail pages) */}
+          {vehicle && (
+            <NavItem 
+              icon={
+                <div className="relative">
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
+                  <div className="relative bg-red-500 rounded-full p-2">
+                    <Bolt className={cn("text-white animate-pulse transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-3 w-3" : "h-4 w-4")} fill="white" strokeWidth={0} />
+                  </div>
+                </div>
+              }
+              label="Actions"
+              to="#"
+              onClick={() => setIsActionsExpanded(!isActionsExpanded)}
+              isActive={isActionsExpanded}
+              isScrolled={isScrolled}
+            />
+          )}
+
+          <NavItem 
+            icon={<Search className={cn("transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled ? "h-4 w-4" : "h-5 w-5")} />}
+            label="Search"
+            to="#"
+            onClick={() => handleSectionToggle("search")}
+            isActive={activeItem === "search" || activeSection === "search"}
+            isScrolled={isScrolled}
+          />
+          <NavItem 
+            icon={<Menu className={cn("h-5 w-5 text-red-500 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", isScrolled && "h-4 w-4")} />}
+            label="Menu"
+            to="#"
+            onClick={toggleMenu}
+            isActive={isMenuOpen}
+            isScrolled={isScrolled}
+          />
+        </motion.div>
+      </motion.div>
     </>
+  );
+};
+
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  to: string;
+  isActive?: boolean;
+  onClick?: () => void;
+  badge?: number;
+  isScrolled?: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, badge, isScrolled = false }) => {
+  const content = (
+    <>
+      <div className="flex flex-col items-center justify-center relative w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+           style={{ minHeight: isScrolled ? '40px' : '44px' }}>
+        <motion.div 
+          className={cn(
+            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            "flex items-center justify-center",
+            isActive 
+              ? "text-toyota-red bg-red-50 dark:bg-red-950 scale-110" 
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          )}
+          animate={{
+            minWidth: isScrolled ? '36px' : '44px',
+            minHeight: isScrolled ? '36px' : '44px',
+            padding: isScrolled ? '6px' : '8px'
+          }}
+          transition={{
+            duration: 0.7,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+          whileHover={{ scale: isActive ? 1.1 : 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {icon}
+          {badge && (
+            <motion.div
+              className="absolute -top-1 -right-1 bg-toyota-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 15 }}
+            >
+              {badge > 9 ? '9+' : badge}
+            </motion.div>
+          )}
+        </motion.div>
+        <AnimatePresence mode="wait">
+          {!isScrolled && (
+            <motion.span 
+              className={cn(
+                "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                isActive 
+                  ? "text-toyota-red" 
+                  : "text-gray-500 dark:text-gray-400"
+              )}
+              initial={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ 
+                duration: 0.5,
+                ease: [0.16, 1, 0.3, 1]
+              }}
+            >
+              {label}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+      {isActive && (
+        <motion.div
+          layoutId="navIndicator"
+          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-toyota-red rounded-full"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1,
+            y: isScrolled ? -2 : -4
+          }}
+          transition={{ 
+            duration: 0.3,
+            y: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+          }}
+        />
+      )}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button 
+        onClick={onClick} 
+        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{ 
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: isScrolled ? '48px' : '56px'
+        }}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link 
+      to={to} 
+      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{ 
+        WebkitTapHighlightColor: 'transparent',
+        minHeight: isScrolled ? '48px' : '56px'
+      }}
+    >
+      {content}
+    </Link>
   );
 };
 
