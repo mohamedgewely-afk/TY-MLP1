@@ -336,9 +336,10 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   <Card className="overflow-hidden bg-white/5 border border-gray-700 rounded-xl backdrop-blur-md">
                     <CardContent className="p-0">
                       {/* Header */}
-                      <div className="relative p-4 sm:p-8 rounded-t-xl overflow-hidden">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${TOYOTA_RED} opacity-20`} />
-                        <div className="relative z-10">
+                      <div
+  className={`relative p-4 sm:p-8 rounded-t-xl overflow-hidden bg-gradient-to-br ${TOYOTA_RED} opacity-90`}
+>
+  <div className="relative z-10">
                           <div className="flex items-center justify-between mb-3 sm:mb-4">
                             <h4 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white">
                               {currentGrade.name}
@@ -367,7 +368,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
                       {/* Image */}
                       <div className="relative overflow-hidden h-48 sm:h-72 lg:h-96 bg-black">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-[#EB0A1E]/30 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                         <img
                           src={currentGrade.image}
                           alt={`${currentGrade.name} Grade`}
