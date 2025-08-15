@@ -22,6 +22,8 @@ import GradeComparisonModal from "./GradeComparisonModal";
 
 interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
+  onCarBuilder?: (gradeInfo?: { engine: string; grade: string }) => void;
+  onBookTestDrive?: (gradeInfo?: { engine: string; grade: string }) => void;
 }
 
 const luxuryVariants = {
@@ -32,7 +34,11 @@ const luxuryVariants = {
 
 const TOYOTA_RED = "from-[#EB0A1E] via-[#d80a1b] to-[#EB0A1E]";
 
-const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
+const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ 
+  vehicle, 
+  onCarBuilder,
+  onBookTestDrive 
+}) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
   const [selectedGrade, setSelectedGrade] = useState("");
@@ -157,6 +163,15 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const handleImageLoad = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: false }));
   const handleImageLoadStart = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: true }));
 
+  const handleConfigureClick = () => {
+    if (onCarBuilder) {
+      onCarBuilder({
+        engine: selectedEngine,
+        grade: currentGrade.name
+      });
+    }
+  };
+
   return (
     <section className="py-8 lg:py-16 bg-[#111] text-white">
       <div className="toyota-container">
@@ -267,7 +282,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-                {/* Step 2: Grade Carousel */}
+        {/* Step 2: Grade Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -337,9 +352,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     <CardContent className="p-0">
                       {/* Header */}
                       <div
-  className={`relative p-4 sm:p-8 rounded-t-xl overflow-hidden bg-gradient-to-br ${TOYOTA_RED} opacity-90`}
->
-  <div className="relative z-10">
+                        className={`relative p-4 sm:p-8 rounded-t-xl overflow-hidden bg-gradient-to-br ${TOYOTA_RED} opacity-90`}
+                      >
+                        <div className="relative z-10">
                           <div className="flex items-center justify-between mb-3 sm:mb-4">
                             <h4 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white">
                               {currentGrade.name}
@@ -434,6 +449,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           <Button
                             variant="outline"
                             className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
+                            onClick={handleConfigureClick}
                           >
                             <Wrench className="h-4 w-4 mr-2" />
                             Configure
@@ -472,10 +488,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
         currentEngineData={currentEngineData}
         onGradeSelect={setSelectedGrade}
         selectedGrade={selectedGrade}
+        onCarBuilder={onCarBuilder}
+        onBookTestDrive={onBookTestDrive}
       />
     </section>
   );
 };
 
 export default InteractiveSpecsTech;
-

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -32,6 +31,8 @@ interface GradeComparisonModalProps {
   currentEngineData: any;
   onGradeSelect: (gradeName: string) => void;
   selectedGrade: string;
+  onCarBuilder?: (gradeInfo?: { engine: string; grade: string }) => void;
+  onBookTestDrive?: (gradeInfo?: { engine: string; grade: string }) => void;
 }
 
 // Helper function to check if there are differences between grades for a specific attribute
@@ -45,7 +46,9 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
   onClose,
   currentEngineData,
   onGradeSelect,
-  selectedGrade
+  selectedGrade,
+  onCarBuilder,
+  onBookTestDrive
 }) => {
   const [selectedGrades, setSelectedGrades] = useState<number[]>([0, 1]);
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
@@ -70,6 +73,26 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
         ? prev.filter(id => id !== sectionId)
         : [...prev, sectionId]
     );
+  };
+
+  const handleTestDriveClick = (grade: any) => {
+    if (onBookTestDrive) {
+      onBookTestDrive({
+        engine: currentEngineData.name,
+        grade: grade.name
+      });
+      onClose();
+    }
+  };
+
+  const handleConfigureClick = (grade: any) => {
+    if (onCarBuilder) {
+      onCarBuilder({
+        engine: currentEngineData.name,
+        grade: grade.name
+      });
+      onClose();
+    }
   };
 
   // Enhanced comparison sections with key specs restored
@@ -328,7 +351,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                         size="sm"
                         variant="outline"
                         className="text-xs h-8 border-border hover:bg-muted"
-                        onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                        onClick={() => handleTestDriveClick(grade)}
                       >
                         <Car className="h-3 w-3 mr-1.5" />
                         Test Drive
@@ -337,7 +360,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                       <Button
                         size="sm"
                         className="text-xs h-8 bg-primary hover:bg-primary/90"
-                        onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                        onClick={() => handleConfigureClick(grade)}
                       >
                         <Wrench className="h-3 w-3 mr-1.5" />
                         Configure
@@ -530,7 +553,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                             variant="outline"
                             size="sm" 
                             className="text-xs border-border hover:bg-muted"
-                            onClick={() => window.open(`/test-drive?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                            onClick={() => handleTestDriveClick(grade)}
                           >
                             <Car className="h-3 w-3 mr-1.5" />
                             Test Drive
@@ -538,7 +561,7 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
                           <Button
                             size="sm" 
                             className="text-xs bg-primary hover:bg-primary/90"
-                            onClick={() => window.open(`/configure?model=${encodeURIComponent(currentEngineData.name)}&grade=${encodeURIComponent(grade.name)}`, '_blank')}
+                            onClick={() => handleConfigureClick(grade)}
                           >
                             <Wrench className="h-3 w-3 mr-1.5" />
                             Configure
