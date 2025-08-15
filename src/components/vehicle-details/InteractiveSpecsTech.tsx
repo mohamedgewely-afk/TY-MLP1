@@ -30,8 +30,7 @@ const luxuryVariants = {
   exit:  { opacity: 0, scale: 1.02, y: -16, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
 };
 
-const TOYOTA_RED = "#EB0A1E";
-const GRADIENT_BRAND = "from-[#0A0A0A] via-[#1A0A0A] to-[#EB0A1E]";
+const TOYOTA_RED = "from-[#EB0A1E] via-[#d80a1b] to-[#EB0A1E]";
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
@@ -50,8 +49,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "221 lb-ft",
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: GRADIENT_BRAND,
-      accentColor: "bg-red-700",
+      brandColor: TOYOTA_RED,
+      accentColor: "bg-[#EB0A1E]",
       icon: <Zap className="h-5 w-5" />,
       grades: [
         {
@@ -95,8 +94,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
       description: "Powerful V6 engine for enhanced performance",
-      brandColor: GRADIENT_BRAND,
-      accentColor: "bg-red-700",
+      brandColor: TOYOTA_RED,
+      accentColor: "bg-[#EB0A1E]",
       icon: <Gauge className="h-5 w-5" />,
       grades: [
         {
@@ -159,11 +158,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const handleImageLoadStart = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: true }));
 
   return (
-    <section className="py-8 lg:py-16 bg-[#0A0A0A] relative overflow-hidden">
-      {/* subtle diagonal glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#1A0A0A] to-[#EB0A1E] opacity-20" />
-
-      <div className="relative z-10 toyota-container">
+    <section className="py-8 lg:py-16 bg-[#111] text-white">
+      <div className="toyota-container">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -171,8 +167,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           viewport={{ once: true }}
           className="text-center mb-8 lg:mb-12"
         >
-          <Badge className="bg-red-900/30 text-white border border-red-700 mb-3 shadow-sm">
-            <Sparkles className="h-4 w-4 mr-2 text-red-400" />
+          <Badge className="bg-[#EB0A1E] text-white border-none mb-3 shadow-lg shadow-red-900/40">
+            <Sparkles className="h-4 w-4 mr-2" />
             Interactive Experience
           </Badge>
           <h2 className="text-[28px] lg:text-5xl font-black text-white mb-2 lg:mb-4">
@@ -194,7 +190,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             Step 1: Choose Your Powertrain
           </h3>
 
-          {/* Mobile: two side-by-side */}
+          {/* Mobile compact layout */}
           <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-5xl mx-auto">
             {engines.map((engine, i) => {
               const active = selectedEngine === engine.name;
@@ -210,25 +206,25 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   className="h-full"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-xl backdrop-blur-md transition-all duration-400 cursor-pointer group
+                    className={`relative overflow-hidden rounded-xl transition-all duration-400 cursor-pointer backdrop-blur-md
                       ${active
-                        ? "bg-red-900/20 border-2 border-red-500 shadow-[0_0_15px_rgba(235,10,30,0.5)]"
-                        : "bg-white/5 border border-gray-700 hover:border-red-500 hover:shadow-[0_0_12px_rgba(235,10,30,0.4)]"
+                        ? "bg-white/10 border-2 border-[#EB0A1E] shadow-red-500/20"
+                        : "bg-white/5 border border-gray-700 hover:border-[#EB0A1E]/60"
                       }`}
                     onClick={() => handleEngineChange(engine.name)}
                   >
-                    {active && <div className="absolute inset-x-0 top-0 h-[2px] bg-red-500" />}
+                    {active && <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#EB0A1E] via-red-600 to-[#EB0A1E]" />}
 
                     <div className="relative z-10 p-3 sm:p-6">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-2 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
-                          <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-red-700 text-white grid place-items-center shadow-sm`}>
+                          <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${engine.accentColor} text-white grid place-items-center shadow-md`}>
                             {engine.icon}
                           </div>
                           {active && (
                             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 18 }}>
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-500 grid place-items-center">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#EB0A1E] grid place-items-center shadow-md">
                                 <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                               </div>
                             </motion.div>
@@ -242,6 +238,27 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                       <p className="mb-0 sm:mb-4 text-xs sm:text-sm leading-relaxed text-gray-300 line-clamp-2">
                         {isMobile ? `${engine.power} • ${engine.efficiency}` : engine.description}
                       </p>
+
+                      {/* Stats desktop */}
+                      <div className="hidden sm:grid grid-cols-2 gap-3 mb-1">
+                        <div className="rounded-lg p-3 bg-white/5 border border-gray-700">
+                          <div className="font-semibold text-white">{engine.power}</div>
+                          <div className="text-[11px] text-gray-400 uppercase tracking-wider">Power</div>
+                        </div>
+                        <div className="rounded-lg p-3 bg-white/5 border border-gray-700">
+                          <div className="font-semibold text-white">{engine.efficiency}</div>
+                          <div className="text-[11px] text-gray-400 uppercase tracking-wider">Efficiency</div>
+                        </div>
+                      </div>
+
+                      {active && (
+                        <motion.div
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: "100%", opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                          className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${engine.brandColor}`}
+                        />
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -249,6 +266,10 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             })}
           </div>
         </motion.div>
+
+        {/* Step 2: Grade Carousel */}
+        {/* This part stays mostly same but with dark/red styling */}
+        {/* ... */}
       </div>
     </section>
   );
