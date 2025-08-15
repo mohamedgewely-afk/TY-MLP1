@@ -143,7 +143,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const currentGrade = currentGrades[currentGradeIndex];
 
   // === Handlers (unchanged UX/CX) ===
-  const { toast } = useToast();
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
     setCurrentGradeIndex(0);
