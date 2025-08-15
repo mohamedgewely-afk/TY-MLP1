@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -64,8 +65,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "221 lb-ft",
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: "from-emerald-600 via-emerald-500 to-teal-400",
-      accentColor: "bg-emerald-600",
+      brandColor: "from-blue-600 via-blue-500 to-blue-400",
+      accentColor: "bg-blue-600",
       icon: <Zap className="h-5 w-5" />,
       grades: [
         {
@@ -133,8 +134,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
       description: "Powerful V6 engine for enhanced performance",
-      brandColor: "from-red-600 via-red-500 to-orange-500",
-      accentColor: "bg-red-500",
+      brandColor: "from-gray-600 via-gray-500 to-gray-400",
+      accentColor: "bg-gray-600",
       icon: <Gauge className="h-5 w-5" />,
       grades: [
         {
@@ -227,18 +228,18 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const handleImageLoadStart = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: true }));
 
   return (
-    <section className="py-12 lg:py-20 bg-gradient-to-br from-gray-950 via-black to-gray-950 relative overflow-hidden">
-      {/* Luxury Background Effects */}
+    <section className="py-12 lg:py-20 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 relative overflow-hidden">
+      {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-red-900/10 via-transparent to-transparent" />
-        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-amber-900/8 via-transparent to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-gray-900/20 via-transparent to-transparent" />
         
-        {/* Floating luxury particles */}
+        {/* Floating particles */}
         <div className="absolute inset-0">
           {[...Array(15)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-red-400/20 rounded-full"
+              className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -257,12 +258,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           ))}
         </div>
         
-        {/* Luxury grid pattern */}
+        {/* Grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
       <div className="toyota-container relative z-10">
-        {/* Luxury Header */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -270,27 +271,27 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           className="text-center mb-12 lg:mb-16"
         >
           <div className="flex items-center justify-center space-x-6 mb-8">
-            <div className="h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent w-24" />
+            <div className="h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent w-24" />
             <div className="relative">
-              <Crown className="h-8 w-8 text-red-500 animate-pulse" />
-              <div className="absolute inset-0 h-8 w-8 bg-red-500/20 rounded-full blur-xl animate-pulse" />
+              <Crown className="h-8 w-8 text-blue-500 animate-pulse" />
+              <div className="absolute inset-0 h-8 w-8 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
             </div>
-            <div className="h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent w-24" />
+            <div className="h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent w-24" />
           </div>
 
-          <Badge className="bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-yellow-400/20 text-amber-200 border border-amber-400/30 mb-6 shadow-2xl shadow-amber-500/10 backdrop-blur-xl">
+          <Badge className="bg-gradient-to-r from-blue-500/20 via-blue-400/30 to-blue-400/20 text-blue-200 border border-blue-400/30 mb-6 shadow-2xl shadow-blue-500/10 backdrop-blur-xl">
             <Sparkles className="h-4 w-4 mr-2" />
-            Luxury Interactive Experience
+            Interactive Experience
           </Badge>
-          <h2 className="text-3xl lg:text-6xl font-black tracking-tight mb-4 lg:mb-6 bg-gradient-to-r from-white via-red-200 to-amber-200 bg-clip-text text-transparent drop-shadow-2xl">
+          <h2 className="text-3xl lg:text-6xl font-black tracking-tight mb-4 lg:mb-6 bg-gradient-to-r from-white via-blue-200 to-gray-200 bg-clip-text text-transparent drop-shadow-2xl">
             Choose Your Configuration
           </h2>
           <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Select your preferred engine and explore grades with our interactive luxury carousel.
+            Select your preferred engine and explore grades with our interactive carousel.
           </p>
         </motion.div>
 
-        {/* Step 1: Luxury Engine Selection */}
+        {/* Step 1: Engine Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -301,7 +302,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             <h3 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
               Step 1: Choose Your Powertrain
             </h3>
-            <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto" />
+            <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -322,22 +323,22 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     className={`
                       relative overflow-hidden rounded-3xl transition-all duration-700 cursor-pointer group
                       ${active 
-                        ? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-2 border-red-500/50 shadow-2xl shadow-red-500/20' 
-                        : 'bg-gradient-to-br from-gray-900/60 to-black/80 border border-gray-700/30 hover:border-red-500/30 shadow-xl'
+                        ? 'bg-gradient-to-br from-gray-600/90 to-gray-700/90 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20' 
+                        : 'bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 hover:border-blue-500/30 shadow-xl'
                       }
                       backdrop-blur-2xl
                     `}
                     onClick={() => handleEngineChange(engine.name)}
                   >
-                    {/* Luxury corner accents */}
-                    <div className={`absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
-                    <div className={`absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
-                    <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
-                    <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
+                    {/* Corner accents */}
+                    <div className={`absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 transition-colors duration-500 ${active ? 'border-blue-400' : 'border-blue-500/30 group-hover:border-blue-400/60'}`} />
+                    <div className={`absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 transition-colors duration-500 ${active ? 'border-blue-400' : 'border-blue-500/30 group-hover:border-blue-400/60'}`} />
+                    <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 transition-colors duration-500 ${active ? 'border-blue-400' : 'border-blue-500/30 group-hover:border-blue-400/60'}`} />
+                    <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 transition-colors duration-500 ${active ? 'border-blue-400' : 'border-blue-500/30 group-hover:border-blue-400/60'}`} />
 
                     {/* Glow effect for active state */}
                     {active && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-red-500/10 to-red-500/5 animate-pulse" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-blue-500/10 to-blue-500/5 animate-pulse" />
                     )}
 
                     <div className="relative z-10 p-6 sm:p-8">
@@ -353,14 +354,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                               animate={{ scale: 1, rotate: 0 }} 
                               transition={{ type: "spring", stiffness: 300, damping: 20 }}
                             >
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 grid place-items-center shadow-lg shadow-emerald-500/30">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-400 grid place-items-center shadow-lg shadow-blue-500/30">
                                 <Check className="h-4 w-4 text-white" />
                               </div>
                             </motion.div>
                           )}
                         </div>
                         {active && (
-                          <Star className="h-6 w-6 text-amber-400 animate-pulse" />
+                          <Star className="h-6 w-6 text-blue-400 animate-pulse" />
                         )}
                       </div>
 
@@ -400,7 +401,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Luxury Grade Carousel */}
+        {/* Step 2: Grade Carousel */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           whileInView={{ opacity: 1, y: 0 }} 
@@ -412,14 +413,14 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               <h3 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
                 Step 2: Choose Your Grade
               </h3>
-              <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto sm:mx-0" />
+              <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto sm:mx-0" />
             </div>
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowComparisonModal(true)}
-                className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
                 style={{ minHeight: "44px" }}
               >
                 <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -429,23 +430,23 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
 
           <div className="relative max-w-4xl mx-auto">
-            {/* Luxury Navigation Arrows */}
+            {/* Navigation Arrows */}
             <button
               onClick={prevGrade}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-900/80 backdrop-blur-2xl border border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/90 shadow-2xl transition-all duration-500 -translate-x-6"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-700/80 backdrop-blur-2xl border border-gray-600/50 hover:border-blue-500/50 hover:bg-gray-600/90 shadow-2xl transition-all duration-500 -translate-x-6"
               style={{ minHeight: "56px", minWidth: "56px" }}
             >
               <ChevronLeft className="h-6 w-6 text-gray-300 hover:text-white transition-colors" />
             </button>
             <button
               onClick={nextGrade}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-900/80 backdrop-blur-2xl border border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/90 shadow-2xl transition-all duration-500 translate-x-6"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-700/80 backdrop-blur-2xl border border-gray-600/50 hover:border-blue-500/50 hover:bg-gray-600/90 shadow-2xl transition-all duration-500 translate-x-6"
               style={{ minHeight: "56px", minWidth: "56px" }}
             >
               <ChevronRight className="h-6 w-6 text-gray-300 hover:text-white transition-colors" />
             </button>
 
-            {/* Luxury Grade Card */}
+            {/* Grade Card */}
             <div className="mx-12">
               <AnimatePresence mode="wait">
                 <motion.div 
@@ -455,13 +456,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   animate="center" 
                   exit="exit"
                 >
-                  <Card className="overflow-hidden bg-gradient-to-br from-gray-900/80 to-black/90 border-2 border-gray-700/30 shadow-2xl backdrop-blur-2xl">
+                  <Card className="overflow-hidden bg-gradient-to-br from-gray-600/80 to-gray-700/90 border-2 border-gray-600/30 shadow-2xl backdrop-blur-2xl">
                     <CardContent className="p-0">
-                      {/* Luxury Header */}
+                      {/* Header */}
                       <div className="relative p-6 sm:p-8 text-white rounded-t-3xl overflow-hidden">
                         <div className={`absolute inset-0 bg-gradient-to-br ${currentEngineData.brandColor} opacity-90`} />
                         
-                        {/* Luxury pattern overlay */}
+                        {/* Pattern overlay */}
                         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.1)_0,rgba(255,255,255,0.1)_2px,transparent_2px,transparent_8px)] opacity-30" />
                         
                         {/* Floating light effects */}
@@ -492,7 +493,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             <h4 className="text-2xl lg:text-3xl font-bold tracking-wide drop-shadow-2xl">
                               {currentGrade.name}
                             </h4>
-                            <Badge className="bg-gradient-to-r from-amber-500/90 to-amber-400/90 text-black font-bold border-amber-300/50 shadow-2xl shadow-amber-500/20 backdrop-blur-xl">
+                            <Badge className="bg-gradient-to-r from-blue-500/90 to-blue-400/90 text-white font-bold border-blue-300/50 shadow-2xl shadow-blue-500/20 backdrop-blur-xl">
                               <Crown className="h-4 w-4 mr-1" />
                               {currentGrade.highlight}
                             </Badge>
@@ -515,8 +516,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                         </div>
                       </div>
 
-                      {/* Luxury Image Section */}
-                      <div className="relative overflow-hidden h-72 lg:h-96 bg-gradient-to-br from-gray-900 to-black">
+                      {/* Image Section */}
+                      <div className="relative overflow-hidden h-72 lg:h-96 bg-gradient-to-br from-gray-700 to-gray-800">
                         <img
                           src={currentGrade.image}
                           alt={`${currentGrade.name} Grade`}
@@ -527,7 +528,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           onError={() => handleImageLoad(currentGradeIndex)}
                         />
                         
-                        {/* Luxury glass reflection effect */}
+                        {/* Glass reflection effect */}
                         <div className="pointer-events-none absolute inset-0">
                           <div 
                             className="absolute inset-0 opacity-30"
@@ -538,7 +539,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           />
                         </div>
                         
-                        {/* Premium shine effect */}
+                        {/* Shine effect */}
                         <motion.div
                           className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 rotate-12 opacity-20"
                           style={{
@@ -549,12 +550,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                         />
                       </div>
 
-                      {/* Luxury Content Body */}
-                      <div className="p-6 sm:p-8 bg-gradient-to-br from-gray-900/60 to-black/80">
+                      {/* Content Body */}
+                      <div className="p-6 sm:p-8 bg-gradient-to-br from-gray-700/60 to-gray-800/80">
                         {/* Features Section */}
                         <div className="mb-8">
                           <h5 className="font-bold text-lg text-white mb-4 flex items-center">
-                            <Sparkles className="h-5 w-5 mr-2 text-red-400" />
+                            <Sparkles className="h-5 w-5 mr-2 text-blue-400" />
                             Key Features
                           </h5>
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -566,7 +567,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                                 transition={{ delay: idx * 0.1 }}
                                 className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-xl"
                               >
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 grid place-items-center shadow-lg shadow-emerald-500/30">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-400 grid place-items-center shadow-lg shadow-blue-500/30">
                                   <Check className="h-3 w-3 text-white" />
                                 </div>
                                 <span className="text-sm text-gray-300 font-medium">{feature}</span>
@@ -575,7 +576,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                           </div>
                         </div>
 
-                        {/* Luxury Action Buttons */}
+                        {/* Action Buttons */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <Button
                             onClick={() => {
@@ -584,8 +585,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                             }}
                             className={`transition-all duration-500 text-white font-semibold shadow-2xl ${
                               selectedGrade === currentGrade.name
-                                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-emerald-500/30"
-                                : `bg-gradient-to-r ${currentEngineData.brandColor} hover:scale-105 shadow-red-500/20`
+                                ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-blue-500/30"
+                                : `bg-gradient-to-r ${currentEngineData.brandColor} hover:scale-105 shadow-blue-500/20`
                             }`}
                             style={{ minHeight: "48px" }}
                           >
@@ -601,7 +602,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
                           <Button 
                             variant="outline" 
-                            className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                            className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
                             style={{ minHeight: "48px" }}
                           >
                             <Download className="h-4 w-4 mr-2" />
@@ -610,7 +611,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
 
                           <Button 
                             variant="outline"
-                            className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                            className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
                             style={{ minHeight: "48px" }}
                           >
                             <Wrench className="h-4 w-4 mr-2" />
@@ -624,7 +625,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
               </AnimatePresence>
             </div>
 
-            {/* Luxury Indicators */}
+            {/* Indicators */}
             <div className="flex justify-center gap-3 mt-8">
               {currentGrades.map((_, idx) => (
                 <button
@@ -632,7 +633,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   onClick={() => setCurrentGradeIndex(idx)}
                   className={`rounded-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     idx === currentGradeIndex
-                      ? "bg-gradient-to-r from-red-500 to-red-400 w-12 h-3 shadow-lg shadow-red-500/50"
+                      ? "bg-gradient-to-r from-blue-500 to-blue-400 w-12 h-3 shadow-lg shadow-blue-500/50"
                       : "bg-gray-600/50 w-3 h-3 hover:bg-gray-500/70 hover:scale-125"
                   }`}
                 />
