@@ -5,7 +5,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "camry-hybrid",
     name: "Toyota Camry Hybrid",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Camry/2023/Hybrid/Camry-Hybrid-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/dc9b6eaa-cc71-4e6b-b9a8-2ede7939749f/items/19d9b6ba-2cee-4d91-b3b3-621f72452918/renditions/9c9119d9-d77c-4c13-a2aa-b0f9e55219cb?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/camry",
     configureUrl: "/configure/camry-hybrid",
     price: 129900,
@@ -22,7 +22,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "corolla-hybrid",
     name: "Toyota Corolla Hybrid",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Corolla/2023/Hybrid/Corolla-Hybrid-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/39010272-941c-4ba8-810e-1f34eec272f1/items/d8fdd9cf-9215-48c7-8792-b46d1af14525/renditions/be031a02-6cdc-43a0-a02b-317e95f1c2f1?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/corolla",
     configureUrl: "/configure/corolla-hybrid",
     price: 94500,
@@ -39,7 +39,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "rav4-hybrid",
     name: "Toyota RAV4 Hybrid",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/RAV4/2023/Hybrid/RAV4-Hybrid-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b617024c-790e-4264-99ad-b567a5abd42f/items/cd05c792-558c-4965-b5e9-1d734faed831/renditions/871690a1-a2ce-40d3-a376-0a1a8f734ac3?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/rav4",
     configureUrl: "/configure/rav4-hybrid",
     price: 139900,
@@ -56,7 +56,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "highlander-hybrid",
     name: "Toyota Highlander Hybrid",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Highlander/2023/Exterior/Highlander-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/2639ecd9-9b31-445a-8d10-edcd954fd37c/items/b097e09d-0b05-46d1-864c-479c822035d4/renditions/61c23fc5-751b-4a4b-a8c3-12435c5192fa?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/highlander",
     configureUrl: "/configure/highlander-hybrid",
     price: 179900,
@@ -73,7 +73,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "land-cruiser",
     name: "Toyota Land Cruiser",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Land-Cruiser/2023/Exterior/Land-Cruiser-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/land-cruiser",
     configureUrl: "/configure/land-cruiser",
     price: 249900,
@@ -90,7 +90,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "sequoia",
     name: "Toyota Sequoia",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Sequoia/2023/Exterior/Sequoia-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/cb46a669-bb45-4187-802f-a1b7df056946/items/29dbd0d5-7ff1-41d6-86f3-f10da4b22864/renditions/709ae40d-9f5e-4f6d-a110-3357dae5b127?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/sequoia",
     configureUrl: "/configure/sequoia",
     price: 219900,
@@ -107,7 +107,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "prado",
     name: "Toyota Prado",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Prado/2023/Exterior/Prado-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/84a5ee19-6b54-4789-88b9-6feae59e9c7c/items/e297897c-d579-4179-bfde-b50e8d188a4f/renditions/4207c19f-2697-416d-8538-e03f27b77846?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/prado",
     configureUrl: "/configure/prado",
     price: 189900,
@@ -124,7 +124,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "fortuner",
     name: "Toyota Fortuner",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Fortuner/2023/Exterior/Fortuner-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/110f4b82-7af5-47ef-b7b9-4c2c24d25f5f/items/2c4dd486-7220-4166-98e6-3b9fe06e9660/renditions/6010c7e7-7fb5-4077-b8e1-46fa8a7b9a2c?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/fortuner",
     configureUrl: "/configure/fortuner",
     price: 149900,
@@ -141,7 +141,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "avalon",
     name: "Toyota Avalon",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Avalon/2023/Exterior/Avalon-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/dc9b6eaa-cc71-4e6b-b9a8-2ede7939749f/items/19d9b6ba-2cee-4d91-b3b3-621f72452918/renditions/9c9119d9-d77c-4c13-a2aa-b0f9e55219cb?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/avalon",
     configureUrl: "/configure/avalon",
     price: 159900,
@@ -158,7 +158,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "camry",
     name: "Toyota Camry",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Camry/2023/Exterior/Camry-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/dc9b6eaa-cc71-4e6b-b9a8-2ede7939749f/items/19d9b6ba-2cee-4d91-b3b3-621f72452918/renditions/9c9119d9-d77c-4c13-a2aa-b0f9e55219cb?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/camry",
     configureUrl: "/configure/camry",
     price: 119900,
@@ -175,7 +175,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "corolla",
     name: "Toyota Corolla",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Corolla/2023/Exterior/Corolla-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/032cc51f-3261-47ee-85cf-18b234d3c89c/items/12ede41f-eb4f-4f60-9e41-156a2f05fc2d/renditions/2aad8165-6bb6-4c4b-99d6-148d713b57ba?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/corolla",
     configureUrl: "/configure/corolla",
     price: 84900,
@@ -192,7 +192,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "yaris",
     name: "Toyota Yaris",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Yaris/2023/Exterior/Yaris-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/993df02a-2bfb-49d0-9e40-677499d5ce97/items/6e32c9e9-51dd-456f-95ed-342ccb42036c/renditions/d61189d9-108c-408c-b1e2-f26b055d58c0?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/yaris",
     configureUrl: "/configure/yaris",
     price: 69900,
@@ -209,7 +209,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "gr-supra",
     name: "Toyota GR Supra",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Supra/2023/Exterior/Supra-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/62cfa484-93ad-4230-821a-8096c177027e/items/c43523ad-0eeb-4ed1-adef-a74ed6c80844/renditions/0547a7c4-44f7-44af-804a-e01f3fb22543?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr-supra",
     configureUrl: "/configure/gr-supra",
     price: 249900,
@@ -226,7 +226,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "gr-yaris",
     name: "Toyota GR Yaris",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/GR-Yaris/2023/Exterior/GR-Yaris-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/993df02a-2bfb-49d0-9e40-677499d5ce97/items/6e32c9e9-51dd-456f-95ed-342ccb42036c/renditions/d61189d9-108c-408c-b1e2-f26b055d58c0?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr-yaris",
     configureUrl: "/configure/gr-yaris",
     price: 149900,
@@ -243,7 +243,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "hiace",
     name: "Toyota Hiace",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Hiace/2023/Exterior/Hiace-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/602bfc54-fc17-4d79-a2e7-fc72d012b665/items/d1df7b73-2715-412e-8ee3-78d16dbead74/renditions/c47a94ec-e785-46ec-9043-0a5eac6b1a12?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/hiace",
     configureUrl: "/configure/hiace",
     price: 109900,
@@ -260,7 +260,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "hilux",
     name: "Toyota Hilux",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Hilux/2023/Exterior/Hilux-Exterior-1.jpg",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/74a44416-2a53-4604-9076-d7ef0367f3d9/items/a002b208-ddf7-4cff-ad15-c659f025bc50/renditions/04617d28-3f4b-491f-b830-a0ee689b98fd?binary=true&mformat=true",
     mmeUrl: "https://www.toyota.ae/en/new-cars/hilux",
     configureUrl: "/configure/hilux",
     price: 99900,
