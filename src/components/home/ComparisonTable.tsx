@@ -18,6 +18,18 @@ const useFlyInAnimation = () => {
   return ref;
 };
 
+const useSlideInAnimation = () => {
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.classList.add("animate-slidein-mobile");
+    }
+  }, []);
+
+  return ref;
+};
+
 interface ComparisonTableProps {
   vehicles: VehicleModel[];
   onRemove: (name: string) => void;
@@ -34,6 +46,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   const isMobile = useIsMobile();
   const flyInRef = useFlyInAnimation();
+  const slideInRef = useSlideInAnimation();
 
   const sections = [
     {
@@ -88,6 +101,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       onShowDifferencesChange={setShowOnlyDifferences}
       onRemove={onRemove}
       onClearAll={onClearAll}
+      slideInRef={slideInRef}
     />
   ) : (
     <DesktopComparisonView
