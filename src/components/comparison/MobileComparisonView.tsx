@@ -1,14 +1,19 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { Button } from "@/components/ui/button";
-import { X, Car, Calculator, ArrowUpDown, Eye, ChevronLeft } from "lucide-react";
-import CompareControlsBar from "./CompareControlsBar";
-import { hasDifferences } from "./ComparisonSection";
-import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useSwipeable } from "@/hooks/use-swipeable";
-import { useResponsiveSize } from "@/hooks/use-device-info";
+import { 
+  X, 
+  Crown, 
+  Sparkles, 
+  Star, 
+  Award, 
+  ChevronRight,
+  TrendingUp,
+  Shield,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileComparisonViewProps {
   vehicles: VehicleModel[];
@@ -23,6 +28,7 @@ interface MobileComparisonViewProps {
   onShowDifferencesChange: (value: boolean) => void;
   onRemove: (name: string) => void;
   onClearAll?: () => void;
+  slideInRef: React.RefObject<HTMLDivElement>;
 }
 
 const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
@@ -32,268 +38,295 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
   onShowDifferencesChange,
   onRemove,
   onClearAll,
+  slideInRef,
 }) => {
-  const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
-  const { containerPadding, buttonSize, textSize, touchTarget } = useResponsiveSize();
-
-  // Add swipe functionality for vehicle selection
-  const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => {
-      if (selectedVehicleIndex < vehicles.length - 1) {
-        setSelectedVehicleIndex(prev => prev + 1);
-      }
-    },
-    onSwipeRight: () => {
-      if (selectedVehicleIndex > 0) {
-        setSelectedVehicleIndex(prev => prev - 1);
-      }
-    },
-    threshold: 50,
-    preventDefaultTouchmoveEvent: false
-  });
+  const [currentVehicleIndex, setCurrentVehicleIndex] = React.useState(0);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col max-h-screen">
-      {/* Header - Fixed and responsive */}
-      <div className="flex-shrink-0 bg-background border-b shadow-sm z-10">
-        <div className={`flex items-center justify-between ${containerPadding} py-3`}>
-          <div className="flex items-center space-x-2 min-w-0 flex-1">
-            <div className="bg-primary/10 p-2 rounded-full flex-shrink-0">
-              <ArrowUpDown className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className={`${textSize.base} font-bold text-foreground truncate`}>Compare Vehicles</h2>
-              <p className={`${textSize.xs} text-muted-foreground`}>{vehicles.length} selected</p>
-            </div>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={`rounded-full ${touchTarget} flex-shrink-0`}
-            onClick={onClearAll}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+    <motion.div
+      ref={slideInRef}
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 30, stiffness: 300 }}
+      className="fixed inset-0 z-50 overflow-y-auto"
+      style={{
+        background: "linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(0, 0, 0, 1) 100%)",
+        backdropFilter: "blur(20px)",
+      }}
+    >
+      {/* Luxury Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-red-900/10 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-amber-900/8 via-transparent to-transparent" />
+        
+        {/* Floating particles */}
+        <div className="absolute inset-0">
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-red-400/20 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -80, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.2, 0],
+              }}
+              transition={{
+                duration: 6 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 6,
+              }}
+            />
+          ))}
         </div>
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px]" />
+      </div>
 
-        {/* Vehicle Selector Tabs - Fully responsive */}
-        <div className={`${containerPadding} pb-3`}>
-          <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-            {vehicles.map((vehicle, index) => (
-              <button
-                key={vehicle.name}
-                onClick={() => setSelectedVehicleIndex(index)}
-                className={`flex-shrink-0 px-3 py-2 rounded-full font-medium transition-colors whitespace-nowrap ${touchTarget} ${textSize.xs} ${
-                  selectedVehicleIndex === index
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {vehicle.name.replace('Toyota ', '')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* View Mode Toggle - Fully responsive */}
-        <div className={`${containerPadding} pb-3`}>
-          <div className="flex space-x-2">
-            <Button
-              variant={viewMode === 'overview' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('overview')}
-              className={`flex-1 ${touchTarget} ${buttonSize}`}
+      {/* Luxury Header */}
+      <div className="sticky top-0 z-20 border-b border-red-500/20 backdrop-blur-2xl">
+        <div className="bg-gradient-to-r from-gray-900/95 via-black/98 to-gray-900/95 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Crown className="h-6 w-6 text-red-500 animate-pulse" />
+                <div className="absolute inset-0 h-6 w-6 bg-red-500/20 rounded-full blur-lg animate-pulse" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
+                  Luxury Comparison
+                </h2>
+                <p className="text-gray-400 text-xs">Premium vehicle analysis</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-full p-2 h-8 w-8 bg-gray-900/60 border border-gray-700/40 text-gray-300 hover:bg-red-600/20 hover:text-white hover:border-red-500/50 backdrop-blur-xl transition-all duration-500"
+              onClick={onClearAll}
             >
-              <Eye className="h-4 w-4 mr-2" />
-              <span className="truncate">Overview</span>
-            </Button>
-            <Button
-              variant={viewMode === 'detailed' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('detailed')}
-              className={`flex-1 ${touchTarget} ${buttonSize}`}
-            >
-              <Calculator className="h-4 w-4 mr-2" />
-              <span className="truncate">Compare</span>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Content Area - Scrollable with Swipe */}
-      <div className="flex-1 overflow-y-auto overscroll-contain" ref={swipeableRef}>
+      <div className="p-4 pb-20 relative z-10">
+        {/* Luxury Controls */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <Badge className="bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-yellow-400/20 text-amber-200 border border-amber-400/30 backdrop-blur-xl">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              {vehicles.length} Vehicles
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onShowDifferencesChange(!showOnlyDifferences)}
+              className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              {showOnlyDifferences ? "Show All" : "Differences"}
+            </Button>
+          </div>
+
+          {/* Vehicle Navigation */}
+          {vehicles.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {vehicles.map((vehicle, index) => (
+                <button
+                  key={vehicle.name}
+                  onClick={() => setCurrentVehicleIndex(index)}
+                  className={`
+                    shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-500
+                    ${index === currentVehicleIndex
+                      ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-500/30"
+                      : "text-gray-300 bg-gray-900/50 border border-gray-700/50 hover:text-white hover:bg-gray-800/70 hover:border-red-500/30"}
+                    backdrop-blur-xl
+                  `}
+                >
+                  <span className="truncate max-w-[120px] block">
+                    {vehicle.name.split(' ').slice(-2).join(' ')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Current Vehicle Display */}
         <AnimatePresence mode="wait">
-          {viewMode === 'overview' ? (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className={`${containerPadding} py-4 space-y-4`}
-            >
-              {/* Selected Vehicle Highlight - Fully responsive */}
-              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-4">
-                <div className="relative">
-                  <img
-                    src={vehicles[selectedVehicleIndex].image}
-                    alt={vehicles[selectedVehicleIndex].name}
-                    className="w-full h-32 sm:h-40 object-cover rounded-xl"
-                  />
-                  <Badge className="absolute top-2 left-2 bg-primary text-xs">
-                    {vehicles[selectedVehicleIndex].category}
-                  </Badge>
-                </div>
-                
-                <div className="mt-3">
-                  <h3 className={`${textSize.base} font-bold text-foreground truncate`}>
-                    {vehicles[selectedVehicleIndex].name}
-                  </h3>
-                  <p className={`${textSize.sm} font-semibold text-primary mt-1`}>
-                    From AED {vehicles[selectedVehicleIndex].price.toLocaleString()}
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <Button variant="default" size="sm" className={`bg-primary ${touchTarget} ${buttonSize}`} asChild>
-                      <a href={`/test-drive?model=${encodeURIComponent(vehicles[selectedVehicleIndex].name)}`}>
-                        <Car className="h-4 w-4 mr-2" />
-                        <span className="truncate">Test Drive</span>
-                      </a>
-                    </Button>
-                    <Button variant="outline" size="sm" className={`${touchTarget} ${buttonSize}`} asChild>
-                      <a href={`/vehicle/${vehicles[selectedVehicleIndex].name.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <span className="truncate">View Details</span>
-                      </a>
+          {vehicles.map((vehicle, index) => 
+            index === currentVehicleIndex && (
+              <motion.div
+                key={vehicle.name}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4 }}
+                className="mb-8"
+              >
+                {/* Luxury Vehicle Card */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900/80 to-black/90 border border-gray-700/30 shadow-2xl backdrop-blur-2xl">
+                  {/* Corner accents */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-500/50 transition-colors duration-500" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-500/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-500/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-500/50 transition-colors duration-500" />
+
+                  <div className="relative aspect-video overflow-hidden">
+                    <img
+                      src={vehicle.image}
+                      alt={vehicle.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                    
+                    {/* Premium badges */}
+                    <div className="absolute top-4 left-4 flex gap-2">
+                      <Badge className="bg-gradient-to-r from-red-600/90 to-red-500/90 text-white border-0 shadow-xl backdrop-blur-xl">
+                        <Award className="h-3 w-3 mr-1" />
+                        Premium
+                      </Badge>
+                    </div>
+
+                    {/* Remove button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-gray-600/30 text-white hover:bg-red-600/20 hover:border-red-500/50"
+                      onClick={() => onRemove(vehicle.name)}
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              </div>
 
-              {/* Quick Comparison Grid - Fully responsive */}
-              <div className="space-y-3">
-                <h4 className={`${textSize.sm} font-semibold text-foreground`}>Quick Comparison</h4>
-                
-                {/* Vehicle Cards - Fully responsive */}
-                <div className="space-y-2">
-                  {vehicles.map((vehicle, idx) => (
-                    <motion.div
-                      key={vehicle.name}
-                      className={`p-3 rounded-xl border transition-all ${touchTarget} ${
-                        idx === selectedVehicleIndex 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border bg-card'
-                      }`}
-                      onClick={() => setSelectedVehicleIndex(idx)}
-                    >
-                      <div className="flex items-center space-x-3 min-w-0">
-                        <img 
-                          src={vehicle.image} 
-                          alt={vehicle.name}
-                          className="w-12 h-9 object-cover rounded-lg flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h5 className={`${textSize.sm} font-medium truncate`}>{vehicle.name}</h5>
-                          <p className={`${textSize.xs} text-primary font-semibold`}>
-                            AED {vehicle.price.toLocaleString()}
-                          </p>
-                        </div>
-                        {idx === selectedVehicleIndex && (
-                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-                        )}
+                  {/* Vehicle Info */}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      {vehicle.name}
+                    </h3>
+                    
+                    {/* Price Display */}
+                    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-red-600/10 via-red-500/15 to-amber-500/10 border border-red-500/20 backdrop-blur-xl">
+                      <div className="text-2xl font-black text-white mb-1">
+                        AED {vehicle.price.toLocaleString()}
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="detailed"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className={`${containerPadding} py-4`}
-            >
-              {/* Comparison Controls - Fully responsive */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className={`${textSize.sm} font-semibold text-foreground`}>Detailed Comparison</h3>
-                  <div className="flex items-center space-x-2">
-                    <label className={`${textSize.xs} text-muted-foreground`}>Show differences only</label>
-                    <button
-                      onClick={() => onShowDifferencesChange(!showOnlyDifferences)}
-                      className={`w-8 h-5 rounded-full transition-colors ${
-                        showOnlyDifferences ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    >
-                      <div className={`w-3 h-3 bg-background rounded-full transition-transform ${
-                        showOnlyDifferences ? 'translate-x-4' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed Comparison - Fully responsive */}
-              <div className="space-y-3">
-                {sections.map((section) => (
-                  <div key={section.title} className="bg-card rounded-xl border border-border overflow-hidden">
-                    <div className="bg-muted/50 px-3 py-2 border-b">
-                      <h3 className={`${textSize.sm} font-semibold text-foreground`}>{section.title}</h3>
+                      <div className="text-gray-400 text-sm">Starting price</div>
                     </div>
                     
-                    <div className="divide-y divide-border">
-                      {section.items.map((item) => (
-                        !showOnlyDifferences || hasDifferences(item.getValue, vehicles) ? (
-                          <div key={item.label} className="p-3">
-                            <div className={`${textSize.xs} font-medium text-muted-foreground mb-2`}>{item.label}</div>
-                            <div className="space-y-1">
-                              {vehicles.map((vehicle, idx) => (
-                                <div 
-                                  key={`${vehicle.name}-${item.label}`}
-                                  className={`flex justify-between items-center p-2 rounded-lg ${textSize.xs} ${
-                                    idx === selectedVehicleIndex 
-                                      ? 'bg-primary/10 border border-primary/20' 
-                                      : 'bg-muted/50'
-                                  }`}
-                                >
-                                  <span className="font-medium text-muted-foreground truncate flex-1 mr-2">
-                                    {vehicle.name.replace('Toyota ', '')}
-                                  </span>
-                                  <span className={`font-semibold text-right ${
-                                    idx === selectedVehicleIndex ? 'text-primary' : 'text-foreground'
-                                  }`}>
-                                    {item.getValue(vehicle)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : null
-                      ))}
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-1 gap-3">
+                      <Button
+                        className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-lg shadow-red-500/20 transition-all duration-500"
+                        asChild
+                      >
+                        <a href="/enquire">
+                          <Crown className="h-4 w-4 mr-2" />
+                          Enquire Now
+                        </a>
+                      </Button>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                          asChild
+                        >
+                          <a href={vehicle.configureUrl}>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Configure
+                          </a>
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-gradient-to-r from-red-600/20 to-red-500/20 border border-red-500/30 text-red-200 hover:from-red-600/30 hover:to-red-500/30 hover:text-white backdrop-blur-xl transition-all duration-500"
+                          asChild
+                        >
+                          <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
+                            <Star className="h-4 w-4 mr-2" />
+                            Test Drive
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </motion.div>
+                </div>
+              </motion.div>
+            )
           )}
         </AnimatePresence>
-      </div>
 
-      {/* Footer Actions - Fixed and responsive */}
-      <div className={`flex-shrink-0 bg-background border-t ${containerPadding} py-3`}>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={onClearAll} className={`${touchTarget} ${buttonSize}`}>
-            <span className="truncate">Close</span>
-          </Button>
-          <Button className={`bg-primary ${touchTarget} ${buttonSize}`} asChild>
-            <a href="/enquire">
-              <span className="truncate">Get Quote</span>
-            </a>
-          </Button>
+        {/* Luxury Specifications Sections */}
+        <div className="space-y-6">
+          {sections.map((section, sectionIndex) => {
+            const visibleItems = showOnlyDifferences
+              ? section.items.filter(item => {
+                  const values = vehicles.map(v => item.getValue(v));
+                  return new Set(values).size > 1;
+                })
+              : section.items;
+
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <motion.div
+                key={section.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: sectionIndex * 0.1 }}
+                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900/60 to-black/80 border border-gray-700/30 shadow-xl backdrop-blur-2xl"
+              >
+                {/* Section Header */}
+                <div className="p-4 border-b border-gray-700/30 bg-gradient-to-r from-red-600/10 via-red-500/15 to-amber-500/10">
+                  <h3 className="text-lg font-bold text-white flex items-center">
+                    <ChevronRight className="h-5 w-5 mr-2 text-red-400" />
+                    {section.title}
+                  </h3>
+                </div>
+
+                {/* Specifications */}
+                <div className="p-4">
+                  <div className="space-y-4">
+                    {visibleItems.map((item, itemIndex) => (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: itemIndex * 0.05 }}
+                        className="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-xl"
+                      >
+                        <span className="text-gray-300 font-medium text-sm">
+                          {item.label}
+                        </span>
+                        <span className="text-white font-semibold text-sm">
+                          {item.getValue(vehicles[currentVehicleIndex])}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
+
+        {/* Navigation Hint */}
+        {vehicles.length > 1 && (
+          <div className="mt-8 text-center">
+            <p className="text-gray-400 text-sm flex items-center justify-center">
+              <ChevronRight className="h-4 w-4 mr-1" />
+              Swipe or tap vehicle tabs to compare
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

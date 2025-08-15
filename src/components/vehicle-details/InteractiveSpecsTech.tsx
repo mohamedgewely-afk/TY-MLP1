@@ -13,6 +13,8 @@ import {
   ArrowUpDown,
   Zap,
   Gauge,
+  Star,
+  Crown,
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,77 +26,24 @@ interface InteractiveSpecsTechProps {
   vehicle: VehicleModel;
 }
 
-/** ---------- Luxury helpers (pure Tailwind, no global css) ---------- */
-const ShineSweep = ({ active = true }: { active?: boolean }) => (
-  <motion.div
-    initial={false}
-    animate={active ? { x: ["-150%", "130%"] } : { x: "-150%" }}
-    transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
-    className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 rotate-12 opacity-25"
-    style={{
-      background:
-        "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 45%, rgba(255,255,255,0) 100%)",
-    }}
-  />
-);
-
-const Aurora = ({ strong = false }: { strong?: boolean }) => (
-  <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-    <div
-      className={`absolute -top-16 -left-12 h-44 w-72 rounded-full blur-2xl ${
-        strong
-          ? "bg-gradient-to-br from-rose-400/35 via-fuchsia-400/30 to-indigo-400/25"
-          : "bg-gradient-to-br from-rose-400/20 via-fuchsia-400/15 to-indigo-400/10"
-      }`}
-    />
-    <div
-      className={`absolute -bottom-20 -right-10 h-56 w-80 rounded-full blur-3xl ${
-        strong
-          ? "bg-gradient-to-br from-emerald-400/30 via-cyan-400/25 to-blue-400/25"
-          : "bg-gradient-to-br from-emerald-400/15 via-cyan-400/15 to-blue-400/15"
-      }`}
-    />
-  </div>
-);
-
-/** Metallic gradient frame with glass interior */
-const GradientFrame: React.FC<{
-  active?: boolean;
-  children: React.ReactNode;
-  className?: string;
-}> = ({ active, children, className }) => (
-  <div
-    className={`relative rounded-2xl p-[1.6px] ${
-      active
-        ? "bg-[conic-gradient(at_30%_20%,rgba(255,255,255,.7),rgba(247,223,162,.9),rgba(255,255,255,.6),rgba(148,163,184,.7),rgba(255,255,255,.7))]"
-        : "bg-[linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,.1)_35%,rgba(148,163,184,.3)_75%,rgba(255,255,255,.2))]"
-    } shadow-[0_16px_48px_-18px_rgba(0,0,0,0.55)] ${className ?? ""}`}
-  >
-    <div className="rounded-[15px] bg-[rgba(9,10,14,0.55)] ring-1 ring-white/10 supports-[backdrop-filter]:backdrop-blur-xl overflow-hidden">
-      {children}
-    </div>
-  </div>
-);
-
-/** ---------- Animations ---------- */
 const luxuryVariants = {
   enter: {
     opacity: 0,
-    scale: 0.98,
-    y: 16,
-    transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1.0] },
+    scale: 0.95,
+    y: 20,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1.0] },
   },
   center: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1.0] },
+    transition: { duration: 0.7, ease: [0.25, 0.1, 0.25, 1.0] },
   },
   exit: {
     opacity: 0,
-    scale: 1.02,
-    y: -14,
-    transition: { duration: 0.35, ease: [0.77, 0, 0.175, 1] },
+    scale: 1.05,
+    y: -20,
+    transition: { duration: 0.4, ease: [0.77, 0, 0.175, 1] },
   },
 };
 
@@ -105,10 +54,9 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [imageLoading, setImageLoading] = useState<Record<number, boolean>>({});
   const isMobile = useIsMobile();
-  const { deviceCategory } = useDeviceInfo(); // not used visually, but keeping your API
+  const { deviceCategory } = useDeviceInfo();
   const { toast } = useToast();
 
-  /** ---------- Data (unchanged) ---------- */
   const engines = [
     {
       name: "2.5L Hybrid",
@@ -116,8 +64,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
       torque: "221 lb-ft",
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: "from-neutral-900 via-neutral-800 to-neutral-700",
-      accentColor: "bg-neutral-900",
+      brandColor: "from-emerald-600 via-emerald-500 to-teal-400",
+      accentColor: "bg-emerald-600",
       icon: <Zap className="h-5 w-5" />,
       grades: [
         {
@@ -254,7 +202,6 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const currentGrades = currentEngineData.grades;
   const currentGrade = currentGrades[currentGradeIndex];
 
-  /** ---------- Handlers ---------- */
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
     setCurrentGradeIndex(0);
@@ -280,37 +227,84 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
   const handleImageLoadStart = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: true }));
 
   return (
-    <section className="py-12 lg:py-20 bg-[radial-gradient(1100px_500px_at_15%_-10%,rgba(239,68,68,.06),transparent_60%),radial-gradient(1100px_500px_at_85%_110%,rgba(239,68,68,.05),transparent_60%)]">
-      <div className="toyota-container">
-        {/* Header */}
+    <section className="py-12 lg:py-20 bg-gradient-to-br from-gray-950 via-black to-gray-950 relative overflow-hidden">
+      {/* Luxury Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-red-900/10 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-amber-900/8 via-transparent to-transparent" />
+        
+        {/* Floating luxury particles */}
+        <div className="absolute inset-0">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-red-400/20 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -80, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.2, 0],
+              }}
+              transition={{
+                duration: 6 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 6,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Luxury grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+
+      <div className="toyota-container relative z-10">
+        {/* Luxury Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <Badge className="bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-300 text-black border-0 mb-4 shadow-lg">
+          <div className="flex items-center justify-center space-x-6 mb-8">
+            <div className="h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent w-24" />
+            <div className="relative">
+              <Crown className="h-8 w-8 text-red-500 animate-pulse" />
+              <div className="absolute inset-0 h-8 w-8 bg-red-500/20 rounded-full blur-xl animate-pulse" />
+            </div>
+            <div className="h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent w-24" />
+          </div>
+
+          <Badge className="bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-yellow-400/20 text-amber-200 border border-amber-400/30 mb-6 shadow-2xl shadow-amber-500/10 backdrop-blur-xl">
             <Sparkles className="h-4 w-4 mr-2" />
             Luxury Interactive Experience
           </Badge>
-          <h2 className="text-3xl lg:text-5xl font-black tracking-tight mb-4 lg:mb-6">
+          <h2 className="text-3xl lg:text-6xl font-black tracking-tight mb-4 lg:mb-6 bg-gradient-to-r from-white via-red-200 to-amber-200 bg-clip-text text-transparent drop-shadow-2xl">
             Choose Your Configuration
           </h2>
-          <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Select your preferred engine and explore grades with our interactive carousel.
+          <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Select your preferred engine and explore grades with our interactive luxury carousel.
           </p>
         </motion.div>
 
-        {/* Step 1: Engine Selection */}
+        {/* Step 1: Luxury Engine Selection */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-12"
         >
-          <h3 className="text-2xl font-bold text-center mb-8">Step 1: Choose Your Powertrain</h3>
+          <div className="text-center mb-8">
+            <h3 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
+              Step 1: Choose Your Powertrain
+            </h3>
+            <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto" />
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {engines.map((engine, i) => {
               const active = selectedEngine === engine.name;
               return (
@@ -320,87 +314,112 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                   initial="enter"
                   whileInView="center"
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  whileHover={{ y: -6 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
                   className="h-full"
                 >
-                  <GradientFrame active={active}>
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleEngineChange(engine.name)}
-                      className="relative overflow-hidden rounded-[15px]"
-                    >
-                      <Aurora strong={active} />
-                      {/* fine grain texture */}
-                      <div
-                        className="absolute inset-0 opacity-[.05] pointer-events-none"
-                        style={{
-                          background:
-                            "repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 1px, transparent 1px, transparent 6px)",
-                        }}
-                      />
-                      <div className="relative z-10 p-5 sm:p-6">
-                        {/* top row */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-9 h-9 rounded-lg ${engine.accentColor} text-white grid place-items-center shadow-lg shadow-black/30`}>
-                              {engine.icon}
-                            </div>
-                            {active && (
-                              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 420, damping: 30 }}>
-                                <Check className="h-5 w-5 text-emerald-400" />
-                              </motion.div>
-                            )}
+                  <div
+                    className={`
+                      relative overflow-hidden rounded-3xl transition-all duration-700 cursor-pointer group
+                      ${active 
+                        ? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-2 border-red-500/50 shadow-2xl shadow-red-500/20' 
+                        : 'bg-gradient-to-br from-gray-900/60 to-black/80 border border-gray-700/30 hover:border-red-500/30 shadow-xl'
+                      }
+                      backdrop-blur-2xl
+                    `}
+                    onClick={() => handleEngineChange(engine.name)}
+                  >
+                    {/* Luxury corner accents */}
+                    <div className={`absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
+                    <div className={`absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
+                    <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
+                    <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 transition-colors duration-500 ${active ? 'border-red-400' : 'border-red-500/30 group-hover:border-red-400/60'}`} />
+
+                    {/* Glow effect for active state */}
+                    {active && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-red-500/10 to-red-500/5 animate-pulse" />
+                    )}
+
+                    <div className="relative z-10 p-6 sm:p-8">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-2xl ${engine.accentColor} text-white grid place-items-center shadow-2xl shadow-black/50 group-hover:scale-110 transition-transform duration-500`}>
+                            {engine.icon}
                           </div>
-                          {active && <ShineSweep />}
+                          {active && (
+                            <motion.div 
+                              initial={{ scale: 0, rotate: -180 }} 
+                              animate={{ scale: 1, rotate: 0 }} 
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 grid place-items-center shadow-lg shadow-emerald-500/30">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
-
-                        <h4 className={`font-semibold mb-1 ${isMobile ? "text-base" : "text-lg"}`}>{engine.name}</h4>
-                        <p className={`text-muted-foreground mb-4 ${isMobile ? "text-xs" : "text-sm"} leading-tight`}>
-                          {isMobile ? `${engine.power} • ${engine.efficiency}` : engine.description}
-                        </p>
-
-                        {!isMobile && (
-                          <div className="grid grid-cols-2 gap-2 text-center">
-                            <div className="rounded-lg p-2 bg-white/5 ring-1 ring-white/10">
-                              <div className="font-bold text-base text-white drop-shadow">{engine.power}</div>
-                              <div className="text-xs text-white/70">Power</div>
-                            </div>
-                            <div className="rounded-lg p-2 bg-white/5 ring-1 ring-white/10">
-                              <div className="font-bold text-base text-white drop-shadow">{engine.efficiency}</div>
-                              <div className="text-xs text-white/70">Efficiency</div>
-                            </div>
-                          </div>
-                        )}
-
                         {active && (
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 0.6 }}
-                            className={`absolute bottom-0 left-0 h-[3px] bg-gradient-to-r ${engine.brandColor}`}
-                          />
+                          <Star className="h-6 w-6 text-amber-400 animate-pulse" />
                         )}
                       </div>
+
+                      <h4 className={`font-bold mb-2 text-lg lg:text-xl ${active ? 'text-white' : 'text-gray-200 group-hover:text-white'} transition-colors duration-500`}>
+                        {engine.name}
+                      </h4>
+                      <p className={`mb-6 text-sm lg:text-base leading-relaxed ${active ? 'text-gray-300' : 'text-gray-400 group-hover:text-gray-300'} transition-colors duration-500`}>
+                        {isMobile ? `${engine.power} • ${engine.efficiency}` : engine.description}
+                      </p>
+
+                      {!isMobile && (
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="rounded-2xl p-4 bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-xl group-hover:from-white/10 group-hover:to-white/15 transition-all duration-500">
+                            <div className="font-bold text-lg text-white drop-shadow-lg">{engine.power}</div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wider">Power</div>
+                          </div>
+                          <div className="rounded-2xl p-4 bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-xl group-hover:from-white/10 group-hover:to-white/15 transition-all duration-500">
+                            <div className="font-bold text-lg text-white drop-shadow-lg">{engine.efficiency}</div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wider">Efficiency</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {active && (
+                        <motion.div
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: "100%", opacity: 1 }}
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                          className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${engine.brandColor} shadow-lg`}
+                        />
+                      )}
                     </div>
-                  </GradientFrame>
+                  </div>
                 </motion.div>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Carousel */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-8">
+        {/* Step 2: Luxury Grade Carousel */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true }} 
+          className="mb-8"
+        >
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-bold">Step 2: Choose Your Grade</h3>
+            <div className="text-center sm:text-left">
+              <h3 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
+                Step 2: Choose Your Grade
+              </h3>
+              <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto sm:mx-0" />
+            </div>
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowComparisonModal(true)}
-                className="transition-all duration-300"
+                className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
                 style={{ minHeight: "44px" }}
               >
                 <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -409,159 +428,213 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
             </div>
           </div>
 
-          <div className="relative max-w-3xl mx-auto">
-            {/* arrows */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Luxury Navigation Arrows */}
             <button
               onClick={prevGrade}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/95 backdrop-blur border hover:shadow-xl transition-all -translate-x-4"
-              style={{ minHeight: "44px", minWidth: "44px" }}
-              aria-label="Previous grade"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-900/80 backdrop-blur-2xl border border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/90 shadow-2xl transition-all duration-500 -translate-x-6"
+              style={{ minHeight: "56px", minWidth: "56px" }}
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-6 w-6 text-gray-300 hover:text-white transition-colors" />
             </button>
             <button
               onClick={nextGrade}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/95 backdrop-blur border hover:shadow-xl transition-all translate-x-4"
-              style={{ minHeight: "44px", minWidth: "44px" }}
-              aria-label="Next grade"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-gray-900/80 backdrop-blur-2xl border border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/90 shadow-2xl transition-all duration-500 translate-x-6"
+              style={{ minHeight: "56px", minWidth: "56px" }}
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6 text-gray-300 hover:text-white transition-colors" />
             </button>
 
-            {/* grade card */}
-            <div className="mx-8">
+            {/* Luxury Grade Card */}
+            <div className="mx-12">
               <AnimatePresence mode="wait">
-                <motion.div key={`${selectedEngine}-${currentGradeIndex}`} variants={luxuryVariants} initial="enter" animate="center" exit="exit">
-                  <GradientFrame active>
-                    <Card className="overflow-hidden bg-transparent border-0 shadow-none">
-                      <CardContent className="p-0">
-                        {/* header */}
-                        <div className="relative p-5 sm:p-6 text-white rounded-t-[15px] overflow-hidden">
-                          <div className={`absolute inset-0 bg-gradient-to-r ${currentEngineData.brandColor} opacity-95`} />
-                          {/* guilloché */}
-                          <div
-                            className="absolute inset-0 opacity-25"
-                            style={{
-                              background:
-                                "repeating-linear-gradient(135deg, rgba(255,255,255,0.09) 0, rgba(255,255,255,0.09) 2px, transparent 2px, transparent 6px)",
-                            }}
-                          />
-                          <Aurora strong />
-                          <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="text-xl lg:text-2xl font-semibold tracking-wide drop-shadow">{currentGrade.name}</h4>
-                              <Badge className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 text-black font-semibold border-yellow-200 shadow">
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                {currentGrade.highlight}
-                              </Badge>
-                            </div>
-                            <p className="text-white/90 text-sm mb-3">{currentGrade.description}</p>
-                            <div className="pt-3 border-t border-white/20">
-                              <div className="flex items-end justify-between">
-                                <div>
-                                  <div className="text-2xl lg:text-3xl font-bold drop-shadow-sm">
-                                    AED {currentGrade.fullPrice.toLocaleString()}
-                                  </div>
-                                  <div className="text-white/80 text-sm">From AED {currentGrade.monthlyEMI}/month</div>
+                <motion.div 
+                  key={`${selectedEngine}-${currentGradeIndex}`} 
+                  variants={luxuryVariants} 
+                  initial="enter" 
+                  animate="center" 
+                  exit="exit"
+                >
+                  <Card className="overflow-hidden bg-gradient-to-br from-gray-900/80 to-black/90 border-2 border-gray-700/30 shadow-2xl backdrop-blur-2xl">
+                    <CardContent className="p-0">
+                      {/* Luxury Header */}
+                      <div className="relative p-6 sm:p-8 text-white rounded-t-3xl overflow-hidden">
+                        <div className={`absolute inset-0 bg-gradient-to-br ${currentEngineData.brandColor} opacity-90`} />
+                        
+                        {/* Luxury pattern overlay */}
+                        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.1)_0,rgba(255,255,255,0.1)_2px,transparent_2px,transparent_8px)] opacity-30" />
+                        
+                        {/* Floating light effects */}
+                        <div className="absolute inset-0">
+                          {[...Array(3)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="absolute w-32 h-32 bg-white/10 rounded-full blur-3xl"
+                              style={{
+                                left: `${20 + i * 30}%`,
+                                top: `${10 + i * 20}%`,
+                              }}
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.6, 0.3],
+                              }}
+                              transition={{
+                                duration: 4 + i,
+                                repeat: Infinity,
+                                delay: i * 0.5,
+                              }}
+                            />
+                          ))}
+                        </div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-2xl lg:text-3xl font-bold tracking-wide drop-shadow-2xl">
+                              {currentGrade.name}
+                            </h4>
+                            <Badge className="bg-gradient-to-r from-amber-500/90 to-amber-400/90 text-black font-bold border-amber-300/50 shadow-2xl shadow-amber-500/20 backdrop-blur-xl">
+                              <Crown className="h-4 w-4 mr-1" />
+                              {currentGrade.highlight}
+                            </Badge>
+                          </div>
+                          <p className="text-white/90 text-base mb-6 leading-relaxed drop-shadow-lg">
+                            {currentGrade.description}
+                          </p>
+                          <div className="pt-6 border-t border-white/20">
+                            <div className="flex items-end justify-between">
+                              <div>
+                                <div className="text-3xl lg:text-4xl font-black drop-shadow-2xl mb-1">
+                                  AED {currentGrade.fullPrice.toLocaleString()}
+                                </div>
+                                <div className="text-white/80 text-base">
+                                  From AED {currentGrade.monthlyEMI}/month
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
+                      </div>
 
-                        {/* image */}
-                        <div className="relative overflow-hidden h-64 lg:h-80">
-                          <img
-                            src={currentGrade.image}
-                            alt={`${currentGrade.name} Grade`}
-                            className="w-full h-full object-contain sm:object-cover"
-                            loading="lazy"
-                            onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
-                            onLoad={() => handleImageLoad(currentGradeIndex)}
-                            onError={() => handleImageLoad(currentGradeIndex)}
+                      {/* Luxury Image Section */}
+                      <div className="relative overflow-hidden h-72 lg:h-96 bg-gradient-to-br from-gray-900 to-black">
+                        <img
+                          src={currentGrade.image}
+                          alt={`${currentGrade.name} Grade`}
+                          className="w-full h-full object-contain sm:object-cover filter drop-shadow-2xl"
+                          loading="lazy"
+                          onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
+                          onLoad={() => handleImageLoad(currentGradeIndex)}
+                          onError={() => handleImageLoad(currentGradeIndex)}
+                        />
+                        
+                        {/* Luxury glass reflection effect */}
+                        <div className="pointer-events-none absolute inset-0">
+                          <div 
+                            className="absolute inset-0 opacity-30"
+                            style={{
+                              background: "linear-gradient(120deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.0) 60%)",
+                              transform: "skewX(-15deg)",
+                            }}
                           />
-                          {/* glass reflection */}
-                          <div className="pointer-events-none absolute inset-0">
-                            <div className="absolute inset-0"
-                              style={{
-                                background:
-                                  "linear-gradient(120deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.0) 60%)",
-                                transform: "skewX(-10deg)",
-                              }}
-                            />
-                          </div>
-                          <ShineSweep />
                         </div>
+                        
+                        {/* Premium shine effect */}
+                        <motion.div
+                          className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 rotate-12 opacity-20"
+                          style={{
+                            background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 45%, rgba(255,255,255,0) 100%)",
+                          }}
+                          animate={{ x: ["-150%", "130%"] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </div>
 
-                        {/* body */}
-                        <div className="p-5 sm:p-6">
-                          {/* features */}
-                          <div className="mb-6">
-                            <h5 className="font-semibold mb-3">Key Features</h5>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                              {currentGrade.features.map((feature: string, idx: number) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <Check className="h-4 w-4 text-emerald-500/90" />
-                                  <span className="text-sm text-muted-foreground">{feature}</span>
+                      {/* Luxury Content Body */}
+                      <div className="p-6 sm:p-8 bg-gradient-to-br from-gray-900/60 to-black/80">
+                        {/* Features Section */}
+                        <div className="mb-8">
+                          <h5 className="font-bold text-lg text-white mb-4 flex items-center">
+                            <Sparkles className="h-5 w-5 mr-2 text-red-400" />
+                            Key Features
+                          </h5>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            {currentGrade.features.map((feature: string, idx: number) => (
+                              <motion.div 
+                                key={idx}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-xl"
+                              >
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 grid place-items-center shadow-lg shadow-emerald-500/30">
+                                  <Check className="h-3 w-3 text-white" />
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* actions */}
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                            <Button
-                              onClick={() => {
-                                setSelectedGrade(currentGrade.name);
-                                selectCurrentGrade();
-                              }}
-                              className={`transition-all duration-300 ${
-                                selectedGrade === currentGrade.name
-                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                  : `bg-gradient-to-r ${currentEngineData.brandColor}`
-                              }`}
-                              style={{ minHeight: "44px" }}
-                            >
-                              {selectedGrade === currentGrade.name ? (
-                                <>
-                                  <Check className="h-4 w-4 mr-2" />
-                                  Selected
-                                </>
-                              ) : (
-                                "Select Grade"
-                              )}
-                            </Button>
-
-                            <Button variant="outline" style={{ minHeight: "44px" }}>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download Spec
-                            </Button>
-
-                            <Button variant="outline" style={{ minHeight: "44px" }}>
-                              <Wrench className="h-4 w-4 mr-2" />
-                              Configure
-                            </Button>
+                                <span className="text-sm text-gray-300 font-medium">{feature}</span>
+                              </motion.div>
+                            ))}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </GradientFrame>
+
+                        {/* Luxury Action Buttons */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          <Button
+                            onClick={() => {
+                              setSelectedGrade(currentGrade.name);
+                              selectCurrentGrade();
+                            }}
+                            className={`transition-all duration-500 text-white font-semibold shadow-2xl ${
+                              selectedGrade === currentGrade.name
+                                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-emerald-500/30"
+                                : `bg-gradient-to-r ${currentEngineData.brandColor} hover:scale-105 shadow-red-500/20`
+                            }`}
+                            style={{ minHeight: "48px" }}
+                          >
+                            {selectedGrade === currentGrade.name ? (
+                              <>
+                                <Check className="h-4 w-4 mr-2" />
+                                Selected
+                              </>
+                            ) : (
+                              "Select Grade"
+                            )}
+                          </Button>
+
+                          <Button 
+                            variant="outline" 
+                            className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                            style={{ minHeight: "48px" }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Spec
+                          </Button>
+
+                          <Button 
+                            variant="outline"
+                            className="bg-gray-900/60 border-gray-700/40 text-gray-300 hover:bg-gray-800/80 hover:text-white hover:border-red-500/40 backdrop-blur-xl transition-all duration-500"
+                            style={{ minHeight: "48px" }}
+                          >
+                            <Wrench className="h-4 w-4 mr-2" />
+                            Configure
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* indicators */}
-            <div className="flex justify-center gap-2 mt-6">
+            {/* Luxury Indicators */}
+            <div className="flex justify-center gap-3 mt-8">
               {currentGrades.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentGradeIndex(idx)}
-                  className={`rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`rounded-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     idx === currentGradeIndex
-                      ? "bg-red-500 w-8 h-2.5 shadow-[0_0_0_3px_rgba(239,68,68,.2)]"
-                      : "bg-gray-400/50 w-2.5 h-2.5 hover:bg-gray-300"
+                      ? "bg-gradient-to-r from-red-500 to-red-400 w-12 h-3 shadow-lg shadow-red-500/50"
+                      : "bg-gray-600/50 w-3 h-3 hover:bg-gray-500/70 hover:scale-125"
                   }`}
-                  aria-label={`Go to grade ${idx + 1}`}
                 />
               ))}
             </div>
@@ -569,7 +642,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
         </motion.div>
       </div>
 
-      {/* comparison modal */}
+      {/* Comparison Modal */}
       <GradeComparisonModal
         isOpen={showComparisonModal}
         onClose={() => setShowComparisonModal(false)}
