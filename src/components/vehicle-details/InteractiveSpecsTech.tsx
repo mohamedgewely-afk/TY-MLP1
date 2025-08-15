@@ -323,8 +323,8 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
                     className={`
                       relative overflow-hidden rounded-3xl transition-all duration-700 cursor-pointer group
                       ${active 
-                        ? 'bg-gradient-to-br from-gray-600/90 to-gray-700/90 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20' 
-                        : 'bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 hover:border-blue-500/30 shadow-xl'
+                        ? 'bg-gradient-to-br bg-white-600/90 to-gray-700/90 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20' 
+                        : 'bg-gradient-to-br bg-white-700/60 to-gray-800/80 border border-gray-600/30 hover:border-blue-500/30 shadow-xl'
                       }
                       backdrop-blur-2xl
                     `}
