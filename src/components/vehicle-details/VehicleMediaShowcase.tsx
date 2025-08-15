@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -20,7 +21,8 @@ import {
   Award,
   Sparkles,
   Info,
-  Camera
+  Camera,
+  Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,7 +66,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Enhanced media content with rich details and multiple images per item
+  // Enhanced media content with 6 cards and rich details
   const mediaItems: MediaItem[] = [
     {
       id: "performance",
@@ -84,22 +86,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         {
           url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
           title: "Engine Bay Overview",
-          description: "Complete view of the V6 twin-turbo engine"
+          description: "Complete view of the V6 twin-turbo engine with advanced cooling systems and precision engineering"
         },
         {
           url: "https://images.unsplash.com/photo-1619976215249-72c1eb36042e?auto=format&fit=crop&w=1200&q=80",
           title: "Turbocharger Detail",
-          description: "Advanced twin-turbo technology up close"
+          description: "Advanced twin-turbo technology featuring variable geometry turbines for optimal power delivery"
         },
         {
           url: "https://images.unsplash.com/photo-1486650547751-9f3f9db50009?auto=format&fit=crop&w=1200&q=80",
           title: "Performance Specs",
-          description: "Technical specifications and performance data"
+          description: "Technical specifications showcasing industry-leading performance metrics and efficiency ratings"
         },
         {
           url: "https://images.unsplash.com/photo-1544829099-b9a0c5303bea?auto=format&fit=crop&w=1200&q=80",
           title: "Engine Control Unit",
-          description: "Advanced ECU and engine management systems"
+          description: "State-of-the-art ECU managing engine parameters for optimal performance and fuel economy"
         }
       ]
     },
@@ -120,22 +122,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         {
           url: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80",
           title: "Dashboard Overview",
-          description: "Premium dashboard with digital displays"
+          description: "Premium dashboard featuring digital instrument cluster and intuitive control layout"
         },
         {
           url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
           title: "Leather Seats",
-          description: "Hand-crafted leather seating with premium stitching"
+          description: "Hand-crafted leather seating with premium stitching and ergonomic support design"
         },
         {
           url: "https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?auto=format&fit=crop&w=1200&q=80",
           title: "Center Console",
-          description: "Ergonomic center console with premium materials"
+          description: "Ergonomic center console with premium materials and convenient storage solutions"
         },
         {
           url: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80",
           title: "Rear Seating",
-          description: "Spacious rear passenger compartment"
+          description: "Spacious rear passenger compartment with individual climate controls and premium amenities"
         }
       ]
     },
@@ -153,7 +155,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         benefits: ["Accident prevention", "Stress reduction", "Confident driving"],
         technology: ["Radar sensors", "Camera systems", "AI processing"]
       },
-      isPremium: true
+      isPremium: true,
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+          title: "Safety Overview",
+          description: "Comprehensive safety suite featuring advanced driver assistance systems and protective technologies"
+        }
+      ]
     },
     {
       id: "handling",
@@ -167,7 +176,24 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         specs: ["Adaptive suspension", "All-wheel drive", "Sport mode", "Electronic stability"],
         benefits: ["Superior grip", "Smooth ride", "Confident cornering"],
         technology: ["Active dampers", "Torque vectoring", "Drive mode selection"]
-      }
+      },
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+          title: "Suspension System",
+          description: "Advanced adaptive suspension technology providing optimal balance between comfort and performance"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80",
+          title: "Wheel Design",
+          description: "Performance-oriented wheel design with advanced brake cooling and aerodynamic efficiency"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=80",
+          title: "Drive Modes",
+          description: "Multiple drive modes allowing customization of vehicle dynamics for any driving situation"
+        }
+      ]
     },
     {
       id: "tech",
@@ -181,7 +207,55 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         specs: ["Apple CarPlay", "Android Auto", "WiFi hotspot", "OTA updates"],
         benefits: ["Seamless integration", "Always updated", "Enhanced convenience"],
         technology: ["5G connectivity", "Cloud services", "AI assistant"]
-      }
+      },
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=1200&q=80",
+          title: "Infotainment System",
+          description: "Advanced infotainment system with intuitive interface and seamless smartphone integration"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=1200&q=80",
+          title: "Digital Cockpit",
+          description: "Fully digital instrument cluster providing real-time vehicle information and customizable displays"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&w=1200&q=80",
+          title: "Connected Services",
+          description: "Cloud-based services providing remote vehicle monitoring, maintenance alerts, and over-the-air updates"
+        }
+      ]
+    },
+    {
+      id: "build-quality",
+      type: "image",
+      url: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80",
+      title: "Premium Build Quality",
+      description: "Exceptional craftsmanship and attention to detail in every component",
+      category: "Quality",
+      icon: Wrench,
+      details: {
+        specs: ["High-strength steel", "Premium paint finish", "Precision assembly", "Quality control"],
+        benefits: ["Long-lasting durability", "Refined appearance", "Reduced maintenance"],
+        technology: ["Advanced materials", "Robotic assembly", "Quality testing"]
+      },
+      galleryImages: [
+        {
+          url: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80",
+          title: "Manufacturing Excellence",
+          description: "State-of-the-art manufacturing processes ensuring consistent quality and precision in every vehicle"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1200&q=80",
+          title: "Material Quality",
+          description: "Premium materials selected for durability, sustainability, and luxurious feel throughout the vehicle"
+        },
+        {
+          url: "https://images.unsplash.com/photo-1616047006789-b7af710a08da?auto=format&fit=crop&w=1200&q=80",
+          title: "Finish Details",
+          description: "Meticulous attention to finish details including paint quality, panel gaps, and surface textures"
+        }
+      ]
     }
   ];
 
@@ -193,6 +267,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
 
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
+    setModalImageIndex(0); // Reset to first image when opening modal
   };
 
   const closeModal = () => {
@@ -228,6 +303,18 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     if (selectedMedia?.galleryImages) {
       setModalImageIndex(prev => (prev - 1 + selectedMedia.galleryImages!.length) % selectedMedia.galleryImages!.length);
     }
+  };
+
+  // Get current image data for display
+  const getCurrentImageData = () => {
+    if (selectedMedia?.galleryImages && selectedMedia.galleryImages[modalImageIndex]) {
+      return selectedMedia.galleryImages[modalImageIndex];
+    }
+    return {
+      url: selectedMedia?.url || '',
+      title: selectedMedia?.title || '',
+      description: selectedMedia?.description || ''
+    };
   };
 
   return (
@@ -286,7 +373,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           </div>
         </div>
 
-        {/* Desktop Grid */}
+        {/* Desktop Grid - Now 2x3 grid for 6 cards */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
           {mediaItems.map((media, index) => (
             <motion.div
@@ -305,7 +392,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         </div>
       </div>
 
-      {/* Enhanced Detailed Modal with Image Gallery */}
+      {/* Enhanced Detailed Modal with Dynamic Image Text */}
       <AnimatePresence>
         {selectedMedia && (
           <motion.div
@@ -343,13 +430,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 <div className="relative">
                   {/* Main Image Display */}
                   <div className="relative h-64 md:h-96 bg-muted">
-                    {selectedMedia.galleryImages && selectedMedia.galleryImages[modalImageIndex] && (
-                      <img
-                        src={selectedMedia.galleryImages[modalImageIndex].url}
-                        alt={selectedMedia.galleryImages[modalImageIndex].title}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                    <img
+                      src={getCurrentImageData().url}
+                      alt={getCurrentImageData().title}
+                      className="w-full h-full object-cover"
+                    />
                     
                     {/* Navigation Arrows */}
                     {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
@@ -402,23 +487,21 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                     </div>
                   )}
 
-                  {/* Current Image Info */}
-                  {selectedMedia.galleryImages && selectedMedia.galleryImages[modalImageIndex] && (
-                    <div className="p-4 border-t">
-                      <h4 className="font-semibold mb-1">
-                        {selectedMedia.galleryImages[modalImageIndex].title}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedMedia.galleryImages[modalImageIndex].description}
-                      </p>
-                    </div>
-                  )}
+                  {/* Dynamic Image Info - Updates with each image */}
+                  <div className="p-4 border-t">
+                    <h4 className="font-semibold mb-1">
+                      {getCurrentImageData().title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {getCurrentImageData().description}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Content Section */}
                 <div className="p-6 overflow-y-auto">
                   <div className="space-y-6">
-                    {/* Description */}
+                    {/* Main Description */}
                     <div>
                       <p className="text-muted-foreground text-lg leading-relaxed">
                         {selectedMedia.description}
@@ -426,7 +509,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                     </div>
 
                     {/* Details Grid */}
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-1 gap-6">
                       {selectedMedia.details.specs && (
                         <div className="space-y-3">
                           <h4 className="font-semibold flex items-center">
@@ -517,7 +600,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   );
 };
 
-// Media Card Component
+// Media Card Component with increased height
 interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
@@ -534,8 +617,8 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
     >
       <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-background to-muted/20 hover:shadow-2xl transition-all duration-300">
         <div className="relative">
-          {/* Media Preview */}
-          <div className="relative h-48 md:h-56 overflow-hidden">
+          {/* Media Preview - Increased height */}
+          <div className="relative h-64 md:h-80 overflow-hidden">
             <img 
               src={media.url} 
               alt={media.title}
