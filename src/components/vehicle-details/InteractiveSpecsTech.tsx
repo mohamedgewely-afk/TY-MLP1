@@ -267,12 +267,214 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle }) 
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Carousel */}
-        {/* This part stays mostly same but with dark/red styling */}
-        {/* ... */}
+                {/* Step 2: Grade Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-6"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-center sm:text-left">
+              <h3 className="text-xl lg:text-3xl font-semibold text-white mb-1">
+                Step 2: Choose Your Grade
+              </h3>
+              <div className="w-20 lg:w-24 h-[2px] bg-[#EB0A1E]" />
+            </div>
+            <div className="hidden sm:flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowComparisonModal(true)}
+                className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
+                style={{ minHeight: "40px" }}
+              >
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                Compare Grades
+              </Button>
+            </div>
+            <div className="sm:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowComparisonModal(true)}
+                className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
+                style={{ minHeight: "36px" }}
+              >
+                Compare
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative max-w-4xl mx-auto">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevGrade}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-[#EB0A1E] text-white hover:bg-red-700 shadow-lg -translate-x-4 sm:-translate-x-6"
+              aria-label="Previous grade"
+            >
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+            <button
+              onClick={nextGrade}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-[#EB0A1E] text-white hover:bg-red-700 shadow-lg translate-x-4 sm:translate-x-6"
+              aria-label="Next grade"
+            >
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+
+            {/* Grade Card */}
+            <div className="mx-6 sm:mx-12">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${selectedEngine}-${currentGradeIndex}`}
+                  variants={luxuryVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                >
+                  <Card className="overflow-hidden bg-white/5 border border-gray-700 rounded-xl backdrop-blur-md">
+                    <CardContent className="p-0">
+                      {/* Header */}
+                      <div className="relative p-4 sm:p-8 rounded-t-xl overflow-hidden">
+                        <div className={`absolute inset-0 bg-gradient-to-br ${TOYOTA_RED} opacity-20`} />
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3 sm:mb-4">
+                            <h4 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white">
+                              {currentGrade.name}
+                            </h4>
+                            <Badge className="bg-[#EB0A1E] text-white border-none font-medium shadow-md">
+                              {currentGrade.highlight}
+                            </Badge>
+                          </div>
+                          <p className="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed">
+                            {currentGrade.description}
+                          </p>
+                          <div className="pt-4 sm:pt-6 border-t border-gray-700">
+                            <div className="flex items-end justify-between">
+                              <div>
+                                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-1">
+                                  AED {currentGrade.fullPrice.toLocaleString()}
+                                </div>
+                                <div className="text-gray-400 text-sm sm:text-base">
+                                  From AED {currentGrade.monthlyEMI}/month
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Image */}
+                      <div className="relative overflow-hidden h-48 sm:h-72 lg:h-96 bg-black">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-[#EB0A1E]/30 to-transparent pointer-events-none" />
+                        <img
+                          src={currentGrade.image}
+                          alt={`${currentGrade.name} Grade`}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                          onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
+                          onLoad={() => handleImageLoad(currentGradeIndex)}
+                          onError={() => handleImageLoad(currentGradeIndex)}
+                        />
+                      </div>
+
+                      {/* Features */}
+                      <div className="p-4 sm:p-8 bg-white/5 border-t border-gray-700">
+                        <div className="mb-6 sm:mb-8">
+                          <h5 className="font-semibold text-base sm:text-lg text-white mb-3 sm:mb-4">
+                            Key Features
+                          </h5>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
+                            {currentGrade.features.map((feature: string, idx: number) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-black/20 border border-gray-700"
+                              >
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#EB0A1E] grid place-items-center">
+                                  <Check className="h-3 w-3 text-white" />
+                                </div>
+                                <span className="text-xs sm:text-sm text-gray-200 font-medium">{feature}</span>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                          <Button
+                            onClick={() => {
+                              setSelectedGrade(currentGrade.name);
+                              selectCurrentGrade();
+                            }}
+                            className={`transition-all duration-300 font-semibold bg-[#EB0A1E] hover:bg-red-700 text-white`}
+                          >
+                            {selectedGrade === currentGrade.name ? (
+                              <>
+                                <Check className="h-4 w-4 mr-2" />
+                                Selected
+                              </>
+                            ) : (
+                              "Select Grade"
+                            )}
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Spec
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
+                          >
+                            <Wrench className="h-4 w-4 mr-2" />
+                            Configure
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center gap-2 sm:gap-3 mt-6">
+              {currentGrades.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentGradeIndex(idx)}
+                  className={`rounded-full transition-all duration-400 ${
+                    idx === currentGradeIndex
+                      ? "bg-[#EB0A1E] w-8 sm:w-12 h-1.5 sm:h-2 shadow-red-500/40"
+                      : "bg-gray-600 w-1.5 h-1.5 sm:w-2 sm:h-2 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Go to grade ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </div>
+
+      {/* Comparison Modal */}
+      <GradeComparisonModal
+        isOpen={showComparisonModal}
+        onClose={() => setShowComparisonModal(false)}
+        currentEngineData={currentEngineData}
+        onGradeSelect={setSelectedGrade}
+        selectedGrade={selectedGrade}
+      />
     </section>
   );
 };
 
 export default InteractiveSpecsTech;
+
