@@ -13,11 +13,14 @@ import {
   ArrowUpDown,
   Zap,
   Gauge,
+  Star,
+  Crown,
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { useToast } from "@/hooks/use-toast";
+import { useSwipeable } from "@/hooks/use-swipeable";
 import GradeComparisonModal from "./GradeComparisonModal";
 
 interface InteractiveSpecsTechProps {
@@ -27,12 +30,14 @@ interface InteractiveSpecsTechProps {
 }
 
 const luxuryVariants = {
-  enter: { opacity: 0, scale: 0.98, y: 16, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-  center: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-  exit:  { opacity: 0, scale: 1.02, y: -16, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+  enter: { opacity: 0, scale: 0.95, x: 100, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  center: { opacity: 1, scale: 1, x: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  exit: { opacity: 0, scale: 0.95, x: -100, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
 };
 
-const TOYOTA_RED = "from-[#EB0A1E] via-[#d80a1b] to-[#EB0A1E]";
+// Toyota.ae official red color
+const TOYOTA_RED = "#CC0000";
+const TOYOTA_RED_GRADIENT = "from-[#CC0000] via-[#e60000] to-[#CC0000]";
 
 const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ 
   vehicle, 
@@ -172,25 +177,45 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
     }
   };
 
+  const handleTestDriveClick = () => {
+    if (onBookTestDrive) {
+      onBookTestDrive({
+        engine: selectedEngine,
+        grade: currentGrade.name
+      });
+    }
+  };
+
+  // Swipe functionality for mobile
+  const swipeRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: nextGrade,
+    onSwipeRight: prevGrade,
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false,
+  });
+
   return (
-    <section className="py-8 lg:py-16 bg-[#111] text-white">
+    <section className="py-12 lg:py-20 bg-gray-50">
       <div className="toyota-container">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8 lg:mb-12"
+          className="text-center mb-8 lg:mb-16"
         >
-          <Badge className="bg-[#EB0A1E] text-white border-none mb-3 shadow-lg shadow-red-900/40">
+          <Badge 
+            className="mb-4 shadow-lg shadow-red-200/40 border-0"
+            style={{ backgroundColor: TOYOTA_RED, color: 'white' }}
+          >
             <Sparkles className="h-4 w-4 mr-2" />
             Interactive Experience
           </Badge>
-          <h2 className="text-[28px] lg:text-5xl font-black text-white mb-2 lg:mb-4">
+          <h2 className="text-[32px] lg:text-6xl font-black text-gray-900 mb-4 lg:mb-6">
             Choose Your Configuration
           </h2>
-          <p className="text-base lg:text-xl text-gray-300 max-w-3xl mx-auto">
-            Select your preferred engine and explore grades with our interactive carousel.
+          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
+            Select your preferred engine and explore grades with our premium carousel experience.
           </p>
         </motion.div>
 
@@ -199,14 +224,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10"
+          className="mb-16"
         >
-          <h3 className="text-xl lg:text-2xl font-semibold text-center mb-6 text-white">
+          <h3 className="text-2xl lg:text-3xl font-bold text-center mb-8 text-gray-900">
             Step 1: Choose Your Powertrain
           </h3>
 
-          {/* Mobile compact layout */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {engines.map((engine, i) => {
               const active = selectedEngine === engine.name;
               return (
@@ -216,64 +240,68 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
                   initial="enter"
                   whileInView="center"
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  whileHover={{ y: -2, scale: 1.005 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
                   className="h-full"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-xl transition-all duration-400 cursor-pointer backdrop-blur-md
+                    className={`relative overflow-hidden rounded-2xl transition-all duration-500 cursor-pointer border-2 bg-white shadow-lg hover:shadow-xl
                       ${active
-                        ? "bg-white/10 border-2 border-[#EB0A1E] shadow-red-500/20"
-                        : "bg-white/5 border border-gray-700 hover:border-[#EB0A1E]/60"
+                        ? "border-[#CC0000] shadow-red-100/60"
+                        : "border-gray-200 hover:border-gray-300"
                       }`}
                     onClick={() => handleEngineChange(engine.name)}
                   >
-                    {active && <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#EB0A1E] via-red-600 to-[#EB0A1E]" />}
+                    {active && (
+                      <div 
+                        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r"
+                        style={{ backgroundImage: `linear-gradient(to right, ${TOYOTA_RED}, #e60000, ${TOYOTA_RED})` }}
+                      />
+                    )}
 
-                    <div className="relative z-10 p-3 sm:p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-2 sm:mb-4">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${engine.accentColor} text-white grid place-items-center shadow-md`}>
+                    <div className="relative z-10 p-6 lg:p-8">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div 
+                            className="w-14 h-14 rounded-xl text-white grid place-items-center shadow-lg"
+                            style={{ backgroundColor: TOYOTA_RED }}
+                          >
                             {engine.icon}
                           </div>
                           {active && (
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 18 }}>
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#EB0A1E] grid place-items-center shadow-md">
-                                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                            <motion.div 
+                              initial={{ scale: 0 }} 
+                              animate={{ scale: 1 }} 
+                              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                            >
+                              <div 
+                                className="w-8 h-8 rounded-full grid place-items-center shadow-md"
+                                style={{ backgroundColor: TOYOTA_RED }}
+                              >
+                                <Check className="h-4 w-4 text-white" />
                               </div>
                             </motion.div>
                           )}
                         </div>
                       </div>
 
-                      <h4 className="font-semibold mb-0.5 sm:mb-1 text-sm sm:text-lg text-white truncate">
+                      <h4 className="font-bold mb-2 text-xl text-gray-900">
                         {engine.name}
                       </h4>
-                      <p className="mb-0 sm:mb-4 text-xs sm:text-sm leading-relaxed text-gray-300 line-clamp-2">
-                        {isMobile ? `${engine.power} • ${engine.efficiency}` : engine.description}
+                      <p className="mb-6 text-gray-600 leading-relaxed">
+                        {engine.description}
                       </p>
 
-                      {/* Stats desktop */}
-                      <div className="hidden sm:grid grid-cols-2 gap-3 mb-1">
-                        <div className="rounded-lg p-3 bg-white/5 border border-gray-700">
-                          <div className="font-semibold text-white">{engine.power}</div>
-                          <div className="text-[11px] text-gray-400 uppercase tracking-wider">Power</div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
+                          <div className="font-bold text-gray-900 text-lg">{engine.power}</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Power</div>
                         </div>
-                        <div className="rounded-lg p-3 bg-white/5 border border-gray-700">
-                          <div className="font-semibold text-white">{engine.efficiency}</div>
-                          <div className="text-[11px] text-gray-400 uppercase tracking-wider">Efficiency</div>
+                        <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
+                          <div className="font-bold text-gray-900 text-lg">{engine.efficiency}</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Efficiency</div>
                         </div>
                       </div>
-
-                      {active && (
-                        <motion.div
-                          initial={{ width: 0, opacity: 0 }}
-                          animate={{ width: "100%", opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                          className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${engine.brandColor}`}
-                        />
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -282,64 +310,54 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
           </div>
         </motion.div>
 
-        {/* Step 2: Grade Carousel */}
+        {/* Step 2: Luxury Grade Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-6"
+          className="mb-8"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <div className="text-center sm:text-left">
-              <h3 className="text-xl lg:text-3xl font-semibold text-white mb-1">
+              <h3 className="text-2xl lg:text-4xl font-black text-gray-900 mb-2">
                 Step 2: Choose Your Grade
               </h3>
-              <div className="w-20 lg:w-24 h-[2px] bg-[#EB0A1E]" />
+              <div 
+                className="w-24 lg:w-32 h-1 rounded-full"
+                style={{ backgroundColor: TOYOTA_RED }}
+              />
             </div>
-            <div className="hidden sm:flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowComparisonModal(true)}
-                className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
-                style={{ minHeight: "40px" }}
-              >
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                Compare Grades
-              </Button>
-            </div>
-            <div className="sm:hidden">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowComparisonModal(true)}
-                className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
-                style={{ minHeight: "36px" }}
-              >
-                Compare
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowComparisonModal(true)}
+              className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
+            >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Compare Grades
+            </Button>
           </div>
 
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-7xl mx-auto" ref={swipeRef}>
             {/* Navigation Arrows */}
             <button
               onClick={prevGrade}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-[#EB0A1E] text-white hover:bg-red-700 shadow-lg -translate-x-4 sm:-translate-x-6"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full text-white shadow-2xl -translate-x-6 transition-all hover:scale-110"
+              style={{ backgroundColor: TOYOTA_RED }}
               aria-label="Previous grade"
             >
-              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
             <button
               onClick={nextGrade}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-[#EB0A1E] text-white hover:bg-red-700 shadow-lg translate-x-4 sm:translate-x-6"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full text-white shadow-2xl translate-x-6 transition-all hover:scale-110"
+              style={{ backgroundColor: TOYOTA_RED }}
               aria-label="Next grade"
             >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ChevronRight className="h-6 w-6" />
             </button>
 
-            {/* Grade Card */}
-            <div className="mx-6 sm:mx-12">
+            {/* Luxury Carousel Cards */}
+            <div className="mx-8 sm:mx-16 overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${selectedEngine}-${currentGradeIndex}`}
@@ -347,132 +365,136 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
                   initial="enter"
                   animate="center"
                   exit="exit"
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100"
                 >
-                  <Card className="overflow-hidden bg-white/5 border border-gray-700 rounded-xl backdrop-blur-md">
-                    <CardContent className="p-0">
-                      {/* Header */}
-                      <div
-                        className={`relative p-4 sm:p-8 rounded-t-xl overflow-hidden bg-gradient-to-br ${TOYOTA_RED} opacity-90`}
+                  {/* Left Side - Image */}
+                  <div className="relative h-64 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                    <img
+                      src={currentGrade.image}
+                      alt={`${currentGrade.name} Grade`}
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                      loading="lazy"
+                      onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
+                      onLoad={() => handleImageLoad(currentGradeIndex)}
+                      onError={() => handleImageLoad(currentGradeIndex)}
+                    />
+                    {/* Premium Badge */}
+                    <div className="absolute top-6 left-6">
+                      <Badge 
+                        className="shadow-lg border-0 text-white font-semibold"
+                        style={{ backgroundColor: TOYOTA_RED }}
                       >
-                        <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-3 sm:mb-4">
-                            <h4 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white">
-                              {currentGrade.name}
-                            </h4>
-                            <Badge className="bg-[#EB0A1E] text-white border-none font-medium shadow-md">
-                              {currentGrade.highlight}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed">
-                            {currentGrade.description}
-                          </p>
-                          <div className="pt-4 sm:pt-6 border-t border-gray-700">
-                            <div className="flex items-end justify-between">
-                              <div>
-                                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-1">
-                                  AED {currentGrade.fullPrice.toLocaleString()}
-                                </div>
-                                <div className="text-gray-400 text-sm sm:text-base">
-                                  From AED {currentGrade.monthlyEMI}/month
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        <Crown className="h-3 w-3 mr-1" />
+                        {currentGrade.highlight}
+                      </Badge>
+                    </div>
+                  </div>
 
-                      {/* Image */}
-                      <div className="relative overflow-hidden h-48 sm:h-72 lg:h-96 bg-black">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-                        <img
-                          src={currentGrade.image}
-                          alt={`${currentGrade.name} Grade`}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                          onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
-                          onLoad={() => handleImageLoad(currentGradeIndex)}
-                          onError={() => handleImageLoad(currentGradeIndex)}
-                        />
+                  {/* Right Side - Content */}
+                  <div className="p-8 lg:p-12 flex flex-col justify-between">
+                    {/* Header */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                        <h4 className="text-3xl lg:text-4xl font-black text-gray-900">
+                          {currentGrade.name}
+                        </h4>
+                      </div>
+                      <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                        {currentGrade.description}
+                      </p>
+
+                      {/* Pricing */}
+                      <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="text-4xl lg:text-5xl font-black text-gray-900 mb-2">
+                          AED {currentGrade.fullPrice.toLocaleString()}
+                        </div>
+                        <div className="text-gray-600 text-lg">
+                          From AED {currentGrade.monthlyEMI}/month
+                        </div>
                       </div>
 
                       {/* Features */}
-                      <div className="p-4 sm:p-8 bg-white/5 border-t border-gray-700">
-                        <div className="mb-6 sm:mb-8">
-                          <h5 className="font-semibold text-base sm:text-lg text-white mb-3 sm:mb-4">
-                            Key Features
-                          </h5>
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
-                            {currentGrade.features.map((feature: string, idx: number) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-black/20 border border-gray-700"
+                      <div className="mb-8">
+                        <h5 className="font-bold text-xl text-gray-900 mb-4">Key Features</h5>
+                        <div className="grid grid-cols-1 gap-3">
+                          {currentGrade.features.map((feature: string, idx: number) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm"
+                            >
+                              <div 
+                                className="w-6 h-6 rounded-full grid place-items-center"
+                                style={{ backgroundColor: TOYOTA_RED }}
                               >
-                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#EB0A1E] grid place-items-center">
-                                  <Check className="h-3 w-3 text-white" />
-                                </div>
-                                <span className="text-xs sm:text-sm text-gray-200 font-medium">{feature}</span>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-                          <Button
-                            onClick={() => {
-                              setSelectedGrade(currentGrade.name);
-                              selectCurrentGrade();
-                            }}
-                            className={`transition-all duration-300 font-semibold bg-[#EB0A1E] hover:bg-red-700 text-white`}
-                          >
-                            {selectedGrade === currentGrade.name ? (
-                              <>
-                                <Check className="h-4 w-4 mr-2" />
-                                Selected
-                              </>
-                            ) : (
-                              "Select Grade"
-                            )}
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download Spec
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white transition-all"
-                            onClick={handleConfigureClick}
-                          >
-                            <Wrench className="h-4 w-4 mr-2" />
-                            Configure
-                          </Button>
+                                <Check className="h-3 w-3 text-white" />
+                              </div>
+                              <span className="text-gray-700 font-medium">{feature}</span>
+                            </motion.div>
+                          ))}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <Button
+                        onClick={() => {
+                          setSelectedGrade(currentGrade.name);
+                          selectCurrentGrade();
+                        }}
+                        className="font-semibold text-white transition-all shadow-lg"
+                        style={{ backgroundColor: TOYOTA_RED }}
+                      >
+                        {selectedGrade === currentGrade.name ? (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Selected
+                          </>
+                        ) : (
+                          "Select Grade"
+                        )}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
+                        onClick={handleTestDriveClick}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Test Drive
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
+                        onClick={handleConfigureClick}
+                      >
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Configure
+                      </Button>
+                    </div>
+                  </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* Indicators */}
-            <div className="flex justify-center gap-2 sm:gap-3 mt-6">
+            <div className="flex justify-center gap-3 mt-8">
               {currentGrades.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentGradeIndex(idx)}
                   className={`rounded-full transition-all duration-400 ${
                     idx === currentGradeIndex
-                      ? "bg-[#EB0A1E] w-8 sm:w-12 h-1.5 sm:h-2 shadow-red-500/40"
-                      : "bg-gray-600 w-1.5 h-1.5 sm:w-2 sm:h-2 hover:bg-gray-400"
+                      ? "w-12 h-3 shadow-lg shadow-red-200/60"
+                      : "w-3 h-3 bg-gray-300 hover:bg-gray-400"
                   }`}
+                  style={idx === currentGradeIndex ? { backgroundColor: TOYOTA_RED } : {}}
                   aria-label={`Go to grade ${idx + 1}`}
                 />
               ))}

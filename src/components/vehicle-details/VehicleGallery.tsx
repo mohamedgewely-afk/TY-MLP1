@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -7,22 +7,22 @@ import {
   X,
   Heart,
   Award,
-  Sparkles,
   Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Download,
-  Share2,
   ZoomIn,
   Grid3X3,
-  Eye,
   Camera,
   Film,
+  Share2,
+  Download,
+  Eye,
+  Maximize2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSwipeable } from "@/hooks/use-swipeable";
 
 interface VehicleGalleryProps {
   vehicle: VehicleModel;
@@ -39,15 +39,15 @@ interface GalleryImage {
   isVideo?: boolean;
 }
 
+const TOYOTA_RED = "#CC0000";
+
 const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [favorites, setFavorites] = useState<number[]>([]);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'carousel'>('carousel');
+  const [viewMode, setViewMode] = useState<'swipe' | 'grid'>('swipe');
+  const isMobile = useIsMobile();
 
   const galleryImages: GalleryImage[] = [
     {
@@ -106,7 +106,6 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   ];
 
   const categories = ["all", "hero", "detail", "studio", "lifestyle"];
-
   const filteredImages = selectedCategory === "all"
     ? galleryImages
     : galleryImages.filter((img) => img.category === selectedCategory);
@@ -126,6 +125,14 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
   }, [filteredImages.length]);
+
+  // Swipe functionality
+  const swipeRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: goToNext,
+    onSwipeRight: goToPrevious,
+    threshold: 50,
+    preventDefaultTouchmoveEvent: false,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -151,58 +158,25 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
-          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-red-900/20 via-transparent to-transparent" />
-          
-          {/* Floating orbs */}
-          <div className="absolute inset-0">
-            {[...Array(12)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-blue-400/30 rounded-full"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  y: [0, -100, 0],
-                  opacity: [0, 1, 0],
-                  scale: [0, 1.5, 0],
-                }}
-                transition={{
-                  duration: 6 + Math.random() * 4,
-                  repeat: Infinity,
-                  delay: Math.random() * 6,
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Grid overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
-        </div>
-
-        <div className="relative z-10 p-4 lg:p-8">
+      <div className="min-h-screen bg-white">
+        <div className="p-4 lg:p-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 lg:mb-12"
           >
             <div className="flex items-center justify-center mb-6">
-              <Camera className="h-8 w-8 text-blue-400 mr-4" />
-              <h1 className="text-4xl lg:text-6xl font-black bg-gradient-to-r from-white via-blue-200 to-white bg-clip-text text-transparent">
+              <Camera className="h-8 w-8 mr-4" style={{ color: TOYOTA_RED }} />
+              <h1 className="text-4xl lg:text-6xl font-black text-gray-900">
                 VISUAL GALLERY
               </h1>
-              <Camera className="h-8 w-8 text-blue-400 ml-4" />
+              <Camera className="h-8 w-8 ml-4" style={{ color: TOYOTA_RED }} />
             </div>
-            <p className="text-xl text-gray-300 mb-8">{vehicle.name}</p>
+            <p className="text-xl text-gray-600 mb-8">{vehicle.name}</p>
             
             {/* Controls */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               {categories.map((category) => (
                 <motion.button
                   key={category}
@@ -212,109 +186,115 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                     setSelectedCategory(category);
                     setCurrentIndex(0);
                   }}
-                  className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
+                  className={`px-4 lg:px-6 py-2 lg:py-3 rounded-xl font-medium transition-all duration-300 text-sm lg:text-base ${
                     selectedCategory === category
-                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
-                      : "bg-gray-800/60 text-gray-300 hover:bg-gray-700/70 border border-gray-600/50"
+                      ? "text-white shadow-lg"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
                   }`}
+                  style={selectedCategory === category ? { backgroundColor: TOYOTA_RED } : {}}
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
                 </motion.button>
               ))}
               
-              <Button
-                variant="outline"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'carousel' : 'grid')}
-                className="bg-gray-800/60 border-gray-600/50 text-gray-300 hover:bg-gray-700/70"
-              >
-                <Grid3X3 className="h-4 w-4 mr-2" />
-                {viewMode === 'grid' ? 'Carousel' : 'Grid'}
-              </Button>
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  onClick={() => setViewMode(viewMode === 'grid' ? 'swipe' : 'grid')}
+                  className="border-gray-200 text-gray-700 hover:bg-gray-100"
+                >
+                  <Grid3X3 className="h-4 w-4 mr-2" />
+                  {viewMode === 'grid' ? 'Swipe' : 'Grid'}
+                </Button>
+              )}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Main Gallery */}
-          {viewMode === 'carousel' ? (
+          {/* Mobile Swipe Cards / Desktop Grid */}
+          {(isMobile || viewMode === 'swipe') ? (
             <div className="max-w-6xl mx-auto">
-              {/* Main Image */}
+              {/* Main Image Card */}
               <motion.div
                 key={currentIndex}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="relative mb-8"
+                className="relative mb-6"
+                ref={swipeRef}
               >
-                <div className="relative h-[70vh] min-h-[500px] rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 shadow-2xl">
+                <div className="relative h-[60vh] lg:h-[70vh] min-h-[400px] rounded-2xl lg:rounded-3xl overflow-hidden bg-gray-100 shadow-xl">
                   <img
                     src={filteredImages[currentIndex]?.url}
                     alt={filteredImages[currentIndex]?.alt}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.error('Image failed to load:', filteredImages[currentIndex]?.url);
-                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMzc0MTUxIi8+CjxwYXRoIGQ9Ik0xMiA5VjEzTTEyIDE3SDE2TTE2IDlIOEw4IDE3SDE2WiIgc3Ryb2tlPSIjOUM5Qzk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                      e.currentTarget.src = '/placeholder.svg';
                     }}
                   />
                   
-                  {/* Overlay gradient */}
+                  {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
                   
                   {/* Image info overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-8">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-3">
                           {filteredImages[currentIndex]?.isPremium && (
-                            <Badge className="bg-gradient-to-r from-amber-600 to-amber-500 text-white">
+                            <Badge 
+                              className="text-white border-0 text-xs"
+                              style={{ backgroundColor: TOYOTA_RED }}
+                            >
                               <Award className="h-3 w-3 mr-1" />
                               Premium
                             </Badge>
                           )}
                           {filteredImages[currentIndex]?.isVideo && (
-                            <Badge className="bg-gradient-to-r from-red-600 to-red-500 text-white">
+                            <Badge className="bg-gray-900 text-white border-0 text-xs">
                               <Film className="h-3 w-3 mr-1" />
                               Video
                             </Badge>
                           )}
-                          <Badge variant="outline" className="border-blue-500/50 text-blue-300">
+                          <Badge variant="outline" className="border-white/50 text-white text-xs">
                             {filteredImages[currentIndex]?.category}
                           </Badge>
                         </div>
-                        <h3 className="text-3xl font-bold text-white mb-2">
+                        <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                           {filteredImages[currentIndex]?.title}
                         </h3>
-                        <p className="text-gray-300 text-lg max-w-2xl">
+                        <p className="text-gray-200 text-sm lg:text-lg max-w-2xl">
                           {filteredImages[currentIndex]?.description}
                         </p>
                       </div>
                       
-                      <div className="flex gap-3">
+                      <div className="flex gap-2 ml-4">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="bg-black/40 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                          className="bg-black/40 backdrop-blur-xl text-white hover:bg-black/60 h-10 w-10"
                           onClick={() => toggleFavorite(currentIndex)}
                         >
-                          <Heart className={`h-5 w-5 ${favorites.includes(currentIndex) ? "fill-red-500 text-red-500" : ""}`} />
+                          <Heart className={`h-4 w-4 ${favorites.includes(currentIndex) ? "fill-red-500 text-red-500" : ""}`} />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="bg-black/40 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                          className="bg-black/40 backdrop-blur-xl text-white hover:bg-black/60 h-10 w-10"
                           onClick={() => setIsFullscreen(true)}
                         >
-                          <ZoomIn className="h-5 w-5" />
+                          <ZoomIn className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Navigation arrows */}
-                  {filteredImages.length > 1 && (
+                  {/* Navigation arrows for desktop */}
+                  {!isMobile && filteredImages.length > 1 && (
                     <>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 h-12 w-12"
                         onClick={goToPrevious}
                       >
                         <ChevronLeft className="h-6 w-6" />
@@ -322,7 +302,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 h-12 w-12"
                         onClick={goToNext}
                       >
                         <ChevronRight className="h-6 w-6" />
@@ -333,32 +313,51 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
               </motion.div>
 
               {/* Thumbnails */}
-              <div className="flex gap-4 overflow-x-auto pb-4">
+              <div className="flex gap-3 overflow-x-auto pb-4 px-2">
                 {filteredImages.map((image, index) => (
                   <motion.button
                     key={index}
                     whileHover={{ scale: 1.05 }}
                     onClick={() => setCurrentIndex(index)}
-                    className={`shrink-0 w-24 h-16 lg:w-32 lg:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                    className={`shrink-0 w-16 h-12 lg:w-24 lg:h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                       index === currentIndex
-                        ? "border-blue-500 shadow-lg shadow-blue-500/30"
-                        : "border-gray-600/50 hover:border-gray-500/70"
+                        ? "shadow-lg"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
+                    style={index === currentIndex ? { borderColor: TOYOTA_RED } : {}}
                   >
                     <img
                       src={image.url}
                       alt={image.alt}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMzc0MTUxIi8+CjxwYXRoIGQ9Ik0xMiA5VjEzTTEyIDE3SDE2TTE2IDlIOEw4IDE3SDE2WiIgc3Ryb2tlPSIjOUM5Qzk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                        e.currentTarget.src = '/placeholder.svg';
                       }}
                     />
                   </motion.button>
                 ))}
               </div>
+
+              {/* Progress indicators for mobile */}
+              {isMobile && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {filteredImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        idx === currentIndex 
+                          ? "w-8 shadow-md"
+                          : "w-2 bg-gray-300 hover:bg-gray-400"
+                      }`}
+                      style={idx === currentIndex ? { backgroundColor: TOYOTA_RED } : {}}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
-            /* Grid View */
+            /* Desktop Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
               {filteredImages.map((image, index) => (
                 <motion.div
@@ -373,13 +372,13 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                     setIsFullscreen(true);
                   }}
                 >
-                  <div className="relative h-64 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 shadow-xl group-hover:shadow-2xl group-hover:border-blue-500/50 transition-all duration-300">
+                  <div className="relative h-64 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-lg group-hover:shadow-xl group-hover:border-gray-300 transition-all duration-300">
                     <img
                       src={image.url}
                       alt={image.alt}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMzc0MTUxIi8+CjxwYXRoIGQ9Ik0xMiA5VjEzTTEyIDE3SDE2TTE2IDlIOEw4IDE3SDE2WiIgc3Ryb2tlPSIjOUM5Qzk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                        e.currentTarget.src = '/placeholder.svg';
                       }}
                     />
                     
@@ -388,10 +387,15 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                       <div className="flex items-center gap-2 mb-2">
                         {image.isPremium && (
-                          <Badge className="bg-amber-600 text-white text-xs">Premium</Badge>
+                          <Badge 
+                            className="text-white text-xs border-0"
+                            style={{ backgroundColor: TOYOTA_RED }}
+                          >
+                            Premium
+                          </Badge>
                         )}
                         {image.isVideo && (
-                          <Badge className="bg-red-600 text-white text-xs">Video</Badge>
+                          <Badge className="bg-gray-900 text-white text-xs border-0">Video</Badge>
                         )}
                       </div>
                       <h4 className="text-white font-semibold">{image.title}</h4>
@@ -404,7 +408,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="bg-black/60 backdrop-blur-xl text-white hover:bg-blue-600/30 h-8 w-8"
+                        className="bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 h-8 w-8"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(index);
@@ -432,21 +436,31 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
             onClick={() => setIsFullscreen(false)}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-black to-gray-900 border-b border-gray-800">
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-1">
-                  {filteredImages[currentIndex]?.title}
-                </h3>
-                <p className="text-gray-400">{filteredImages[currentIndex]?.description}</p>
+            <div className="flex justify-between items-center p-4 lg:p-6 bg-black/90 backdrop-blur-md border-b border-gray-800">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-gray-800 lg:hidden"
+                  onClick={() => setIsFullscreen(false)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h3 className="text-xl lg:text-2xl font-bold text-white mb-1">
+                    {filteredImages[currentIndex]?.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm lg:text-base">{filteredImages[currentIndex]?.description}</p>
+                </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-blue-400 font-mono">
+                <span className="text-blue-400 font-mono text-sm lg:text-base">
                   {String(currentIndex + 1).padStart(2, "0")} / {String(filteredImages.length).padStart(2, "0")}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white hover:bg-gray-800"
+                  className="text-white hover:bg-gray-800 hidden lg:flex"
                   onClick={() => setIsFullscreen(false)}
                 >
                   <X className="h-6 w-6" />
@@ -455,7 +469,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
             </div>
 
             {/* Image */}
-            <div className="flex-1 flex items-center justify-center p-8 relative">
+            <div className="flex-1 flex items-center justify-center p-4 lg:p-8 relative">
               <motion.img
                 key={currentIndex}
                 src={filteredImages[currentIndex]?.url}
@@ -466,7 +480,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                 transition={{ duration: 0.3 }}
                 onClick={(e) => e.stopPropagation()}
                 onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMzc0MTUxIi8+CjxwYXRoIGQ9Ik0xMiA5VjEzTTEyIDE3SDE2TTE2IDlIOEw4IDE3SDE2WiIgc3Ryb2tlPSIjOUM5Qzk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                  e.currentTarget.src = '/placeholder.svg';
                 }}
               />
 
@@ -476,7 +490,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 h-12 w-12"
                     onClick={(e) => {
                       e.stopPropagation();
                       goToPrevious();
@@ -487,7 +501,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-blue-600/30"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 h-12 w-12"
                     onClick={(e) => {
                       e.stopPropagation();
                       goToNext();
@@ -499,8 +513,8 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="p-6 bg-gradient-to-r from-black to-gray-900 border-t border-gray-800">
+            {/* Footer with progress indicators */}
+            <div className="p-4 lg:p-6 bg-black/90 backdrop-blur-md border-t border-gray-800">
               <div className="flex justify-center gap-2">
                 {filteredImages.map((_, idx) => (
                   <button
@@ -509,11 +523,12 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                       e.stopPropagation();
                       setCurrentIndex(idx);
                     }}
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-1.5 lg:h-2 rounded-full transition-all duration-300 ${
                       idx === currentIndex 
-                        ? "bg-blue-500 w-8" 
-                        : "bg-gray-600 w-2 hover:bg-gray-500"
+                        ? "w-6 lg:w-8"
+                        : "w-1.5 lg:w-2 bg-gray-600 hover:bg-gray-500"
                     }`}
+                    style={idx === currentIndex ? { backgroundColor: TOYOTA_RED } : {}}
                   />
                 ))}
               </div>
