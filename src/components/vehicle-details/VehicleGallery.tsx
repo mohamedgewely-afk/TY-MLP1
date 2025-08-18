@@ -1,32 +1,12 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { X, Maximize2, Heart, Info, PlayCircle, ChevronRight, Zap, Eye, Grid3X3, RotateCcw } from "lucide-react";
+import { X, Zap, Eye, Grid3X3, PlayCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { VehicleModel } from "@/types/vehicle";
 
 /* ─────────────────────────────────────────
-   Types
-────────────────────────────────────────── */
-type ChapterKey = "exterior" | "interior" | "technology" | "performance" | "lifestyle";
-
-type Chapter = {
-  key: ChapterKey;
-  title: string;
-  subtitle: string;
-  media: Array<{ url: string; alt: string; premium?: boolean; video?: boolean }>;
-  hotspots?: Array<{ x: number; y: number; label: string }>;
-};
-
-interface VehicleGalleryProps {
-  vehicle: VehicleModel;
-  isGR?: boolean;
-  onToggleGR?: () => void;
-  initialMode?: "cinematic" | "grid";
-}
-
-/* ─────────────────────────────────────────
-   Theme tokens
+   Tokens
 ────────────────────────────────────────── */
 const GR = {
   bg: "#0B0B0C",
@@ -42,13 +22,8 @@ const GR = {
     backgroundColor: "#0B0B0C",
   } as React.CSSProperties,
 };
-const LX = {
-  bgGradient: "bg-[radial-gradient(1200px_400px_at_50%_-50%,#ffffff,rgba(240,241,244,0.9))]",
-  text: "text-gray-900",
-  muted: "text-gray-600",
-};
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E]";
+const LX_BG = "bg-[radial-gradient(1200px_400px_at_50%_-50%,#ffffff,rgba(240,241,244,0.92))]";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E]";
 
 /* ─────────────────────────────────────────
    Reduced motion
@@ -67,455 +42,443 @@ function usePrefersReducedMotion() {
 }
 
 /* ─────────────────────────────────────────
-   Safe image extraction (NO VehicleModel.gallery required)
+   Safe image extraction (no vehicle.gallery required)
 ────────────────────────────────────────── */
 type AnyVehicle = VehicleModel & Record<string, any>;
-
-function coerceStrArray(x: unknown): string[] {
+function asUrlList(x: unknown): string[] {
   if (!x) return [];
   if (Array.isArray(x)) {
-    // strings or objects with url
-    const urls = x
+    return x
       .map((v) => (typeof v === "string" ? v : typeof v === "object" && v && "url" in (v as any) ? (v as any).url : null))
       .filter((u): u is string => typeof u === "string");
-    return urls;
   }
   return [];
 }
-
 function pickImages(v: AnyVehicle, keys: string[]): string[] {
   for (const k of keys) {
-    const val = v?.[k];
-    const arr = coerceStrArray(val);
-    if (arr.length) return arr;
+    const urls = asUrlList(v?.[k]);
+    if (urls.length) return urls;
   }
   return [];
 }
 
-/** Build chapters from whatever is available on VehicleModel */
+type ChapterKey = "exterior" | "interior" | "technology" | "performance" | "lifestyle";
+type Chapter = {
+  key: ChapterKey;
+  title: string;
+  subtitle: string;
+  media: Array<{ url: string; alt: string; signature?: boolean }>;
+};
+
 function useChapters(vehicle: VehicleModel): Chapter[] {
   const v = vehicle as AnyVehicle;
-
-  // single cover fallback
   const cover =
     typeof v?.image === "string" && v.image
       ? v.image
       : "https://images.unsplash.com/photo-1541443131876-b8f75a3f3e2d?q=80&w=1600&auto=format&fit=crop";
 
-  // try multiple common keys for each chapter bucket
-  const ext = [
-    ...pickImages(v, ["exteriorImages", "imagesExterior", "galleryExterior", "gallery_exterior", "exterior"]),
-  ];
-  const intr = [
-    ...pickImages(v, ["interiorImages", "imagesInterior", "galleryInterior", "gallery_interior", "interior"]),
-  ];
-  const tech = [
-    ...pickImages(v, ["technologyImages", "imagesTechnology", "galleryTechnology", "gallery_technology", "technology"]),
-  ];
-  const perf = [
-    ...pickImages(v, ["performanceImages", "imagesPerformance", "galleryPerformance", "gallery_performance", "performance"]),
-  ];
-  const life = [
-    ...pickImages(v, ["lifestyleImages", "imagesLifestyle", "galleryLifestyle", "gallery_lifestyle", "lifestyle"]),
-  ];
+  const exterior =
+    pickImages(v, ["exteriorImages", "imagesExterior", "galleryExterior", "exterior"]).length
+      ? pickImages(v, ["exteriorImages", "imagesExterior", "galleryExterior", "exterior"])
+      : [cover, "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=1600&auto=format&fit=crop"];
 
-  // if none present, fall back to generic buckets populated with cover
-  const ex = ext.length ? ext : [cover];
-  const inr = intr.length
-    ? intr
-    : ["https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1600&auto=format&fit=crop"];
-  const tec = tech.length
-    ? tech
-    : ["https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1600&auto=format&fit=crop"];
-  const per = perf.length
-    ? perf
-    : ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop"];
-  const lif = life.length
-    ? life
-    : ["https://images.unsplash.com/photo-1518965449314-2c4dc77b3b3a?q=80&w=1600&auto=format&fit=crop"];
+  const interior =
+    pickImages(v, ["interiorImages", "imagesInterior", "galleryInterior", "interior"]).length
+      ? pickImages(v, ["interiorImages", "imagesInterior", "galleryInterior", "interior"])
+      : ["https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1600&auto=format&fit=crop"];
 
-  const map = (arr: string[], title: string) =>
-    arr.map((url, i) => ({
-      url,
-      alt: `${vehicle?.name || "Toyota"} — ${title} ${i + 1}`,
-      premium: i === 0,
-      video: url.endsWith(".mp4"),
-    }));
+  const technology =
+    pickImages(v, ["technologyImages", "imagesTechnology", "galleryTechnology", "technology"]).length
+      ? pickImages(v, ["technologyImages", "imagesTechnology", "galleryTechnology", "technology"])
+      : ["https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1600&auto=format&fit=crop"];
+
+  const performance =
+    pickImages(v, ["performanceImages", "imagesPerformance", "galleryPerformance", "performance"]).length
+      ? pickImages(v, ["performanceImages", "imagesPerformance", "galleryPerformance", "performance"])
+      : ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop"];
+
+  const lifestyle =
+    pickImages(v, ["lifestyleImages", "imagesLifestyle", "galleryLifestyle", "lifestyle"]).length
+      ? pickImages(v, ["lifestyleImages", "imagesLifestyle", "galleryLifestyle", "lifestyle"])
+      : ["https://images.unsplash.com/photo-1518965449314-2c4dc77b3b3a?q=80&w=1600&auto=format&fit=crop"];
+
+  const map = (arr: string[], label: string) =>
+    arr.map((url, i) => ({ url, alt: `${vehicle?.name || "Toyota"} — ${label} ${i + 1}`, signature: i === 0 }));
 
   return [
-    {
-      key: "exterior",
-      title: "Exterior",
-      subtitle: "Sculpted aerodynamics with iconic stance",
-      media: map(ex, "Exterior"),
-      hotspots: [{ x: 78, y: 62, label: "Matrix LED Headlamps" }],
-    },
-    {
-      key: "interior",
-      title: "Interior",
-      subtitle: "Immersive cockpit with artisan materials",
-      media: map(inr, "Interior"),
-      hotspots: [{ x: 44, y: 62, label: "Heated Nappa Seats" }],
-    },
-    {
-      key: "technology",
-      title: "Technology",
-      subtitle: "Intelligence meets intuition",
-      media: map(tec, "Technology"),
-      hotspots: [{ x: 54, y: 48, label: "12.3” HD Display" }],
-    },
-    {
-      key: "performance",
-      title: "Performance",
-      subtitle: "Gazoo Racing DNA • tuned for thrill",
-      media: map(per, "Performance"),
-      hotspots: [{ x: 22, y: 60, label: "Adaptive Suspension" }],
-    },
-    {
-      key: "lifestyle",
-      title: "Lifestyle",
-      subtitle: "Designed for every journey",
-      media: map(lif, "Lifestyle"),
-    },
+    { key: "exterior", title: "Exterior", subtitle: "Sculpted aerodynamics, iconic stance.", media: map(exterior, "Exterior") },
+    { key: "interior", title: "Interior", subtitle: "Cockpit intuition, artisan materials.", media: map(interior, "Interior") },
+    { key: "technology", title: "Technology", subtitle: "Intelligence that feels invisible.", media: map(technology, "Technology") },
+    { key: "performance", title: "Performance", subtitle: "GR DNA — tuned for thrill.", media: map(performance, "Performance") },
+    { key: "lifestyle", title: "Lifestyle", subtitle: "Ready for every journey.", media: map(lifestyle, "Lifestyle") },
   ];
 }
 
 /* ─────────────────────────────────────────
-   Parallax frame + Grid card
+   Desktop: Scroll story (sticky media, narrative steps)
 ────────────────────────────────────────── */
-const ParallaxFrame: React.FC<{
-  src: string;
-  alt: string;
-  caption?: string;
-  isGR?: boolean;
-  onOpen?: () => void;
-  premium?: boolean;
-  hotspots?: Chapter["hotspots"];
-}> = ({ src, alt, caption, isGR, onOpen, premium, hotspots }) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["-6vh", "6vh"]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1.02, 1]);
+const DesktopStory: React.FC<{
+  chapters: Chapter[];
+  isGR: boolean;
+  vehicleName?: string;
+  onOpen: (m: { url: string; alt: string }) => void;
+}> = ({ chapters, isGR, vehicleName, onOpen }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end end"] });
+  const railY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
   const reduced = usePrefersReducedMotion();
 
   return (
-    <div ref={ref} className="relative w-full max-w-6xl mx-auto aspect-[16/9] rounded-3xl overflow-hidden">
-      <motion.div style={!reduced ? { y, scale } : undefined} className="w-full h-full">
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
-      </motion.div>
+    <div ref={containerRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-12 gap-6">
+      {/* Progress rail */}
+      <div className="hidden lg:block absolute left-2 top-24 bottom-10 w-1 bg-black/5 rounded-full overflow-hidden">
+        <motion.div
+          className="w-full bg-gradient-to-b from-[#EB0A1E] to-[#7a0b13]"
+          style={reduced ? undefined : { height: railY }}
+        />
+      </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent" />
-
-      {hotspots?.map((h, i) => (
-        <button
-          key={i}
-          onClick={onOpen}
-          aria-label={h.label}
-          className={[
-            "absolute -translate-x-1/2 -translate-y-1/2 px-2 py-1 text-xs rounded-full",
-            isGR ? "bg-[#0F1113]/80 text-[#E6E7E9] border border-[#17191B]" : "bg-white/70 text-gray-800",
-            focusRing,
-          ].join(" ")}
-          style={{ left: `${h.x}%`, top: `${h.y}%` }}
-        >
-          <span className="inline-flex items-center gap-1">
-            <Info className="w-3.5 h-3.5" />
-            {h.label}
-          </span>
-        </button>
-      ))}
-
-      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
-        <div className="max-w-[70%]">
-          {premium && (
-            <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>Signature</Badge>
-          )}
-          {caption && <p className="mt-2 text-white/90 text-sm sm:text-base leading-snug">{caption}</p>}
+      {/* Sticky media (left) */}
+      <div className="col-span-12 lg:col-span-7 xl:col-span-8">
+        <div className="lg:sticky lg:top-16">
+          <StoryMediaStack chapters={chapters} isGR={isGR} onOpen={onOpen} />
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="icon"
-            onClick={onOpen}
-            aria-label="Open fullscreen"
-            className={[
-              "backdrop-blur-md text-white/95",
-              isGR ? "bg-[#141618]/80 hover:bg-[#181B1E]" : "bg-black/30 hover:bg-black/40",
-              focusRing,
-            ].join(" ")}
-          >
-            <Maximize2 className="w-4 h-4" />
-          </Button>
-          <Button
-            size="icon"
-            aria-label="Favorite"
-            className={[
-              "backdrop-blur-md text-white/95",
-              isGR ? "bg-[#141618]/80 hover:bg-[#181B1E]" : "bg-black/30 hover:bg-black/40",
-              focusRing,
-            ].join(" ")}
-          >
-            <Heart className="w-4 h-4" />
-          </Button>
-        </div>
+      </div>
+
+      {/* Narrative (right) */}
+      <div className="col-span-12 lg:col-span-5 xl:col-span-4 space-y-16">
+        <header className="space-y-1 lg:mt-2">
+          <div className="inline-flex items-center gap-2">
+            {isGR ? <Zap className="w-4 h-4 text-[#EB0A1E]" /> : <Eye className="w-4 h-4 text-gray-800" />}
+            <span className={isGR ? "text-[#E6E7E9] font-semibold" : "text-gray-900 font-semibold"}>
+              {vehicleName} {isGR ? "GR Performance" : "Experience"}
+            </span>
+          </div>
+          <p className={isGR ? "text-[#9DA2A6]" : "text-gray-600"}>
+            Scroll to discover — no clutter, just story.
+          </p>
+        </header>
+
+        {chapters.map((ch, idx) => (
+          <section key={ch.key} className="space-y-3" aria-labelledby={`desk-${ch.key}`}>
+            <h2 id={`desk-${ch.key}`} className={isGR ? "text-[#E6E7E9] text-xl font-black" : "text-gray-900 text-xl font-black"}>
+              {ch.title}
+            </h2>
+            <p className={isGR ? "text-[#9DA2A6]" : "text-gray-600"}>{ch.subtitle}</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {ch.media.slice(0, 2).map((m, i) => (
+                <motion.button
+                  key={m.url + i}
+                  onClick={() => onOpen({ url: m.url, alt: m.alt })}
+                  className={[
+                    "relative aspect-[16/10] rounded-xl overflow-hidden text-left",
+                    isGR ? "border border-[#17191B]" : "shadow-md",
+                    focusRing,
+                  ].join(" ")}
+                  whileHover={{ scale: 1.01 }}
+                >
+                  <img src={m.url} alt={m.alt} className="w-full h-full object-cover" />
+                  {m.signature && (
+                    <Badge className={isGR ? "absolute top-2 left-2 bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "absolute top-2 left-2 bg-black/70"}>
+                      Signature
+                    </Badge>
+                  )}
+                  <div className="absolute bottom-2 right-2 text-white/95 text-xs px-2 py-1 rounded-full bg-black/30">
+                    View <ChevronRight className="inline w-3 h-3 ml-1" />
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        <footer className="pt-6 pb-2">
+          <p className={isGR ? "text-[#9DA2A6] text-sm" : "text-gray-500 text-sm"}>
+            End of story — explore specifications or book a test drive.
+          </p>
+        </footer>
       </div>
     </div>
   );
 };
 
-const GridCard: React.FC<{
-  src: string;
-  alt: string;
-  isGR?: boolean;
-  onClick: () => void;
-  premium?: boolean;
-}> = ({ src, alt, onClick, isGR, premium }) => (
-  <motion.button
-    onClick={onClick}
-    className={["relative aspect-[16/10] rounded-2xl overflow-hidden shadow-lg w-full", isGR ? "border border-[#17191B]" : "", focusRing].join(" ")}
-    whileHover={{ scale: 1.02 }}
-  >
-    <img src={src} alt={alt} className="w-full h-full object-cover" />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity" />
-    <div className="absolute top-2 left-2">{premium && <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>Signature</Badge>}</div>
-    <div className="absolute bottom-2 right-2">
-      <div className={["inline-flex items-center gap-1 text-white/95 text-xs px-2 py-1 rounded-full", isGR ? "bg-[#121416]/80 border border-[#17191B]" : "bg-black/30"].join(" ")}>
-        View <ChevronRight className="w-3 h-3" />
-      </div>
+/** left sticky media that morphs as you scroll */
+const StoryMediaStack: React.FC<{
+  chapters: Chapter[];
+  isGR: boolean;
+  onOpen: (m: { url: string; alt: string }) => void;
+}> = ({ chapters, isGR, onOpen }) => {
+  const groupRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({ target: groupRef, offset: ["start end", "end start"] });
+  const rotate = useTransform(scrollYProgress, [0, 1], [-0.6, 0.6]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.02, 1]);
+  const reduced = usePrefersReducedMotion();
+
+  // choose the first image of each chapter for the big storytelling rail
+  const heroMedia = useMemo(
+    () => chapters.map((c) => c.media[0]).filter(Boolean),
+    [chapters]
+  );
+
+  return (
+    <div ref={groupRef} className="space-y-6">
+      {heroMedia.map((m, i) => (
+        <motion.div
+          key={m.url + i}
+          className={[
+            "relative aspect-[16/9] rounded-2xl overflow-hidden",
+            isGR ? "border border-[#17191B]" : "shadow-2xl",
+          ].join(" ")}
+          style={reduced ? undefined : { rotate, scale }}
+        >
+          <img src={m.url} alt={m.alt} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+            <Button
+              size="sm"
+              onClick={() => onOpen({ url: m.url, alt: m.alt })}
+              className={[
+                "backdrop-blur-md",
+                isGR ? "bg-[#141618]/80 text-[#E6E7E9] border border-[#17191B] hover:bg-[#181B1E]" : "bg-white text-gray-900 hover:bg-gray-100",
+                focusRing,
+              ].join(" ")}
+            >
+              <PlayCircle className="w-4 h-4 mr-1" />
+              Open viewer
+            </Button>
+            {m.signature && (
+              <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>Signature</Badge>
+            )}
+          </div>
+        </motion.div>
+      ))}
     </div>
-  </motion.button>
-);
+  );
+};
 
 /* ─────────────────────────────────────────
-   Main component
+   Mobile: cinematic swipe + thumb reel
 ────────────────────────────────────────── */
-const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle, isGR = false, onToggleGR, initialMode = "cinematic" }) => {
-  const chapters = useChapters(vehicle);
-  const [mode, setMode] = useState<"cinematic" | "grid">(initialMode);
-  const [fsOpen, setFsOpen] = useState(false);
-  const [fsMedia, setFsMedia] = useState<{ url: string; alt: string } | null>(null);
+const MobileCinematic: React.FC<{
+  chapters: Chapter[];
+  isGR: boolean;
+  onOpen: (m: { url: string; alt: string }) => void;
+}> = ({ chapters, isGR, onOpen }) => {
+  const [chapterIndex, setChapterIndex] = useState(0);
+  const [mediaIndex, setMediaIndex] = useState(0);
+  const current = chapters[chapterIndex];
+  const reduced = usePrefersReducedMotion();
+
+  useEffect(() => setMediaIndex(0), [chapterIndex]);
+
+  return (
+    <div className="px-4 sm:px-6">
+      {/* Chapter chips */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pt-3 pb-2">
+        {chapters.map((ch, i) => (
+          <button
+            key={ch.key}
+            onClick={() => setChapterIndex(i)}
+            className={[
+              "px-3 py-1.5 rounded-full text-sm whitespace-nowrap",
+              isGR
+                ? i === chapterIndex
+                  ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]"
+                  : "bg-[#0F1113] text-[#9DA2A6] border border-[#17191B]"
+                : i === chapterIndex
+                ? "bg-gray-900 text-white"
+                : "bg-gray-200 text-gray-800",
+              focusRing,
+            ].join(" ")}
+            aria-pressed={i === chapterIndex}
+          >
+            {ch.title}
+          </button>
+        ))}
+      </div>
+
+      {/* Active media */}
+      <motion.div
+        key={`${chapterIndex}-${mediaIndex}`}
+        className={["relative aspect-video rounded-2xl overflow-hidden mt-3", isGR ? "border border-[#17191B]" : "shadow-xl"].join(" ")}
+        initial={reduced ? { opacity: 1 } : { opacity: 0.8, scale: 0.98 }}
+        animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35 }}
+      >
+        <img
+          src={current.media[mediaIndex]?.url}
+          alt={current.media[mediaIndex]?.alt}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <div className="absolute bottom-3 left-3 right-3 text-white">
+          <p className="text-xs opacity-90">{current.subtitle}</p>
+          <div className="mt-2 flex items-center justify-between">
+            <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>
+              {current.title}
+            </Badge>
+            <Button
+              size="sm"
+              onClick={() => onOpen({ url: current.media[mediaIndex].url, alt: current.media[mediaIndex].alt })}
+              className={[
+                "h-8 px-3",
+                isGR ? "bg-[#141618]/80 text-[#E6E7E9] border border-[#17191B]" : "bg-white text-gray-900",
+                focusRing,
+              ].join(" ")}
+            >
+              View
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Thumb reel */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar py-3">
+        {current.media.map((m, i) => (
+          <button
+            key={m.url + i}
+            onClick={() => setMediaIndex(i)}
+            className={[
+              "relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0",
+              i === mediaIndex
+                ? isGR
+                  ? "ring-2 ring-[#EB0A1E]"
+                  : "ring-2 ring-gray-900"
+                : isGR
+                ? "border border-[#17191B]"
+                : "border border-gray-200",
+              focusRing,
+            ].join(" ")}
+            aria-pressed={i === mediaIndex}
+          >
+            <img src={m.url} alt={m.alt} className="w-full h-full object-cover" />
+            {m.signature && (
+              <Badge className={isGR ? "absolute top-1 left-1 bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "absolute top-1 left-1 bg-black/70"}>
+                Sig.
+              </Badge>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────
+   Fullscreen viewer
+────────────────────────────────────────── */
+const FullscreenViewer: React.FC<{
+  media: { url: string; alt: string } | null;
+  open: boolean;
+  onClose: () => void;
+}> = ({ media, open, onClose }) => {
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setFsOpen(false);
+      if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [onClose]);
 
-  const onOpenFullscreen = useCallback((m: { url: string; alt: string }) => {
+  return (
+    <AnimatePresence>
+      {open && media && (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Fullscreen media viewer"
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="flex items-center justify-between p-3 border-b border-white/10">
+            <div className="flex items-center gap-2 text-white">
+              <Badge className="bg-white/10">Fullscreen</Badge>
+              <span className="text-sm opacity-80">{media.alt}</span>
+            </div>
+            <Button size="icon" aria-label="Close" onClick={onClose} className={`text-white bg-white/10 hover:bg-white/20 ${focusRing}`}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-3">
+            <motion.img
+              key={media.url}
+              src={media.url}
+              alt={media.alt}
+              className="max-w-full max-h-full object-contain rounded-lg"
+              initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ─────────────────────────────────────────
+   Main component
+────────────────────────────────────────── */
+interface VehicleGalleryProps {
+  vehicle: VehicleModel;
+  isGR?: boolean;        // pass from parent (your global GR toggle)
+  onToggleGR?: () => void;
+}
+
+const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle, isGR = false, onToggleGR }) => {
+  const reduced = usePrefersReducedMotion();
+  const chapters = useChapters(vehicle);
+  const [fsOpen, setFsOpen] = useState(false);
+  const [fsMedia, setFsMedia] = useState<{ url: string; alt: string } | null>(null);
+
+  const onOpen = useCallback((m: { url: string; alt: string }) => {
     setFsMedia(m);
     setFsOpen(true);
   }, []);
 
-  const bgWrap = isGR ? { style: GR.carbon, className: "min-h-[100svh]" } : { style: undefined, className: `min-h-[100svh] ${LX.bgGradient}` };
-
-  const Header = (
-    <div className="sticky top-0 z-20 backdrop-blur-md">
-      <div className={["max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between", isGR ? "text-[#E6E7E9] border-b border-[#17191B]/80" : "text-gray-900 border-b border-gray-200/60"].join(" ")}>
-        <div className="inline-flex items-center gap-1.5">
-          {isGR ? (
-            <>
-              <Zap className="w-4 h-4 text-[#EB0A1E]" />
-              <span className="tracking-wide font-semibold">GR Performance Gallery</span>
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              <span className="tracking-wide font-semibold">{vehicle?.name} Experience</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => setMode("cinematic")}
-            className={[
-              "h-8",
-              mode === "cinematic" ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
-              focusRing,
-            ].join(" ")}
-            aria-pressed={mode === "cinematic"}
-          >
-            <Eye className="w-4 h-4 mr-1" /> Cinematic
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={() => setMode("grid")}
-            className={[
-              "h-8",
-              mode === "grid" ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
-              focusRing,
-            ].join(" ")}
-            aria-pressed={mode === "grid"}
-          >
-            <Grid3X3 className="w-4 h-4 mr-1" /> Grid
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={onToggleGR}
-            className={[ "h-8 px-3", isGR ? "bg-[#1A1C1F] text-[#EB0A1E] border border-[#17191B]" : "bg-white text-gray-900 border hover:bg-gray-50", focusRing].join(" ")}
-            aria-pressed={isGR}
-            aria-label="Toggle GR mode"
-            title="Toggle GR mode"
-          >
-            GR
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  const bgProps = isGR
+    ? { style: GR.carbon, className: "min-h-[100svh]" }
+    : { style: undefined, className: `min-h-[100svh] ${LX_BG}` };
 
   return (
-    <section className={bgWrap.className} style={bgWrap.style} aria-label={`${vehicle?.name} gallery`}>
-      {Header}
-
-      {/* Intro + chapters (cinematic) */}
-      {mode === "cinematic" && (
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
-          <div className={["rounded-3xl overflow-hidden relative", isGR ? "border border-[#17191B]" : "shadow-2xl"].join(" ")}>
-            <div className="aspect-[21/9] w-full relative overflow-hidden">
-              <motion.img
-                src={(chapters[0]?.media?.[0]?.url as string) || (vehicle as AnyVehicle)?.image}
-                alt={`${vehicle?.name} hero`}
-                initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 1.04 }}
-                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
-                <div className="max-w-[70%]">
-                  <h1 className="text-white text-2xl sm:text-4xl font-black leading-tight">
-                    {vehicle?.name} — {isGR ? "GR Performance" : "Signature Series"}
-                  </h1>
-                  <p className="text-white/85 mt-2 text-sm sm:text-base">
-                    {isGR ? "Matte carbon craft. Track-bred precision. Everyday thrill." : "Impeccable design. Intelligent comfort. Effortless power."}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  className={[isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B] hover:bg-[#15171A]" : "bg-white text-gray-900 hover:bg-gray-100", focusRing].join(" ")}
-                >
-                  <PlayCircle className="w-4 h-4 mr-1" />
-                  Play film
-                </Button>
-              </div>
-            </div>
+    <section className={bgProps.className} style={bgProps.style} aria-label={`${vehicle?.name} gallery`}>
+      {/* Header / Switches */}
+      <div className="sticky top-0 z-30 backdrop-blur-md">
+        <div className={["max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between",
+          isGR ? "text-[#E6E7E9] border-b border-[#17191B]/80" : "text-gray-900 border-b border-gray-200/60"].join(" ")}>
+          <div className="inline-flex items-center gap-2">
+            {isGR ? <Zap className="w-4 h-4 text-[#EB0A1E]" /> : <Eye className="w-4 h-4" />}
+            <span className="tracking-wide font-semibold">{vehicle?.name} {isGR ? "GR" : "Gallery"}</span>
           </div>
-
-          <div className="mt-10 space-y-16">
-            {chapters.map((ch) => (
-              <div key={ch.key} className="space-y-4" aria-labelledby={`chap-${ch.key}`}>
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <h2 id={`chap-${ch.key}`} className={["font-black tracking-wide", isGR ? "text-[#E6E7E9]" : LX.text, "text-xl sm:text-2xl"].join(" ")}>
-                      {ch.title}
-                    </h2>
-                    <p className={isGR ? "text-[#9DA2A6]" : LX.muted}>{ch.subtitle}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className={["h-8", isGR ? "border-[#17191B] text-[#E6E7E9] hover:bg-[#121416]" : "border-gray-300 text-gray-800 hover:bg-gray-50", focusRing].join(" ")}
-                    onClick={() => setMode("grid")}
-                  >
-                    Browse all
-                  </Button>
-                </div>
-
-                <div className="grid gap-8">
-                  {ch.media.slice(0, 2).map((m, i) => (
-                    <ParallaxFrame
-                      key={m.url + i}
-                      src={m.url}
-                      alt={m.alt}
-                      caption={i === 0 ? ch.subtitle : undefined}
-                      isGR={isGR}
-                      onOpen={() => onOpenFullscreen({ url: m.url, alt: m.alt })}
-                      premium={m.premium}
-                      hotspots={i === 0 ? ch.hotspots : undefined}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Grid */}
-      {mode === "grid" && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <RotateCcw className={isGR ? "text-[#9DA2A6]" : "text-gray-500"} />
-              <span className={isGR ? "text-[#E6E7E9]" : "text-gray-900"}>Quick browse</span>
-            </div>
-            <Button size="sm" onClick={() => setMode("cinematic")} className={[ "h-8", isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white", focusRing].join(" ")}>
-              Back to cinematic
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={onToggleGR}
+              className={["h-8 px-3", isGR ? "bg-[#1A1C1F] text-[#EB0A1E] border border-[#17191B]" : "bg-white text-gray-900 border hover:bg-gray-50", focusRing].join(" ")}
+              aria-pressed={isGR}
+              aria-label="Toggle GR mode"
+            >
+              GR
             </Button>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-            {chapters.flatMap((ch) =>
-              ch.media.map((m, i) => (
-                <GridCard
-                  key={`${ch.key}-${i}`}
-                  src={m.url}
-                  alt={m.alt}
-                  premium={m.premium}
-                  isGR={isGR}
-                  onClick={() => {
-                    setFsMedia({ url: m.url, alt: m.alt });
-                    setFsOpen(true);
-                  }}
-                />
-              ))
-            )}
-          </div>
         </div>
-      )}
+      </div>
 
-      {/* Fullscreen viewer */}
-      <AnimatePresence>
-        {fsOpen && fsMedia && (
-          <motion.div
-            role="dialog"
-            aria-label="Fullscreen media viewer"
-            aria-modal="true"
-            className="fixed inset-0 z-50 bg-black/95 flex flex-col"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center justify-between p-3 border-b border-white/10">
-              <div className="flex items-center gap-2 text-white">
-                <Badge className="bg-white/10">Fullscreen</Badge>
-                <span className="text-sm opacity-80">{vehicle?.name}</span>
-              </div>
-              <Button size="icon" aria-label="Close" onClick={() => setFsOpen(false)} className={`text-white bg-white/10 hover:bg-white/20 ${focusRing}`}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+      {/* Desktop story / Mobile cinematic */}
+      <div className="hidden md:block">
+        <DesktopStory chapters={chapters} isGR={isGR} vehicleName={vehicle?.name} onOpen={onOpen} />
+      </div>
+      <div className="md:hidden py-4">
+        <MobileCinematic chapters={chapters} isGR={isGR} onOpen={onOpen} />
+      </div>
 
-            <div className="flex-1 flex items-center justify-center p-3">
-              <motion.img
-                key={fsMedia.url}
-                src={fsMedia.url}
-                alt={fsMedia.alt}
-                className="max-w-full max-h-full object-contain rounded-lg"
-                initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
-                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Fullscreen */}
+      <FullscreenViewer media={fsMedia} open={fsOpen} onClose={() => setFsOpen(false)} />
     </section>
   );
 };
