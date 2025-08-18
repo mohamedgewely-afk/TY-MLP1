@@ -1,6 +1,12 @@
+// InteractiveSpecsTechFutura.tsx
+// Compact, mobile-first redesign:
+// - Engine boxes sit side-by-side on mobile (2-up grid) and remain elegant on desktop.
+// - Grade cards are condensed on mobile with progressive disclosure ("More details").
+// - Keeps your data structure, props, and callbacks intact.
+// - Framer Motion + Tailwind only (no new deps).
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +17,6 @@ import {
   Wrench,
   Sparkles,
   ArrowUpDown,
-  Zap,
-  Gauge,
   Star,
   Crown,
 } from "lucide-react";
@@ -30,27 +34,24 @@ interface InteractiveSpecsTechProps {
 }
 
 const luxuryVariants = {
-  enter: { opacity: 0, scale: 0.95, x: 100, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-  center: { opacity: 1, scale: 1, x: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, scale: 0.95, x: -100, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+  enter: { opacity: 0, scale: 0.98, x: 60, transition: { duration: 0.4 } },
+  center: { opacity: 1, scale: 1, x: 0, transition: { duration: 0.45 } },
+  exit: { opacity: 0, scale: 0.98, x: -60, transition: { duration: 0.35 } },
 };
 
-// Toyota.ae official red color
 const TOYOTA_RED = "#CC0000";
-const TOYOTA_RED_GRADIENT = "from-[#CC0000] via-[#e60000] to-[#CC0000]";
 
-const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ 
-  vehicle, 
+const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
+  vehicle,
   onCarBuilder,
-  onBookTestDrive 
+  onBookTestDrive,
 }) => {
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [currentGradeIndex, setCurrentGradeIndex] = useState(0);
   const [selectedGrade, setSelectedGrade] = useState("");
   const [showComparisonModal, setShowComparisonModal] = useState(false);
-  const [imageLoading, setImageLoading] = useState<Record<number, boolean>>({});
+  const [expandedMobile, setExpandedMobile] = useState(false);
   const isMobile = useIsMobile();
-  const { deviceCategory } = useDeviceInfo();
   const { toast } = useToast();
 
   const engines = [
@@ -60,9 +61,11 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
       torque: "221 lb-ft",
       efficiency: "25.2 km/L",
       description: "Advanced hybrid powertrain with seamless electric assist",
-      brandColor: TOYOTA_RED,
-      accentColor: "bg-[#EB0A1E]",
-      icon: <Zap className="h-5 w-5" />,
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden>
+          <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" fill="currentColor"/>
+        </svg>
+      ),
       grades: [
         {
           name: "Hybrid SE",
@@ -105,9 +108,12 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
       torque: "267 lb-ft",
       efficiency: "18.4 km/L",
       description: "Powerful V6 engine for enhanced performance",
-      brandColor: TOYOTA_RED,
-      accentColor: "bg-[#EB0A1E]",
-      icon: <Gauge className="h-5 w-5" />,
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden>
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/>
+          <path d="M6 12h12M12 6v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
       grades: [
         {
           name: "V6 SE",
@@ -153,211 +159,100 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
   const handleEngineChange = (engineName: string) => {
     setSelectedEngine(engineName);
     setCurrentGradeIndex(0);
-    setImageLoading({});
-    toast({ title: "Engine Selected", description: `Switched to ${engineName} — Available grades updated` });
+    setExpandedMobile(false);
+    toast({ title: "Engine Selected", description: `Switched to ${engineName}` });
   };
 
   const nextGrade = () => setCurrentGradeIndex((p) => (p + 1) % currentGrades.length);
   const prevGrade = () => setCurrentGradeIndex((p) => (p - 1 + currentGrades.length) % currentGrades.length);
 
-  const selectCurrentGrade = () => {
-    setSelectedGrade(currentGrade.name);
-    toast({ title: "Grade Selected", description: `${currentGrade.name} has been selected` });
-  };
+  const handleConfigureClick = () => onCarBuilder?.({ engine: selectedEngine, grade: currentGrade.name });
+  const handleTestDriveClick = () => onBookTestDrive?.({ engine: selectedEngine, grade: currentGrade.name });
 
-  const handleImageLoad = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: false }));
-  const handleImageLoadStart = (idx: number) => setImageLoading((prev) => ({ ...prev, [idx]: true }));
-
-  const handleConfigureClick = () => {
-    if (onCarBuilder) {
-      onCarBuilder({
-        engine: selectedEngine,
-        grade: currentGrade.name
-      });
-    }
-  };
-
-  const handleTestDriveClick = () => {
-    if (onBookTestDrive) {
-      onBookTestDrive({
-        engine: selectedEngine,
-        grade: currentGrade.name
-      });
-    }
-  };
-
-  // Swipe functionality for mobile
-  const swipeRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: nextGrade,
-    onSwipeRight: prevGrade,
-    threshold: 50,
-    preventDefaultTouchmoveEvent: false,
-  });
+  // Swipe on mobile
+  const swipeRef = useSwipeable<HTMLDivElement>({ onSwipeLeft: nextGrade, onSwipeRight: prevGrade, threshold: 40 });
 
   return (
-    <section className="py-12 lg:py-20 bg-gray-50">
+    <section className="py-10 lg:py-16 bg-gray-50">
       <div className="toyota-container">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-8 lg:mb-16"
-        >
-          <Badge 
-            className="mb-4 shadow-lg shadow-red-200/40 border-0"
-            style={{ backgroundColor: TOYOTA_RED, color: 'white' }}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Interactive Experience
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8 lg:mb-12">
+          <Badge className="mb-3 border-0 text-white" style={{ backgroundColor: TOYOTA_RED }}>
+            <Sparkles className="h-4 w-4 mr-2" /> Interactive Experience
           </Badge>
-          <h2 className="text-[32px] lg:text-6xl font-black text-gray-900 mb-4 lg:mb-6">
-            Choose Your Configuration
-          </h2>
-          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
-            Select your preferred engine and explore grades with our premium carousel experience.
-          </p>
+          <h2 className="text-[28px] sm:text-[32px] lg:text-6xl font-black text-gray-900 mb-2 lg:mb-4">Choose Your Configuration</h2>
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">Select your engine and explore trims in a compact, mobile-perfect layout.</p>
         </motion.div>
 
-        {/* Step 1: Engine Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <h3 className="text-2xl lg:text-3xl font-bold text-center mb-8 text-gray-900">
-            Step 1: Choose Your Powertrain
-          </h3>
+        {/* Step 1: Engine Selection — 2-up on mobile */}
+        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-10 lg:mb-16">
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-5 lg:mb-8 text-gray-900">Step 1: Choose Your Powertrain</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {engines.map((engine, i) => {
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4 max-w-md sm:max-w-3xl md:max-w-4xl mx-auto">
+            {engines.map((engine) => {
               const active = selectedEngine === engine.name;
               return (
-                <motion.div
+                <button
                   key={engine.name}
-                  variants={luxuryVariants}
-                  initial="enter"
-                  whileInView="center"
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className="h-full"
+                  onClick={() => handleEngineChange(engine.name)}
+                  className={[
+                    "relative rounded-xl p-3 sm:p-4 text-left bg-white border transition-all",
+                    active ? "border-[#CC0000] shadow-md" : "border-gray-200 hover:border-gray-300",
+                  ].join(" ")}
                 >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl transition-all duration-500 cursor-pointer border-2 bg-white shadow-lg hover:shadow-xl
-                      ${active
-                        ? "border-[#CC0000] shadow-red-100/60"
-                        : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    onClick={() => handleEngineChange(engine.name)}
-                  >
+                  {active && <span className="absolute inset-x-0 -top-px h-0.5" style={{ background: TOYOTA_RED }} />}
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg grid place-items-center text-white" style={{ backgroundColor: TOYOTA_RED }}>
+                      {engine.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm sm:text-base text-gray-900 truncate">{engine.name}</div>
+                      <div className="text-[11px] sm:text-xs text-gray-500 truncate">{engine.description}</div>
+                    </div>
                     {active && (
-                      <div 
-                        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r"
-                        style={{ backgroundImage: `linear-gradient(to right, ${TOYOTA_RED}, #e60000, ${TOYOTA_RED})` }}
-                      />
+                      <div className="w-6 h-6 rounded-full grid place-items-center" style={{ backgroundColor: TOYOTA_RED }}>
+                        <Check className="w-3.5 h-3.5 text-white" />
+                      </div>
                     )}
-
-                    <div className="relative z-10 p-6 lg:p-8">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div 
-                            className="w-14 h-14 rounded-xl text-white grid place-items-center shadow-lg"
-                            style={{ backgroundColor: TOYOTA_RED }}
-                          >
-                            {engine.icon}
-                          </div>
-                          {active && (
-                            <motion.div 
-                              initial={{ scale: 0 }} 
-                              animate={{ scale: 1 }} 
-                              transition={{ type: "spring", stiffness: 320, damping: 18 }}
-                            >
-                              <div 
-                                className="w-8 h-8 rounded-full grid place-items-center shadow-md"
-                                style={{ backgroundColor: TOYOTA_RED }}
-                              >
-                                <Check className="h-4 w-4 text-white" />
-                              </div>
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-
-                      <h4 className="font-bold mb-2 text-xl text-gray-900">
-                        {engine.name}
-                      </h4>
-                      <p className="mb-6 text-gray-600 leading-relaxed">
-                        {engine.description}
-                      </p>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
-                          <div className="font-bold text-gray-900 text-lg">{engine.power}</div>
-                          <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Power</div>
-                        </div>
-                        <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
-                          <div className="font-bold text-gray-900 text-lg">{engine.efficiency}</div>
-                          <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Efficiency</div>
-                        </div>
-                      </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
+                    <div className="rounded-lg p-2 bg-gray-50 border border-gray-100">
+                      <div className="font-semibold text-gray-900">{engine.power}</div>
+                      <div className="text-gray-500 uppercase tracking-wide">Power</div>
+                    </div>
+                    <div className="rounded-lg p-2 bg-gray-50 border border-gray-100">
+                      <div className="font-semibold text-gray-900">{engine.efficiency}</div>
+                      <div className="text-gray-500 uppercase tracking-wide">Efficiency</div>
                     </div>
                   </div>
-                </motion.div>
+                </button>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Step 2: Luxury Grade Carousel */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-8">
+        {/* Step 2: Grade Carousel — compact on mobile */}
+        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-6 lg:mb-10">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="text-center sm:text-left">
-              <h3 className="text-2xl lg:text-4xl font-black text-gray-900 mb-2">
-                Step 2: Choose Your Grade
-              </h3>
-              <div 
-                className="w-24 lg:w-32 h-1 rounded-full"
-                style={{ backgroundColor: TOYOTA_RED }}
-              />
+              <h3 className="text-xl sm:text-2xl lg:text-4xl font-black text-gray-900">Step 2: Choose Your Grade</h3>
+              <div className="w-20 sm:w-24 lg:w-32 h-1 rounded-full mt-2" style={{ backgroundColor: TOYOTA_RED }} />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowComparisonModal(true)}
-              className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
-            >
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              Compare Grades
+            <Button variant="outline" onClick={() => setShowComparisonModal(true)} className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white">
+              <ArrowUpDown className="h-4 w-4 mr-2" /> Compare
             </Button>
           </div>
 
-          <div className="relative max-w-7xl mx-auto" ref={swipeRef}>
-            {/* Navigation Arrows */}
-            <button
-              onClick={prevGrade}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full text-white shadow-2xl -translate-x-6 transition-all hover:scale-110"
-              style={{ backgroundColor: TOYOTA_RED }}
-              aria-label="Previous grade"
-            >
-              <ChevronLeft className="h-6 w-6" />
+          <div className="relative" ref={swipeRef}>
+            {/* Arrows hidden on mobile to avoid overlap */}
+            <button onClick={prevGrade} className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full text-white shadow-xl -translate-x-4" style={{ backgroundColor: TOYOTA_RED }} aria-label="Previous">
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <button
-              onClick={nextGrade}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full text-white shadow-2xl translate-x-6 transition-all hover:scale-110"
-              style={{ backgroundColor: TOYOTA_RED }}
-              aria-label="Next grade"
-            >
-              <ChevronRight className="h-6 w-6" />
+            <button onClick={nextGrade} className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full text-white shadow-xl translate-x-4" style={{ backgroundColor: TOYOTA_RED }} aria-label="Next">
+              <ChevronRight className="h-5 w-5" />
             </button>
 
-            {/* Luxury Carousel Cards */}
-            <div className="mx-8 sm:mx-16 overflow-hidden">
+            <div className="mx-1 sm:mx-8 overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${selectedEngine}-${currentGradeIndex}`}
@@ -365,117 +260,82 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100"
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100"
                 >
-                  {/* Left Side - Image */}
-                  <div className="relative h-64 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                  {/* Media */}
+                  <div className="relative h-48 sm:h-64 lg:h-96 bg-gray-100">
                     <img
                       src={currentGrade.image}
                       alt={`${currentGrade.name} Grade`}
-                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                      className="w-full h-full object-cover"
                       loading="lazy"
-                      onLoadStart={() => handleImageLoadStart(currentGradeIndex)}
-                      onLoad={() => handleImageLoad(currentGradeIndex)}
-                      onError={() => handleImageLoad(currentGradeIndex)}
                     />
-                    {/* Premium Badge */}
-                    <div className="absolute top-6 left-6">
-                      <Badge 
-                        className="shadow-lg border-0 text-white font-semibold"
-                        style={{ backgroundColor: TOYOTA_RED }}
-                      >
-                        <Crown className="h-3 w-3 mr-1" />
-                        {currentGrade.highlight}
+                    <div className="absolute top-3 left-3">
+                      <Badge className="shadow border-0 text-white font-semibold" style={{ backgroundColor: TOYOTA_RED }}>
+                        <Crown className="h-3 w-3 mr-1" /> {currentGrade.highlight}
                       </Badge>
                     </div>
                   </div>
 
-                  {/* Right Side - Content */}
-                  <div className="p-8 lg:p-12 flex flex-col justify-between">
-                    {/* Header */}
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                        <h4 className="text-3xl lg:text-4xl font-black text-gray-900">
-                          {currentGrade.name}
-                        </h4>
-                      </div>
-                      <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                        {currentGrade.description}
-                      </p>
+                  {/* Content (compact for mobile) */}
+                  <div className="p-4 sm:p-6 lg:p-10">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                      <h4 className="text-xl sm:text-2xl lg:text-4xl font-black text-gray-900">{currentGrade.name}</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm sm:text-base mb-3 sm:mb-6 leading-relaxed line-clamp-2 sm:line-clamp-none">
+                      {currentGrade.description}
+                    </p>
 
-                      {/* Pricing */}
-                      <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                        <div className="text-4xl lg:text-5xl font-black text-gray-900 mb-2">
-                          AED {currentGrade.fullPrice.toLocaleString()}
-                        </div>
-                        <div className="text-gray-600 text-lg">
-                          From AED {currentGrade.monthlyEMI}/month
-                        </div>
-                      </div>
-
-                      {/* Features */}
-                      <div className="mb-8">
-                        <h5 className="font-bold text-xl text-gray-900 mb-4">Key Features</h5>
-                        <div className="grid grid-cols-1 gap-3">
-                          {currentGrade.features.map((feature: string, idx: number) => (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.1 }}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm"
-                            >
-                              <div 
-                                className="w-6 h-6 rounded-full grid place-items-center"
-                                style={{ backgroundColor: TOYOTA_RED }}
-                              >
-                                <Check className="h-3 w-3 text-white" />
-                              </div>
-                              <span className="text-gray-700 font-medium">{feature}</span>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
+                    {/* Pricing (tight) */}
+                    <div className="mb-4 sm:mb-8 p-3 sm:p-5 bg-gray-50 rounded-xl sm:rounded-2xl border border-gray-100">
+                      <div className="text-2xl sm:text-4xl lg:text-5xl font-black text-gray-900">AED {currentGrade.fullPrice.toLocaleString()}</div>
+                      <div className="text-gray-600 text-sm sm:text-lg">From AED {currentGrade.monthlyEMI}/month</div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <Button
-                        onClick={() => {
-                          setSelectedGrade(currentGrade.name);
-                          selectCurrentGrade();
-                        }}
-                        className="font-semibold text-white transition-all shadow-lg"
-                        style={{ backgroundColor: TOYOTA_RED }}
-                      >
-                        {selectedGrade === currentGrade.name ? (
-                          <>
-                            <Check className="h-4 w-4 mr-2" />
-                            Selected
-                          </>
-                        ) : (
-                          "Select Grade"
-                        )}
-                      </Button>
+                    {/* Key features — show 2 on mobile, full on desktop */}
+                    <div className="mb-4 sm:mb-8">
+                      <h5 className="font-bold text-base sm:text-xl text-gray-900 mb-2 sm:mb-4">Key Features</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        {(isMobile ? currentGrade.features.slice(0, 2) : currentGrade.features).map((feature: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-white border border-gray-100">
+                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full grid place-items-center" style={{ backgroundColor: TOYOTA_RED }}>
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                            <span className="text-gray-700 text-sm sm:text-base font-medium">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Expand for the rest on mobile */}
+                      {isMobile && currentGrade.features.length > 2 && (
+                        <button className="mt-2 text-xs font-semibold text-[#CC0000]" onClick={() => setExpandedMobile((v) => !v)}>
+                          {expandedMobile ? "Hide details" : `+ ${currentGrade.features.length - 2} more`}
+                        </button>
+                      )}
+                      {isMobile && expandedMobile && (
+                        <div className="mt-2 grid grid-cols-1 gap-2">
+                          {currentGrade.features.slice(2).map((feature, i) => (
+                            <div key={i} className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-gray-100">
+                              <div className="w-5 h-5 rounded-full grid place-items-center" style={{ backgroundColor: TOYOTA_RED }}>
+                                <Check className="h-3 w-3 text-white" />
+                              </div>
+                              <span className="text-gray-700 text-sm font-medium">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                      <Button
-                        variant="outline"
-                        className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
-                        onClick={handleTestDriveClick}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Test Drive
+                    {/* Actions — compact on mobile */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <Button onClick={() => { setSelectedGrade(currentGrade.name); }} className="font-semibold text-white" style={{ backgroundColor: TOYOTA_RED }}>
+                        {selectedGrade === currentGrade.name ? (<><Check className="h-4 w-4 mr-1.5" /> Selected</>) : ("Select")}
                       </Button>
-
-                      <Button
-                        variant="outline"
-                        className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white transition-all shadow-md"
-                        onClick={handleConfigureClick}
-                      >
-                        <Wrench className="h-4 w-4 mr-2" />
-                        Configure
+                      <Button variant="outline" className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white" onClick={handleTestDriveClick}>
+                        <Download className="h-4 w-4 mr-1.5" /> Drive
+                      </Button>
+                      <Button variant="outline" className="col-span-2 sm:col-span-1 border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white" onClick={handleConfigureClick}>
+                        <Wrench className="h-4 w-4 mr-1.5" /> Configure
                       </Button>
                     </div>
                   </div>
@@ -483,17 +343,13 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
               </AnimatePresence>
             </div>
 
-            {/* Indicators */}
-            <div className="flex justify-center gap-3 mt-8">
+            {/* Dots */}
+            <div className="flex justify-center gap-2 mt-5">
               {currentGrades.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentGradeIndex(idx)}
-                  className={`rounded-full transition-all duration-400 ${
-                    idx === currentGradeIndex
-                      ? "w-12 h-3 shadow-lg shadow-red-200/60"
-                      : "w-3 h-3 bg-gray-300 hover:bg-gray-400"
-                  }`}
+                  className={`rounded-full transition-all ${idx === currentGradeIndex ? "w-10 h-2 shadow" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"}`}
                   style={idx === currentGradeIndex ? { backgroundColor: TOYOTA_RED } : {}}
                   aria-label={`Go to grade ${idx + 1}`}
                 />
@@ -517,4 +373,4 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({
   );
 };
 
-export default InteractiveSpecsTech;
+export default InteractiveSpecsTechFutura;
