@@ -341,7 +341,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                         className="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
-                        fetchpriority={currentGradeIndex === 0 ? ("high" as any) : undefined}
+                        fetchPriority={currentGradeIndex === 0 ? "high" : undefined}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
                       {/* Premium Badge */}
