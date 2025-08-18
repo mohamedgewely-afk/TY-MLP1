@@ -48,13 +48,19 @@ const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#9DA2A6";
 
 const carbonMatte: React.CSSProperties = {
-  backgroundImage: "url('/lovable-uploads/dae96293-a297-4690-a4e1-6b32d044b8d3.png')",
-  backgroundSize: "cover",
+  backgroundImage:
+    "url('/lovable-uploads/5dc5accb-0a25-49ca-a064-30844fa8836a.png')",
+  backgroundSize: "280px 280px",
+  backgroundRepeat: "repeat",
   backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  backgroundColor: GR_SURFACE,
+  backgroundColor: "#0B0B0C",
 };
-
+// GR button styles (high contrast on carbon)
+const GR_BTN_PRIMARY =
+  "bg-gradient-to-b from-[#EB0A1E] to-[#B10D19] text-white shadow-[0_6px_18px_rgba(235,10,30,.25)] hover:from-[#FF2A3C] hover:to-[#D21320] focus-visible:ring-2 focus-visible:ring-red-600";
+const GR_BTN_SURFACE =
+  "bg-[#111315] border border-[#17191B] text-[#E6E7E9] hover:bg-[#141618] focus-visible:ring-2 focus-visible:ring-red-700";
+const GR_TEXT_MUTED = "text-[#C8CCD0]";
 /* ─────────────────────────────────────────
    GR mode state (persist + URL opt-in)
 ─────────────────────────────────────────── */
@@ -397,7 +403,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "p-2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
+                  "p-2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]",
                   isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : ""
                 )}
                 aria-label="Collapse actions"
@@ -407,38 +413,33 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <Button
-                onClick={() => {
-                  onBookTestDrive?.();
-                  setIsActionsExpanded(false);
-                }}
-                className={cn(
-                  "w-full py-3 rounded-xl text-sm font-medium text-white shadow-lg",
-                  isGR ? "" : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                )}
-                style={isGR ? { backgroundColor: "#1A1C1F", border: `1px solid ${GR_EDGE}` } : undefined}
-              >
-                <Car className="h-4 w-4 mr-2" />
-                Test Drive
-              </Button>
+             <Button
+  onClick={() => {
+    onBookTestDrive?.();
+    setIsActionsExpanded(false);
+  }}
+  className={cn(
+    "w-full py-3 rounded-xl text-sm font-medium",
+    isGR ? GR_BTN_PRIMARY : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+  )}
+>
+  <Car className="h-4 w-4 mr-2" />
+  Test Drive
+</Button>
 
               <Button
-                onClick={() => {
-                  onCarBuilder?.();
-                  setIsActionsExpanded(false);
-                }}
-                variant="outline"
-                className={cn(
-                  "w-full border py-3 rounded-xl text-sm font-medium",
-                  isGR
-                    ? "hover:bg-neutral-900 text-neutral-200"
-                    : "border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/70"
-                )}
-                style={isGR ? { borderColor: GR_EDGE } : undefined}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configure
-              </Button>
+  onClick={() => {
+    onCarBuilder?.();
+    setIsActionsExpanded(false);
+  }}
+  className={cn(
+    "w-full py-3 rounded-xl text-sm font-medium",
+    isGR ? GR_BTN_SURFACE : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/70"
+  )}
+>
+  <Settings className="h-4 w-4 mr-2" />
+  Configure
+</Button>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -449,9 +450,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 }}
                 variant="outline"
                 className={cn(
-                  "w-full border py-2 rounded-lg text-xs",
-                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
+  "w-full py-2 rounded-lg text-xs",
+  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+)}
               >
                 <Calculator className="h-4 w-4 mb-1" />
                 Finance
@@ -464,9 +465,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 }}
                 variant="outline"
                 className={cn(
-                  "w-full border py-2 rounded-lg text-xs",
-                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
+  "w-full py-2 rounded-lg text-xs",
+  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+)}
               >
                 <Download className="h-4 w-4 mb-1" />
                 Brochure
@@ -479,9 +480,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 }}
                 variant="outline"
                 className={cn(
-                  "w-full border py-2 rounded-lg text-xs",
-                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
+  "w-full py-2 rounded-lg text-xs",
+  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+)}
               >
                 <Share2 className="h-4 w-4 mb-1" />
                 Share
@@ -526,19 +527,24 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
               <div className="flex items-center gap-2">
                 <button
-                  type="button"
-                  onClick={toggleGR}
-                  aria-pressed={isGR}
-                  aria-label="Toggle GR performance mode"
-                  className={cn(
-                    "inline-flex items-center h-8 rounded-full px-3 text-xs font-semibold transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
-                    isGR ? "bg-[#1a1c1f] text-red-300" : "bg-gray-200/70 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                  )}
-                  title="GR Mode"
-                >
-                  GR
-                </button>
+  type="button"
+  onClick={toggleGR}
+  aria-pressed={isGR}
+  aria-label="Toggle GR performance mode"
+  className={cn(
+    "inline-flex items-center h-8 rounded-full px-3 text-xs font-semibold transition-colors",
+    // Stronger, accessible focus ring on dark carbon (offset shows the ring clearly)
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]",
+    // GR on = matte surface + high-contrast text
+    isGR
+      ? "bg-[#1a1c1f] text-[#E6E7E9] hover:bg-[#16181A]"
+      : "bg-gray-200/70 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+  )}
+  title="GR Mode"
+>
+  GR
+</button>
+
 
                 <Button
                   variant="ghost"
@@ -607,21 +613,27 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button
-                      variant="outline"
-                      className={cn("h-12 text-left justify-start", isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-900" : "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]")}
-                      onClick={() => handleSectionToggle("models")}
-                    >
-                      <Car className="h-4 w-4 mr-2" />
-                      Browse Models
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className={cn("h-12 text-left justify-start", isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-900" : "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]")}
-                      onClick={() => handleSectionToggle("search")}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Find Vehicle
-                    </Button>
+  className={cn(
+    "h-12 text-left justify-start",
+    isGR ? GR_BTN_SURFACE : "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]"
+  )}
+  onClick={() => handleSectionToggle("models")}
+>
+  <Car className="h-4 w-4 mr-2" />
+  Browse Models
+</Button>
+
+<Button
+  className={cn(
+    "h-12 text-left justify-start",
+    isGR ? GR_BTN_SURFACE : "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]"
+  )}
+  onClick={() => handleSectionToggle("search")}
+>
+  <Search className="h-4 w-4 mr-2" />
+  Find Vehicle
+</Button>
+
                   </div>
                 </motion.div>
               )}
@@ -679,7 +691,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                             to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
                             onClick={() => setIsMenuOpen(false)}
                             aria-label={`View ${v.name}`}
-                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] rounded-xl"
+                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C] rounded-xl"
                           >
                             <motion.div whileHover={{ scale: reduceMotion ? 1 : 1.02 }} whileTap={{ scale: reduceMotion ? 1 : 0.98 }}>
                               {isGR ? (
@@ -771,7 +783,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                               <Link
                                 to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
                                 onClick={() => setIsMenuOpen(false)}
-                                className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] rounded-xl"
+                                className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C] rounded-xl"
                                 aria-label={`View ${v.name}`}
                               >
                                 {isGR ? (
@@ -923,7 +935,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                             to={`/pre-owned/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
                             onClick={() => setIsMenuOpen(false)}
                             aria-label={`View ${v.name}`}
-                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] rounded-xl"
+                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C] rounded-xl"
                           >
                             <motion.div whileHover={{ scale: reduceMotion ? 1 : 1.02 }} whileTap={{ scale: reduceMotion ? 1 : 0.98 }}>
                               {isGR ? (
@@ -1107,7 +1119,7 @@ const NavItem: React.FC<NavItemProps> = ({
       >
         <motion.div
           className={cn(
-            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
+            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]",
             isActive
               ? grMode
                 ? "bg-[#141618] text-[#E6E7E9] scale-110 shadow-[inset_0_0_0_1px_#17191B]"
@@ -1161,7 +1173,7 @@ const NavItem: React.FC<NavItemProps> = ({
     return (
       <button
         onClick={onClick}
-        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] rounded-lg"
+        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C] rounded-lg"
         style={{ WebkitTapHighlightColor: "transparent", minHeight: isScrolled ? "48px" : "56px" }}
       >
         {content}
@@ -1172,7 +1184,7 @@ const NavItem: React.FC<NavItemProps> = ({
   return (
     <Link
       to={to}
-      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] rounded-lg"
+      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C] rounded-lg"
       style={{ WebkitTapHighlightColor: "transparent", minHeight: isScrolled ? "48px" : "56px" }}
       aria-current={isActive ? "page" : undefined}
     >
