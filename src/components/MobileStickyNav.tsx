@@ -39,7 +39,7 @@ const TOYOTA_RED = "#CC0000";
 const TOYOTA_GRADIENT = "linear-gradient(90deg, #EB0A1E, #CC0000, #8B0000)";
 
 /* ─────────────────────────────────────────
-   GR (Gazoo Racing) Carbon Fiber tokens
+   GR (Gazoo Racing) Matte Carbon tokens
 ─────────────────────────────────────────── */
 const GR_RED = "#EB0A1E";
 const GR_SURFACE = "#0B0B0C";
@@ -48,7 +48,7 @@ const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#9DA2A6";
 
 const carbonMatte: React.CSSProperties = {
-  backgroundImage: "url('/lovable-uploads/0647c960-9759-4ef5-9728-f9b639b57283.png')",
+  backgroundImage: "url('/lovable-uploads/dae96293-a297-4690-a4e1-6b32d044b8d3.png')",
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
@@ -378,7 +378,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             transition={spring}
             className={cn(
               "fixed left-4 right-4 bottom-24 z-50 rounded-2xl shadow-2xl border p-4",
-              isGR ? "border-gray-700" : "bg-white/95 backdrop-blur-xl border-gray-200/50"
+              isGR ? "" : "bg-white/95 backdrop-blur-xl border-gray-200/50"
             )}
             style={isGR ? carbonMatte : undefined}
             role="dialog"
@@ -387,8 +387,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className={cn("font-bold", isGR ? `text-[${GR_TEXT}]` : "text-gray-900")}>{vehicle.name}</h3>
-                <span className={cn("text-lg font-bold", isGR ? `text-[${GR_RED}]` : "text-primary")}>
+                <h3 className={cn("font-bold", isGR ? "text-white" : "text-gray-900")}>{vehicle.name}</h3>
+                <span className={cn("text-lg font-bold", isGR ? "text-red-400" : "text-primary")}>
                   AED {fmt.format(vehicle.price)}
                 </span>
               </div>
@@ -398,7 +398,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 size="sm"
                 className={cn(
                   "p-2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
-                  isGR ? `border-[${GR_EDGE}] text-[${GR_TEXT}] hover:bg-[${GR_SURFACE}]` : ""
+                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : ""
                 )}
                 aria-label="Collapse actions"
               >
@@ -413,11 +413,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   setIsActionsExpanded(false);
                 }}
                 className={cn(
-                  "w-full py-3 rounded-xl text-sm font-medium shadow-lg",
-                  isGR 
-                    ? `bg-[${GR_SURFACE}] border border-[${GR_EDGE}] text-[${GR_TEXT}] hover:bg-[#16181A]`
-                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
+                  "w-full py-3 rounded-xl text-sm font-medium text-white shadow-lg",
+                  isGR ? "" : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                 )}
+                style={isGR ? { backgroundColor: "#1A1C1F", border: `1px solid ${GR_EDGE}` } : undefined}
               >
                 <Car className="h-4 w-4 mr-2" />
                 Test Drive
@@ -432,9 +431,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 className={cn(
                   "w-full border py-3 rounded-xl text-sm font-medium",
                   isGR
-                    ? `hover:bg-[${GR_SURFACE}] text-[${GR_TEXT}] border-[${GR_EDGE}]`
+                    ? "hover:bg-neutral-900 text-neutral-200"
                     : "border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/70"
                 )}
+                style={isGR ? { borderColor: GR_EDGE } : undefined}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Configure
@@ -450,7 +450,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 variant="outline"
                 className={cn(
                   "w-full border py-2 rounded-lg text-xs",
-                  isGR ? `border-[${GR_EDGE}] text-[${GR_TEXT}] hover:bg-[${GR_SURFACE}]` : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
                 )}
               >
                 <Calculator className="h-4 w-4 mb-1" />
@@ -465,7 +465,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 variant="outline"
                 className={cn(
                   "w-full border py-2 rounded-lg text-xs",
-                  isGR ? `border-[${GR_EDGE}] text-[${GR_TEXT}] hover:bg-[${GR_SURFACE}]` : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
                 )}
               >
                 <Download className="h-4 w-4 mb-1" />
@@ -480,7 +480,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                 variant="outline"
                 className={cn(
                   "w-full border py-2 rounded-lg text-xs",
-                  isGR ? `border-[${GR_EDGE}] text-[${GR_TEXT}] hover:bg-[${GR_SURFACE}]` : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
+                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
                 )}
               >
                 <Share2 className="h-4 w-4 mb-1" />
@@ -488,8 +488,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               </Button>
             </div>
 
-            <div className={cn("mt-4 pt-3 border-t", isGR ? `border-[${GR_EDGE}]` : "border-gray-200")}>
-              <p className={cn("text-xs text-center", isGR ? `text-[${GR_MUTED}]` : "text-muted-foreground")}>
+            <div className={cn("mt-4 pt-3 border-t", isGR ? "border-neutral-800" : "border-gray-200")}>
+              <p className={cn("text-xs text-center", isGR ? "text-neutral-400" : "text-muted-foreground")}>
                 From AED 899/month • Free delivery • 7-day return
               </p>
             </div>
@@ -507,22 +507,19 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             transition={spring}
             className={cn(
               "fixed bottom-16 left-0 right-0 rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-hidden border-t",
-              isGR ? "border border-gray-700" : "border-t-4"
+              isGR ? "border-[1px]" : "border-t-4"
             )}
             role="dialog"
             aria-modal="true"
             aria-label="Toyota Connect menu"
             style={isGR ? carbonMatte : { backgroundColor: "white", borderImage: `${TOYOTA_GRADIENT} 1` }}
           >
-            <div 
-              className="flex items-center justify-between p-4 border-b" 
-              style={isGR ? { borderColor: GR_EDGE } : undefined}
-            >
+            <div className="flex items-center justify-between p-4 border-b" style={isGR ? { ...carbonMatte, borderColor: GR_EDGE } : undefined}>
               <div>
-                <h3 className={cn("font-bold text-lg", isGR ? `text-[${GR_TEXT}]` : "text-black dark:text-red-500")} style={{ letterSpacing: ".02em" }}>
+                <h3 className={cn("font-bold text-lg", isGR ? "text-white" : "text-black dark:text-red-500")} style={{ letterSpacing: ".02em" }}>
                   Toyota Connect
                 </h3>
-                <p className={cn("text-sm", isGR ? `text-[${GR_MUTED}]` : "text-red-600 dark:text-red-400")}>
+                <p className={cn("text-sm", isGR ? "text-neutral-300" : "text-red-600 dark:text-red-400")}>
                   {isGR ? "GR Performance Hub" : "Your gateway to Toyota"}
                 </p>
               </div>
@@ -536,7 +533,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   className={cn(
                     "inline-flex items-center h-8 rounded-full px-3 text-xs font-semibold transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
-                    isGR ? `bg-[${GR_SURFACE}] text-[${GR_RED}] border border-[${GR_EDGE}]` : "bg-gray-200/70 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                    isGR ? "bg-[#1a1c1f] text-red-300" : "bg-gray-200/70 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
                   )}
                   title="GR Mode"
                 >
@@ -547,7 +544,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsMenuOpen(false)}
-                  className={cn("rounded-full h-8 w-8 p-0", isGR ? `text-[${GR_TEXT}] hover:bg-[${GR_SURFACE}]` : "text-red-600 hover:bg-red-100 dark:hover:bg-red-900")}
+                  className={cn("rounded-full h-8 w-8 p-0", isGR ? "text-[#E6E7E9] hover:bg-[#16181A]" : "text-red-600 hover:bg-red-100 dark:hover:bg-red-900")}
                   aria-label="Close menu"
                 >
                   <X className="h-4 w-4" />
@@ -1008,7 +1005,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         aria-label="Primary"
         className={cn(
           "fixed bottom-0 left-0 right-0 z-[100] backdrop-blur-xl border-t",
-          isGR ? "border-gray-700" : "bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 shadow-[0_-6px_30px_rgba(0,0,0,.15)]",
+          isGR ? "" : "bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 shadow-[0_-6px_30px_rgba(0,0,0,.15)]",
           "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
           "!block !visible !opacity-100 pb-safe-area-inset-bottom mobile-force-visible"
         )}
@@ -1019,7 +1016,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       >
         <div className={cn("grid gap-1 px-2 items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", vehicle ? "grid-cols-5" : "grid-cols-4")}>
           <NavItem
-            icon={<Car className={cn(isGR ? `text-[${GR_TEXT}]` : "", "transition-all", "h-5 w-5")} />}
+            icon={<Car className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
             label="Models"
             to="#"
             onClick={() => handleSectionToggle("models")}
@@ -1028,7 +1025,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             grMode={isGR}
           />
           <NavItem
-            icon={<ShoppingBag className={cn(isGR ? `text-[${GR_TEXT}]` : "", "transition-all", "h-5 w-5")} />}
+            icon={<ShoppingBag className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
             label="Pre-Owned"
             to="#"
             onClick={() => handleSectionToggle("pre-owned")}
@@ -1041,7 +1038,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
               icon={
                 <div className="relative">
                   {isGR && <div className="absolute inset-0 rounded-full animate-ping" style={{ backgroundColor: "rgba(235,10,30,0.16)" }} />}
-                  <div className="relative rounded-full p-2" style={isGR ? { backgroundColor: GR_SURFACE, border: `1px solid ${GR_EDGE}` } : { backgroundColor: "#EF4444" }}>
+                  <div className="relative rounded-full p-2" style={isGR ? { backgroundColor: "#1D1F22", border: `1px solid ${GR_EDGE}` } : { backgroundColor: "#EF4444" }}>
                     <Bolt className="text-white h-4 w-4" />
                   </div>
                 </div>
@@ -1055,7 +1052,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             />
           )}
           <NavItem
-            icon={<Search className={cn(isGR ? `text-[${GR_TEXT}]` : "", "transition-all", "h-5 w-5")} />}
+            icon={<Search className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
             label="Search"
             to="#"
             onClick={() => handleSectionToggle("search")}
@@ -1064,7 +1061,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             grMode={isGR}
           />
           <NavItem
-            icon={<Menu className={cn(isGR ? `text-[${GR_RED}]` : "text-red-600", "transition-all", "h-5 w-5")} />}
+            icon={<Menu className={cn(isGR ? "text-red-400" : "text-red-600", "transition-all", "h-5 w-5")} />}
             label="Menu"
             to="#"
             onClick={toggleMenu}
@@ -1113,10 +1110,10 @@ const NavItem: React.FC<NavItemProps> = ({
             "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
             isActive
               ? grMode
-                ? `bg-[${GR_SURFACE}] text-[${GR_TEXT}] scale-110 border border-[${GR_EDGE}]`
+                ? "bg-[#141618] text-[#E6E7E9] scale-110 shadow-[inset_0_0_0_1px_#17191B]"
                 : "text-toyota-red bg-red-50 dark:bg-red-950 scale-110"
               : grMode
-              ? `text-[${GR_TEXT}] bg-[${GR_SURFACE}] hover:bg-[#121416] border border-[${GR_EDGE}]`
+              ? "text-[#E6E7E9] bg-[#101214] hover:bg-[#121416] shadow-[inset_0_0_0_1px_#17191B]"
               : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
           )}
           animate={{ minWidth: isScrolled ? "36px" : "44px", minHeight: isScrolled ? "36px" : "44px", padding: isScrolled ? "6px" : "8px" }}
@@ -1132,7 +1129,7 @@ const NavItem: React.FC<NavItemProps> = ({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              style={{ background: grMode ? GR_SURFACE : TOYOTA_GRADIENT, border: grMode ? `1px solid ${GR_EDGE}` : undefined }}
+              style={{ background: grMode ? "#1F2124" : TOYOTA_GRADIENT, border: grMode ? `1px solid ${GR_EDGE}` : undefined }}
             >
               {badge > 9 ? "9+" : badge}
             </motion.div>
@@ -1143,7 +1140,7 @@ const NavItem: React.FC<NavItemProps> = ({
           <span
             className={cn(
               "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-              grMode ? (isActive ? `text-[${GR_RED}]` : `text-[${GR_MUTED}]`) : isActive ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
+              grMode ? (isActive ? "text-red-300" : "text-neutral-300") : isActive ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
             )}
           >
             {label}
