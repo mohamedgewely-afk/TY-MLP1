@@ -1160,12 +1160,6 @@ const NavItem: React.FC<NavItemProps> = ({
         )}
       </div>
 
-      {isActive && (
-        <div
-          className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full"
-          style={{ background: grMode ? GR_RED : TOYOTA_GRADIENT, transform: `translateX(-50%) translateY(${isScrolled ? "-2px" : "-4px"})` }}
-        />
-      )}
     </React.Fragment>
   );
 
