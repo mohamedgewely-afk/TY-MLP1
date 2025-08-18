@@ -110,19 +110,19 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
   if (isMobile) return null;
 
+  const panelStyle: React.CSSProperties = {
+    // @ts-ignore – CSS var is fine
+    "--panel-h": PANEL_H.base,
+    "--panel-h-md": PANEL_H.md,
+    ...(isGR ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" } : {})
+  };
+
   return (
     <motion.div
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      // SINGLE source of truth for height via CSS var
-      style={
-        {
-          // @ts-ignore – CSS var is fine
-          "--panel-h": PANEL_H.base,
-          "--panel-h-md": PANEL_H.md,
-        } as React.CSSProperties
-      }
+      style={panelStyle}
       className={[
         "fixed left-0 right-0 bottom-0 z-40",
         isGR
@@ -130,7 +130,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           : "bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-lg border-t border-gray-200/50 shadow-2xl h-[var(--panel-h)] md:h-[var(--panel-h-md)]",
         "overflow-hidden",
       ].join(" ")}
-      style={isGR ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" } : undefined}
       aria-label="Vehicle action panel"
     >
       <div className="w-full max-w-[2560px] mx-auto h-full px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
