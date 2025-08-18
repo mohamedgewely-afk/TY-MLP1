@@ -47,24 +47,11 @@ const GR_EDGE = "#17191B";
 const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#9DA2A6";
 
-const NOISE_URI =
-  "url(\"data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'>\
-  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .03 .06 .08 .1 .11 .12 .12 .12 .12'/></feComponentTransfer></filter>\
-  <rect width='100%' height='100%' filter='url(%23n)'/>\
-</svg>\")";
-
-const CARBON_URI =
-  "url(\"data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'>\
-  <rect width='22' height='22' fill='%230D0E10'/>\
-  <path d='M0,11 l11,-11 h11 v11 l-11,11 H0z' fill='%23111416'/>\
-  <path d='M11,0 l11,11 v11 H11 L0,11 V0z' fill='%23121417'/>\
-</svg>\")";
-
 const carbonMatte: React.CSSProperties = {
-  backgroundImage: `${CARBON_URI}, ${NOISE_URI}`,
-  backgroundBlendMode: "overlay, normal",
+  backgroundImage: "url('/lovable-uploads/dae96293-a297-4690-a4e1-6b32d044b8d3.png')",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
   backgroundColor: GR_SURFACE,
 };
 
