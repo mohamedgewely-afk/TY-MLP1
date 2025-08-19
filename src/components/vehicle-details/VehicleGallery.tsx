@@ -1,10 +1,11 @@
+
 // FINAL VERSION: Spec animations tied to scroll depth using framer-motion scroll progress
 import { motion, useMotionValue, useTransform, useInView, useScroll } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge, X, ChevronDown } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
-import { useSwipeable } from "react-swipeable";
+import { useSwipeable } from "../../hooks/use-swipeable";
 import { VehicleModel } from "@/types/vehicle";
 
 interface VehicleGalleryProps {
@@ -201,6 +202,71 @@ function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
           {expanded ? 'Collapse' : 'Expand'} Specs <ChevronDown className={`w-4 h-4 transform transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
         <button onClick={onClick} className="block mt-4 text-white/80 hover:text-white text-sm underline">Enter the Realm</button>
+      </div>
+    </motion.div>
+  );
+}
+
+function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
+  const [audioOn, setAudioOn] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const swipeHandlers = useSwipeable({
+    onSwipeLeft: onClose,
+    onSwipeRight: onClose,
+    threshold: 50,
+  });
+
+  useEffect(() => {
+    if (audioOn) audioRef.current?.play();
+    else audioRef.current?.pause();
+  }, [audioOn]);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <div {...swipeHandlers} className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/30 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+          <X className="w-6 h-6" />
+        </button>
+        
+        <div className="relative">
+          <video ref={videoRef} src={car.video} className="w-full h-64 md:h-80 object-cover rounded-t-3xl" autoPlay loop muted />
+          <audio ref={audioRef} loop src={car.audio} className="hidden" />
+          <button onClick={() => setAudioOn(!audioOn)} className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+            {audioOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+          </button>
+        </div>
+
+        <div className="p-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{car.name}</h2>
+          <p className="text-indigo-400 text-lg mb-6">{car.subtitle}</p>
+          
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-white mb-4">The Story</h3>
+            {car.story.map((paragraph, index) => (
+              <p key={index} className="text-white/80 mb-3 leading-relaxed">{paragraph}</p>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Object.entries(car.specs).map(([key, val]) => (
+              <div key={key} className="flex items-center gap-3 p-4 rounded-xl bg-white/5 backdrop-blur border border-white/10">
+                {specIcons[key]}
+                <div>
+                  <div className="uppercase text-indigo-300 text-xs tracking-wider">{key}</div>
+                  <div className="text-white font-semibold">{val}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </motion.div>
   );
