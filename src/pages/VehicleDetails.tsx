@@ -60,7 +60,7 @@ import OffersModal from "@/components/home/OffersModal";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
-import MobileStickyNav from "@/components/MobileStickyNav";
+// import MobileStickyNav from "@/components/MobileStickyNav"; // intentionally not used
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
@@ -82,7 +82,6 @@ type Slide = {
 const GAP_PX = 24;
 
 const VehicleDetails = () => {
-  // ----------------------- HOOKS -----------------------
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
 
@@ -94,12 +93,10 @@ const VehicleDetails = () => {
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Hero rotator state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Experience Rail state/refs
   const [activeSlide, setActiveSlide] = useState(0);
   const [cardWidth, setCardWidth] = useState(360);
   const railRef = useRef<HTMLDivElement>(null);
@@ -110,7 +107,7 @@ const VehicleDetails = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // ----------------------- CONSTANTS / HELPERS -----------------------
+  // Official images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -136,7 +133,6 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   };
 
-  // Outer swipe to rotate hero
   const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
@@ -163,7 +159,6 @@ const VehicleDetails = () => {
     window.dispatchEvent(new Event("favorites-updated"));
   };
 
-  // ----------------------- SLIDES (Model-agnostic) -----------------------
   const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
 
   const slides: Slide[] = [
@@ -223,7 +218,6 @@ const VehicleDetails = () => {
     },
   ];
 
-  // ----------------------- EFFECTS -----------------------
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
@@ -278,13 +272,12 @@ const VehicleDetails = () => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
       const { step, config } = event.detail;
       setIsCarBuilderOpen(true);
-      // Optionally use step/config
+      // optional: use step/config
     };
     window.addEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
     return () => window.removeEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
   }, []);
 
-  // ----------------------- HELPERS -----------------------
   const scrollToIndex = (idx: number) => {
     const el = railRef.current;
     if (!el) return;
@@ -294,7 +287,6 @@ const VehicleDetails = () => {
   const handlePrev = () => scrollToIndex(activeSlide - 1);
   const handleNext = () => scrollToIndex(activeSlide + 1);
 
-  // ----------------------- EARLY RETURN -----------------------
   if (!vehicle) {
     return (
       <ToyotaLayout>
@@ -311,7 +303,6 @@ const VehicleDetails = () => {
     );
   }
 
-  // ----------------------- RENDER -----------------------
   return (
     <ToyotaLayout
       activeNavItem="models"
@@ -339,16 +330,13 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* MAIN CONTENT */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
           <VirtualShowroom vehicle={vehicle} />
           <InteractiveSpecsTech vehicle={vehicle} />
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* ============================== */}
-          {/* EXPERIENCE RAIL (Model-agnostic) */}
-          {/* ============================== */}
+          {/* EXPERIENCE RAIL */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
             <div className="toyota-container">
               <motion.div
@@ -384,19 +372,15 @@ const VehicleDetails = () => {
                   <ChevronRight className="h-5 w-5" />
                 </button>
 
-                {/* Swipeable rail */}
                 <div
                   ref={railRef}
-                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-1"
+                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1"
+                  style={{ scrollbarWidth: "none" as any }}
                 >
                   {slides.map((s, i) => (
-                    <div
-                      key={s.key}
-                      ref={i === 0 ? firstCardRef : undefined}
-                      className="snap-center shrink-0 w-[90vw] sm:w-[520px] lg:w-[640px]"
-                    >
+                    <div key={s.key} ref={i === 0 ? firstCardRef : undefined} className="snap-center shrink-0 w-[90vw] sm:w-[520px] lg:w-[640px]">
                       <Card className="relative overflow-hidden h-full rounded-2xl shadow-xl border-0 bg-transparent group">
-                        {/* Media stage */}
+                        {/* Media */}
                         <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
                           <img
                             src={s.image}
@@ -404,27 +388,27 @@ const VehicleDetails = () => {
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             loading="lazy"
                           />
-                          {/* bottom gradient only */}
-                          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                          {/* Gentle edge shading only — no full overlay */}
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                         </div>
 
-                        {/* Content panel */}
-                        <CardContent className="absolute inset-x-3 bottom-3 z-10">
-                          <div className="rounded-xl bg-black/45 backdrop-blur-md text-white p-4 md:p-5 ring-1 ring-white/10">
+                        {/* Compact glass panel (bottom-left) */}
+                        <CardContent className="absolute left-4 bottom-4 right-auto z-10 max-w-[86%] sm:max-w-[460px]">
+                          <div className="rounded-xl bg-black/40 backdrop-blur-md text-white p-4 md:p-5 ring-1 ring-white/10 shadow-2xl">
                             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1">
                               {s.icon}
                               <span className="text-xs font-semibold">{s.title}</span>
                             </div>
 
-                            <h3 className="mt-2 text-lg md:text-xl font-extrabold leading-snug">
+                            <h3 className="mt-2 text-base md:text-lg font-extrabold leading-snug">
                               {s.subtitle}
                             </h3>
 
                             {s.meta && (
-                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-1 text-white/85 text-xs md:text-sm">
+                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-white/90 text-[12px] md:text-sm">
                                 {s.meta.map((m) => (
-                                  <li key={m} className="inline-flex items-center gap-1.5">
-                                    <Check className="h-4 w-4 text-emerald-300" />
+                                  <li key={m} className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                                    <Check className="h-4 w-4 text-emerald-300 shrink-0" />
                                     <span className="truncate">{m}</span>
                                   </li>
                                 ))}
@@ -459,7 +443,7 @@ const VehicleDetails = () => {
                   ))}
                 </div>
 
-                {/* Pagination dots */}
+                {/* Pagination */}
                 <div className="mt-6 flex items-center justify-center gap-2">
                   {slides.map((_, i) => (
                     <button
@@ -475,7 +459,7 @@ const VehicleDetails = () => {
                   ))}
                 </div>
 
-                {/* Quick actions */}
+                {/* Quick actions — not sticky */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
                     <PencilRuler className="mr-2 h-4 w-4" />
@@ -497,24 +481,20 @@ const VehicleDetails = () => {
               </div>
             </div>
           </section>
-          {/* END Experience Rail */}
 
+          {/* Rest of page */}
           <section className="py-8 lg:py-16 bg-muted/30">
             <VehicleGallery />
           </section>
-
           <EnhancedLifestyleGallery vehicle={vehicle} />
-
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
           </section>
-
           <PreOwnedSimilar currentVehicle={vehicle} />
-
           <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
 
-        {/* Action Panel - Desktop Only */}
+        {/* Desktop action panel */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
@@ -525,7 +505,7 @@ const VehicleDetails = () => {
         />
       </div>
 
-      {/* OFFERS MODAL */}
+      {/* Modals */}
       <OffersModal
         isOpen={isOffersModalOpen}
         onClose={() => {
@@ -535,7 +515,6 @@ const VehicleDetails = () => {
         selectedOffer={selectedOffer}
       />
 
-      {/* EXISTING MODALS */}
       <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
       <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
       <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
