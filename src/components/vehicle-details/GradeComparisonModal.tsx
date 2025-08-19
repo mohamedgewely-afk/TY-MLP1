@@ -24,6 +24,7 @@ import {
   Star
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { openTestDrivePopup } from "@/utils/testDriveUtils";
 
 interface GradeComparisonModalProps {
   isOpen: boolean;
@@ -76,13 +77,8 @@ const GradeComparisonModal: React.FC<GradeComparisonModalProps> = ({
   };
 
   const handleTestDriveClick = (grade: any) => {
-    if (onBookTestDrive) {
-      onBookTestDrive({
-        engine: currentEngineData.name,
-        grade: grade.name
-      });
-      onClose();
-    }
+    openTestDrivePopup();
+    onClose();
   };
 
   const handleConfigureClick = (grade: any) => {

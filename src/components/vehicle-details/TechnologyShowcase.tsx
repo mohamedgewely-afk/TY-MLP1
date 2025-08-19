@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, PlayCircle } from "lucide-react";
@@ -26,7 +25,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Dynamic Radar Cruise Control",
         "Road Sign Assist"
       ],
-      image: ",
+      image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       video: "https://www.youtube.com/embed/wPaZJDT88Dg"
     },
     {
@@ -40,7 +39,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Toyota Smart Key System",
         "Voice recognition"
       ],
-      image: "",
+      image: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       video: "https://www.youtube.com/embed/kG2zXavpqpo"
     },
     {
@@ -54,7 +53,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Hybrid System (available)",
         "Sport-tuned suspension"
       ],
-      image: "",
+      image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       video: "https://www.youtube.com/embed/oJXjxHFNAYE"
     }
   ];

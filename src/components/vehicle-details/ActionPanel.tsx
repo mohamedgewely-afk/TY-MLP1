@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Car, Settings, Heart, Share2, Calculator, MapPin } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { openTestDrivePopup } from "@/utils/testDriveUtils";
 
 /** ─────────────────────────────────────────
  *  GR tokens + matte carbon surface
@@ -91,6 +93,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     []
   );
 
+  const handleTestDrive = () => {
+    openTestDrivePopup(vehicle);
+  };
+
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -169,7 +175,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             {/* Primary buttons (fixed height) */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
-                onClick={onBookTestDrive}
+                onClick={handleTestDrive}
                 className={[
                   "h-9 md:h-10 px-3 md:px-4 rounded-lg shadow-lg text-xs md:text-sm",
                   isGR

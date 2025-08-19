@@ -12,6 +12,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { openTestDrivePopup } from "@/utils/testDriveUtils";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -70,6 +71,10 @@ const Header: React.FC = () => {
     } else {
       navigate(item.href);
     }
+  };
+
+  const handleTestDrive = () => {
+    openTestDrivePopup();
   };
 
   if (isMobile) {
@@ -234,7 +239,7 @@ const Header: React.FC = () => {
           {isVehiclePage && (
             <div className="flex items-center space-x-2">
               <motion.button
-                onClick={() => navigate("/test-drive")}
+                onClick={handleTestDrive}
                 className="hidden sm:inline-flex bg-toyota-red text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs font-medium"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

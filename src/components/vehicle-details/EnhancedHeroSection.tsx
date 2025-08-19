@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import YouTubeEmbed from "@/components/ui/youtube-embed";
 import AnimatedCounter from "@/components/ui/animated-counter";
+import { openTestDrivePopup } from "@/utils/testDriveUtils";
 
 interface EnhancedHeroSectionProps {
   vehicle: VehicleModel;
@@ -105,6 +105,10 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
     if (!showVideo) {
       setIsAutoPlaying(false);
     }
+  };
+
+  const handleTestDrive = () => {
+    openTestDrivePopup(vehicle);
   };
 
   const isBestSeller = 
@@ -317,7 +321,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             className="flex flex-col gap-2"
           >
             <Button 
-              onClick={onBookTestDrive}
+              onClick={handleTestDrive}
               size="sm"
               className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
             >
