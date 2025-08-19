@@ -60,14 +60,14 @@ const PerformanceSection: React.FC = () => {
       title: "GR Supra",
       description:
         "Experience pure driving excitement with the legendary Supra, reborn for the modern era with track-tuned performance.",
-      videoSrc: "https://www.toyota.ae/-/media/Videos/GR/Supra-Performance.mp4",
+      videoSrc: "",
       link: "/gr/supra",
     },
     {
       title: "GR Yaris",
       description:
         "Rally-bred and road-legal, the GR Yaris delivers exhilarating performance in a compact package.",
-      videoSrc: "https://www.toyota.ae/-/media/Videos/GR/Yaris-Performance.mp4",
+      videoSrc: "",
       link: "/gr/yaris",
     },
   ];
