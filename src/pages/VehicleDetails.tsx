@@ -34,6 +34,163 @@ import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
+/** =============================
+ *  CinematicShowreel (inline)
+ *  ============================= */
+type Scene = {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  metric?: string;
+  description: string;
+  bg: string;
+  tint: string; // tailwind gradient like "from-slate-900/60 to-slate-800/40"
+};
+
+function CinematicShowreel({
+  scenes,
+  heading,
+  tagline,
+}: {
+  scenes: Scene[];
+  heading: string;
+  tagline: string;
+}) {
+  const [active, setActive] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Autoplay (respects prefers-reduced-motion)
+  useEffect(() => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const id = setInterval(() => setActive((i) => (i + 1) % scenes.length), 6000);
+    return () => clearInterval(id);
+  }, [scenes.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") setActive((i) => (i + 1) % scenes.length);
+      if (e.key === "ArrowLeft") setActive((i) => (i - 1 + scenes.length) % scenes.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [scenes.length]);
+
+  // Scroll to active (mobile horizontal snap)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const child = el.children[active] as HTMLElement | undefined;
+    if (!child) return;
+    child.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
+  }, [active]);
+
+  return (
+    <section className="relative bg-black text-white" aria-labelledby="showreel-title">
+      <div className="toyota-container py-10 text-center">
+        <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full text-xs tracking-wide">
+          <Sparkles className="h-4 w-4" />
+          <span>Signature Experience</span>
+        </div>
+        <h2 id="showreel-title" className="mt-4 text-3xl lg:text-5xl font-extrabold">
+          {heading}
+        </h2>
+        <p className="mt-3 text-white/70 max-w-3xl mx-auto">{tagline}</p>
+      </div>
+
+      {/* Rail */}
+      <div
+        ref={containerRef}
+        className="relative flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 px-4 pb-8"
+      >
+        {scenes.map((s, i) => (
+          <motion.div
+            key={s.title + i}
+            className="relative snap-start w-[92vw] md:w-[80vw] lg:w-[70vw] h-[70vh] lg:h-[78vh] rounded-3xl overflow-hidden flex-shrink-0"
+            initial={{ opacity: 0.6, scale: 0.98 }}
+            animate={{ opacity: active === i ? 1 : 0.7, scale: active === i ? 1 : 0.98 }}
+            transition={{ type: "spring", stiffness: 100, damping: 18 }}
+          >
+            {/* Background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${s.bg})` }}
+              aria-hidden
+            />
+            {/* Tint */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${s.tint}`} aria-hidden />
+            {/* Content */}
+            <div className="relative z-10 h-full w-full p-6 lg:p-10 flex flex-col justify-end">
+              <div className="flex items-center gap-3 text-white/90">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 backdrop-blur">
+                  {s.icon}
+                </div>
+                <span className="uppercase tracking-widest text-xs lg:text-sm">{s.subtitle}</span>
+              </div>
+              <h3 className="mt-3 text-2xl lg:text-4xl font-black">{s.title}</h3>
+              {s.metric && (
+                <div className="mt-1 text-lg lg:text-2xl text-white/85 font-semibold">{s.metric}</div>
+              )}
+              <p className="mt-3 text-white/80 max-w-xl">{s.description}</p>
+            </div>
+
+            {/* Edge gradients for readability */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/50 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/40 to-transparent" />
+
+            {/* Click to activate */}
+            <button
+              type="button"
+              aria-label={`Show scene ${i + 1}`}
+              onClick={() => setActive(i)}
+              className="absolute inset-0"
+              tabIndex={-1}
+            />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div className="toyota-container pb-12">
+        <div className="flex items-center justify-between gap-4">
+          {/* Dots */}
+          <div className="flex items-center gap-2">
+            {scenes.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Go to scene ${i + 1}`}
+                className={`h-2 rounded-full transition-all ${
+                  i === active ? "w-8 bg-white" : "w-3 bg-white/40 hover:bg-white/70"
+                }`}
+                onClick={() => setActive(i)}
+              />
+            ))}
+          </div>
+
+          {/* Arrows */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActive((a) => (a - 1 + scenes.length) % scenes.length)}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setActive((a) => (a + 1) % scenes.length)}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition"
+              aria-label="Next"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
@@ -83,7 +240,9 @@ const VehicleDetails = () => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
       const { step, config } = event.detail;
       setIsCarBuilderOpen(true);
-      // You could set config here if provided
+      if (config) {
+        // accept dynamic config if needed
+      }
     };
 
     window.addEventListener('openCarBuilder', handleOpenCarBuilder as EventListener);
@@ -92,7 +251,7 @@ const VehicleDetails = () => {
     };
   }, []);
 
-  // Updated official images - spread throughout
+  // Official images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -103,7 +262,7 @@ const VehicleDetails = () => {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0d?binary=true&mformat=true"
   ];
 
-  // Auto-rotate gallery images with smoother transitions
+  // Auto-rotate gallery images
   useEffect(() => {
     if (!isHeroInView) return;
     const interval = setInterval(() => {
@@ -112,27 +271,16 @@ const VehicleDetails = () => {
     return () => clearInterval(interval);
   }, [isHeroInView, galleryImages.length]);
 
-  // Enhanced touch handlers for swipe functionality
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    }
-    if (isRightSwipe) {
-      setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-    }
+    if (isLeftSwipe) setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    if (isRightSwipe) setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
 
   const toggleFavorite = () => {
@@ -142,18 +290,12 @@ const VehicleDetails = () => {
       const newFavorites = favorites.filter((fav: string) => fav !== vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
       setIsFavorite(false);
-      toast({
-        title: "Removed from favorites",
-        description: `${vehicle.name} has been removed from your favorites.`,
-      });
+      toast({ title: "Removed from favorites", description: `${vehicle.name} has been removed from your favorites.` });
     } else {
       favorites.push(vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(favorites));
       setIsFavorite(true);
-      toast({
-        title: "Added to favorites",
-        description: `${vehicle.name} has been added to your favorites.`,
-      });
+      toast({ title: "Added to favorites", description: `${vehicle.name} has been added to your favorites.` });
     }
     window.dispatchEvent(new Event('favorites-updated'));
   };
@@ -162,11 +304,7 @@ const VehicleDetails = () => {
     return (
       <ToyotaLayout>
         <div className="toyota-container py-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
             <Button asChild>
@@ -178,24 +316,7 @@ const VehicleDetails = () => {
     );
   }
 
-  const isBestSeller = 
-    vehicle.name === "Toyota Camry" || 
-    vehicle.name === "Toyota Corolla Hybrid" || 
-    vehicle.name === "Toyota Land Cruiser" || 
-    vehicle.name === "Toyota RAV4 Hybrid";
-
-  // Calculate monthly EMI (simplified calculation)
-  const calculateEMI = (price: number) => {
-    const principal = price * 0.8; // 80% financing
-    const rate = 0.035 / 12; // 3.5% annual rate
-    const tenure = 60; // 5 years
-    const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
-    return Math.round(emi);
-  };
-
-  const monthlyEMI = calculateEMI(vehicle.price);
-
-  // Signature Technology feature cards (generic for any model; copy can be specialized per model later)
+  // Model‑agnostic base features we’ll project into the showreel scenes
   const premiumFeatures = [
     { 
       icon: <Zap className="h-8 w-8" />, 
@@ -235,45 +356,60 @@ const VehicleDetails = () => {
     }
   ];
 
-  const innovationFeatures = [
+  // Build showreel scenes from features (model-agnostic)
+  const scenes: Scene[] = [
     {
-      icon: <Smartphone className="h-12 w-12" />,
-      title: "Connected Intelligence",
-      description: "Seamless smartphone integration with wireless Apple CarPlay & Android Auto",
-      features: ["Wireless connectivity", "Voice commands", "Remote vehicle start"],
-      color: "from-primary to-primary/70",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/50d87eac-d48e-42f3-81b6-dcaa8a7e052a/renditions/15967074-ba68-442a-b403-d7a62a10171f?binary=true&mformat=true"
+      icon: premiumFeatures[0].icon,
+      title: "Feel the Immediate Response",
+      subtitle: premiumFeatures[0].title,
+      metric: premiumFeatures[0].value,
+      description: premiumFeatures[0].description,
+      bg: premiumFeatures[0].image,
+      tint: "from-slate-900/70 to-slate-800/30",
     },
     {
-      icon: <Wind className="h-12 w-12" />,
-      title: "Climate Harmony",
-      description: "Dual-zone automatic climate control with air purification system",
-      features: ["HEPA filtration", "UV sterilization", "Eco-mode optimization"],
-      color: "from-cyan-600 to-teal-600",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true"
+      icon: premiumFeatures[1].icon,
+      title: "Protected Before You React",
+      subtitle: premiumFeatures[1].title,
+      metric: premiumFeatures[1].value,
+      description: premiumFeatures[1].description,
+      bg: premiumFeatures[1].image,
+      tint: "from-emerald-900/70 to-emerald-800/30",
     },
     {
-      icon: <Battery className="h-12 w-12" />,
-      title: "Energy Intelligence",
-      description: "Regenerative braking or smart energy management (model dependent)",
-      features: ["Brake energy recovery", "Smart charging", "Power output capability"],
-      color: "from-green-600 to-emerald-600",
-      image: galleryImages[6]
+      icon: premiumFeatures[2].icon,
+      title: "Precision in Every Curve",
+      subtitle: premiumFeatures[2].title,
+      metric: premiumFeatures[2].value,
+      description: premiumFeatures[2].description,
+      bg: premiumFeatures[2].image,
+      tint: "from-orange-900/70 to-red-800/30",
     },
     {
-      icon: <Lock className="h-12 w-12" />,
-      title: "Security Command",
-      description: "Advanced security system with remote monitoring and smart access",
-      features: ["Smart access", "Remote monitoring", "Anti-theft protection"],
-      color: "from-red-600 to-pink-600",
-      image: galleryImages[0]
-    }
+      icon: premiumFeatures[3].icon,
+      title: "Drive Further, Leave Less",
+      subtitle: premiumFeatures[3].title,
+      metric: premiumFeatures[3].value,
+      description: premiumFeatures[3].description,
+      bg: premiumFeatures[3].image,
+      tint: "from-emerald-900/70 to-green-800/30",
+    },
   ];
 
   const handleOfferClick = (offer: any) => {
     setSelectedOffer(offer);
     setIsOffersModalOpen(true);
   };
+
+  // EMI (kept as-is)
+  const calculateEMI = (price: number) => {
+    const principal = price * 0.8;
+    const rate = 0.035 / 12;
+    const tenure = 60;
+    const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
+    return Math.round(emi);
+  };
+  const monthlyEMI = calculateEMI(vehicle.price);
 
   return (
     <ToyotaLayout
@@ -286,7 +422,7 @@ const VehicleDetails = () => {
       onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
       <div className={`relative overflow-hidden ${isMobile ? 'pb-28' : 'pb-32'}`}>
-        {/* Enhanced Hero Section with Swipe Controls */}
+        {/* Hero */}
         <EnhancedHeroSection
           vehicle={vehicle}
           galleryImages={galleryImages}
@@ -297,127 +433,43 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Lazy loaded sections */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-          {/* Virtual Showroom Section - NEW */}
+          {/* Virtual Showroom */}
           <VirtualShowroom vehicle={vehicle} />
 
-          {/* Interactive Specifications & Technology Suite */}
+          {/* >>> NEW CINEMATIC SHOWREEL (replaces old grid section) <<< */}
+          <CinematicShowreel
+            scenes={scenes}
+            heading={`Why Choose ${vehicle.name.split(" ").pop()}?`}
+            tagline="A smarter drive—immersive power, proactive safety, and seamless connectivity."
+          />
+
+          {/* Tech + Offers + Media */}
           <InteractiveSpecsTech vehicle={vehicle} />
-
-          {/* Offers Section - WITH CLICK HANDLER */}
           <OffersSection onOfferClick={handleOfferClick} />
-
-          {/* Media Showcase Section */}
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* Why Choose Section - WITH SWIPE SUPPORT (generic & enhanced) */}
-          <section
-            className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden"
-            aria-labelledby="why-choose-title"
-          >
-            <div className="toyota-container relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center mb-12 lg:mb-16"
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  className="inline-flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Signature Technology
-                </motion.div>
-                <h2
-                  id="why-choose-title"
-                  className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight"
-                >
-                  Why Choose{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-                    {vehicle.name.split(' ').pop()}?
-                  </span>
-                </h2>
-                <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Experience a smarter drive — thoughtful performance, proactive safety, and seamless connectivity.
-                </p>
-              </motion.div>
-
-              {/* Features Grid - Mobile: snap carousel, Desktop: grid */}
-              <div
-                className={
-                  isMobile
-                    ? "overflow-x-auto flex snap-x snap-mandatory space-x-4 pb-4 scrollbar-hide"
-                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-                }
-              >
-                {premiumFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -6, scale: 1.015 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`group cursor-pointer relative ${
-                      isMobile ? "w-60 snap-start flex-shrink-0" : ""
-                    }`}
-                    tabIndex={0}
-                    aria-label={feature.title}
-                  >
-                    <Card className={`h-full p-6 lg:p-8 text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${feature.bgPattern} relative overflow-hidden rounded-2xl`}>
-                      {/* Background image with low opacity */}
-                      <div className="absolute inset-0 opacity-5">
-                        <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                      {/* Overlay gradient on hover */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                      
-                      <CardContent className="p-0 space-y-4 relative z-10">
-                        <motion.div
-                          className={`inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-lg group-hover:scale-105 transition-transform duration-200`}
-                        >
-                          {feature.icon}
-                        </motion.div>
-                        <div className="space-y-3">
-                          <motion.h3 className="text-2xl lg:text-3xl font-black text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-200">
-                            {feature.value}
-                          </motion.h3>
-                          <h4 className="text-lg lg:text-xl font-bold text-foreground mb-2">{feature.title}</h4>
-                          <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{feature.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Other Sections - Optimized spacing */}
+          {/* Gallery */}
           <section className="py-8 lg:py-16 bg-muted/30">
             <VehicleGallery />
           </section>
-          
-          {/* Enhanced Lifestyle Gallery - WITH SWIPE */}
+
+          {/* Lifestyle */}
           <EnhancedLifestyleGallery vehicle={vehicle} />
-          
+
+          {/* Related */}
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
           </section>
 
-          {/* Pre-Owned Similar Models Carousel */}
+          {/* Pre-Owned */}
           <PreOwnedSimilar currentVehicle={vehicle} />
 
-          {/* FAQ Section */}
+          {/* FAQ */}
           <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
 
-        {/* Action Panel - Desktop Only */}
+        {/* Action Panel */}
         <ActionPanel
           vehicle={vehicle}
           isFavorite={isFavorite}
@@ -428,7 +480,7 @@ const VehicleDetails = () => {
         />
       </div>
 
-      {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
+      {/* Offers Modal */}
       <OffersModal 
         isOpen={isOffersModalOpen} 
         onClose={() => {
@@ -438,7 +490,7 @@ const VehicleDetails = () => {
         selectedOffer={selectedOffer}
       />
 
-      {/* Existing Modals */}
+      {/* Other Modals */}
       <BookTestDrive 
         isOpen={isBookingOpen} 
         onClose={() => setIsBookingOpen(false)} 
