@@ -16,27 +16,29 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <PersonaProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
-              <Route path="/test-drive" element={<TestDrive />} />
-              <Route path="/enquire" element={<Enquire />} />
-              <Route path="/pre-owned" element={<PreOwned />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </PersonaProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <PersonaProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
+                <Route path="/test-drive" element={<TestDrive />} />
+                <Route path="/enquire" element={<Enquire />} />
+                <Route path="/pre-owned" element={<PreOwned />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </PersonaProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
