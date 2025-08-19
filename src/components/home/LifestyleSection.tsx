@@ -58,21 +58,21 @@ const LifestyleSection: React.FC = () => {
       title: "Adventure Ready",
       description:
         "Explore the UAE's dramatic landscapes with Toyota's rugged SUVs built for any terrain.",
-      image: "https://www.toyota.ae/-/media/Images/Toyota/Lifestyle/Adventure.jpg",
+      image: "",
       link: "/lifestyle/adventure",
     },
     {
       title: "Family First",
       description:
         "Spacious, safe, and reliable vehicles designed with your family's comfort in mind.",
-      image: "https://www.toyota.ae/-/media/Images/Toyota/Lifestyle/Family.jpg",
+      image: "",
       link: "/lifestyle/family",
     },
     {
       title: "Eco Conscious",
       description:
         "Hybrid technology that reduces emissions without compromising on performance.",
-      image: "https://www.toyota.ae/-/media/Images/Toyota/Lifestyle/Hybrid.jpg",
+      image: "",
       link: "/lifestyle/eco",
     },
   ];
