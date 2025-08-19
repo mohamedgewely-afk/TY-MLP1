@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import {
   ChevronLeft,
+  ChevronRight, // ✅ added
   Calendar,
   Shield,
   Heart,
@@ -11,7 +12,6 @@ import {
   Tag,
   Sparkles,
   Smartphone,
-  Battery,
   Gauge,
   Wind,
   Award,
@@ -32,8 +32,8 @@ import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-// import ActionPanel from "@/components/vehicle-details/ActionPanel"; // removed to avoid sticky UI
-// import MobileStickyNav from "@/components/MobileStickyNav"; // intentionally unused (no sticky)
+// import ActionPanel from "@/components/vehicle-details/ActionPanel"; // removed on purpose (no sticky)
+// import MobileStickyNav from "@/components/MobileStickyNav"; // not used (no sticky)
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
@@ -79,6 +79,7 @@ const VehicleDetails = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  // Images (kept as in your file)
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -103,7 +104,7 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   };
 
-  // Swipe for the hero rotation (kept from your version)
+  // Simple swipe for hero rotation (kept)
   const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
@@ -207,6 +208,7 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
+  // Safe auto-rotator (kept)
   useEffect(() => {
     const id = setInterval(() => {
       setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
@@ -214,12 +216,13 @@ const VehicleDetails = () => {
     return () => clearInterval(id);
   }, [galleryImages.length]);
 
+  // Measure first card for snapping distance
   useEffect(() => {
     const el = firstCardRef.current;
     if (!el) return;
     const measure = () => {
       const rect = el.getBoundingClientRect();
-      setCardWidth(Math.round(rect.width));
+      setCardWidth(Math.max(320, Math.round(rect.width))); // ensure sane width
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -227,9 +230,10 @@ const VehicleDetails = () => {
     return () => ro.disconnect();
   }, []);
 
+  // Scroll listener for active dot
   useEffect(() => {
     const container = railRef.current;
-    if (!container) return;
+    if (!container || cardWidth <= 0) return;
     const onScroll = () => {
       const idx = Math.round(container.scrollLeft / (cardWidth + GAP_PX));
       const clamped = Math.max(0, Math.min(idx, slides.length - 1));
@@ -239,11 +243,12 @@ const VehicleDetails = () => {
     return () => container.removeEventListener("scroll", onScroll);
   }, [cardWidth, slides.length]);
 
+  // Event to open builder
   useEffect(() => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
-      const { step, config } = event.detail;
+      const { step, config } = event.detail || {};
       setIsCarBuilderOpen(true);
-      // optional: step/config usage
+      // step/config optional
     };
     window.addEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
     return () => window.removeEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
@@ -307,7 +312,7 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* EXPERIENCE RAIL (no glass, bottom-left tiny copy) */}
+          {/* EXPERIENCE RAIL (no glass; bottom-left small copy; non-sticky actions) */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
             <div className="toyota-container">
               <motion.div
@@ -358,11 +363,11 @@ const VehicleDetails = () => {
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             loading="lazy"
                           />
-                          {/* Remove glass; keep image fully visible. Add tiny bottom fade for caption legibility, very subtle. */}
+                          {/* tiny bottom fade only */}
                           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/25 to-transparent" />
                         </div>
 
-                        {/* Bottom-left compact text (no background) */}
+                        {/* Bottom-left minimal text */}
                         <CardContent className="absolute left-3 sm:left-4 bottom-2 sm:bottom-3 z-10">
                           <div className="flex items-center gap-1.5 text-white/90 text-[11px] sm:text-xs drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]">
                             {s.icon}
@@ -453,7 +458,7 @@ const VehicleDetails = () => {
           <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
 
-        {/* NOTE: ActionPanel removed to avoid sticky/floating UI */}
+        {/* ActionPanel intentionally removed (no sticky) */}
       </div>
 
       {/* Modals */}
