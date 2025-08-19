@@ -30,10 +30,10 @@ const trims: ConfigOption[] = [
 ];
 
 const colors: ConfigOption[] = [
-  { id: "white", name: "Pearl White", price: 0, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-hero-full.jpg" },
-  { id: "silver", name: "Silver Metallic", price: 0, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-style-full-width-1.jpg" },
-  { id: "red", name: "Emotional Red", price: 1500, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-safety-full-width.jpg" },
-  { id: "blue", name: "Celestial Blue", price: 1500, image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-interior-full-width.jpg" },
+  { id: "white", name: "Pearl White", price: 0, image: "" },
+  { id: "silver", name: "Silver Metallic", price: 0, image: "" },
+  { id: "red", name: "Emotional Red", price: 1500, image: "" },
+  { id: "blue", name: "Celestial Blue", price: 1500, image: "" },
 ];
 
 const packages: ConfigOption[] = [
