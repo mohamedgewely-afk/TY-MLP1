@@ -60,7 +60,7 @@ const VehicleDetails = () => {
   const heroImageRef = useRef<HTMLDivElement>(null);
   const isHeroInView = useInView(heroImageRef);
 
-  // NEW: UI state for redesigned section
+  // NEW: tab state for redesigned section
   const [expTab, setExpTab] = useState<"highlights" | "build" | "ownership">("highlights");
 
   useEffect(() => {
@@ -81,15 +81,12 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Add event listener for car builder
+  // Event listener for car builder (kept)
   useEffect(() => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
       const { step, config } = event.detail;
       setIsCarBuilderOpen(true);
-      // Set the config if provided
-      if (config) {
-        // You would set the config here
-      }
+      // if (config) setSomeBuilderConfig(config);
     };
 
     window.addEventListener('openCarBuilder', handleOpenCarBuilder as EventListener);
@@ -98,7 +95,7 @@ const VehicleDetails = () => {
     };
   }, []);
 
-  // Updated Toyota Camry Hybrid official images - spread throughout
+  // Gallery images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -112,61 +109,42 @@ const VehicleDetails = () => {
   // Auto-rotate gallery images with smoother transitions
   useEffect(() => {
     if (!isHeroInView) return;
-    
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
     }, 5000);
-    
     return () => clearInterval(interval);
   }, [isHeroInView, galleryImages.length]);
 
-  // Enhanced touch handlers for swipe functionality
+  // Touch handlers for swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
-
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    }
-    if (isRightSwipe) {
-      setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-    }
+    if (isLeftSwipe) setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    if (isRightSwipe) setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
 
   const toggleFavorite = () => {
     if (!vehicle) return;
-    
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    
     if (isFavorite) {
       const newFavorites = favorites.filter((fav: string) => fav !== vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
       setIsFavorite(false);
-      toast({
-        title: "Removed from favorites",
-        description: `${vehicle.name} has been removed from your favorites.`,
-      });
+      toast({ title: "Removed from favorites", description: `${vehicle.name} has been removed from your favorites.` });
     } else {
       favorites.push(vehicle.name);
       localStorage.setItem('favorites', JSON.stringify(favorites));
       setIsFavorite(true);
-      toast({
-        title: "Added to favorites",
-        description: `${vehicle.name} has been added to your favorites.`,
-      });
+      toast({ title: "Added to favorites", description: `${vehicle.name} has been added to your favorites.` });
     }
-    
     window.dispatchEvent(new Event('favorites-updated'));
   };
 
@@ -174,16 +152,10 @@ const VehicleDetails = () => {
     return (
       <ToyotaLayout>
         <div className="toyota-container py-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
-            <Button asChild>
-              <Link to="/">Return to Home</Link>
-            </Button>
+            <Button asChild><Link to="/">Return to Home</Link></Button>
           </motion.div>
         </div>
       </ToyotaLayout>
@@ -199,15 +171,17 @@ const VehicleDetails = () => {
   // Calculate monthly EMI (simplified calculation)
   const calculateEMI = (price: number) => {
     const principal = price * 0.8; // 80% financing
-    the const rate = 0.035 / 12; // 3.5% annual rate
+    const rate = 0.035 / 12; // 3.5% annual rate
     const tenure = 60; // 5 years
-    const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
+    const emi =
+      (principal * rate * Math.pow(1 + rate, tenure)) /
+      (Math.pow(1 + rate, tenure) - 1);
     return Math.round(emi);
   };
 
   const monthlyEMI = calculateEMI(vehicle.price);
 
-  // Updated Premium Hybrid Technology section images
+  // MODEL-AGNOSTIC HIGHLIGHTS (uses your gallery images for ambience)
   const premiumFeatures = [
     { 
       icon: <Zap className="h-8 w-8" />, 
@@ -323,12 +297,12 @@ const VehicleDetails = () => {
           {/* Media Showcase Section */}
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* ----------------------------- */}
-          {/* NEW EXPERIENCE NAVIGATOR (UX) */}
-          {/* ----------------------------- */}
+          {/* ============================ */}
+          {/* EXPERIENCE NAVIGATOR (NEW UI) */}
+          {/* ============================ */}
           <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative">
             <div className="toyota-container">
-              {/* Top micro-branding and persona tone */}
+              {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -337,15 +311,15 @@ const VehicleDetails = () => {
               >
                 <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-xs font-medium">
                   <Sparkles className="h-4 w-4" />
-                  Tailored Experience
+                  Signature Experience
                 </div>
                 <h2 className="mt-4 text-3xl lg:text-5xl font-black">
                   Build Your {vehicle.name.split(' ').pop()} Experience
                 </h2>
                 <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
                   {personaData?.nickname
-                    ? `${personaData.nickname}, pick what matters most to you—then personalize in minutes.`
-                    : `Pick what matters most to you—then personalize in minutes.`}
+                    ? `${personaData.nickname}, pick what matters most—then personalize in minutes.`
+                    : `Pick what matters most—then personalize in minutes.`}
                 </p>
               </motion.div>
 
@@ -375,7 +349,7 @@ const VehicleDetails = () => {
 
               {/* Panels */}
               <div className="relative">
-                {/* Highlights: immersive, swipeable on mobile */}
+                {/* Highlights */}
                 {expTab === "highlights" && (
                   <div className="overflow-hidden">
                     <div className="flex gap-4 md:grid md:grid-cols-2 lg:grid-cols-4">
@@ -391,7 +365,7 @@ const VehicleDetails = () => {
                           {/* background image with neutral overlay */}
                           <div className="absolute inset-0">
                             <img src={f.image} alt="" className="w-full h-full object-cover" loading="lazy" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-black/0" />
                           </div>
                           <div className="relative z-10 p-6 text-white">
                             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/15 backdrop-blur">
@@ -412,7 +386,7 @@ const VehicleDetails = () => {
                   </div>
                 )}
 
-                {/* Build & Compare: actions wired to existing flows */}
+                {/* Build & Compare */}
                 {expTab === "build" && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
                     <Card className="overflow-hidden">
@@ -469,7 +443,7 @@ const VehicleDetails = () => {
                   </div>
                 )}
 
-                {/* Ownership: service, warranty, test drive */}
+                {/* Ownership */}
                 {expTab === "ownership" && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
                     <Card className="overflow-hidden">
