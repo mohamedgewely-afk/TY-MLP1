@@ -321,80 +321,106 @@ const VehicleDetails = () => {
           <VehicleMediaShowcase vehicle={vehicle} />
 
           {/* Why Choose Section - WITH SWIPE SUPPORT */}
-          <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
-            <div className="toyota-container relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center mb-12 lg:mb-16"
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  className="inline-flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Premium Hybrid Technology
-                </motion.div>
-                <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight">
-                  Why Choose{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-                    {vehicle.name.split(' ').pop()}?
-                  </span>
-                </h2>
-                <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Experience the pinnacle of automotive innovation where luxury meets sustainability.
-                </p>
-              </motion.div>
+          <section
+  className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden"
+  aria-labelledby="why-choose-title"
+>
+  <div className="toyota-container relative z-10">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="text-center mb-12 lg:mb-16"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        className="inline-flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4"
+      >
+        <Sparkles className="h-4 w-4 mr-2" />
+        Premium Hybrid Technology
+      </motion.div>
+      <h2
+        id="why-choose-title"
+        className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight"
+      >
+        Why Choose{" "}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
+          {vehicle.name.split(" ").pop()}?
+        </span>
+      </h2>
+      <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+        Experience the pinnacle of automotive innovation where luxury meets sustainability.
+      </p>
+    </motion.div>
 
-              {/* Features Grid - More compact for mobile with swipe support */}
-              <div className={`${isMobile ? 'overflow-x-auto scrollbar-hide' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'}`}>
-                <div className={`${isMobile ? 'flex space-x-4 pb-4' : 'contents'}`} style={{ width: isMobile ? `${premiumFeatures.length * 260}px` : 'auto' }}>
-                  {premiumFeatures.map((feature, index) => (
-                    <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ 
-                        y: -8, 
-                        scale: 1.01,
-                        transition: { duration: 0.2 }
-                      }}
-                      className={`group cursor-pointer ${isMobile ? 'w-60 flex-shrink-0' : ''}`}
-                    >
-                      <Card className={`h-full p-6 lg:p-8 text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${feature.bgPattern} relative overflow-hidden`}>
-                        <div className="absolute inset-0 opacity-5">
-                          <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" loading="lazy" />
-                        </div>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                        
-                        <CardContent className="p-0 space-y-4 relative z-10">
-                          <motion.div 
-                            className={`inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-lg group-hover:scale-105 transition-transform duration-200`}
-                          >
-                            {feature.icon}
-                          </motion.div>
-                          <div className="space-y-3">
-                            <motion.h3 
-                              className="text-2xl lg:text-3xl font-black text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-200"
-                            >
-                              {feature.value}
-                            </motion.h3>
-                            <h4 className="text-lg lg:text-xl font-bold text-foreground mb-2">{feature.title}</h4>
-                            <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{feature.description}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+    {/* Responsive Layout: Scroll-snap for mobile, grid for desktop */}
+    <div
+      className={
+        isMobile
+          ? "overflow-x-auto flex snap-x snap-mandatory space-x-4 pb-4 scrollbar-hide"
+          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+      }
+    >
+      {premiumFeatures.map((feature, index) => (
+        <motion.div
+          key={feature.title}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.1 }}
+          whileHover={{ y: -6, scale: 1.015 }}
+          whileTap={{ scale: 0.98 }}
+          className={`group cursor-pointer relative ${
+            isMobile ? "w-60 snap-start flex-shrink-0" : ""
+          }`}
+          tabIndex={0}
+          aria-label={feature.title}
+        >
+          <Card
+            className={`h-full p-6 lg:p-8 text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${feature.bgPattern} relative overflow-hidden rounded-2xl`}
+          >
+            {/* Background image with low opacity */}
+            <div className="absolute inset-0 opacity-5">
+              <img
+                src={feature.image}
+                alt={feature.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
             </div>
-          </section>
+
+            {/* Overlay color on hover */}
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+            />
+
+            <CardContent className="p-0 space-y-4 relative z-10">
+              <motion.div
+                className={`inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${feature.color} text-white shadow-lg group-hover:scale-105 transition-transform duration-200`}
+              >
+                {feature.icon}
+              </motion.div>
+              <div className="space-y-3">
+                <motion.h3 className="text-2xl lg:text-3xl font-black text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-200">
+                  {feature.value}
+                </motion.h3>
+                <h4 className="text-lg lg:text-xl font-bold text-foreground mb-2">
+                  {feature.title}
+                </h4>
+                <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">
+                  {feature.description}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
+
 
           {/* Other Sections - Optimized spacing */}
           <section className="py-8 lg:py-16 bg-muted/30">
