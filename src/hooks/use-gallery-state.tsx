@@ -5,7 +5,7 @@ import { useDeviceInfo } from './use-device-info';
 export type GalleryMode = 'cinematic' | 'grid' | 'split' | 'slideshow';
 export type ViewMode = 'mobile' | 'tablet' | 'desktop';
 
-interface GalleryState {
+export interface GalleryState {
   mode: GalleryMode;
   currentChapter: number;
   currentImage: number;
