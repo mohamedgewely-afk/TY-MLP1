@@ -1,272 +1,546 @@
-// FINAL VERSION: Spec animations tied to scroll depth using framer-motion scroll progress
-import { motion, useMotionValue, useTransform, useInView, useScroll } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge, X, ChevronDown } from "lucide-react";
+// ULTIMATE VEHICLE GALLERY — 100x UPGRADE (All-in-One TSX)
+// CX/UX: Scroll-snap carousel, magnetic tilt, HUD specs, narration per model,
+// reusable props, CMS-ready, i18n/RTL, keyboard + swipe, AI overlay stub,
+// dynamic backgrounds, reduced-motion safe, thumbnails + dots, accessible.
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  useInView,
+} from "framer-motion";
+import {
+  Volume2,
+  VolumeX,
+  ChevronDown,
+  BatteryCharging,
+  GaugeCircle,
+  Zap,
+  TimerReset,
+  Navigation,
+  Gauge,
+  Sparkles,
+  X,
+} from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
-import { useSwipeable } from "../../hooks/use-swipeable";
-import { VehicleModel } from "@/types/vehicle";
 
-interface VehicleGalleryProps {
-  vehicle: VehicleModel;
-}
-
-interface CarData {
+// ---------- Types ----------
+export interface CarData {
   id: string;
   name: string;
   subtitle: string;
-  image: string;
+  image: string; // hero image URL
   description: string;
-  audio: string;
-  video: string;
-  story: string[];
-  specs: {
-    horsepower: string;
-    torque: string;
-    range: string;
-    zeroToSixty: string;
-    topSpeed: string;
-    battery: string;
-  };
+  audio?: string; // ambient per-car audio (optional)
+  video?: string; // reserved for future use (not autoplayed)
+  narration?: string; // narration audio URL (optional)
+  story?: string[]; // short lines (optional)
+  specs: Record<string, string>; // at least 6 specs recommended
 }
 
-const vehicles: CarData[] = [
+interface VehicleGalleryProps {
+  vehicles?: CarData[]; // If not provided, we'll use defaults below
+  locale?: "en" | "ar";
+  rtl?: boolean;
+  onAIRequest?: (vehicle: CarData) => void; // Hook into your AI assistant
+}
+
+// ---------- i18n ----------
+const STR = {
+  en: {
+    title: "The Soul of Machines",
+    subtitle: "Explore the lineup. Feel the story.",
+    hint: "Swipe / scroll → Tap a card",
+    expand: "Expand Specs",
+    collapse: "Collapse Specs",
+    askAI: "Ask the AI about this model",
+    prev: "Previous",
+    next: "Next",
+    narrationOn: "Narration on",
+    narrationOff: "Narration off",
+  },
+  ar: {
+    title: "روح الآلات",
+    subtitle: "اكتشف التشكيلة. عِش الحكاية.",
+    hint: "اسحب/مرر → اضغط على البطاقة",
+    expand: "عرض المواصفات",
+    collapse: "إخفاء المواصفات",
+    askAI: "اسأل الذكاء الاصطناعي عن هذا الطراز",
+    prev: "السابق",
+    next: "التالي",
+    narrationOn: "سرد مفعّل",
+    narrationOff: "سرد متوقف",
+  },
+};
+
+// ---------- Icon map for common spec keys ----------
+const specIcons: Record<string, JSX.Element> = {
+  horsepower: <Zap className="w-5 h-5" />,
+  torque: <GaugeCircle className="w-5 h-5" />,
+  range: <Navigation className="w-5 h-5" />,
+  zeroToSixty: <TimerReset className="w-5 h-5" />,
+  topSpeed: <Gauge className="w-5 h-5" />,
+  battery: <BatteryCharging className="w-5 h-5" />,
+};
+
+// ---------- Default vehicles (uses your provided DAM images) ----------
+const DEFAULT_VEHICLES: CarData[] = [
   {
     id: "1",
     name: "Celestis X",
     subtitle: "The Silent Thunder",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true",
-    description: "Whispers through wind with a roar that only the soul hears.",
-    audio: "/audio/celestis.mp3",
-    video: "/videos/celestis.mp4",
-    story: ["Born in the wind tunnels of a forgotten desert.", "Crafted with nanostructures that sing in silence.", "The Celestis X became the legend every night driver whispers about."],
-    specs: { horsepower: "620 hp", torque: "800 Nm", range: "520 km", zeroToSixty: "2.9s", topSpeed: "300 km/h", battery: "100 kWh" },
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true",
+    description:
+      "Whispers through wind with a roar that only the soul hears.",
+    narration: "/audio/celestis_narration.mp3",
+    audio: "/audio/celestis_ambient.mp3",
+    specs: {
+      horsepower: "620 hp",
+      torque: "800 Nm",
+      range: "520 km",
+      zeroToSixty: "2.9s",
+      topSpeed: "300 km/h",
+      battery: "100 kWh",
+    },
   },
   {
     id: "2",
-    name: "Nebula R",
-    subtitle: "Starborne Velocity",
-    image: "https://images.unsplash.com/photo-1624228912050-20e2de8f4ecf?auto=format&fit=crop&w=1950&q=80",
-    description: "Forged in orbital silence. Thrives in acceleration.",
-    audio: "/audio/nebula.mp3",
-    video: "/videos/nebula.mp4",
-    story: ["Designed by a team that engineered satellite launchers.", "Its plasma-composite frame reduces weight beyond limits.", "The Nebula R redefined terrestrial velocity."],
-    specs: { horsepower: "700 hp", torque: "900 Nm", range: "610 km", zeroToSixty: "2.4s", topSpeed: "340 km/h", battery: "110 kWh" },
+    name: "Nova Pulse",
+    subtitle: "The Light Runner",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
+    description: "Each movement is a streak across the cosmos.",
+    narration: "/audio/novapulse_narration.mp3",
+    audio: "/audio/novapulse_ambient.mp3",
+    specs: {
+      horsepower: "540 hp",
+      torque: "710 Nm",
+      range: "470 km",
+      zeroToSixty: "3.2s",
+      topSpeed: "290 km/h",
+      battery: "95 kWh",
+    },
   },
   {
     id: "3",
-    name: "Volt Mirage",
-    subtitle: "The Vanishing Pulse",
-    image: "https://images.unsplash.com/photo-1603393079325-d7b87e9e1b8f?auto=format&fit=crop&w=1950&q=80",
-    description: "Disappears before your eyes. Feels like a whisper.",
-    audio: "/audio/mirage.mp3",
-    video: "/videos/mirage.mp4",
-    story: ["Born from optical illusion R&D.", "The Volt Mirage uses light-bending panels.", "It became known as the invisible thrill."],
-    specs: { horsepower: "560 hp", torque: "760 Nm", range: "480 km", zeroToSixty: "3.2s", topSpeed: "280 km/h", battery: "90 kWh" },
+    name: "Spectra GT",
+    subtitle: "The Velocity Whisperer",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f9670484-f03f-46ba-aac8-424889e779a0/renditions/ad34680c-160b-43a6-9785-541adba34a45?binary=true&mformat=true",
+    description: "Disappears before your eyes — only silence remains.",
+    narration: "/audio/spectra_narration.mp3",
+    audio: "/audio/spectra_ambient.mp3",
+    specs: {
+      horsepower: "580 hp",
+      torque: "750 Nm",
+      range: "490 km",
+      zeroToSixty: "3.1s",
+      topSpeed: "295 km/h",
+      battery: "98 kWh",
+    },
   },
   {
     id: "4",
-    name: "Orion Prime",
-    subtitle: "Command From the Cosmos",
-    image: "https://images.unsplash.com/photo-1617882586515-7e27c3923f49?auto=format&fit=crop&w=1950&q=80",
-    description: "A cruiser reborn with interstellar DNA.",
-    audio: "/audio/orion.mp3",
-    video: "/videos/orion.mp4",
-    story: ["The Orion Prime was sculpted using Martian rover tech.", "Equipped with gravitational dampening.", "No ride has ever felt smoother at any speed."],
-    specs: { horsepower: "850 hp", torque: "1050 Nm", range: "700 km", zeroToSixty: "2.1s", topSpeed: "360 km/h", battery: "120 kWh" },
+    name: "Zenith Eon",
+    subtitle: "The Night Voyager",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    description: "Glides through time with aurora-born elegance.",
+    narration: "/audio/zenith_narration.mp3",
+    audio: "/audio/zenith_ambient.mp3",
+    specs: {
+      horsepower: "600 hp",
+      torque: "770 Nm",
+      range: "510 km",
+      zeroToSixty: "3.0s",
+      topSpeed: "305 km/h",
+      battery: "100 kWh",
+    },
   },
   {
     id: "5",
-    name: "Nova Geist",
-    subtitle: "The Electric Phantom",
-    image: "https://images.unsplash.com/photo-1616441006784-f1f1ff57e67d?auto=format&fit=crop&w=1950&q=80",
-    description: "A silhouette in the night. Pure silence, pure power.",
-    audio: "/audio/nova.mp3",
-    video: "/videos/nova.mp4",
-    story: ["Engineered in moonlight.", "The Nova Geist glides like smoke.", "A phantom experience, undetectable to radar."],
-    specs: { horsepower: "610 hp", torque: "850 Nm", range: "590 km", zeroToSixty: "2.7s", topSpeed: "310 km/h", battery: "95 kWh" },
+    name: "Lucid Storm",
+    subtitle: "The Dream Machine",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
+    description: "It hums lullabies in lightning tongues.",
+    narration: "/audio/lucid_narration.mp3",
+    audio: "/audio/lucid_ambient.mp3",
+    specs: {
+      horsepower: "630 hp",
+      torque: "820 Nm",
+      range: "540 km",
+      zeroToSixty: "2.8s",
+      topSpeed: "315 km/h",
+      battery: "104 kWh",
+    },
   },
   {
     id: "6",
-    name: "Stratus V",
-    subtitle: "The Sky Runner",
-    image: "https://images.unsplash.com/photo-1632457992562-2d39ed63c7cf?auto=format&fit=crop&w=1950&q=80",
-    description: "Glides through air with zero drag instincts.",
-    audio: "/audio/stratus.mp3",
-    video: "/videos/stratus.mp4",
-    story: ["Wind tunnel tested by jet engineers.", "Redefined what automotive aerodynamics means.", "The Stratus V — light as air, sharp as thought."],
-    specs: { horsepower: "590 hp", torque: "770 Nm", range: "550 km", zeroToSixty: "2.6s", topSpeed: "295 km/h", battery: "102 kWh" },
+    name: "Aetherion",
+    subtitle: "The Phantom Surge",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/0e241336-53f3-4bd0-8c67-61baf34bfdbd/renditions/cda649a1-788a-481d-a794-15dc2d9f7d64?binary=true&mformat=true",
+    description: "Leaves echoes in the air long after it's gone.",
+    narration: "/audio/aetherion_narration.mp3",
+    audio: "/audio/aetherion_ambient.mp3",
+    specs: {
+      horsepower: "700 hp",
+      torque: "900 Nm",
+      range: "560 km",
+      zeroToSixty: "2.7s",
+      topSpeed: "320 km/h",
+      battery: "110 kWh",
+    },
   },
 ];
 
-const specIcons: Record<string, JSX.Element> = {
-  horsepower: <Zap className="text-indigo-400 w-5 h-5" />,
-  torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
-  range: <Navigation className="text-indigo-400 w-5 h-5" />,
-  zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
-  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />,
-  battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
-};
-
-function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
-  const [audioOn, setAudioOn] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const swipeHandlers = useSwipeable({
-    onSwipeLeft: onClose,
-    onSwipeRight: onClose,
-    threshold: 50,
-  });
-
+// ---------- Helper hooks ----------
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    if (audioOn) audioRef.current?.play();
-    else audioRef.current?.pause();
-  }, [audioOn]);
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <div {...swipeHandlers} className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/30 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
-          <X className="w-6 h-6" />
-        </button>
-        
-        <div className="relative">
-          <video ref={videoRef} src={car.video} className="w-full h-64 md:h-80 object-cover rounded-t-3xl" autoPlay loop muted />
-          <audio ref={audioRef} loop src={car.audio} className="hidden" />
-          <button onClick={() => setAudioOn(!audioOn)} className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
-            {audioOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
-          </button>
-        </div>
-
-        <div className="p-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{car.name}</h2>
-          <p className="text-indigo-400 text-lg mb-6">{car.subtitle}</p>
-          
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-white mb-4">The Story</h3>
-            {car.story.map((paragraph, index) => (
-              <p key={index} className="text-white/80 mb-3 leading-relaxed">{paragraph}</p>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Object.entries(car.specs).map(([key, val]) => (
-              <div key={key} className="flex items-center gap-3 p-4 rounded-xl bg-white/5 backdrop-blur border border-white/10">
-                {specIcons[key]}
-                <div>
-                  <div className="uppercase text-indigo-300 text-xs tracking-wider">{key}</div>
-                  <div className="text-white font-semibold">{val}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return reduced;
 }
 
-export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
-  const [selected, setSelected] = useState<number | null>(null);
+// ---------- Main Component ----------
+export default function VehicleGallery({
+  vehicles = DEFAULT_VEHICLES,
+  locale = "en",
+  rtl = false,
+  onAIRequest,
+}: VehicleGalleryProps) {
+  const T = STR[locale] ?? STR.en;
+  const [activeIdx, setActiveIdx] = useState(0);
   const [globalAudioOn, setGlobalAudioOn] = useState(false);
-  const globalAudioRef = useRef<HTMLAudioElement>(null);
+  const [narrationOn, setNarrationOn] = useState(false);
+  const ambientRef = useRef<HTMLAudioElement>(null);
+  const narrationRef = useRef<HTMLAudioElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const reduced = usePrefersReducedMotion();
 
+  // Play/pause ambient theme
   useEffect(() => {
-    if (globalAudioOn) globalAudioRef.current?.play();
-    else globalAudioRef.current?.pause();
+    const a = ambientRef.current;
+    if (!a) return;
+    if (globalAudioOn) a.play().catch(() => {});
+    else a.pause();
   }, [globalAudioOn]);
 
-  const currentBackground = vehicles[selected ?? 0]?.image;
+  // Play per-vehicle narration if enabled and URL exists
+  useEffect(() => {
+    const n = narrationRef.current;
+    if (!n) return;
+    n.pause();
+    n.currentTime = 0;
+    if (narrationOn && vehicles[activeIdx]?.narration) {
+      n.src = vehicles[activeIdx].narration!;
+      n.play().catch(() => {});
+    }
+  }, [activeIdx, narrationOn, vehicles]);
+
+  // Snap-to-active logic on scroll
+  const onScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const { scrollLeft, offsetWidth } = el;
+    const childWidth = el.firstElementChild ? (el.firstElementChild as HTMLElement).offsetWidth + 40 : offsetWidth; // 40 ~= gap
+    const idx = Math.round(scrollLeft / childWidth);
+    if (idx !== activeIdx && idx >= 0 && idx < vehicles.length) setActiveIdx(idx);
+  }, [activeIdx, vehicles.length]);
+
+  // Keyboard support
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") setActiveIdx((i) => Math.min(i + 1, vehicles.length - 1));
+      if (e.key === "ArrowLeft") setActiveIdx((i) => Math.max(i - 1, 0));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [vehicles.length]);
+
+  // Scroll to active when it changes (by dots/thumb/keys)
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const child = el.children[activeIdx] as HTMLElement | undefined;
+    if (child) child.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeIdx]);
+
+  const currentBG = vehicles[activeIdx]?.image;
 
   return (
-    <section className="relative w-full bg-black text-white py-16 px-4 md:px-12 overflow-hidden">
-      <audio ref={globalAudioRef} loop src="/audio/global-theme.mp3" className="hidden" />
-      <div className="absolute top-6 right-6 z-50">
-        <button onClick={() => setGlobalAudioOn(!globalAudioOn)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
-          {globalAudioOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
-        </button>
-      </div>
+    <section
+      className={`relative w-full bg-black text-white py-10 md:py-16 px-4 md:px-12 overflow-hidden ${rtl ? "rtl" : ""}`}
+      dir={rtl ? "rtl" : "ltr"}
+      aria-label={T.title}
+    >
+      {/* Ambient + narration audio elements */}
+      <audio ref={ambientRef} loop src="/audio/global-theme.mp3" className="hidden" />
+      <audio ref={narrationRef} className="hidden" />
 
-      <div className="absolute inset-0 -z-10 transition-all duration-1000" style={{ backgroundImage: `url(${currentBackground})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.08 }} />
+      {/* Dynamic background */}
+      <div
+        className="absolute inset-0 -z-10 transition-[opacity,transform] duration-700"
+        style={{
+          backgroundImage: `url(${currentBG})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.08,
+          transform: "scale(1.02)",
+        }}
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black" />
 
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-black absolute inset-0 z-0" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-600/10 via-transparent to-transparent animate-pulse" />
-      </div>
+      {/* Header / Controls */}
+      <header className="relative z-10 max-w-6xl mx-auto text-center">
+        <h1 className="text-3xl md:text-6xl font-bold tracking-tight">{T.title}</h1>
+        <p className="mt-3 text-base md:text-lg text-white/70">{T.subtitle}</p>
+        <p className="mt-2 text-xs md:text-sm text-indigo-300 flex items-center justify-center gap-2">
+          <Sparkles className="w-4 h-4" /> {T.hint}
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button
+            onClick={() => setGlobalAudioOn((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 hover:bg-white/20 text-sm"
+            aria-pressed={globalAudioOn}
+            aria-label="Ambient sound toggle"
+          >
+            {globalAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {globalAudioOn ? "Ambient on" : "Ambient off"}
+          </button>
+          <button
+            onClick={() => setNarrationOn((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 hover:bg-white/20 text-sm"
+            aria-pressed={narrationOn}
+            aria-label="Narration toggle"
+          >
+            {narrationOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {narrationOn ? T.narrationOn : T.narrationOff}
+          </button>
+        </div>
+      </header>
 
-      <div className="sticky top-10 z-10 text-center max-w-4xl mx-auto mb-16">
-        <h2 className="text-4xl md:text-6xl font-bold tracking-tight">The Soul of Machines</h2>
-        <p className="mt-4 text-lg text-white/70">A dashboard beyond time. Experience your machine like never before.</p>
-        <p className="mt-2 text-sm text-indigo-300">Swipe a model → Tap for cinematic journey</p>
-      </div>
-
-      <div className="relative z-10 flex gap-10 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth">
-        {vehicles.map((car, index) => (
-          <ParallaxCard key={car.id} car={car} onClick={() => setSelected(index)} />
+      {/* Carousel Track */}
+      <div
+        ref={trackRef}
+        onScroll={onScroll}
+        className="relative z-10 mt-10 md:mt-14 flex gap-10 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth"
+        role="listbox"
+        aria-label="Vehicle gallery"
+      >
+        {vehicles.map((car, idx) => (
+          <VehicleCard
+            key={car.id}
+            car={car}
+            active={idx === activeIdx}
+            reduced={reduced}
+            onFocusMe={() => setActiveIdx(idx)}
+            onAskAI={() => onAIRequest?.(car)}
+          />
         ))}
       </div>
 
-      {selected !== null && (
-        <Modal car={vehicles[selected]} onClose={() => setSelected(null)} />
-      )}
+      {/* Thumbnails */}
+      <ThumbnailRail
+        vehicles={vehicles}
+        activeIdx={activeIdx}
+        onPick={(i) => setActiveIdx(i)}
+      />
+
+      {/* Dots */}
+      <Dots
+        count={vehicles.length}
+        active={activeIdx}
+        onPick={(i) => setActiveIdx(i)}
+      />
     </section>
   );
 }
 
-function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
+// ---------- Subcomponents ----------
+function VehicleCard({
+  car,
+  active,
+  reduced,
+  onFocusMe,
+  onAskAI,
+}: {
+  car: CarData;
+  active: boolean;
+  reduced: boolean;
+  onFocusMe: () => void;
+  onAskAI: () => void;
+}) {
+  // Magnetic tilt
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-100, 100], [15, -15]);
-  const rotateY = useTransform(x, [-100, 100], [-15, 15]);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
-  const { scrollYProgress } = useScroll({ target: ref });
-  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 1]);
+  const rotateX = useTransform(y, [-80, 80], [12, -12]);
+  const rotateY = useTransform(x, [-80, 80], [-12, 12]);
+
+  // In-view reveal
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(bodyRef, { once: true, margin: "-80px" });
+
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div
-      className={`snap-center min-w-[85vw] md:min-w-[600px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/20 overflow-hidden group transition-all duration-500 shadow-lg hover:shadow-indigo-500/30 relative ${expanded ? 'max-h-[1000px]' : 'max-h-[600px]'}`}
-      whileHover={{ scale: 1.02 }}
-      style={{ x, y, rotateX, rotateY }}
-      drag dragElastic={0.18} dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+    <motion.article
+      role="option"
+      aria-selected={active}
+      tabIndex={0}
+      onFocus={onFocusMe}
+      onMouseMove={(e) => {
+        if (reduced) return;
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        x.set(e.clientX - rect.left - rect.width / 2);
+        y.set(e.clientY - rect.top - rect.height / 2);
+      }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      style={reduced ? undefined : { rotateX, rotateY }}
+      className={`snap-center shrink-0 min-w-[85vw] md:min-w-[620px] max-w-[820px] rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-400/60 ${
+        active ? "ring-1 ring-indigo-400/40" : "opacity-90"
+      }`}
     >
-      <Lottie animationData={sparksAnimation} loop autoplay className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" />
-      <div className="relative cursor-pointer" onClick={onClick}>
-        <img src={car.image} alt={car.name} className="w-full h-72 object-cover object-center group-hover:brightness-110 transition duration-500" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+      {/* Sparks overlay */}
+      <Lottie
+        animationData={sparksAnimation}
+        loop
+        autoplay
+        className="absolute inset-0 w-full h-full opacity-10 pointer-events-none"
+        aria-hidden
+      />
+
+      {/* Image */}
+      <div className="relative">
+        <img
+          src={car.image}
+          alt={car.name}
+          loading="lazy"
+          className="w-full h-[52vh] md:h-[380px] object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/0 to-transparent" />
+        <div className="absolute left-0 right-0 bottom-0 p-6 flex items-end justify-between">
+          <div>
+            <h3 className="text-2xl md:text-3xl font-semibold">{car.name}</h3>
+            <p className="text-indigo-300 text-xs md:text-sm">{car.subtitle}</p>
+          </div>
+          <button
+            onClick={() => setExpanded((s) => !s)}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs md:text-sm"
+            aria-expanded={expanded}
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${expanded ? "-rotate-180" : ""}`}
+            />
+            {expanded ? STR.en.collapse : STR.en.expand}
+          </button>
+        </div>
       </div>
-      <div className="p-6 relative z-10" ref={ref}>
-        <h3 className="text-2xl font-semibold text-white shimmer">{car.name}</h3>
-        <p className="text-indigo-400 text-sm mb-2">{car.subtitle}</p>
-        <p className="text-white/80 text-sm mb-4 line-clamp-3">{car.description}</p>
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-3 gap-4"
-          style={{ scale, opacity }}
+
+      {/* Body / HUD */}
+      <div ref={bodyRef} className="p-6 md:p-7">
+        <p
+          className={`text-white/80 text-sm md:text-base ${inView ? "opacity-100" : "opacity-0"} transition-opacity duration-700`}
         >
-          {Object.entries(car.specs).map(([key, val]) => (
-            <div key={key} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur border border-white/10">
-              {specIcons[key]}
-              <div className="text-sm">
-                <div className="uppercase text-indigo-300 text-[10px] tracking-wider">{key}</div>
-                <div className="text-white font-semibold text-base">{val}</div>
+          {car.description}
+        </p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className={`grid ${expanded ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"} gap-3 mt-5`}
+          aria-label="Specifications"
+        >
+          {Object.entries(car.specs).map(([key, val], i) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 10, scale: 0.97 }}
+              animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+              transition={{ duration: 0.45, delay: i * 0.05 }}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+            >
+              <span className="text-indigo-300/90">
+                {specIcons[key] ?? <Zap className="w-5 h-5" />}
+              </span>
+              <div className="text-xs md:text-sm">
+                <div className="uppercase tracking-wider text-indigo-300 text-[10px]">
+                  {key}
+                </div>
+                <div className="font-semibold text-white">{val}</div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </motion.div>
-        <button onClick={() => setExpanded(!expanded)} className="mt-6 inline-flex items-center gap-2 text-indigo-300 hover:text-indigo-100 transition text-sm font-semibold">
-          {expanded ? 'Collapse' : 'Expand'} Specs <ChevronDown className={`w-4 h-4 transform transition-transform ${expanded ? 'rotate-180' : ''}`} />
-        </button>
-        <button onClick={onClick} className="block mt-4 text-white/80 hover:text-white text-sm underline">Enter the Realm</button>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            onClick={onFocusMe}
+            className="rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-400/30 px-4 py-2 text-sm"
+          >
+            Focus
+          </button>
+          <button
+            onClick={onAskAI}
+            className="rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 text-sm"
+          >
+            {STR.en.askAI}
+          </button>
+        </div>
       </div>
-    </motion.div>
+    </motion.article>
+  );
+}
+
+function ThumbnailRail({
+  vehicles,
+  activeIdx,
+  onPick,
+}: {
+  vehicles: CarData[];
+  activeIdx: number;
+  onPick: (i: number) => void;
+}) {
+  return (
+    <div className="mt-6 md:mt-8 flex items-center justify-center gap-3 flex-wrap">
+      {vehicles.map((v, i) => (
+        <button
+          key={v.id}
+          className={`relative w-16 h-10 rounded-md overflow-hidden border ${
+            i === activeIdx ? "border-indigo-400 ring-2 ring-indigo-400/40" : "border-white/10"
+          }`}
+          onClick={() => onPick(i)}
+          aria-label={`Go to ${v.name}`}
+        >
+          <img src={v.image} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/30" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Dots({ count, active, onPick }: { count: number; active: number; onPick: (i: number) => void }) {
+  return (
+    <div className="mt-5 flex items-center justify-center gap-2" aria-hidden>
+      {Array.from({ length: count }).map((_, i) => (
+        <button
+          key={i}
+          className={`w-2.5 h-2.5 rounded-full ${i === active ? "bg-indigo-400" : "bg-white/20"}`}
+          onClick={() => onPick(i)}
+        />
+      ))}
+    </div>
   );
 }
