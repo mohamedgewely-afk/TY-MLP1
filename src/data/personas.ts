@@ -16,7 +16,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Room for Everyone, Safety for All",
     subheadlineText: "Discover Toyota hybrids built with your family's comfort and security in mind",
     ctaText: "Explore Family-Friendly Models",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/section-05-family-suv-desktop.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Safety Features", href: "#safety" },
       { title: "Cargo Space", href: "#cargo" },
@@ -75,7 +75,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Technology That Moves You Forward",
     subheadlineText: "Experience the future of driving with Toyota's advanced hybrid technology",
     ctaText: "Discover Tech Features",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/tech-toyota.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Connectivity", href: "#connectivity" },
       { title: "Driver Assist", href: "#driver-assist" },
@@ -135,7 +135,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Drive Green, Live Clean",
     subheadlineText: "Toyota hybrids helping you reduce your carbon footprint without compromise",
     ctaText: "Explore Eco Options",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/eco-toyota.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Efficiency", href: "#efficiency" },
       { title: "CO2 Reduction", href: "#emissions" },
@@ -194,7 +194,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Smart, Silent, City-Ready",
     subheadlineText: "Navigate city streets with confidence in a Toyota hybrid designed for urban life",
     ctaText: "View City-Smart Models",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/urban-toyota.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Parking Assist", href: "#parking" },
       { title: "City Mileage", href: "#mileage" },
@@ -253,7 +253,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Elevate Your Daily Commute",
     subheadlineText: "Make every business trip a pleasure with Toyota's sophisticated hybrid sedans",
     ctaText: "Discover Business Models",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/business-toyota.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Comfort Features", href: "#comfort" },
       { title: "Fuel Economy", href: "#economy" },
@@ -312,7 +312,7 @@ export const personas: Record<PersonaType & string, Persona> = {
     headlineText: "Weekdays to Weekends, Road to Off-Road",
     subheadlineText: "Toyota hybrids built to take you farther, wherever your adventures lead",
     ctaText: "Find Adventure-Ready Models",
-    backgroundImage: "https://www.toyota.ae/-/media/Images/Toyota/Sections-homepage/Desktop/adventure-toyota.jpg",
+    backgroundImage: "",
     quickLinks: [
       { title: "Off-Road Capability", href: "#off-road" },
       { title: "Adventure Features", href: "#features" },

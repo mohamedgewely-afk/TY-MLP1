@@ -26,7 +26,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Dynamic Radar Cruise Control",
         "Road Sign Assist"
       ],
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-safety-full-width.jpg",
+      image: ",
       video: "https://www.youtube.com/embed/wPaZJDT88Dg"
     },
     {
@@ -40,7 +40,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Toyota Smart Key System",
         "Voice recognition"
       ],
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-interior-full-width.jpg",
+      image: "",
       video: "https://www.youtube.com/embed/kG2zXavpqpo"
     },
     {
@@ -54,7 +54,7 @@ const TechnologyShowcase: React.FC<TechnologyShowcaseProps> = ({ vehicle }) => {
         "Hybrid System (available)",
         "Sport-tuned suspension"
       ],
-      image: "https://www.toyota.ae/-/media/project/tme/tjae/toyota-ae/showroom/npp/corolla/corolla-style-full-width-1.jpg",
+      image: "",
       video: "https://www.youtube.com/embed/oJXjxHFNAYE"
     }
   ];
