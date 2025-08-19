@@ -50,7 +50,7 @@ const DEFAULT_SCENES: SceneData[] = [
     id: "lc-interior",
     title: "Land Cruiser",
     scene: "Interior",
-    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
     description: "Functional luxury. 12.3'' display & Terrain Monitor.",
     narration: "/audio/lc_interior.mp3",
     specs: {
@@ -116,49 +116,50 @@ export default function VehicleGallery({
   }, [activeIdx, centerCard]);
 
   return (
-    <GalleryContainer
-      scenes={filtered}
-      activeIdx={activeIdx}
-      setActiveIdx={setActiveIdx}
-      filter={filter}
-      setFilter={setFilter}
-    >
-      {/* Gallery Track */}
-      <div
-        ref={trackRef}
-        className="flex gap-4 md:gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth touch-pan-x overscroll-x-contain px-4 md:px-8 lg:px-12 xl:px-16"
-        role="listbox"
-        aria-label="Land Cruiser lifestyle scenes"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
-      >
-        {filtered.length === 0 && (
-          <div className="text-white/70 text-sm py-10 mx-auto">
-            No scenes available for this filter.
-          </div>
-        )}
-        {filtered.map((scene, idx) => (
-          <SceneCard
-            key={scene.id}
-            data={scene}
-            active={idx === activeIdx}
-            onEnter={() => {
-              setSelected(scene);
-              setActiveIdx(idx);
-            }}
-            onFocus={() => setActiveIdx(idx)}
-          />
-        ))}
-      </div>
-
-      {/* Hide scrollbar */}
-      <style jsx>{`
-        .flex::-webkit-scrollbar {
+    <>
+      <style>{`
+        .gallery-track::-webkit-scrollbar {
           display: none;
         }
+        .gallery-track {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
       `}</style>
-    </GalleryContainer>
+      
+      <GalleryContainer
+        scenes={filtered}
+        activeIdx={activeIdx}
+        setActiveIdx={setActiveIdx}
+        filter={filter}
+        setFilter={setFilter}
+      >
+        {/* Gallery Track */}
+        <div
+          ref={trackRef}
+          className="gallery-track flex gap-4 md:gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth touch-pan-x overscroll-x-contain px-4 md:px-8 lg:px-12 xl:px-16"
+          role="listbox"
+          aria-label="Land Cruiser lifestyle scenes"
+        >
+          {filtered.length === 0 && (
+            <div className="text-white/70 text-sm py-10 mx-auto">
+              No scenes available for this filter.
+            </div>
+          )}
+          {filtered.map((scene, idx) => (
+            <SceneCard
+              key={scene.id}
+              data={scene}
+              active={idx === activeIdx}
+              onEnter={() => {
+                setSelected(scene);
+                setActiveIdx(idx);
+              }}
+              onFocus={() => setActiveIdx(idx)}
+            />
+          ))}
+        </div>
+      </GalleryContainer>
+    </>
   );
 }
