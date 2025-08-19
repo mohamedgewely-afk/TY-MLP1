@@ -398,7 +398,7 @@ const VehicleDetails = () => {
 
           {/* Other Sections - Optimized spacing */}
           <section className="py-8 lg:py-16 bg-muted/30">
-            <VehicleGallery vehicle={vehicle} />
+            <VehicleGallery />
           </section>
           
           {/* Enhanced Lifestyle Gallery - WITH SWIPE */}
