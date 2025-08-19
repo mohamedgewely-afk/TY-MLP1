@@ -149,13 +149,13 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
               */}
               <div
                 ref={containerRef}
-                className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[85vh]"
+                className={`relative w-full h-[60vh] md:aspect-[16/9] lg:aspect-[21/9]`}
               >
                 <iframe
                   ref={iframeRef}
                   src={showroomUrl}
                   title={`${vehicle.name} Virtual Showroom`}
-                  className="w-full h-full border-0 block"
+                  className="absolute inset-0 w-full h-full border-0 block"
                   // IMPORTANT: enable native fullscreen from inside iframe (if supported by origin)
                   allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking"
                   allowFullScreen
@@ -248,7 +248,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
             <iframe
               src={showroomUrl}
               title={`${vehicle.name} Virtual Showroom (Fullscreen)`}
-              className="w-full h-full border-0 block"
+              className="absolute inset-0 w-full h-full border-0 block"
               allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking"
               allowFullScreen
               loading="eager"
