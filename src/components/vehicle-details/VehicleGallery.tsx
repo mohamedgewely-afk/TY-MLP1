@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge, X } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
-import { useSwipeable } from "react-swipeable";
+import { useSwipeable } from "@/hooks/use-swipeable";
 import { VehicleModel } from "@/types/vehicle";
 
 interface VehicleGalleryProps {
