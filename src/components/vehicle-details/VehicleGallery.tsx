@@ -1,8 +1,14 @@
+
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
+import { VehicleModel } from "@/types/vehicle";
+
+interface VehicleGalleryProps {
+  vehicle: VehicleModel;
+}
 
 const vehicles = [
   {
@@ -28,7 +34,7 @@ const vehicles = [
   },
 ];
 
-export default function MagicalVehicleGallery() {
+export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [globalAudioOn, setGlobalAudioOn] = useState(false);
   const globalAudioRef = useRef<HTMLAudioElement>(null);
@@ -83,7 +89,24 @@ export default function MagicalVehicleGallery() {
   );
 }
 
-function ParallaxCard({ car, onClick }: { car: any; onClick: () => void }) {
+interface CarData {
+  id: string;
+  name: string;
+  subtitle: string;
+  image: string;
+  description: string;
+  audio: string;
+  video: string;
+  story: string[];
+  specs: {
+    horsepower: string;
+    torque: string;
+    range: string;
+    zeroToSixty: string;
+  };
+}
+
+function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-100, 100], [15, -15]);
@@ -145,7 +168,7 @@ function ParallaxCard({ car, onClick }: { car: any; onClick: () => void }) {
   );
 }
 
-function Modal({ car, onClose }: { car: any; onClose: () => void }) {
+function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
   const [chapter, setChapter] = useState(0);
   const hasNext = chapter < car.story.length - 1;
   const hasPrev = chapter > 0;
