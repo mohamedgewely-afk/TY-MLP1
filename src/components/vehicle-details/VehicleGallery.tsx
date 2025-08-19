@@ -1,7 +1,7 @@
-
+// FULL SCI-FI DASHBOARD VERSION
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Speedometer } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
 import { VehicleModel } from "@/types/vehicle";
@@ -30,9 +30,20 @@ const vehicles = [
       torque: "800 Nm",
       range: "520 km",
       zeroToSixty: "2.9s",
+      topSpeed: "310 km/h",
+      battery: "100 kWh",
     },
   },
 ];
+
+const specIcons: Record<string, JSX.Element> = {
+  horsepower: <Zap className="text-indigo-400 w-5 h-5" />,
+  torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
+  range: <Navigation className="text-indigo-400 w-5 h-5" />,
+  zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
+  topSpeed: <Speedometer className="text-indigo-400 w-5 h-5" />,
+  battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
+};
 
 export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -48,7 +59,7 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
   }, [globalAudioOn]);
 
   return (
-    <section className="relative w-full bg-black text-white py-16 px-4 md:px-12 overflow-hidden">
+    <section className="relative w-full bg-gradient-to-b from-black via-zinc-900 to-black text-white py-16 px-4 md:px-12 overflow-hidden">
       <audio ref={globalAudioRef} loop src="/audio/global-theme.mp3" className="hidden" />
 
       <div className="absolute top-6 right-6 z-50">
@@ -61,18 +72,17 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
       </div>
 
       <div className="absolute inset-0 pointer-events-none">
-        <div className="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-black absolute inset-0 z-0" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-600/10 via-transparent to-transparent animate-pulse" />
+        <div className="bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/30 via-transparent to-black absolute inset-0 z-0 animate-pulse" />
       </div>
 
       <div className="relative z-10 text-center max-w-4xl mx-auto mb-16">
-        <h2 className="text-4xl md:text-6xl font-bold tracking-tight">The Soul of Machines</h2>
-        <p className="mt-4 text-lg text-white/70">
-          Each vehicle is a legend. Crafted not just with engineering — but with emotion, silence, and power.
+        <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-indigo-100 glow">The Soul of Machines</h2>
+        <p className="mt-4 text-lg text-indigo-300/80">
+          A dashboard beyond time. Experience your machine like never before.
         </p>
       </div>
 
-      <div className="relative z-10 flex gap-10 overflow-x-auto snap-x snap-mandatory pb-6">
+      <div className="relative z-10 flex justify-center pb-6">
         {vehicles.map((car, index) => (
           <ParallaxCard
             key={car.id}
@@ -89,20 +99,14 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
   );
 }
 
-interface CarData {
-  id: string;
-  name: string;
-  subtitle: string;
-  image: string;
-  description: string;
-  audio: string;
-  video: string;
-  story: string[];
+interface CarData extends VehicleModel {
   specs: {
     horsepower: string;
     torque: string;
     range: string;
     zeroToSixty: string;
+    topSpeed: string;
+    battery: string;
   };
 }
 
@@ -114,8 +118,8 @@ function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
 
   return (
     <motion.div
-      className="snap-center min-w-[85vw] md:min-w-[600px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/20 overflow-hidden group transition-all duration-500 shadow-lg hover:shadow-indigo-500/30 relative"
-      whileHover={{ scale: 1.02 }}
+      className="min-w-[90vw] max-w-5xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-black rounded-3xl border border-indigo-600/30 overflow-hidden group transition-all duration-500 shadow-xl hover:shadow-indigo-500/50 relative"
+      whileHover={{ scale: 1.015 }}
       style={{ x, y, rotateX, rotateY }}
       drag
       dragElastic={0.18}
@@ -133,28 +137,33 @@ function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
         <img
           src={car.image}
           alt={car.name}
-          className="w-full h-72 object-cover object-center group-hover:brightness-110 transition duration-500"
+          className="w-full h-96 object-cover object-center group-hover:brightness-110 transition duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
       </div>
 
       <div className="p-6 relative z-10">
-        <h3 className="text-2xl font-semibold text-white shimmer">{car.name}</h3>
-        <p className="text-indigo-400 text-sm mb-2">{car.subtitle}</p>
-        <p className="text-white/80 text-sm mb-4">{car.description}</p>
+        <h3 className="text-3xl font-semibold text-white glow mb-1">{car.name}</h3>
+        <p className="text-indigo-400 text-sm mb-4 font-mono tracking-wide uppercase">
+          {car.subtitle}
+        </p>
+        <p className="text-white/80 text-sm mb-6 italic max-w-lg">{car.description}</p>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {Object.entries(car.specs).map(([key, val], i) => (
             <motion.div
               key={key}
-              className="flex flex-col text-sm"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2, duration: 0.6 }}
+              className="flex items-center gap-3 text-sm bg-gradient-to-br from-indigo-900/30 via-black/10 to-zinc-800/10 backdrop-blur-sm rounded-lg p-3 border border-indigo-400/10 shadow-sm"
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
               viewport={{ once: true }}
             >
-              <span className="uppercase text-xs text-indigo-300 tracking-wide">{key}</span>
-              <span className="font-medium text-white/90">{val}</span>
+              {specIcons[key] ?? <Zap className="text-indigo-400 w-5 h-5" />}
+              <div className="flex flex-col">
+                <span className="uppercase text-[10px] text-indigo-300 tracking-wide">{key}</span>
+                <span className="font-semibold text-indigo-100 text-base">{val}</span>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -192,8 +201,8 @@ function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
         />
 
         <div className="p-6 space-y-4">
-          <h2 className="text-3xl font-bold text-white">{car.name}</h2>
-          <p className="text-indigo-400 text-sm">{car.subtitle}</p>
+          <h2 className="text-3xl font-bold text-white glow">{car.name}</h2>
+          <p className="text-indigo-400 text-sm font-mono uppercase">{car.subtitle}</p>
           <p className="text-white/80 text-base italic">{car.story[chapter]}</p>
 
           <div className="flex justify-between items-center mt-4">
