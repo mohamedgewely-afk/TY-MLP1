@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+// Removed framer-motion on this page to avoid keyframe/null crashes
 import {
   ChevronLeft,
-  ChevronRight, // ✅ added
+  ChevronRight,
   Calendar,
   Shield,
   Heart,
@@ -32,14 +32,14 @@ import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-// import ActionPanel from "@/components/vehicle-details/ActionPanel"; // removed on purpose (no sticky)
-// import MobileStickyNav from "@/components/MobileStickyNav"; // not used (no sticky)
+// No sticky components
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
+import CarBuilder from "@/components/vehicle-details/CarBuilder";
 
 type Slide = {
   key: string;
@@ -79,7 +79,6 @@ const VehicleDetails = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Images (kept as in your file)
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -104,7 +103,7 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   };
 
-  // Simple swipe for hero rotation (kept)
+  // Basic hero swipe rotation
   const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
@@ -208,7 +207,7 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Safe auto-rotator (kept)
+  // Auto-rotate hero
   useEffect(() => {
     const id = setInterval(() => {
       setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
@@ -222,7 +221,7 @@ const VehicleDetails = () => {
     if (!el) return;
     const measure = () => {
       const rect = el.getBoundingClientRect();
-      setCardWidth(Math.max(320, Math.round(rect.width))); // ensure sane width
+      setCardWidth(Math.max(320, Math.round(rect.width)));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -243,10 +242,10 @@ const VehicleDetails = () => {
     return () => container.removeEventListener("scroll", onScroll);
   }, [cardWidth, slides.length]);
 
-  // Event to open builder
+  // Event to open builder (optional external trigger)
   useEffect(() => {
     const handleOpenCarBuilder = (event: CustomEvent) => {
-      const { step, config } = event.detail || {};
+      const { step, config } = (event && (event as any).detail) || {};
       setIsCarBuilderOpen(true);
       // step/config optional
     };
@@ -267,13 +266,13 @@ const VehicleDetails = () => {
     return (
       <ToyotaLayout>
         <div className="toyota-container py-16 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <div className="space-y-4">
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
             <Button asChild>
               <Link to="/">Return to Home</Link>
             </Button>
-          </motion.div>
+          </div>
         </div>
       </ToyotaLayout>
     );
@@ -315,12 +314,7 @@ const VehicleDetails = () => {
           {/* EXPERIENCE RAIL (no glass; bottom-left small copy; non-sticky actions) */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
             <div className="toyota-container">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="mb-8 lg:mb-10 text-center"
-              >
+              <div className="mb-8 lg:mb-10 text-center">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-medium">
                   <Sparkles className="h-4 w-4" />
                   Tailored to Every Model
@@ -329,7 +323,7 @@ const VehicleDetails = () => {
                 <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
                   Swipe to explore performance, safety, connectivity and ownership — then act with a tap.
                 </p>
-              </motion.div>
+              </div>
 
               <div className="relative">
                 <button
@@ -457,8 +451,6 @@ const VehicleDetails = () => {
           <PreOwnedSimilar currentVehicle={vehicle} />
           <VehicleFAQ vehicle={vehicle} />
         </React.Suspense>
-
-        {/* ActionPanel intentionally removed (no sticky) */}
       </div>
 
       {/* Modals */}
