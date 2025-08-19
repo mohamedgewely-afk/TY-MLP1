@@ -2,7 +2,42 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { ChevronLeft, Calendar, Fuel, Shield, Heart, Share2, Download, Settings, ChevronRight, Car, PencilRuler, Tag, MapPin, Play, Pause, Volume2, VolumeX, Zap, Leaf, Award, Users, Star, ArrowRight, Check, Clock, Globe, Smartphone, Sparkles, Layers, Target, Battery, Gauge, Wind, Lock } from "lucide-react";
+import {
+  ChevronLeft,
+  Calendar,
+  Fuel,
+  Shield,
+  Heart,
+  Share2,
+  Download,
+  Settings,
+  ChevronRight,
+  Car,
+  PencilRuler,
+  Tag,
+  MapPin,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Zap,
+  Leaf,
+  Award,
+  Users,
+  Star,
+  ArrowRight,
+  Check,
+  Clock,
+  Globe,
+  Smartphone,
+  Sparkles,
+  Layers,
+  Target,
+  Battery,
+  Gauge,
+  Wind,
+  Lock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,13 +69,6 @@ import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
-/**
- * NOTE ON HOOKS:
- * Every hook is declared at the very top of the component, before ANY conditional return.
- * No hooks are created inside loops/conditions. This guarantees stable hook order and fixes
- * “Rendered more hooks than during the previous render.”
- */
-
 type Slide = {
   key: string;
   title: string;
@@ -51,8 +79,10 @@ type Slide = {
   cta?: { label: string; onClick: () => void };
 };
 
+const GAP_PX = 24;
+
 const VehicleDetails = () => {
-  // ----------------------- HOOKS (ALWAYS ON TOP) -----------------------
+  // ----------------------- HOOKS -----------------------
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
 
@@ -60,30 +90,27 @@ const VehicleDetails = () => {
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<any>(null);
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Hero rotation (still supported if your Hero reads currentImageIndex)
+  // Hero rotator state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  const [selectedOffer, setSelectedOffer] = useState<any>(null);
-
-  // Experience Rail state
+  // Experience Rail state/refs
   const [activeSlide, setActiveSlide] = useState(0);
-  const [cardWidth, setCardWidth] = useState(320);
-
-  const { toast } = useToast();
-  const { personaData } = usePersona(); // safe to keep; not using personaData.nickname
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-
-  // Refs for Experience Rail
+  const [cardWidth, setCardWidth] = useState(360);
   const railRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLDivElement>(null);
 
-  // ----------------------- STATIC / HELPERS -----------------------
+  const { toast } = useToast();
+  const { personaData } = usePersona();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  // ----------------------- CONSTANTS / HELPERS -----------------------
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -102,20 +129,21 @@ const VehicleDetails = () => {
     return Math.round(emi);
   };
 
+  const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
+
   const handleOfferClick = (offer: any) => {
     setSelectedOffer(offer);
     setIsOffersModalOpen(true);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
-  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
+  // Outer swipe to rotate hero
+  const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-    if (isLeftSwipe) setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    if (isRightSwipe) setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    if (distance > 50) setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    if (distance < -50) setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
 
   const toggleFavorite = () => {
@@ -135,73 +163,9 @@ const VehicleDetails = () => {
     window.dispatchEvent(new Event("favorites-updated"));
   };
 
-  // ----------------------- EFFECTS (STILL BEFORE ANY RETURN) -----------------------
-  // Load vehicle once
-  useEffect(() => {
-    const foundVehicle = vehicles.find((v) => {
-      if (v.id === vehicleName) return true;
-      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
-      return slug === vehicleName;
-    });
+  // ----------------------- SLIDES (Model-agnostic) -----------------------
+  const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
 
-    if (foundVehicle) {
-      setVehicle(foundVehicle);
-      document.title = `${foundVehicle.name} | Toyota UAE`;
-    }
-
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
-
-    window.scrollTo(0, 0);
-  }, [vehicleName]);
-
-  // Auto-rotate hero images (simple, not tied to inView hooks)
-  useEffect(() => {
-    const id = setInterval(() => {
-      setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
-    }, 5000);
-    return () => clearInterval(id);
-  }, [galleryImages.length]);
-
-  // Measure card width for Experience Rail snapping
-  useEffect(() => {
-    const el = firstCardRef.current;
-    if (!el) return;
-    const measure = () => {
-      const rect = el.getBoundingClientRect();
-      setCardWidth(Math.round(rect.width));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  // Sync active dot with scroll position
-  useEffect(() => {
-    const container = railRef.current;
-    if (!container) return;
-    const onScroll = () => {
-      const GAP_PX = 16;
-      const idx = Math.round(container.scrollLeft / (cardWidth + GAP_PX));
-      setActiveSlide((prev) => (prev === idx ? prev : Math.max(0, Math.min(idx, slides.length - 1))));
-    };
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => container.removeEventListener("scroll", onScroll);
-  }, [cardWidth]);
-
-  // Global event to open builder (kept from your original)
-  useEffect(() => {
-    const handleOpenCarBuilder = (event: CustomEvent) => {
-      const { step, config } = event.detail;
-      setIsCarBuilderOpen(true);
-      // if (config) setBuilderConfig(config);
-    };
-    window.addEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
-    return () => window.removeEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
-  }, []);
-
-  // ----------------------- DATA FOR EXPERIENCE RAIL -----------------------
   const slides: Slide[] = [
     {
       key: "performance",
@@ -259,10 +223,68 @@ const VehicleDetails = () => {
     },
   ];
 
-  const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
+  // ----------------------- EFFECTS -----------------------
+  useEffect(() => {
+    const foundVehicle = vehicles.find((v) => {
+      if (v.id === vehicleName) return true;
+      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
+      return slug === vehicleName;
+    });
 
-  // Arrow nav for the rail
-  const GAP_PX = 16;
+    if (foundVehicle) {
+      setVehicle(foundVehicle);
+      document.title = `${foundVehicle.name} | Toyota UAE`;
+    }
+
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
+
+    window.scrollTo(0, 0);
+  }, [vehicleName]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [galleryImages.length]);
+
+  useEffect(() => {
+    const el = firstCardRef.current;
+    if (!el) return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      setCardWidth(Math.round(rect.width));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const container = railRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      const idx = Math.round(container.scrollLeft / (cardWidth + GAP_PX));
+      const clamped = Math.max(0, Math.min(idx, slides.length - 1));
+      setActiveSlide((prev) => (prev === clamped ? prev : clamped));
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [cardWidth, slides.length]);
+
+  useEffect(() => {
+    const handleOpenCarBuilder = (event: CustomEvent) => {
+      const { step, config } = event.detail;
+      setIsCarBuilderOpen(true);
+      // Optionally use step/config
+    };
+    window.addEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
+    return () => window.removeEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
+  }, []);
+
+  // ----------------------- HELPERS -----------------------
   const scrollToIndex = (idx: number) => {
     const el = railRef.current;
     if (!el) return;
@@ -272,7 +294,7 @@ const VehicleDetails = () => {
   const handlePrev = () => scrollToIndex(activeSlide - 1);
   const handleNext = () => scrollToIndex(activeSlide + 1);
 
-  // ----------------------- SAFE EARLY RETURN (AFTER HOOKS) -----------------------
+  // ----------------------- EARLY RETURN -----------------------
   if (!vehicle) {
     return (
       <ToyotaLayout>
@@ -300,8 +322,13 @@ const VehicleDetails = () => {
       onCarBuilder={() => setIsCarBuilderOpen(true)}
       onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
-      <div className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}>
-        {/* Hero */}
+      <div
+        className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* HERO */}
         <EnhancedHeroSection
           vehicle={vehicle}
           galleryImages={galleryImages}
@@ -312,7 +339,7 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        {/* Lazy loaded sections */}
+        {/* MAIN CONTENT */}
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
           <VirtualShowroom vehicle={vehicle} />
           <InteractiveSpecsTech vehicle={vehicle} />
@@ -334,9 +361,7 @@ const VehicleDetails = () => {
                   <Sparkles className="h-4 w-4" />
                   Tailored to Every Model
                 </div>
-                <h2 className="mt-3 text-3xl lg:text-5xl font-black">
-                  Craft Your {vehicle.name.split(" ").pop()} Journey
-                </h2>
+                <h2 className="mt-3 text-3xl lg:text-5xl font-black">Craft Your {safeModelEnd} Journey</h2>
                 <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
                   Swipe to explore performance, safety, connectivity and ownership — then act with a tap.
                 </p>
@@ -347,14 +372,14 @@ const VehicleDetails = () => {
                 <button
                   aria-label="Previous"
                   onClick={handlePrev}
-                  className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   aria-label="Next"
                   onClick={handleNext}
-                  className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -362,51 +387,71 @@ const VehicleDetails = () => {
                 {/* Swipeable rail */}
                 <div
                   ref={railRef}
-                  className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-1"
+                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-1"
                 >
                   {slides.map((s, i) => (
                     <div
                       key={s.key}
                       ref={i === 0 ? firstCardRef : undefined}
-                      className="snap-center shrink-0 w-[280px] md:w-[340px] lg:w-[360px]"
+                      className="snap-center shrink-0 w-[90vw] sm:w-[520px] lg:w-[640px]"
                     >
-                      <Card className="relative overflow-hidden h-full group">
-                        <div className="absolute inset-0">
-                          <img src={s.image} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-black/0" />
+                      <Card className="relative overflow-hidden h-full rounded-2xl shadow-xl border-0 bg-transparent group">
+                        {/* Media stage */}
+                        <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
+                          <img
+                            src={s.image}
+                            alt=""
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          {/* bottom gradient only */}
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                         </div>
-                        <CardContent className="relative z-10 p-5 text-white flex flex-col h-full">
-                          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 w-max">
-                            {s.icon}
-                            <span className="text-xs font-semibold">{s.title}</span>
-                          </div>
-                          <h3 className="mt-3 text-xl font-black">{s.subtitle}</h3>
-                          {s.meta && (
-                            <ul className="mt-3 space-y-1 text-white/85 text-sm">
-                              {s.meta.map((m) => (
-                                <li key={m} className="inline-flex items-center gap-2">
-                                  <Check className="h-4 w-4 text-emerald-300" />
-                                  <span>{m}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          <div className="mt-auto pt-4">
-                            {s.cta ? (
-                              <Button size="sm" className="bg-white text-black hover:bg-white/90" onClick={s.cta.onClick}>
-                                {s.cta.label}
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                className="bg-white text-black hover:bg-white/90"
-                                onClick={() => setIsBookingOpen(true)}
-                              >
-                                Book a Test Drive
-                              </Button>
+
+                        {/* Content panel */}
+                        <CardContent className="absolute inset-x-3 bottom-3 z-10">
+                          <div className="rounded-xl bg-black/45 backdrop-blur-md text-white p-4 md:p-5 ring-1 ring-white/10">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1">
+                              {s.icon}
+                              <span className="text-xs font-semibold">{s.title}</span>
+                            </div>
+
+                            <h3 className="mt-2 text-lg md:text-xl font-extrabold leading-snug">
+                              {s.subtitle}
+                            </h3>
+
+                            {s.meta && (
+                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-1 text-white/85 text-xs md:text-sm">
+                                {s.meta.map((m) => (
+                                  <li key={m} className="inline-flex items-center gap-1.5">
+                                    <Check className="h-4 w-4 text-emerald-300" />
+                                    <span className="truncate">{m}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
+
+                            <div className="mt-3">
+                              {s.cta ? (
+                                <Button
+                                  size="sm"
+                                  className="bg-white text-black hover:bg-white/90"
+                                  onClick={s.cta.onClick}
+                                >
+                                  {s.cta.label}
+                                  <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="bg-white text-black hover:bg-white/90"
+                                  onClick={() => setIsBookingOpen(true)}
+                                >
+                                  Book a Test Drive
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -415,14 +460,16 @@ const VehicleDetails = () => {
                 </div>
 
                 {/* Pagination dots */}
-                <div className="mt-5 flex items-center justify-center gap-2">
+                <div className="mt-6 flex items-center justify-center gap-2">
                   {slides.map((_, i) => (
                     <button
                       key={i}
                       aria-label={`Go to slide ${i + 1}`}
                       onClick={() => scrollToIndex(i)}
                       className={`h-2.5 rounded-full transition-all ${
-                        activeSlide === i ? "w-8 bg-primary" : "w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                        activeSlide === i
+                          ? "w-8 bg-primary"
+                          : "w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
                       }`}
                     />
                   ))}
@@ -432,7 +479,7 @@ const VehicleDetails = () => {
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
                     <PencilRuler className="mr-2 h-4 w-4" />
-                    Build Your {vehicle.name.split(" ").pop()}
+                    Build Your {safeModelEnd}
                   </Button>
                   <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-start">
                     <Gauge className="mr-2 h-4 w-4" />
@@ -478,7 +525,7 @@ const VehicleDetails = () => {
         />
       </div>
 
-      {/* UPDATED OFFERS MODAL - WITH SELECTED OFFER */}
+      {/* OFFERS MODAL */}
       <OffersModal
         isOpen={isOffersModalOpen}
         onClose={() => {
@@ -488,7 +535,7 @@ const VehicleDetails = () => {
         selectedOffer={selectedOffer}
       />
 
-      {/* Existing Modals */}
+      {/* EXISTING MODALS */}
       <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
       <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
       <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
