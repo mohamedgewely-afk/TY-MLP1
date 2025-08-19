@@ -377,7 +377,10 @@ export default function ExtraordinaryLifestyleGallery({
                     t.style.removeProperty("--ty");
                   }}
                   style={{
-                    transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
+                    // @ts-expect-error css custom props
+                    rotateX: "var(--rx, 0deg)",
+                    // @ts-expect-error css custom props
+                    rotateY: "var(--ry, 0deg)",
                   }}
                 >
                   <div className="relative">
@@ -394,6 +397,7 @@ export default function ExtraordinaryLifestyleGallery({
                         sizes="(min-width: 1024px) 66vw, 100vw"
                         onLoad={() => setImgReady(true)}
                         style={{
+                          // @ts-expect-error css custom props
                           transform: "translate3d(var(--tx,0), var(--ty,0), 0)",
                         }}
                       />
