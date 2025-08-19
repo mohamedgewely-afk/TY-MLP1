@@ -1,24 +1,13 @@
+// EnhancedLifestyleGallery.tsx
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { MotionConfig, motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { VehicleModel } from "@/types/vehicle";
-import { Users, Coffee, Heart, Star, Mountain, Waves, ChevronRight, Sparkles, PartyPopper } from "lucide-react";
+import { Users, Coffee, Heart, Star, Mountain, Waves, Volume2, VolumeX, Sparkles } from "lucide-react";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 
-/**
- * Extraordinary Lifestyle Gallery
- * - Cinematic reveal, parallax/3D hover, animated aurora background
- * - Pill tabs with progress + deep-linking (?scenario=)
- * - Swipe interactions (mobile) with dismissable hint
- * - Image skeleton + smooth fade-in
- * - Gamified "Journey Tracker" with confetti when all scenarios viewed
- * - Accessible tabs + reduced motion support
- * - Sticky adaptive CTA
- */
-
-// ----------------------------- Types -----------------------------
 export type LifestyleScenario = {
   id: string;
   title: string;
@@ -27,19 +16,18 @@ export type LifestyleScenario = {
   icon: React.ReactNode;
   features: string[];
   image: string;
-  gradient: string; // e.g. "from-emerald-500 via-green-500 to-teal-500"
-  accentColor: string; // e.g. "bg-emerald-500"
+  gradient: string;
+  accentColor: string;
 };
 
-interface ExtraordinaryLifestyleGalleryProps {
+interface EnhancedLifestyleGalleryProps {
   vehicle: VehicleModel;
-  scenarios?: LifestyleScenario[]; // optional override
+  scenarios?: LifestyleScenario[];
   defaultIndex?: number;
   onScenarioChange?: (scenario: LifestyleScenario, index: number) => void;
   className?: string;
 }
 
-// --------------------- Default Scenarios (existing images) ---------------------
 const DEFAULT_SCENARIOS: LifestyleScenario[] = [
   {
     id: "family-adventure",
@@ -68,7 +56,7 @@ const DEFAULT_SCENARIOS: LifestyleScenario[] = [
   {
     id: "coastal-escape",
     title: "Coastal Escapes",
-    shortTitle: "Coastal",
+    shortTitle: "Coast",
     description: "Drive to stunning coastlines with confidence and style",
     icon: <Waves className="h-4 w-4" aria-hidden="true" />,
     features: ["All-weather capability", "Premium sound", "Comfortable seating"],
@@ -91,115 +79,61 @@ const DEFAULT_SCENARIOS: LifestyleScenario[] = [
   },
 ];
 
-// ----------------------------- Confetti -----------------------------
-function ConfettiBurst({ show, accent }: { show: boolean; accent: string }) {
-  if (!show) return null;
-  const particles = new Array(24).fill(0).map((_, i) => i);
-  const accentText = accent.replace("bg-", "text-");
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <AnimatePresence>
-        {particles.map((i) => {
-          const x = Math.random() * 100 - 50;
-          const y = Math.random() * 60 + 20;
-          const r = Math.random() * 360;
-          const d = 0.8 + Math.random() * 0.8;
-          return (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: 0, x: 0, rotate: 0 }}
-              animate={{ opacity: 1, y: -y, x, rotate: r }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: d, ease: "easeOut" }}
-              className={`absolute left-1/2 top-1/2 -ml-1 -mt-1 ${accentText}`}
-            >
-              <PartyPopper className="h-4 w-4" />
-            </motion.span>
-          );
-        })}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ----------------------------- Component -----------------------------
-export default function ExtraordinaryLifestyleGallery({
+export default function EnhancedLifestyleGallery({
   vehicle,
   scenarios = DEFAULT_SCENARIOS,
   defaultIndex = 0,
   onScenarioChange,
   className,
-}: ExtraordinaryLifestyleGalleryProps) {
+}: EnhancedLifestyleGalleryProps) {
   const [selected, setSelected] = useState(Math.min(Math.max(defaultIndex, 0), scenarios.length - 1));
   const [imgReady, setImgReady] = useState(false);
   const [swiped, setSwiped] = useState(false);
-  const [visited, setVisited] = useState<Set<string>>(new Set([scenarios[selected]?.id]));
-  const [celebrate, setCelebrate] = useState(false);
+  const [audioOn, setAudioOn] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { isMobile } = useDeviceInfo();
-  const prefersReducedMotion = useReducedMotion();
-  const auroraRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
-
+  const prefersReducedMotion = useReducedMotion();
   const panelId = useId();
   const tablistId = useId();
 
   const current = scenarios[selected];
 
   const modelToken = useMemo(() => {
-    const safe = vehicle?.name || "Your Vehicle";
-    const parts = safe.trim().split(/\s+/);
-    return parts[parts.length - 1] || safe;
+    const safeName = vehicle?.name || "Your Vehicle";
+    const parts = safeName.trim().split(/\s+/);
+    return parts[parts.length - 1] || safeName;
   }, [vehicle?.name]);
 
-  // Deep-linking: read ?scenario= on mount
+  // tiny UI ping (data URL placeholder; replace with your asset if desired)
   useEffect(() => {
-    const id = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("scenario") : null;
-    if (!id) return;
-    const idx = scenarios.findIndex((s) => s.id === id);
-    if (idx >= 0) {
-      setSelected(idx);
-      setVisited(new Set([scenarios[idx].id]));
+    if (!audioRef.current) {
+      const el = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQAAAAA=");
+      el.volume = 0.15;
+      audioRef.current = el;
     }
   }, []);
-
-  // Push state on change
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    params.set("scenario", current.id);
-    window.history.replaceState(null, "", `?${params.toString()}`);
-  }, [current.id]);
-
-  // Track visited + celebrate when all seen
-  useEffect(() => {
-    const next = new Set(visited);
-    next.add(current.id);
-    setVisited(next);
-    if (next.size === scenarios.length && !celebrate) {
-      setCelebrate(true);
-      const t = setTimeout(() => setCelebrate(false), 1500);
-      return () => clearTimeout(t);
+  const playUiPing = useCallback(() => {
+    if (audioOn && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
     }
-  }, [current.id]);
+  }, [audioOn]);
 
-  // Swipe (mobile)
   const goTo = useCallback(
     (index: number) => {
       const clamped = (index + scenarios.length) % scenarios.length;
-      setImgReady(false);
       setSelected(clamped);
+      setImgReady(false);
       onScenarioChange?.(scenarios[clamped], clamped);
-      try {
-        window.dispatchEvent(
-          new CustomEvent("ux:scenario_view", { detail: { id: scenarios[clamped].id, name: scenarios[clamped].title } })
-        );
-      } catch {}
+      if (navigator?.vibrate) navigator.vibrate(8);
+      playUiPing();
+      window.dispatchEvent(new CustomEvent("ux:scenario_view", { detail: { id: scenarios[clamped].id } }));
     },
-    [onScenarioChange, scenarios]
+    [onScenarioChange, scenarios, playUiPing]
   );
-
   const goNext = useCallback(() => goTo(selected + 1), [goTo, selected]);
   const goPrev = useCallback(() => goTo(selected - 1), [goTo, selected]);
 
@@ -212,11 +146,10 @@ export default function ExtraordinaryLifestyleGallery({
       setSwiped(true);
       goPrev();
     },
-    threshold: 30,
+    threshold: 28,
     preventDefaultTouchmoveEvent: false,
   });
 
-  // Auto-scroll mobile tabs
   useEffect(() => {
     if (scrollRef.current && isMobile) {
       const el = scrollRef.current;
@@ -226,7 +159,21 @@ export default function ExtraordinaryLifestyleGallery({
     }
   }, [selected, isMobile, scenarios.length]);
 
-  // Keyboard nav for tabs
+  // deep link (?scenario=id)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("scenario");
+    if (id) {
+      const idx = scenarios.findIndex((s) => s.id === id);
+      if (idx >= 0) setSelected(idx);
+    }
+  }, [scenarios]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("scenario", current.id);
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  }, [current.id]);
+
+  // a11y keyboard nav
   const onKeyDownTabs = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const key = e.key;
@@ -253,186 +200,243 @@ export default function ExtraordinaryLifestyleGallery({
     [goTo, scenarios.length, selected]
   );
 
-  // 3D hover / parallax (desktop)
+  const springy = useMemo(() => ({ type: "spring", stiffness: 220, damping: 24, mass: 0.8 }), []);
+  const fade = prefersReducedMotion
+    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
+    : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -16 } };
+
+  // parallax tilt + spotlight coordinates
   const onMouseMoveCard = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile) return;
-    const t = e.currentTarget;
-    const r = t.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    t.style.setProperty("--rx", String(py * -6));
-    t.style.setProperty("--ry", String(px * 8));
-    t.style.setProperty("--tx", `${px * 10}px`);
-    t.style.setProperty("--ty", `${py * 10}px`);
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    const rx = (py - 0.5) * -8;
+    const ry = (px - 0.5) * 8;
+    e.currentTarget.style.setProperty("--rx", `${rx}deg`);
+    e.currentTarget.style.setProperty("--ry", `${ry}deg`);
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
   };
 
-  const springy = useMemo(() => ({ type: "spring", stiffness: 220, damping: 24, mass: 0.8 }), []);
-
-  // ----------------------------- Render -----------------------------
   return (
     <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "never"} transition={springy}>
       <section
         aria-label="Lifestyle gallery"
-        className={
-          "relative overflow-hidden bg-gradient-to-b from-background to-muted/30 " + (className ?? "")
-        }
+        className={"relative overflow-hidden bg-gradient-to-br from-background to-muted/30 " + (className ?? "")}
       >
-        {/* Aurora background */}
-        <div ref={auroraRef} aria-hidden className="pointer-events-none absolute inset-0">
-          <motion.div
-            className={`absolute -inset-20 blur-3xl opacity-40 bg-gradient-to-r ${current.gradient} bg-[length:200%_200%]`}
-            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-          />
+        {/* ambient sparkles */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]"
+        >
+          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-muted/60 blur-3xl" />
         </div>
 
-        {/* Header */}
-        <div className="px-4 md:px-6 pt-8 md:pt-12 text-center relative z-10">
-          <Badge className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-xs md:text-sm font-medium">
-            <Sparkles className="h-3 w-3" aria-hidden="true" /> Lifestyle Showcase
-          </Badge>
-          <h2 className="mt-4 text-2xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight">
-            Your {" "}
-            <motion.span
-              key={modelToken}
-              className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/70 to-primary bg-[length:200%_200%]"
-              animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        {/* header */}
+        <div className="px-4 md:px-6 py-6 md:py-10 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-xs md:text-sm font-medium inline-flex items-center gap-2">
+              <Heart className="h-3 w-3" aria-hidden="true" />
+              Your Lifestyle, Elevated
+            </Badge>
+            <button
+              type="button"
+              onClick={() => setAudioOn((v) => !v)}
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs hover:bg-muted/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-pressed={audioOn}
+              aria-label={audioOn ? "Mute UI sounds" : "Enable UI sounds"}
             >
-              {modelToken}
-            </motion.span>{" "}
-            Lifestyle
-          </h2>
-          <p className="mt-3 mb-6 text-sm md:text-base text-muted-foreground max-w-3xl mx-auto">
-            Discover how your {vehicle?.name ?? "vehicle"} fits every chapter of your life.
-          </p>
-
-          {/* Progress bar */}
-          <div className="mx-auto max-w-3xl">
-            <motion.div key={current.id + "-bar"} className="h-1.5 w-full rounded bg-muted overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${((Array.from(visited).length) / scenarios.length) * 100}%` }}
-                transition={springy}
-                className={`h-full ${current.accentColor}`}
-              />
-            </motion.div>
-            <div className="mt-1 text-xs text-muted-foreground">{Array.from(visited).length}/{scenarios.length} explored</div>
+              {audioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {audioOn ? "Sound on" : "Sound off"}
+            </button>
           </div>
+          <h2 className="mt-4 text-2xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight">
+            Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">{modelToken}</span> Lifestyle
+          </h2>
+          <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-3xl mx-auto">
+            Discover how your {vehicle?.name ?? "vehicle"} seamlessly integrates into every aspect of your life.
+          </p>
         </div>
 
-        <div className="toyota-container px-4 md:px-6 pb-16 grid lg:grid-cols-3 gap-6 lg:gap-12 items-start relative z-10">
-          {/* Pill Tabs */}
-          <div role="tablist" aria-label="Choose your adventure" id={tablistId} onKeyDown={onKeyDownTabs} className="lg:col-span-1">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-foreground">Choose Your Adventure</h3>
-              <span className="text-xs text-muted-foreground">{selected + 1}/{scenarios.length}</span>
+        <div className="toyota-container px-4 md:px-6 pb-10 grid lg:grid-cols-3 gap-6 lg:gap-12 items-start">
+          {/* desktop radial orbit; mobile pills fallback */}
+          <div className="lg:col-span-1">
+            <div className="hidden lg:grid place-items-center">
+              <div
+                role="tablist"
+                aria-label="Choose your adventure"
+                id={tablistId}
+                onKeyDown={onKeyDownTabs}
+                className="relative h-[320px] w-[320px] rounded-full border border-border/60 bg-card/50 backdrop-blur"
+              >
+                <svg className="absolute inset-0" viewBox="0 0 100 100" aria-hidden>
+                  <circle cx="50" cy="50" r="48" className="fill-none stroke-muted" strokeWidth="3" />
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="48"
+                    className="fill-none stroke-primary"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    initial={false}
+                    animate={{
+                      strokeDasharray: `${((selected + 1) / scenarios.length) * 2 * Math.PI * 48} ${2 * Math.PI * 48}`,
+                    }}
+                    style={{ rotate: -90, transformOrigin: "50% 50%" }}
+                  />
+                </svg>
+
+                {scenarios.map((s, i) => {
+                  const angle = (i / scenarios.length) * Math.PI * 2;
+                  const x = 120 * Math.cos(angle);
+                  const y = 120 * Math.sin(angle);
+                  const isActive = i === selected;
+                  return (
+                    <button
+                      key={s.id}
+                      ref={(el) => (tabRefs.current[i] = el)}
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={`${panelId}-panel`}
+                      tabIndex={isActive ? 0 : -1}
+                      onClick={() => goTo(i)}
+                      className={
+                        "group absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-background/80 backdrop-blur px-3 py-2 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+                        (isActive ? "ring-2 ring-primary" : "hover:bg-muted/60")
+                      }
+                      style={{ left: 160 + x, top: 160 + y }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-foreground" aria-hidden>
+                          {s.icon}
+                        </span>
+                        <span className="text-sm font-semibold">{s.shortTitle}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                <div className="absolute inset-0 grid place-items-center">
+                  <div className="text-center">
+                    <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5" /> {selected + 1}/{scenarios.length}
+                    </div>
+                    <div className="mt-2 text-sm font-medium">Choose Your Adventure</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {scenarios.map((s, i) => {
-                const isActive = i === selected;
-                return (
-                  <button
-                    key={s.id}
-                    ref={(el) => (tabRefs.current[i] = el)}
-                    role="tab"
-                    aria-selected={isActive}
-                    aria-controls={`${panelId}-panel`}
-                    tabIndex={isActive ? 0 : -1}
-                    onClick={() => goTo(i)}
-                    className={
-                      "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-                      (isActive ? `bg-primary text-primary-foreground border-transparent` : "bg-card hover:bg-muted/60")
-                    }
-                  >
-                    <span aria-hidden>{s.icon}</span>
-                    <span className="font-medium">{s.shortTitle}</span>
-                  </button>
-                );
-              })}
+
+            {/* mobile pills */}
+            <div
+              className="lg:hidden space-y-2"
+              role="tablist"
+              aria-label="Choose your adventure"
+              id={`${tablistId}-mobile`}
+              onKeyDown={onKeyDownTabs}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-semibold">Choose Your Adventure</h3>
+                <span className="text-xs text-muted-foreground">
+                  {selected + 1}/{scenarios.length}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {scenarios.map((s, i) => {
+                  const active = i === selected;
+                  return (
+                    <button
+                      key={s.id}
+                      ref={(el) => (tabRefs.current[i] = el)}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => goTo(i)}
+                      className={[
+                        "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition border",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                        active ? `bg-primary text-primary-foreground border-transparent` : "bg-card hover:bg-muted/60",
+                      ].join(" ")}
+                    >
+                      <span aria-hidden>{s.icon}</span>
+                      <span>{s.shortTitle}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Content Panel with cinematic + 3D hover */}
+          {/* content panel */}
           <div className="lg:col-span-2" ref={swipeableRef} aria-live="polite">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={current.id}
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 22, clipPath: "inset(100% 0% 0% 0%)" }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)" }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -22 }}
-                transition={prefersReducedMotion ? { duration: 0.12 } : { duration: 0.6, ease: "easeOut" }}
-              >
+              <motion.div key={current.id} initial={fade.initial} animate={fade.animate} exit={fade.exit}>
                 <Card
+                  className="overflow-hidden border-0 shadow-2xl will-change-transform [transform:perspective(1200px)_rotateX(var(--rx,0))_rotateY(var(--ry,0))]"
                   role="tabpanel"
                   id={`${panelId}-panel`}
                   aria-labelledby={`${tablistId}-tab-${current.id}`}
-                  className="overflow-hidden border-0 shadow-2xl will-change-transform [transform-style:preserve-3d]"
-                  onMouseMove={onMouseMoveCard}
-                  onMouseLeave={(e) => {
-                    const t = e.currentTarget as HTMLDivElement;
-                    t.style.removeProperty("--rx");
-                    t.style.removeProperty("--ry");
-                    t.style.removeProperty("--tx");
-                    t.style.removeProperty("--ty");
-                  }}
-                  style={{
-                    // @ts-expect-error css custom props
-                    rotateX: "var(--rx, 0deg)",
-                    // @ts-expect-error css custom props
-                    rotateY: "var(--ry, 0deg)",
-                  }}
+                  onMouseMove={prefersReducedMotion ? undefined : onMouseMoveCard}
                 >
                   <div className="relative">
-                    <div className="aspect-[16/10] md:aspect-[4/3] overflow-hidden">
-                      {/* Skeleton */}
+                    <div className="aspect-[16/10] md:aspect-[4/3] overflow-hidden relative">
                       {!imgReady && <div className="absolute inset-0 animate-pulse bg-muted/60" />}
-
-                      <img
+                      <motion.img
                         src={current.image}
                         alt={`${current.title} lifestyle hero for ${vehicle?.name ?? "vehicle"}`}
-                        className="w-full h-full object-cover will-change-transform"
+                        className="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
                         sizes="(min-width: 1024px) 66vw, 100vw"
                         onLoad={() => setImgReady(true)}
-                        style={{
-                          // @ts-expect-error css custom props
-                          transform: "translate3d(var(--tx,0), var(--ty,0), 0)",
-                        }}
+                        initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
+                        animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                        transition={{ duration: prefersReducedMotion ? 0.2 : 1.2, ease: "easeOut" }}
                       />
-
-                      {/* Subtle overlay to deepen contrast */}
                       <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${current.gradient} opacity-20`} />
-                    </div>
+                      {!prefersReducedMotion && (
+                        <div
+                          aria-hidden
+                          className="pointer-events-none absolute inset-0 opacity-0 md:opacity-100"
+                          style={{
+                            maskImage: "radial-gradient(200px_200px_at_var(--mx,50%)_var(--my,50%),white,transparent)",
+                            WebkitMaskImage:
+                              "radial-gradient(200px_200px_at_var(--mx,50%)_var(--my,50%),white,transparent)",
+                            background: "radial-gradient(closest-side,rgba(255,255,255,0.12),transparent)",
+                          }}
+                        />
+                      )}
 
-                    {/* Floating Featured Badge */}
-                    <div className="absolute top-4 left-4 md:top-6 md:left-6">
-                      <Badge className={`${current.accentColor} text-white border-0 px-3 py-1.5 shadow-md`}>
-                        <Star className="h-3 w-3 mr-1.5" aria-hidden="true" /> Featured
-                      </Badge>
-                    </div>
+                      {!swiped && (
+                        <div className="md:hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20 text-xs">
+                          Swipe to explore →
+                        </div>
+                      )}
 
-                    {/* Swipe hint (mobile) */}
-                    {!swiped && isMobile && (
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-background/80 backdrop-blur px-3 py-1.5 rounded-full text-xs border shadow">
-                        Swipe to explore →
-                      </div>
-                    )}
-
-                    {/* Tiny dots indicator */}
-                    <div className="absolute top-3 right-3">
-                      <div className="flex gap-1">
+                      <div className="absolute top-3 right-3 flex gap-1">
                         {scenarios.map((_, i) => (
-                          <div key={i} className={`h-1.5 w-1.5 rounded-full ${i === selected ? "bg-white" : "bg-white/60"}`} />
+                          <span
+                            key={i}
+                            className={`h-1.5 w-1.5 rounded-full ${i === selected ? "bg-white scale-125" : "bg-white/60"}`}
+                            aria-hidden
+                          />
                         ))}
                       </div>
+                    </div>
+
+                    <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                      <Badge className={`${current.accentColor} text-white border-0 px-3 py-1.5`}>
+                        <Star className="h-3 w-3 mr-1.5" aria-hidden="true" /> Featured
+                      </Badge>
                     </div>
                   </div>
 
                   <CardContent className="p-5 md:p-8">
                     <div className="flex items-center gap-4 mb-5">
-                      <div className={`w-12 h-12 rounded-xl ${current.accentColor} flex items-center justify-center text-white shadow-lg`} aria-hidden="true">
+                      <div
+                        className={`w-12 h-12 rounded-xl ${current.accentColor} flex items-center justify-center text-white shadow-lg`}
+                        aria-hidden="true"
+                      >
                         {current.icon}
                       </div>
                       <div>
@@ -441,67 +445,121 @@ export default function ExtraordinaryLifestyleGallery({
                       </div>
                     </div>
 
-                    {/* Feature chips */}
-                    <div className="flex flex-wrap gap-2">
-                      {current.features.map((feature) => (
+                    <div className="flex flex-wrap gap-2 md:gap-3">
+                      {current.features.map((feature, idx) => (
                         <motion.div
                           key={feature}
-                          initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                          initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                           whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                           viewport={{ once: true, margin: "-20px" }}
-                          className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm bg-background/70"
+                          transition={{ delay: prefersReducedMotion ? 0 : 0.06 * idx }}
+                          className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm bg-background/70"
                         >
-                          <span className={`inline-block w-1.5 h-1.5 rounded-full ${current.accentColor}`} aria-hidden="true" />
+                          <span className={`inline-block w-2 h-2 rounded-full ${current.accentColor}`} aria-hidden="true" />
                           <span className="font-medium">{feature}</span>
                         </motion.div>
                       ))}
                     </div>
 
-                    {/* Peek thumbnails (mobile) */}
-                    <div className="mt-4 md:hidden flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {scenarios.map((s, i) => (
-                        <button
-                          key={s.id}
-                          onClick={() => goTo(i)}
-                          className={`relative h-12 w-20 rounded-lg overflow-hidden border ${i === selected ? "ring-2 ring-primary" : ""}`}
-                          aria-label={`View ${s.title}`}
-                        >
-                          <img src={s.image} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                          <span className="absolute bottom-1 left-1 right-1 text-[10px] text-white line-clamp-1">{s.shortTitle}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <motion.div key={current.id + "-bar"} className="mt-6 h-1 w-full rounded bg-muted overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${((selected + 1) / scenarios.length) * 100}%` }}
+                        transition={{ type: "spring", stiffness: 180, damping: 22 }}
+                        className={`h-full ${current.accentColor}`}
+                      />
+                    </motion.div>
 
-                    {/* CTA Row */}
                     <div className="mt-6 flex flex-wrap gap-2">
-                      <button className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                        Book a Test Drive
-                      </button>
-                      <button className="inline-flex items-center justify-center rounded-lg border px-4 py-2 hover:bg-muted/50">
-                        Download Brochure
-                      </button>
+                      <MagneticButton className="bg-primary text-primary-foreground">Book a Test Drive</MagneticButton>
+                      <MagneticButton variant="outline">Download Brochure</MagneticButton>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             </AnimatePresence>
+
+            {/* mobile bottom thumbnails */}
+            <div className="mt-4 md:hidden">
+              <div
+                ref={scrollRef}
+                className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                style={{ scrollSnapType: "x mandatory" }}
+              >
+                {scenarios.map((s, i) => (
+                  <button
+                    key={s.id}
+                    onClick={() => goTo(i)}
+                    className={`relative h-12 w-20 rounded-lg overflow-hidden border ${i === selected ? "ring-2 ring-primary" : ""}`}
+                    aria-label={`View ${s.title}`}
+                    style={{ scrollSnapAlign: "center" }}
+                  >
+                    <img src={s.image} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
+                    <span className="absolute bottom-1 left-1 right-1 text-[10px] text-white line-clamp-1">{s.shortTitle}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Sticky adaptive CTA */}
-        <motion.button
-          aria-label="Book a test drive"
-          className={`fixed bottom-6 right-6 ${current.accentColor} text-white px-5 py-3 rounded-full shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
-          animate={prefersReducedMotion ? undefined : { scale: [1, 1.06, 1] }}
-          transition={prefersReducedMotion ? undefined : { repeat: Infinity, duration: 3 }}
-        >
-          Book a Test Drive
-        </motion.button>
-
-        {/* Confetti when all scenarios visited */}
-        <ConfettiBurst show={celebrate} accent={current.accentColor} />
       </section>
     </MotionConfig>
+  );
+}
+
+// Magnetic CTA with ripple
+function MagneticButton({
+  children,
+  className = "",
+  variant = "solid",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  variant?: "solid" | "outline";
+}) {
+  const ref = useRef<HTMLButtonElement | null>(null);
+  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const prefersReducedMotion = useReducedMotion();
+
+  const onMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (prefersReducedMotion) return;
+    const t = e.currentTarget;
+    const r = t.getBoundingClientRect();
+    const mx = e.clientX - r.left - r.width / 2;
+    const my = e.clientY - r.top - r.height / 2;
+    t.animate([{ transform: `translate(${mx * 0.08}px, ${my * 0.08}px)` }, { transform: "translate(0,0)" }], {
+      duration: 350,
+      easing: "cubic-bezier(.2,.8,.2,1)",
+    });
+  };
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    setRipples((prev) => [...prev, { id: Date.now(), x, y }]);
+    setTimeout(() => setRipples((prev) => prev.slice(1)), 450);
+    if (navigator?.vibrate) navigator.vibrate(10);
+  };
+
+  const base =
+    "relative inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+  const look = variant === "outline" ? "border hover:bg-muted/50" : "bg-primary text-primary-foreground hover:brightness-105";
+
+  return (
+    <button ref={ref} className={[base, look, className].join(" ")} onMouseMove={onMouseMove} onClick={onClick}>
+      {children}
+      <span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
+        {ripples.map((r) => (
+          <span
+            key={r.id}
+            className="absolute inline-block h-10 w-10 rounded-full bg-white/40"
+            style={{ left: r.x - 20, top: r.y - 20, transform: "scale(0)", animation: "rpl 450ms ease-out forwards" }}
+          />
+        ))}
+      </span>
+      <style>{`@keyframes rpl { to { transform: scale(2.6); opacity: 0; } }`}</style>
+    </button>
   );
 }
