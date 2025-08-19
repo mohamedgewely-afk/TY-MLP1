@@ -107,7 +107,7 @@ export default function EnhancedLifestyleGallery({
     return parts[parts.length - 1] || safeName;
   }, [vehicle?.name]);
 
-  // tiny UI ping (data URL placeholder; replace with your asset if desired)
+  // tiny UI ping (can replace with your own asset)
   useEffect(() => {
     if (!audioRef.current) {
       const el = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQAAAAA=");
@@ -130,13 +130,16 @@ export default function EnhancedLifestyleGallery({
       onScenarioChange?.(scenarios[clamped], clamped);
       if (navigator?.vibrate) navigator.vibrate(8);
       playUiPing();
-      window.dispatchEvent(new CustomEvent("ux:scenario_view", { detail: { id: scenarios[clamped].id } }));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("ux:scenario_view", { detail: { id: scenarios[clamped].id } }));
+      }
     },
     [onScenarioChange, scenarios, playUiPing]
   );
   const goNext = useCallback(() => goTo(selected + 1), [goTo, selected]);
   const goPrev = useCallback(() => goTo(selected - 1), [goTo, selected]);
 
+  // Swipe (mobile)
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
       setSwiped(true);
@@ -150,6 +153,7 @@ export default function EnhancedLifestyleGallery({
     preventDefaultTouchmoveEvent: false,
   });
 
+  // Auto-scroll mobile tabs
   useEffect(() => {
     if (scrollRef.current && isMobile) {
       const el = scrollRef.current;
@@ -161,13 +165,16 @@ export default function EnhancedLifestyleGallery({
 
   // deep link (?scenario=id)
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const id = new URLSearchParams(window.location.search).get("scenario");
     if (id) {
       const idx = scenarios.findIndex((s) => s.id === id);
       if (idx >= 0) setSelected(idx);
     }
-  }, [scenarios]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     params.set("scenario", current.id);
     window.history.replaceState(null, "", `?${params.toString()}`);
@@ -236,7 +243,7 @@ export default function EnhancedLifestyleGallery({
         {/* header */}
         <div className="px-4 md:px-6 py-6 md:py-10 text-center">
           <div className="flex items-center justify-center gap-2">
-            <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-xs md:text-sm font-medium inline-flex items-center gap-2">
+            <Badge className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-xs md:text-sm font-medium inline-flex items-center gap-2">
               <Heart className="h-3 w-3" aria-hidden="true" />
               Your Lifestyle, Elevated
             </Badge>
@@ -270,8 +277,9 @@ export default function EnhancedLifestyleGallery({
                 onKeyDown={onKeyDownTabs}
                 className="relative h-[320px] w-[320px] rounded-full border border-border/60 bg-card/50 backdrop-blur"
               >
-                <svg className="absolute inset-0" viewBox="0 0 100 100" aria-hidden>
-                  <circle cx="50" cy="50" r="48" className="fill-none stroke-muted" strokeWidth="3" />
+                {/* Progress ring — must not intercept clicks */}
+                <svg className="pointer-events-none absolute inset-0" viewBox="0 0 100 100" aria-hidden>
+                  <circle cx="50" cy="50" r="48" className="fill-none stroke-muted" strokeWidth="3" pointerEvents="none" />
                   <motion.circle
                     cx="50"
                     cy="50"
@@ -284,9 +292,11 @@ export default function EnhancedLifestyleGallery({
                       strokeDasharray: `${((selected + 1) / scenarios.length) * 2 * Math.PI * 48} ${2 * Math.PI * 48}`,
                     }}
                     style={{ rotate: -90, transformOrigin: "50% 50%" }}
+                    pointerEvents="none"
                   />
                 </svg>
 
+                {/* Orbit buttons (interactive) */}
                 {scenarios.map((s, i) => {
                   const angle = (i / scenarios.length) * Math.PI * 2;
                   const x = 120 * Math.cos(angle);
@@ -295,6 +305,7 @@ export default function EnhancedLifestyleGallery({
                   return (
                     <button
                       key={s.id}
+                      id={`${tablistId}-tab-${s.id}`}
                       ref={(el) => (tabRefs.current[i] = el)}
                       role="tab"
                       aria-selected={isActive}
@@ -302,7 +313,8 @@ export default function EnhancedLifestyleGallery({
                       tabIndex={isActive ? 0 : -1}
                       onClick={() => goTo(i)}
                       className={
-                        "group absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-background/80 backdrop-blur px-3 py-2 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+                        "z-10 group absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-background/80 " +
+                        "backdrop-blur px-3 py-2 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
                         (isActive ? "ring-2 ring-primary" : "hover:bg-muted/60")
                       }
                       style={{ left: 160 + x, top: 160 + y }}
@@ -317,7 +329,8 @@ export default function EnhancedLifestyleGallery({
                   );
                 })}
 
-                <div className="absolute inset-0 grid place-items-center">
+                {/* Center label — visual only; must not block clicks */}
+                <div className="pointer-events-none absolute inset-0 grid place-items-center">
                   <div className="text-center">
                     <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground">
                       <Sparkles className="h-3.5 w-3.5" /> {selected + 1}/{scenarios.length}
@@ -348,6 +361,7 @@ export default function EnhancedLifestyleGallery({
                   return (
                     <button
                       key={s.id}
+                      id={`${tablistId}-tab-${s.id}-mobile`}
                       ref={(el) => (tabRefs.current[i] = el)}
                       role="tab"
                       aria-selected={active}
@@ -372,11 +386,14 @@ export default function EnhancedLifestyleGallery({
             <AnimatePresence mode="wait">
               <motion.div key={current.id} initial={fade.initial} animate={fade.animate} exit={fade.exit}>
                 <Card
-                  className="overflow-hidden border-0 shadow-2xl will-change-transform [transform:perspective(1200px)_rotateX(var(--rx,0))_rotateY(var(--ry,0))]"
+                  className="overflow-hidden border-0 shadow-2xl will-change-transform"
                   role="tabpanel"
                   id={`${panelId}-panel`}
                   aria-labelledby={`${tablistId}-tab-${current.id}`}
                   onMouseMove={prefersReducedMotion ? undefined : onMouseMoveCard}
+                  style={{
+                    transform: "perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
+                  }}
                 >
                   <div className="relative">
                     <div className="aspect-[16/10] md:aspect-[4/3] overflow-hidden relative">
@@ -392,6 +409,7 @@ export default function EnhancedLifestyleGallery({
                         initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
                         animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
                         transition={{ duration: prefersReducedMotion ? 0.2 : 1.2, ease: "easeOut" }}
+                        style={{ transform: "translate3d(var(--tx,0), var(--ty,0), 0)" }}
                       />
                       <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${current.gradient} opacity-20`} />
                       {!prefersReducedMotion && (
