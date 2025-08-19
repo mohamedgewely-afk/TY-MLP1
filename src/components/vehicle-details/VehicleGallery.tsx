@@ -197,15 +197,15 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
 }) => {
   const chapters = useChapters(vehicle);
   const { isMobile, isDesktop } = useDeviceInfo();
-  const galleryState = useGalleryState(chapters.length);
+  const galleryHook = useGalleryState(0);
   
   const [fsMedia, setFsMedia] = useState<{ url: string; alt: string } | null>(null);
   const [fsIndex, setFsIndex] = useState(0);
 
   // Initialize mode based on initial prop
   useEffect(() => {
-    galleryState.setMode(initialMode);
-  }, [initialMode]);
+    galleryHook.setMode(initialMode);
+  }, [initialMode, galleryHook.setMode]);
 
   const allMedia = useMemo(() => {
     return chapters.flatMap(chapter => chapter.media);
@@ -215,13 +215,13 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
     const mediaIndex = index !== undefined ? index : allMedia.findIndex(m => m.url === media.url);
     setFsMedia(media);
     setFsIndex(mediaIndex);
-    galleryState.setFullscreen(true, mediaIndex);
-  }, [allMedia, galleryState]);
+    galleryHook.setFullscreen(true);
+  }, [allMedia, galleryHook.setFullscreen]);
 
   const onCloseFullscreen = useCallback(() => {
     setFsMedia(null);
-    galleryState.setFullscreen(false);
-  }, [galleryState]);
+    galleryHook.setFullscreen(false);
+  }, [galleryHook.setFullscreen]);
 
   const onNavigateFullscreen = useCallback((index: number) => {
     if (index >= 0 && index < allMedia.length) {
@@ -257,30 +257,30 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            onClick={() => galleryState.setMode("cinematic")}
+            onClick={() => galleryHook.setMode("cinematic")}
             className={[
               "h-8",
-              galleryState.mode === "cinematic" 
+              galleryHook.state.mode === "cinematic" 
                 ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
                 : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
               focusRing,
             ].join(" ")}
-            aria-pressed={galleryState.mode === "cinematic"}
+            aria-pressed={galleryHook.state.mode === "cinematic"}
           >
             <Eye className="w-4 h-4 mr-1" /> Cinematic
           </Button>
 
           <Button
             size="sm"
-            onClick={() => galleryState.setMode("grid")}
+            onClick={() => galleryHook.setMode("grid")}
             className={[
               "h-8",
-              galleryState.mode === "grid" 
+              galleryHook.state.mode === "grid" 
                 ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
                 : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
               focusRing,
             ].join(" ")}
-            aria-pressed={galleryState.mode === "grid"}
+            aria-pressed={galleryHook.state.mode === "grid"}
           >
             <Grid3X3 className="w-4 h-4 mr-1" /> Grid
           </Button>
@@ -288,15 +288,15 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
           {isDesktop && (
             <Button
               size="sm"
-              onClick={() => galleryState.setMode("split")}
+              onClick={() => galleryHook.setMode("split")}
               className={[
                 "h-8",
-                galleryState.mode === "split" 
+                galleryHook.state.mode === "split" 
                   ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
                   : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
                 focusRing,
               ].join(" ")}
-              aria-pressed={galleryState.mode === "split"}
+              aria-pressed={galleryHook.state.mode === "split"}
             >
               <SplitSquareHorizontal className="w-4 h-4 mr-1" /> Split
             </Button>
@@ -329,35 +329,35 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
       {isMobile ? (
         <MobileGalleryView
           chapters={chapters}
-          state={galleryState}
+          state={galleryHook.state}
           isGR={isGR}
-          onChapterChange={galleryState.setCurrentChapter}
+          onChapterChange={galleryHook.setChapter}
           onImageOpen={onOpenFullscreen}
-          onToggleFavorite={galleryState.toggleFavorite}
-          onModeChange={galleryState.setMode}
+          onToggleFavorite={galleryHook.toggleFavorite}
+          onModeChange={galleryHook.setMode}
         />
       ) : (
         <DesktopGalleryView
           chapters={chapters}
-          state={galleryState}
+          state={galleryHook.state}
           isGR={isGR}
-          onChapterChange={galleryState.setCurrentChapter}
+          onChapterChange={galleryHook.setChapter}
           onImageOpen={onOpenFullscreen}
-          onToggleFavorite={galleryState.toggleFavorite}
-          onModeChange={galleryState.setMode}
+          onToggleFavorite={galleryHook.toggleFavorite}
+          onModeChange={galleryHook.setMode}
         />
       )}
 
       {/* Enhanced Fullscreen Viewer */}
       <EnhancedFullscreenViewer
-        isOpen={galleryState.isFullscreen}
+        isOpen={galleryHook.state.isFullscreen}
         media={fsMedia}
         allMedia={allMedia}
         currentIndex={fsIndex}
         isGR={isGR}
-        favorites={galleryState.favorites}
+        favorites={galleryHook.state.favorites}
         onClose={onCloseFullscreen}
-        onToggleFavorite={galleryState.toggleFavorite}
+        onToggleFavorite={galleryHook.toggleFavorite}
         onNavigate={onNavigateFullscreen}
       />
     </section>
