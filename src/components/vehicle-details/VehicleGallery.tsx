@@ -1,3 +1,4 @@
+
 import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { X, Maximize2, Heart, Info, PlayCircle, ChevronRight, Zap, Eye, Grid3X3, RotateCcw, SplitSquareHorizontal } from "lucide-react";
@@ -167,7 +168,7 @@ function useChapters(vehicle: VehicleModel): Chapter[] {
       title: "Technology",
       subtitle: "Intelligence meets intuition",
       media: map(tec, "Technology"),
-      hotspots: [{ x: 54, y: 48, label: "12.3" HD Display" }],
+      hotspots: [{ x: 54, y: 48, label: "12.3\" HD Display" }],
     },
     {
       key: "performance",
