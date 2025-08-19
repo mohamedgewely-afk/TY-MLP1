@@ -1,14 +1,8 @@
-
 import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { X, Maximize2, Heart, Info, PlayCircle, ChevronRight, Zap, Eye, Grid3X3, RotateCcw, SplitSquareHorizontal } from "lucide-react";
+import { X, Maximize2, Heart, Info, PlayCircle, ChevronRight, Zap, Eye, Grid3X3, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useDeviceInfo } from "@/hooks/use-device-info";
-import { useGalleryState } from "@/hooks/use-gallery-state";
-import MobileGalleryView from "./gallery/MobileGalleryView";
-import DesktopGalleryView from "./gallery/DesktopGalleryView";
-import EnhancedFullscreenViewer from "./gallery/EnhancedFullscreenViewer";
 import type { VehicleModel } from "@/types/vehicle";
 
 /* ─────────────────────────────────────────
@@ -16,7 +10,7 @@ import type { VehicleModel } from "@/types/vehicle";
 ────────────────────────────────────────── */
 type ChapterKey = "exterior" | "interior" | "technology" | "performance" | "lifestyle";
 
-export type Chapter = {
+type Chapter = {
   key: ChapterKey;
   title: string;
   subtitle: string;
@@ -168,7 +162,7 @@ function useChapters(vehicle: VehicleModel): Chapter[] {
       title: "Technology",
       subtitle: "Intelligence meets intuition",
       media: map(tec, "Technology"),
-      hotspots: [{ x: 54, y: 48, label: "12.3\" HD Display" }],
+      hotspots: [{ x: 54, y: 48, label: "12.3” HD Display" }],
     },
     {
       key: "performance",
@@ -187,59 +181,138 @@ function useChapters(vehicle: VehicleModel): Chapter[] {
 }
 
 /* ─────────────────────────────────────────
+   Parallax frame + Grid card
+────────────────────────────────────────── */
+const ParallaxFrame: React.FC<{
+  src: string;
+  alt: string;
+  caption?: string;
+  isGR?: boolean;
+  onOpen?: () => void;
+  premium?: boolean;
+  hotspots?: Chapter["hotspots"];
+}> = ({ src, alt, caption, isGR, onOpen, premium, hotspots }) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], ["-6vh", "6vh"]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.02, 1]);
+  const reduced = usePrefersReducedMotion();
+
+  return (
+    <div ref={ref} className="relative w-full max-w-6xl mx-auto aspect-[16/9] rounded-3xl overflow-hidden">
+      <motion.div style={!reduced ? { y, scale } : undefined} className="w-full h-full">
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      </motion.div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent" />
+
+      {hotspots?.map((h, i) => (
+        <button
+          key={i}
+          onClick={onOpen}
+          aria-label={h.label}
+          className={[
+            "absolute -translate-x-1/2 -translate-y-1/2 px-2 py-1 text-xs rounded-full",
+            isGR ? "bg-[#0F1113]/80 text-[#E6E7E9] border border-[#17191B]" : "bg-white/70 text-gray-800",
+            focusRing,
+          ].join(" ")}
+          style={{ left: `${h.x}%`, top: `${h.y}%` }}
+        >
+          <span className="inline-flex items-center gap-1">
+            <Info className="w-3.5 h-3.5" />
+            {h.label}
+          </span>
+        </button>
+      ))}
+
+      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
+        <div className="max-w-[70%]">
+          {premium && (
+            <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>Signature</Badge>
+          )}
+          {caption && <p className="mt-2 text-white/90 text-sm sm:text-base leading-snug">{caption}</p>}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            onClick={onOpen}
+            aria-label="Open fullscreen"
+            className={[
+              "backdrop-blur-md text-white/95",
+              isGR ? "bg-[#141618]/80 hover:bg-[#181B1E]" : "bg-black/30 hover:bg-black/40",
+              focusRing,
+            ].join(" ")}
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+          <Button
+            size="icon"
+            aria-label="Favorite"
+            className={[
+              "backdrop-blur-md text-white/95",
+              isGR ? "bg-[#141618]/80 hover:bg-[#181B1E]" : "bg-black/30 hover:bg-black/40",
+              focusRing,
+            ].join(" ")}
+          >
+            <Heart className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GridCard: React.FC<{
+  src: string;
+  alt: string;
+  isGR?: boolean;
+  onClick: () => void;
+  premium?: boolean;
+}> = ({ src, alt, onClick, isGR, premium }) => (
+  <motion.button
+    onClick={onClick}
+    className={["relative aspect-[16/10] rounded-2xl overflow-hidden shadow-lg w-full", isGR ? "border border-[#17191B]" : "", focusRing].join(" ")}
+    whileHover={{ scale: 1.02 }}
+  >
+    <img src={src} alt={alt} className="w-full h-full object-cover" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+    <div className="absolute top-2 left-2">{premium && <Badge className={isGR ? "bg-[#1C1E21] border border-[#17191B] text-[#E6E7E9]" : "bg-black/70"}>Signature</Badge>}</div>
+    <div className="absolute bottom-2 right-2">
+      <div className={["inline-flex items-center gap-1 text-white/95 text-xs px-2 py-1 rounded-full", isGR ? "bg-[#121416]/80 border border-[#17191B]" : "bg-black/30"].join(" ")}>
+        View <ChevronRight className="w-3 h-3" />
+      </div>
+    </div>
+  </motion.button>
+);
+
+/* ─────────────────────────────────────────
    Main component
 ────────────────────────────────────────── */
-const VehicleGallery: React.FC<VehicleGalleryProps> = ({ 
-  vehicle, 
-  isGR = false, 
-  onToggleGR, 
-  initialMode = "cinematic" 
-}) => {
+const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle, isGR = false, onToggleGR, initialMode = "cinematic" }) => {
   const chapters = useChapters(vehicle);
-  const { isMobile, isDesktop } = useDeviceInfo();
-  const galleryHook = useGalleryState(0);
-  
+  const [mode, setMode] = useState<"cinematic" | "grid">(initialMode);
+  const [fsOpen, setFsOpen] = useState(false);
   const [fsMedia, setFsMedia] = useState<{ url: string; alt: string } | null>(null);
-  const [fsIndex, setFsIndex] = useState(0);
+  const reduced = usePrefersReducedMotion();
 
-  // Initialize mode based on initial prop
   useEffect(() => {
-    galleryHook.setMode(initialMode);
-  }, [initialMode, galleryHook.setMode]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFsOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
-  const allMedia = useMemo(() => {
-    return chapters.flatMap(chapter => chapter.media);
-  }, [chapters]);
+  const onOpenFullscreen = useCallback((m: { url: string; alt: string }) => {
+    setFsMedia(m);
+    setFsOpen(true);
+  }, []);
 
-  const onOpenFullscreen = useCallback((media: { url: string; alt: string }, index?: number) => {
-    const mediaIndex = index !== undefined ? index : allMedia.findIndex(m => m.url === media.url);
-    setFsMedia(media);
-    setFsIndex(mediaIndex);
-    galleryHook.setFullscreen(true);
-  }, [allMedia, galleryHook.setFullscreen]);
-
-  const onCloseFullscreen = useCallback(() => {
-    setFsMedia(null);
-    galleryHook.setFullscreen(false);
-  }, [galleryHook.setFullscreen]);
-
-  const onNavigateFullscreen = useCallback((index: number) => {
-    if (index >= 0 && index < allMedia.length) {
-      setFsMedia(allMedia[index]);
-      setFsIndex(index);
-    }
-  }, [allMedia]);
-
-  const bgWrap = isGR 
-    ? { style: GR.carbon, className: "min-h-[100svh]" } 
-    : { style: undefined, className: `min-h-[100svh] ${LX.bgGradient}` };
+  const bgWrap = isGR ? { style: GR.carbon, className: "min-h-[100svh]" } : { style: undefined, className: `min-h-[100svh] ${LX.bgGradient}` };
 
   const Header = (
     <div className="sticky top-0 z-20 backdrop-blur-md">
-      <div className={[
-        "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between",
-        isGR ? "text-[#E6E7E9] border-b border-[#17191B]/80" : "text-gray-900 border-b border-gray-200/60"
-      ].join(" ")}>
+      <div className={["max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between", isGR ? "text-[#E6E7E9] border-b border-[#17191B]/80" : "text-gray-900 border-b border-gray-200/60"].join(" ")}>
         <div className="inline-flex items-center gap-1.5">
           {isGR ? (
             <>
@@ -257,59 +330,34 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            onClick={() => galleryHook.setMode("cinematic")}
+            onClick={() => setMode("cinematic")}
             className={[
               "h-8",
-              galleryHook.state.mode === "cinematic" 
-                ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
-                : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
+              mode === "cinematic" ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
               focusRing,
             ].join(" ")}
-            aria-pressed={galleryHook.state.mode === "cinematic"}
+            aria-pressed={mode === "cinematic"}
           >
             <Eye className="w-4 h-4 mr-1" /> Cinematic
           </Button>
 
           <Button
             size="sm"
-            onClick={() => galleryHook.setMode("grid")}
+            onClick={() => setMode("grid")}
             className={[
               "h-8",
-              galleryHook.state.mode === "grid" 
-                ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
-                : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
+              mode === "grid" ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
               focusRing,
             ].join(" ")}
-            aria-pressed={galleryHook.state.mode === "grid"}
+            aria-pressed={mode === "grid"}
           >
             <Grid3X3 className="w-4 h-4 mr-1" /> Grid
           </Button>
 
-          {isDesktop && (
-            <Button
-              size="sm"
-              onClick={() => galleryHook.setMode("split")}
-              className={[
-                "h-8",
-                galleryHook.state.mode === "split" 
-                  ? (isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white") 
-                  : isGR ? "bg-transparent text-[#E6E7E9] border border-[#17191B] hover:bg-[#121416]" : "bg-white text-gray-900 border",
-                focusRing,
-              ].join(" ")}
-              aria-pressed={galleryHook.state.mode === "split"}
-            >
-              <SplitSquareHorizontal className="w-4 h-4 mr-1" /> Split
-            </Button>
-          )}
-
           <Button
             size="sm"
             onClick={onToggleGR}
-            className={[
-              "h-8 px-3",
-              isGR ? "bg-[#1A1C1F] text-[#EB0A1E] border border-[#17191B]" : "bg-white text-gray-900 border hover:bg-gray-50",
-              focusRing
-            ].join(" ")}
+            className={[ "h-8 px-3", isGR ? "bg-[#1A1C1F] text-[#EB0A1E] border border-[#17191B]" : "bg-white text-gray-900 border hover:bg-gray-50", focusRing].join(" ")}
             aria-pressed={isGR}
             aria-label="Toggle GR mode"
             title="Toggle GR mode"
@@ -325,41 +373,149 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
     <section className={bgWrap.className} style={bgWrap.style} aria-label={`${vehicle?.name} gallery`}>
       {Header}
 
-      {/* Render appropriate view based on device */}
-      {isMobile ? (
-        <MobileGalleryView
-          chapters={chapters}
-          state={galleryHook.state}
-          isGR={isGR}
-          onChapterChange={galleryHook.setChapter}
-          onImageOpen={onOpenFullscreen}
-          onToggleFavorite={galleryHook.toggleFavorite}
-          onModeChange={galleryHook.setMode}
-        />
-      ) : (
-        <DesktopGalleryView
-          chapters={chapters}
-          state={galleryHook.state}
-          isGR={isGR}
-          onChapterChange={galleryHook.setChapter}
-          onImageOpen={onOpenFullscreen}
-          onToggleFavorite={galleryHook.toggleFavorite}
-          onModeChange={galleryHook.setMode}
-        />
+      {/* Intro + chapters (cinematic) */}
+      {mode === "cinematic" && (
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+          <div className={["rounded-3xl overflow-hidden relative", isGR ? "border border-[#17191B]" : "shadow-2xl"].join(" ")}>
+            <div className="aspect-[21/9] w-full relative overflow-hidden">
+              <motion.img
+                src={(chapters[0]?.media?.[0]?.url as string) || (vehicle as AnyVehicle)?.image}
+                alt={`${vehicle?.name} hero`}
+                initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 1.04 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
+                <div className="max-w-[70%]">
+                  <h1 className="text-white text-2xl sm:text-4xl font-black leading-tight">
+                    {vehicle?.name} — {isGR ? "GR Performance" : "Signature Series"}
+                  </h1>
+                  <p className="text-white/85 mt-2 text-sm sm:text-base">
+                    {isGR ? "Matte carbon craft. Track-bred precision. Everyday thrill." : "Impeccable design. Intelligent comfort. Effortless power."}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className={[isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B] hover:bg-[#15171A]" : "bg-white text-gray-900 hover:bg-gray-100", focusRing].join(" ")}
+                >
+                  <PlayCircle className="w-4 h-4 mr-1" />
+                  Play film
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 space-y-16">
+            {chapters.map((ch) => (
+              <div key={ch.key} className="space-y-4" aria-labelledby={`chap-${ch.key}`}>
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <h2 id={`chap-${ch.key}`} className={["font-black tracking-wide", isGR ? "text-[#E6E7E9]" : LX.text, "text-xl sm:text-2xl"].join(" ")}>
+                      {ch.title}
+                    </h2>
+                    <p className={isGR ? "text-[#9DA2A6]" : LX.muted}>{ch.subtitle}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={["h-8", isGR ? "border-[#17191B] text-[#E6E7E9] hover:bg-[#121416]" : "border-gray-300 text-gray-800 hover:bg-gray-50", focusRing].join(" ")}
+                    onClick={() => setMode("grid")}
+                  >
+                    Browse all
+                  </Button>
+                </div>
+
+                <div className="grid gap-8">
+                  {ch.media.slice(0, 2).map((m, i) => (
+                    <ParallaxFrame
+                      key={m.url + i}
+                      src={m.url}
+                      alt={m.alt}
+                      caption={i === 0 ? ch.subtitle : undefined}
+                      isGR={isGR}
+                      onOpen={() => onOpenFullscreen({ url: m.url, alt: m.alt })}
+                      premium={m.premium}
+                      hotspots={i === 0 ? ch.hotspots : undefined}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Enhanced Fullscreen Viewer */}
-      <EnhancedFullscreenViewer
-        isOpen={galleryHook.state.isFullscreen}
-        media={fsMedia}
-        allMedia={allMedia}
-        currentIndex={fsIndex}
-        isGR={isGR}
-        favorites={galleryHook.state.favorites}
-        onClose={onCloseFullscreen}
-        onToggleFavorite={galleryHook.toggleFavorite}
-        onNavigate={onNavigateFullscreen}
-      />
+      {/* Grid */}
+      {mode === "grid" && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <RotateCcw className={isGR ? "text-[#9DA2A6]" : "text-gray-500"} />
+              <span className={isGR ? "text-[#E6E7E9]" : "text-gray-900"}>Quick browse</span>
+            </div>
+            <Button size="sm" onClick={() => setMode("cinematic")} className={[ "h-8", isGR ? "bg-[#1A1C1F] text-[#E6E7E9] border border-[#17191B]" : "bg-gray-900 text-white", focusRing].join(" ")}>
+              Back to cinematic
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+            {chapters.flatMap((ch) =>
+              ch.media.map((m, i) => (
+                <GridCard
+                  key={`${ch.key}-${i}`}
+                  src={m.url}
+                  alt={m.alt}
+                  premium={m.premium}
+                  isGR={isGR}
+                  onClick={() => {
+                    setFsMedia({ url: m.url, alt: m.alt });
+                    setFsOpen(true);
+                  }}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen viewer */}
+      <AnimatePresence>
+        {fsOpen && fsMedia && (
+          <motion.div
+            role="dialog"
+            aria-label="Fullscreen media viewer"
+            aria-modal="true"
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-white/10">
+              <div className="flex items-center gap-2 text-white">
+                <Badge className="bg-white/10">Fullscreen</Badge>
+                <span className="text-sm opacity-80">{vehicle?.name}</span>
+              </div>
+              <Button size="icon" aria-label="Close" onClick={() => setFsOpen(false)} className={`text-white bg-white/10 hover:bg-white/20 ${focusRing}`}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center p-3">
+              <motion.img
+                key={fsMedia.url}
+                src={fsMedia.url}
+                alt={fsMedia.alt}
+                className="max-w-full max-h-full object-contain rounded-lg"
+                initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
