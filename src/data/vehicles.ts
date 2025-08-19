@@ -277,7 +277,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "bz4x",
     name: "Toyota bZ4X",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/BZ4X/2023/Exterior/BZ4X-Exterior-1.jpg",
+    image: "",
     mmeUrl: "https://www.toyota.ae/en/new-cars/bz4x",
     configureUrl: "/configure/bz4x",
     price: 159900,
@@ -294,7 +294,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "crown",
     name: "Toyota Crown",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Crown/2023/Exterior/Crown-Exterior-1.jpg",
+    image: "",
     mmeUrl: "https://www.toyota.ae/en/new-cars/crown",
     configureUrl: "/configure/crown",
     price: 189900,
@@ -311,7 +311,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "mirai",
     name: "Toyota Mirai",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Mirai/2023/Exterior/Mirai-Exterior-1.jpg",
+    image: "",
     mmeUrl: "https://www.toyota.ae/en/new-cars/mirai",
     configureUrl: "/configure/mirai",
     price: 219900,
@@ -328,7 +328,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "venza",
     name: "Toyota Venza",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/Venza/2023/Exterior/Venza-Exterior-1.jpg",
+    image: "",
     mmeUrl: "https://www.toyota.ae/en/new-cars/venza",
     configureUrl: "/configure/venza",
     price: 149900,
@@ -345,7 +345,7 @@ export const vehicles: VehicleModel[] = [
   {
     id: "gr86",
     name: "Toyota GR86",
-    image: "https://www.toyota.ae/-/media/Images/Toyota/Vehicles/GR86/2023/Exterior/GR86-Exterior-1.jpg",
+    image: "",
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr86",
     configureUrl: "/configure/gr86",
     price: 139900,
