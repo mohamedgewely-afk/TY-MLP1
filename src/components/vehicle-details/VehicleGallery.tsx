@@ -1,7 +1,8 @@
+
 // FULL SCI-FI DASHBOARD VERSION
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Speedometer } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
 import { VehicleModel } from "@/types/vehicle";
@@ -10,7 +11,26 @@ interface VehicleGalleryProps {
   vehicle: VehicleModel;
 }
 
-const vehicles = [
+interface CarData {
+  id: string;
+  name: string;
+  subtitle: string;
+  image: string;
+  description: string;
+  audio: string;
+  video: string;
+  story: string[];
+  specs: {
+    horsepower: string;
+    torque: string;
+    range: string;
+    zeroToSixty: string;
+    topSpeed: string;
+    battery: string;
+  };
+}
+
+const vehicles: CarData[] = [
   {
     id: "1",
     name: "Celestis X",
@@ -41,7 +61,7 @@ const specIcons: Record<string, JSX.Element> = {
   torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
   range: <Navigation className="text-indigo-400 w-5 h-5" />,
   zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
-  topSpeed: <Speedometer className="text-indigo-400 w-5 h-5" />,
+  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />,
   battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
 };
 
@@ -97,17 +117,6 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
       )}
     </section>
   );
-}
-
-interface CarData extends VehicleModel {
-  specs: {
-    horsepower: string;
-    torque: string;
-    range: string;
-    zeroToSixty: string;
-    topSpeed: string;
-    battery: string;
-  };
 }
 
 function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
