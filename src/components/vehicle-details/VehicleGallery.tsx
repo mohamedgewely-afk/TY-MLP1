@@ -1,10 +1,10 @@
-// FULL SCI-FI DASHBOARD VERSION WITH MULTI-VEHICLE CAROUSEL, SWIPE, AUTOPLAY CINEMATIC
-import { motion, useMotionValue, useTransform } from "framer-motion";
+// FINAL VERSION: Spec animations tied to scroll depth using framer-motion scroll progress
+import { motion, useMotionValue, useTransform, useInView, useScroll } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge, X } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX, BatteryCharging, GaugeCircle, Zap, TimerReset, Navigation, Gauge, X, ChevronDown } from "lucide-react";
 import Lottie from "lottie-react";
 import sparksAnimation from "../animations/sparks.json";
-import { useSwipeable } from "@/hooks/use-swipeable";
+import { useSwipeable } from "react-swipeable";
 import { VehicleModel } from "@/types/vehicle";
 
 interface VehicleGalleryProps {
@@ -28,103 +28,83 @@ interface CarData {
     topSpeed: string;
     battery: string;
   };
-  mmeUrl: string;
-  configureUrl: string;
-  price: number;
-  category: string;
-  features: string[];
 }
 
 const vehicles: CarData[] = [
   {
-    id: "corolla-hybrid",
-    name: "Corolla Hybrid",
-    subtitle: "The Future of Efficiency",
-    image: "/placeholder.svg",
-    description: "Experience the perfect balance of performance and efficiency with our revolutionary hybrid technology.",
-    audio: "/audio/corolla-theme.mp3",
-    video: "/placeholder.svg",
-    story: [
-      "In the heart of innovation lies the Corolla Hybrid, where efficiency meets performance in perfect harmony.",
-      "Every journey becomes an adventure with intelligent hybrid technology that adapts to your driving style.",
-      "Discover a new dimension of automotive excellence where sustainability and power converge."
-    ],
-    specs: {
-      horsepower: "121 HP",
-      torque: "105 lb-ft",
-      range: "614 miles",
-      zeroToSixty: "10.6 sec",
-      topSpeed: "112 mph",
-      battery: "1.3 kWh"
-    },
-    mmeUrl: "/mme/corolla",
-    configureUrl: "/configure/corolla",
-    price: 25000,
-    category: "Hybrid",
-    features: ["Hybrid Technology", "Safety Sense 2.0", "Entune 3.0"]
+    id: "1",
+    name: "Celestis X",
+    subtitle: "The Silent Thunder",
+    image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true",
+    description: "Whispers through wind with a roar that only the soul hears.",
+    audio: "/audio/celestis.mp3",
+    video: "/videos/celestis.mp4",
+    story: ["Born in the wind tunnels of a forgotten desert.", "Crafted with nanostructures that sing in silence.", "The Celestis X became the legend every night driver whispers about."],
+    specs: { horsepower: "620 hp", torque: "800 Nm", range: "520 km", zeroToSixty: "2.9s", topSpeed: "300 km/h", battery: "100 kWh" },
   },
   {
-    id: "prius-prime",
-    name: "Prius Prime",
-    subtitle: "Plug-in Perfection",
-    image: "/placeholder.svg",
-    description: "Step into tomorrow with our most advanced hybrid technology and all-electric driving capability.",
-    audio: "/audio/prius-theme.mp3",
-    video: "/placeholder.svg",
-    story: [
-      "The Prius Prime represents the pinnacle of hybrid evolution, offering pure electric driving for daily commutes.",
-      "With advanced aerodynamics and cutting-edge technology, every mile is a statement of environmental consciousness.",
-      "Experience the future today with seamless transitions between electric and hybrid modes."
-    ],
-    specs: {
-      horsepower: "114 HP",
-      torque: "105 lb-ft",
-      range: "690 miles",
-      zeroToSixty: "9.8 sec",
-      topSpeed: "115 mph",
-      battery: "8.8 kWh"
-    },
-    mmeUrl: "/mme/prius",
-    configureUrl: "/configure/prius",
-    price: 32000,
-    category: "Plug-in Hybrid",
-    features: ["Plug-in Hybrid", "Solar Roof", "Advanced Safety"]
+    id: "2",
+    name: "Nebula R",
+    subtitle: "Starborne Velocity",
+    image: "https://images.unsplash.com/photo-1624228912050-20e2de8f4ecf?auto=format&fit=crop&w=1950&q=80",
+    description: "Forged in orbital silence. Thrives in acceleration.",
+    audio: "/audio/nebula.mp3",
+    video: "/videos/nebula.mp4",
+    story: ["Designed by a team that engineered satellite launchers.", "Its plasma-composite frame reduces weight beyond limits.", "The Nebula R redefined terrestrial velocity."],
+    specs: { horsepower: "700 hp", torque: "900 Nm", range: "610 km", zeroToSixty: "2.4s", topSpeed: "340 km/h", battery: "110 kWh" },
   },
   {
-    id: "rav4-hybrid",
-    name: "RAV4 Hybrid",
-    subtitle: "Adventure Electrified",
-    image: "/placeholder.svg",
-    description: "Unleash your adventurous spirit with hybrid power that takes you further on every trail.",
-    audio: "/audio/rav4-theme.mp3",
-    video: "/placeholder.svg",
-    story: [
-      "Where rugged capability meets hybrid efficiency, the RAV4 Hybrid opens new possibilities for exploration.",
-      "Conquer any terrain with intelligent all-wheel drive and the confidence of hybrid reliability.",
-      "Your next adventure awaits with the perfect blend of power, efficiency, and versatility."
-    ],
-    specs: {
-      horsepower: "219 HP",
-      torque: "163 lb-ft",
-      range: "580 miles",
-      zeroToSixty: "7.8 sec",
-      topSpeed: "118 mph",
-      battery: "1.6 kWh"
-    },
-    mmeUrl: "/mme/rav4",
-    configureUrl: "/configure/rav4",
-    price: 35000,
-    category: "SUV Hybrid",
-    features: ["AWD", "Adventure Ready", "Hybrid Power"]
-  }
+    id: "3",
+    name: "Volt Mirage",
+    subtitle: "The Vanishing Pulse",
+    image: "https://images.unsplash.com/photo-1603393079325-d7b87e9e1b8f?auto=format&fit=crop&w=1950&q=80",
+    description: "Disappears before your eyes. Feels like a whisper.",
+    audio: "/audio/mirage.mp3",
+    video: "/videos/mirage.mp4",
+    story: ["Born from optical illusion R&D.", "The Volt Mirage uses light-bending panels.", "It became known as the invisible thrill."],
+    specs: { horsepower: "560 hp", torque: "760 Nm", range: "480 km", zeroToSixty: "3.2s", topSpeed: "280 km/h", battery: "90 kWh" },
+  },
+  {
+    id: "4",
+    name: "Orion Prime",
+    subtitle: "Command From the Cosmos",
+    image: "https://images.unsplash.com/photo-1617882586515-7e27c3923f49?auto=format&fit=crop&w=1950&q=80",
+    description: "A cruiser reborn with interstellar DNA.",
+    audio: "/audio/orion.mp3",
+    video: "/videos/orion.mp4",
+    story: ["The Orion Prime was sculpted using Martian rover tech.", "Equipped with gravitational dampening.", "No ride has ever felt smoother at any speed."],
+    specs: { horsepower: "850 hp", torque: "1050 Nm", range: "700 km", zeroToSixty: "2.1s", topSpeed: "360 km/h", battery: "120 kWh" },
+  },
+  {
+    id: "5",
+    name: "Nova Geist",
+    subtitle: "The Electric Phantom",
+    image: "https://images.unsplash.com/photo-1616441006784-f1f1ff57e67d?auto=format&fit=crop&w=1950&q=80",
+    description: "A silhouette in the night. Pure silence, pure power.",
+    audio: "/audio/nova.mp3",
+    video: "/videos/nova.mp4",
+    story: ["Engineered in moonlight.", "The Nova Geist glides like smoke.", "A phantom experience, undetectable to radar."],
+    specs: { horsepower: "610 hp", torque: "850 Nm", range: "590 km", zeroToSixty: "2.7s", topSpeed: "310 km/h", battery: "95 kWh" },
+  },
+  {
+    id: "6",
+    name: "Stratus V",
+    subtitle: "The Sky Runner",
+    image: "https://images.unsplash.com/photo-1632457992562-2d39ed63c7cf?auto=format&fit=crop&w=1950&q=80",
+    description: "Glides through air with zero drag instincts.",
+    audio: "/audio/stratus.mp3",
+    video: "/videos/stratus.mp4",
+    story: ["Wind tunnel tested by jet engineers.", "Redefined what automotive aerodynamics means.", "The Stratus V — light as air, sharp as thought."],
+    specs: { horsepower: "590 hp", torque: "770 Nm", range: "550 km", zeroToSixty: "2.6s", topSpeed: "295 km/h", battery: "102 kWh" },
+  },
 ];
 
 const specIcons: Record<string, JSX.Element> = {
-  horsepower: <Zap className="text-indigo-400 w-5 h-5" />, 
+  horsepower: <Zap className="text-indigo-400 w-5 h-5" />,
   torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
-  range: <Navigation className="text-indigo-400 w-5 h-5" />, 
+  range: <Navigation className="text-indigo-400 w-5 h-5" />,
   zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
-  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />, 
+  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />,
   battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
 };
 
@@ -138,11 +118,7 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
     else globalAudioRef.current?.pause();
   }, [globalAudioOn]);
 
-  // Auto open cinematic modal after 2s
-  useEffect(() => {
-    const timeout = setTimeout(() => setSelected(0), 2000);
-    return () => clearTimeout(timeout);
-  }, []);
+  const currentBackground = vehicles[selected ?? 0]?.image;
 
   return (
     <section className="relative w-full bg-black text-white py-16 px-4 md:px-12 overflow-hidden">
@@ -153,14 +129,17 @@ export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
         </button>
       </div>
 
+      <div className="absolute inset-0 -z-10 transition-all duration-1000" style={{ backgroundImage: `url(${currentBackground})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.08 }} />
+
       <div className="absolute inset-0 pointer-events-none">
         <div className="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-black absolute inset-0 z-0" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-600/10 via-transparent to-transparent animate-pulse" />
       </div>
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto mb-16">
+      <div className="sticky top-10 z-10 text-center max-w-4xl mx-auto mb-16">
         <h2 className="text-4xl md:text-6xl font-bold tracking-tight">The Soul of Machines</h2>
         <p className="mt-4 text-lg text-white/70">A dashboard beyond time. Experience your machine like never before.</p>
+        <p className="mt-2 text-sm text-indigo-300">Swipe a model → Tap for cinematic journey</p>
       </div>
 
       <div className="relative z-10 flex gap-10 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth">
@@ -181,75 +160,48 @@ function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-100, 100], [15, -15]);
   const rotateY = useTransform(x, [-100, 100], [-15, 15]);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const { scrollYProgress } = useScroll({ target: ref });
+  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 1]);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div
-      className="snap-center min-w-[85vw] md:min-w-[600px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/20 overflow-hidden group transition-all duration-500 shadow-lg hover:shadow-indigo-500/30 relative"
+      className={`snap-center min-w-[85vw] md:min-w-[600px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl border border-indigo-600/20 overflow-hidden group transition-all duration-500 shadow-lg hover:shadow-indigo-500/30 relative ${expanded ? 'max-h-[1000px]' : 'max-h-[600px]'}`}
       whileHover={{ scale: 1.02 }}
       style={{ x, y, rotateX, rotateY }}
       drag dragElastic={0.18} dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      onClick={onClick}
     >
       <Lottie animationData={sparksAnimation} loop autoplay className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" />
-      <div className="relative">
+      <div className="relative cursor-pointer" onClick={onClick}>
         <img src={car.image} alt={car.name} className="w-full h-72 object-cover object-center group-hover:brightness-110 transition duration-500" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
-      <div className="p-6 relative z-10">
+      <div className="p-6 relative z-10" ref={ref}>
         <h3 className="text-2xl font-semibold text-white shimmer">{car.name}</h3>
         <p className="text-indigo-400 text-sm mb-2">{car.subtitle}</p>
-        <p className="text-white/80 text-sm mb-4">{car.description}</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Object.entries(car.specs).map(([key, val], i) => (
-            <motion.div
-              key={key}
-              className="flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur border border-white/10"
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
-            >
+        <p className="text-white/80 text-sm mb-4 line-clamp-3">{car.description}</p>
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-3 gap-4"
+          style={{ scale, opacity }}
+        >
+          {Object.entries(car.specs).map(([key, val]) => (
+            <div key={key} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur border border-white/10">
               {specIcons[key]}
               <div className="text-sm">
                 <div className="uppercase text-indigo-300 text-[10px] tracking-wider">{key}</div>
                 <div className="text-white font-semibold text-base">{val}</div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </div>
-        <button className="mt-6 inline-flex items-center gap-2 text-indigo-300 hover:text-indigo-100 transition text-sm font-semibold">
-          Enter the Realm <ArrowRight className="w-4 h-4" />
+        </motion.div>
+        <button onClick={() => setExpanded(!expanded)} className="mt-6 inline-flex items-center gap-2 text-indigo-300 hover:text-indigo-100 transition text-sm font-semibold">
+          {expanded ? 'Collapse' : 'Expand'} Specs <ChevronDown className={`w-4 h-4 transform transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
+        <button onClick={onClick} className="block mt-4 text-white/80 hover:text-white text-sm underline">Enter the Realm</button>
       </div>
     </motion.div>
-  );
-}
-
-function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
-  const [chapter, setChapter] = useState(0);
-  const handlers = useSwipeable({ 
-    onSwipeLeft: () => setChapter((c) => Math.min(car.story.length - 1, c + 1)), 
-    onSwipeRight: () => setChapter((c) => Math.max(0, c - 1)) 
-  });
-  const hasNext = chapter < car.story.length - 1;
-  const hasPrev = chapter > 0;
-
-  return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center" {...handlers}>
-      <div className="relative bg-zinc-950 rounded-3xl max-w-5xl w-full mx-4 shadow-2xl overflow-hidden">
-        <button className="absolute top-4 right-4 text-white z-50" onClick={onClose}><X className="w-6 h-6" /></button>
-        <video src={car.video} autoPlay muted loop className="w-full h-96 object-cover rounded-t-3xl" />
-        <div className="p-6 space-y-4">
-          <h2 className="text-3xl font-bold text-white">{car.name}</h2>
-          <p className="text-indigo-400 text-sm">{car.subtitle}</p>
-          <p className="text-white/80 text-base italic">{car.story[chapter]}</p>
-          <div className="flex justify-between items-center mt-4">
-            <button onClick={() => setChapter((c) => Math.max(0, c - 1))} disabled={!hasPrev} className="text-sm px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-30">◀ Previous</button>
-            <button onClick={() => setChapter((c) => Math.min(car.story.length - 1, c + 1))} disabled={!hasNext} className="text-sm px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-30">Next ▶</button>
-          </div>
-          <audio controls className="w-full mt-4">
-            <source src={car.audio} type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-      </div>
-    </div>
   );
 }
