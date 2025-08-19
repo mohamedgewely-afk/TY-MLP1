@@ -134,7 +134,10 @@ function ParallaxCard({ car, onClick }: { car: CarData; onClick: () => void }) {
 
 function Modal({ car, onClose }: { car: CarData; onClose: () => void }) {
   const [chapter, setChapter] = useState(0);
-  const handlers = useSwipeable({ onSwipedLeft: () => setChapter((c) => Math.min(car.story.length - 1, c + 1)), onSwipedRight: () => setChapter((c) => Math.max(0, c - 1)) });
+  const handlers = useSwipeable({ 
+    onSwipeLeft: () => setChapter((c) => Math.min(car.story.length - 1, c + 1)), 
+    onSwipeRight: () => setChapter((c) => Math.max(0, c - 1)) 
+  });
   const hasNext = chapter < car.story.length - 1;
   const hasPrev = chapter > 0;
 
