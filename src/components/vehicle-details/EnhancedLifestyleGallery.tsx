@@ -377,8 +377,7 @@ export default function ExtraordinaryLifestyleGallery({
                     t.style.removeProperty("--ty");
                   }}
                   style={{
-                    rotateX: "var(--rx, 0deg)",
-                    rotateY: "var(--ry, 0deg)",
+                    transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
                   }}
                 >
                   <div className="relative">
