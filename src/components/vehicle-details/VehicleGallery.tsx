@@ -28,14 +28,104 @@ interface CarData {
     topSpeed: string;
     battery: string;
   };
+  mmeUrl: string;
+  configureUrl: string;
+  price: number;
+  category: string;
+  features: string[];
 }
 
-const vehicles: CarData[] = [/* same 3 vehicles */];
+const vehicles: CarData[] = [
+  {
+    id: "corolla-hybrid",
+    name: "Corolla Hybrid",
+    subtitle: "The Future of Efficiency",
+    image: "/placeholder.svg",
+    description: "Experience the perfect balance of performance and efficiency with our revolutionary hybrid technology.",
+    audio: "/audio/corolla-theme.mp3",
+    video: "/placeholder.svg",
+    story: [
+      "In the heart of innovation lies the Corolla Hybrid, where efficiency meets performance in perfect harmony.",
+      "Every journey becomes an adventure with intelligent hybrid technology that adapts to your driving style.",
+      "Discover a new dimension of automotive excellence where sustainability and power converge."
+    ],
+    specs: {
+      horsepower: "121 HP",
+      torque: "105 lb-ft",
+      range: "614 miles",
+      zeroToSixty: "10.6 sec",
+      topSpeed: "112 mph",
+      battery: "1.3 kWh"
+    },
+    mmeUrl: "/mme/corolla",
+    configureUrl: "/configure/corolla",
+    price: 25000,
+    category: "Hybrid",
+    features: ["Hybrid Technology", "Safety Sense 2.0", "Entune 3.0"]
+  },
+  {
+    id: "prius-prime",
+    name: "Prius Prime",
+    subtitle: "Plug-in Perfection",
+    image: "/placeholder.svg",
+    description: "Step into tomorrow with our most advanced hybrid technology and all-electric driving capability.",
+    audio: "/audio/prius-theme.mp3",
+    video: "/placeholder.svg",
+    story: [
+      "The Prius Prime represents the pinnacle of hybrid evolution, offering pure electric driving for daily commutes.",
+      "With advanced aerodynamics and cutting-edge technology, every mile is a statement of environmental consciousness.",
+      "Experience the future today with seamless transitions between electric and hybrid modes."
+    ],
+    specs: {
+      horsepower: "114 HP",
+      torque: "105 lb-ft",
+      range: "690 miles",
+      zeroToSixty: "9.8 sec",
+      topSpeed: "115 mph",
+      battery: "8.8 kWh"
+    },
+    mmeUrl: "/mme/prius",
+    configureUrl: "/configure/prius",
+    price: 32000,
+    category: "Plug-in Hybrid",
+    features: ["Plug-in Hybrid", "Solar Roof", "Advanced Safety"]
+  },
+  {
+    id: "rav4-hybrid",
+    name: "RAV4 Hybrid",
+    subtitle: "Adventure Electrified",
+    image: "/placeholder.svg",
+    description: "Unleash your adventurous spirit with hybrid power that takes you further on every trail.",
+    audio: "/audio/rav4-theme.mp3",
+    video: "/placeholder.svg",
+    story: [
+      "Where rugged capability meets hybrid efficiency, the RAV4 Hybrid opens new possibilities for exploration.",
+      "Conquer any terrain with intelligent all-wheel drive and the confidence of hybrid reliability.",
+      "Your next adventure awaits with the perfect blend of power, efficiency, and versatility."
+    ],
+    specs: {
+      horsepower: "219 HP",
+      torque: "163 lb-ft",
+      range: "580 miles",
+      zeroToSixty: "7.8 sec",
+      topSpeed: "118 mph",
+      battery: "1.6 kWh"
+    },
+    mmeUrl: "/mme/rav4",
+    configureUrl: "/configure/rav4",
+    price: 35000,
+    category: "SUV Hybrid",
+    features: ["AWD", "Adventure Ready", "Hybrid Power"]
+  }
+];
 
 const specIcons: Record<string, JSX.Element> = {
-  horsepower: <Zap className="text-indigo-400 w-5 h-5" />, torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
-  range: <Navigation className="text-indigo-400 w-5 h-5" />, zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
-  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />, battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
+  horsepower: <Zap className="text-indigo-400 w-5 h-5" />, 
+  torque: <GaugeCircle className="text-indigo-400 w-5 h-5" />,
+  range: <Navigation className="text-indigo-400 w-5 h-5" />, 
+  zeroToSixty: <TimerReset className="text-indigo-400 w-5 h-5" />,
+  topSpeed: <Gauge className="text-indigo-400 w-5 h-5" />, 
+  battery: <BatteryCharging className="text-indigo-400 w-5 h-5" />,
 };
 
 export default function VehicleGallery({ vehicle }: VehicleGalleryProps) {
