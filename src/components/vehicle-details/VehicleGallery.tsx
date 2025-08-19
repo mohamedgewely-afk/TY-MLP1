@@ -513,28 +513,26 @@ export default function LandCruiserLifestyleGalleryPro({
 
       {/* Mobile Sticky Filter */}
       <nav
-        <nav
-    className="md:hidden fixed bottom-[max(env(safe-area-inset-bottom),0.75rem)] left-1/2 -translate-x-1/2 z-30 w-[min(96vw,680px)] rounded-full bg-white/5 backdrop-blur border border-white/10 px-2 py-2 flex items-center gap-2 overflow-x-auto"
-    aria-label={T.filters}
-  >
-    {["All", ...T.scenes].map((c) => (
-      <button
-        key={c}
-        type="button"
-        onClick={() => setFilter(c as any)}
-        className="shrink-0 rounded-full px-3 py-2 min-h-[40px] text-xs border"
-        style={{
-          borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-          background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-          color: filter === (c as any) ? TOYOTA_RED : "#fff",
-        }}
-        aria-pressed={filter === (c as any)}
+        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,680px)] rounded-full bg-white/5 backdrop-blur border border-white/10 px-2 py-2 flex items-center gap-2 overflow-x-auto pb-[max(env(safe-area-inset-bottom),8px)]"
+        aria-label={T.filters}
       >
-        {c}
-      </button>
-    ))}
-  </nav>
-)}
+        {["All", ...T.scenes].map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setFilter(c as any)}
+            className="shrink-0 rounded-full px-3 py-2 min-h-[40px] text-xs border"
+            style={{
+              borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
+              background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
+              color: filter === (c as any) ? TOYOTA_RED : "#fff",
+            }}
+            aria-pressed={filter === (c as any)}
+          >
+            {c}
+          </button>
+        ))}
+      </nav>
 
       {/* Overlay / Expanded Scene */}
       <AnimatePresence>
