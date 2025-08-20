@@ -48,7 +48,7 @@ type Slide = {
 
 const GAP_PX = 24; // must match Tailwind gap-6
 
-export default function VehicleDetails() {
+function VehicleDetails() {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -76,7 +76,7 @@ export default function VehicleDetails() {
   const [cardsPerView, setCardsPerView] = useState(1);
   const [activePage, setActivePage] = useState(0);
 
-  // Gallery images (for hero + slides)
+  // Gallery images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -186,17 +186,17 @@ export default function VehicleDetails() {
     }
   }, [vehicleName]);
 
-  // Determine cardsPerView by rail width (no measuring cards)
+  // Decide cardsPerView by rail width (no per-card measuring)
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
     const measure = () => {
       const w = rail.clientWidth;
       let per = 1;
-      if (w >= 1280) per = 4;      // desktop
-      else if (w >= 1024) per = 3; // large tablet
-      else if (w >= 640) per = 2;  // tablet
-      else per = 1;                // mobile
+      if (w >= 1280) per = 4;
+      else if (w >= 1024) per = 3;
+      else if (w >= 640) per = 2;
+      else per = 1;
       setCardsPerView(per);
       setActivePage((p) => Math.min(p, Math.ceil(slides.length / per) - 1));
     };
@@ -212,7 +212,7 @@ export default function VehicleDetails() {
 
   const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
 
-  // Page scroll helpers: move by rail width (reliable)
+  // Scroll by rail width (1 full page)
   const scrollToPage = (page: number) => {
     const rail = railRef.current;
     if (!rail) return;
@@ -257,10 +257,17 @@ export default function VehicleDetails() {
       activeNavItem="models"
       vehicle={vehicle}
       isFavorite={isFavorite}
-      onToggleFavorite={handleToggleFavorite}
-      onBookTestDrive={handleBookTestDrive}
-      onCarBuilder={handleCarBuilder}
-      onFinanceCalculator={handleFinanceCalculator}
+      onToggleFavorite={() => {
+        const next = !isFavorite;
+        setIsFavorite(next);
+        const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+        if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+        localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        toast({ title: next ? "Added to favorites" : "Removed from favorites", description: vehicle.name });
+      }}
+      onBookTestDrive={() => setIsBookingOpen(true)}
+      onCarBuilder={() => setIsCarBuilderOpen(true)}
+      onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
       {/* HERO */}
       <EnhancedHeroSection
@@ -268,9 +275,15 @@ export default function VehicleDetails() {
         galleryImages={galleryImages}
         monthlyEMI={monthlyEMI}
         isFavorite={isFavorite}
-        onToggleFavorite={handleToggleFavorite}
-        onBookTestDrive={handleBookTestDrive}
-        onCarBuilder={handleCarBuilder}
+        onToggleFavorite={() => {
+          const next = !isFavorite;
+          setIsFavorite(next);
+          const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+          if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+          localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        }}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
       />
 
       <OffersSection onOfferClick={handleOfferClick} />
@@ -326,7 +339,10 @@ export default function VehicleDetails() {
                   initial={{ opacity: 0.95, scale: 0.995 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
-                  style={{ flex: `0 0 ${basis(cardsPerView)}`, width: basis(cardsPerView) }}
+                  style={{
+                    flex: `0 0 ${`calc((100% - ${GAP_PX * (cardsPerView - 1)}px) / ${cardsPerView})`}`,
+                    width: `calc((100% - ${GAP_PX * (cardsPerView - 1)}px) / ${cardsPerView})`,
+                  }}
                   onClick={() => openQuickView(i)}
                 >
                   <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -410,13 +426,13 @@ export default function VehicleDetails() {
               <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-center">
                 <Tag className="mr-2 h-4 w-4" /> View Offers
               </Button>
-              <Button variant="outline" onClick={handleFinanceCalculator} className="justify-center">
+              <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-center">
                 <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
               </Button>
-              <Button variant="outline" onClick={handleBookTestDrive} className="justify-center">
+              <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-center">
                 <Calendar className="mr-2 h-4 w-4" /> Book Test Drive
               </Button>
-              <Button variant="outline" onClick={handleCarBuilder} className="justify-center">
+              <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-center">
                 <PencilRuler className="mr-2 h-4 w-4" /> Build Your {safeModelEnd}
               </Button>
             </div>
@@ -466,7 +482,7 @@ export default function VehicleDetails() {
                       {slides[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
-                    <Button onClick={() => runAfterCloseQuickView(handleBookTestDrive)}>
+                    <Button onClick={() => runAfterCloseQuickView(() => setIsBookingOpen(true))}>
                       Book a Test Drive <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   )}
@@ -517,12 +533,19 @@ export default function VehicleDetails() {
       <ActionPanel
         vehicle={vehicle}
         isFavorite={isFavorite}
-        onToggleFavorite={handleToggleFavorite}
-        onBookTestDrive={handleBookTestDrive}
-        onCarBuilder={handleCarBuilder}
-        onFinanceCalculator={handleFinanceCalculator}
+        onToggleFavorite={() => {
+          const next = !isFavorite;
+          setIsFavorite(next);
+          const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+          if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+          localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        }}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
+        onFinanceCalculator={() => setIsFinanceOpen(true)}
       />
     </ToyotaLayout>
   );
 }
+
 export default VehicleDetails;
