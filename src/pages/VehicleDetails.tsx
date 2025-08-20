@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import {
@@ -31,8 +31,6 @@ import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
-import { usePersona } from "@/contexts/PersonaContext";
-import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
@@ -51,10 +49,14 @@ type Slide = {
 
 const GAP_PX = 24; // must match gap-6
 
-const VehicleDetails = () => {
+export default function VehicleDetails() {
   const { vehicleName } = useParams<{ vehicleName: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
 
+  // Modals
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
@@ -62,190 +64,146 @@ const VehicleDetails = () => {
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // carousel (page-based)
-  const railRef = useRef<HTMLDivElement>(null);
-  const [cardsPerView, setCardsPerView] = useState(1);
-  const [cardPx, setCardPx] = useState(0);
-  const [activePage, setActivePage] = useState(0);
-
-  // quick view
+  // Quick View
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [quickViewIndex, setQuickViewIndex] = useState(0);
   const openQuickView = (i: number) => { setQuickViewIndex(i); setIsQuickViewOpen(true); };
 
-  const { toast } = useToast();
-  const { personaData } = usePersona();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  // Carousel (PAGE-BASED)
+  const railRef = useRef<HTMLDivElement>(null);
+  const [cardsPerView, setCardsPerView] = useState(1);
+  const [activePage, setActivePage] = useState(0);
+  const pageCount = Math.max(1, Math.ceil(slides().length / cardsPerView));
 
-  // gallery
-  const galleryImages = [
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
-  ];
+  // Data
+  function slides(): Slide[] {
+    const galleryImages = [
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+    ];
+    return [
+      {
+        key: "performance",
+        title: "Performance",
+        subtitle: "Feel the surge of hybrid power, always in command.",
+        image: galleryImages[2],
+        icon: <Gauge className="h-5 w-5" />,
+        meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
+        cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
+      },
+      {
+        key: "safety",
+        title: "Safety Sense",
+        subtitle: "Guardian tech that's always watching out for you.",
+        image: galleryImages[1],
+        icon: <Shield className="h-5 w-5" />,
+        meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
+        cta: { label: "See Safety Suite", onClick: () => navigate("/safety") },
+      },
+      {
+        key: "connected",
+        title: "Connected Life",
+        subtitle: "Wireless Apple CarPlay & Android Auto.",
+        image: galleryImages[0],
+        icon: <Smartphone className="h-5 w-5" />,
+        meta: ["Voice control", "Remote start", "OTA-ready"],
+        cta: { label: "Explore Connectivity", onClick: () => navigate("/connect") },
+      },
+      {
+        key: "comfort",
+        title: "Comfort & Climate",
+        subtitle: "Dual‑zone control and clean air tech.",
+        image: galleryImages[3],
+        icon: <Wind className="h-5 w-5" />,
+        meta: ["HEPA filtration", "Whisper quiet", "Smart venting"],
+        cta: { label: "Inside the Cabin", onClick: () => navigate("/interior") },
+      },
+      {
+        key: "ownership",
+        title: "Ownership",
+        subtitle: "Clear pricing, finance made simple.",
+        image: galleryImages[4],
+        icon: <Award className="h-5 w-5" />,
+        meta: ["Flexible EMI", "Trade‑in support", "Top‑rated service"],
+        cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
+      },
+      {
+        key: "build",
+        title: "Build & Offers",
+        subtitle: "Pick your trim, colors, accessories.",
+        image: galleryImages[5],
+        icon: <PencilRuler className="h-5 w-5" />,
+        meta: ["Live price", "Compare trims", "Limited‑time offers"],
+        cta: { label: "Start Building", onClick: handleCarBuilder },
+      },
+    ];
+  }
 
-  // finance calc
-  const calculateEMI = (price: number) => {
-    const principal = price * 0.8;
-    const rate = 0.035 / 12;
-    const tenure = 60;
-    const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
-    return Math.round(emi);
-  };
-  const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
-
-  // favorites
-  const handleToggleFavorite = () => {
-    setIsFavorite((v) => !v);
-    toast({ title: !isFavorite ? "Added to favorites" : "Removed from favorites", description: vehicle?.name });
-  };
-  const handleBookTestDrive = () => setIsBookingOpen(true);
-  const handleCarBuilder = () => setIsCarBuilderOpen(true);
-  const handleFinanceCalculator = () => setIsFinanceOpen(true);
-  const handleOfferClick = (offer: any) => { setSelectedOffer(offer); setIsOffersModalOpen(true); };
-
-  // slides
-  const slides: Slide[] = [
-    {
-      key: "performance",
-      title: "Performance",
-      subtitle: "Feel the surge of hybrid power, always in command.",
-      image: galleryImages[2],
-      icon: <Gauge className="h-5 w-5" />,
-      meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
-      cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
-    },
-    {
-      key: "safety",
-      title: "Safety Sense",
-      subtitle: "Guardian tech that's always watching out for you.",
-      image: galleryImages[1],
-      icon: <Shield className="h-5 w-5" />,
-      meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
-      cta: { label: "See Safety Suite", onClick: () => navigate("/safety") },
-    },
-    {
-      key: "connected",
-      title: "Connected Life",
-      subtitle: "Wireless Apple CarPlay & Android Auto.",
-      image: galleryImages[0],
-      icon: <Smartphone className="h-5 w-5" />,
-      meta: ["Voice control", "Remote start", "OTA-ready"],
-      cta: { label: "Explore Connectivity", onClick: () => navigate("/connect") },
-    },
-    {
-      key: "comfort",
-      title: "Comfort & Climate",
-      subtitle: "Dual-zone control and clean air tech.",
-      image: galleryImages[3],
-      icon: <Wind className="h-5 w-5" />,
-      meta: ["HEPA filtration", "Whisper quiet", "Smart venting"],
-      cta: { label: "Inside the Cabin", onClick: () => navigate("/interior") },
-    },
-    {
-      key: "ownership",
-      title: "Ownership",
-      subtitle: "Clear pricing, finance made simple.",
-      image: galleryImages[4],
-      icon: <Award className="h-5 w-5" />,
-      meta: ["Flexible EMI", "Trade-in support", "Top-rated service"],
-      cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
-    },
-    {
-      key: "build",
-      title: "Build & Offers",
-      subtitle: "Pick your trim, colors, accessories.",
-      image: galleryImages[5],
-      icon: <PencilRuler className="h-5 w-5" />,
-      meta: ["Live price", "Compare trims", "Limited-time offers"],
-      cta: { label: "Start Building", onClick: handleCarBuilder },
-    },
-  ];
-
-  // set vehicle
+  // Vehicle + page title
   useEffect(() => {
-    const foundVehicle = vehicles.find((v) => {
+    const found = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
       const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
       return slug === vehicleName;
     });
-    if (foundVehicle) {
-      setVehicle(foundVehicle);
-      document.title = `${foundVehicle.name} | Toyota UAE`;
+    if (found) {
+      setVehicle(found);
+      document.title = `${found.name} | Toyota UAE`;
     }
   }, [vehicleName]);
 
-  // measure layout -> decide cardsPerView & cardPx
+  // Decide cardsPerView purely from rail width (no measuring cards)
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
-
     const measure = () => {
       const w = rail.clientWidth;
       let per = 1;
-      if (w >= 1280) per = 4;      // desktop: 4 cards
-      else if (w >= 1024) per = 3; // large tablet: 3
-      else if (w >= 640) per = 2;  // tablet: 2
-      else per = 1;                // mobile: 1
-
-      const cw = Math.floor((w - GAP_PX * (per - 1)) / per);
+      if (w >= 1280) per = 4;      // desktop
+      else if (w >= 1024) per = 3; // large tablet
+      else if (w >= 640) per = 2;  // tablet
+      else per = 1;                // mobile
       setCardsPerView(per);
-      setCardPx(cw);
-      // keep active page within bounds if layout changed
-      setActivePage((p) => Math.min(p, Math.max(0, Math.ceil(slides.length / per) - 1)));
+      // keep page in range if layout changed
+      setActivePage((p) => Math.min(p, Math.ceil(slides().length / per) - 1));
     };
-
     const ro = new ResizeObserver(measure);
     ro.observe(rail);
     window.addEventListener("resize", measure);
     requestAnimationFrame(measure);
-
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [slides.length]);
+  }, []);
 
-  const pageCount = Math.ceil(slides.length / cardsPerView);
+  // Scroll helpers: **one full rail width per page**
   const scrollToPage = (page: number) => {
     const rail = railRef.current;
-    if (!rail || !cardPx) return;
-    const clamped = Math.max(0, Math.min(page, pageCount - 1));
-    const pageWidth = (cardPx + GAP_PX) * cardsPerView;
-    rail.scrollTo({ left: clamped * pageWidth, behavior: "smooth" });
+    if (!rail) return;
+    const clamped = Math.max(0, Math.min(page, Math.ceil(slides().length / cardsPerView) - 1));
+    rail.scrollTo({ left: clamped * rail.clientWidth, behavior: "smooth" });
   };
-
   const handlePrev = () => scrollToPage(activePage - 1);
   const handleNext = () => scrollToPage(activePage + 1);
 
-  // update activePage on scroll
+  // Track active page
   useEffect(() => {
     const rail = railRef.current;
-    if (!rail || !cardPx) return;
-
+    if (!rail) return;
     const onScroll = () => {
-      const pageWidth = (cardPx + GAP_PX) * cardsPerView;
-      const idx = Math.round(rail.scrollLeft / Math.max(1, pageWidth));
-      setActivePage(Math.max(0, Math.min(idx, pageCount - 1)));
+      const idx = Math.round(rail.scrollLeft / Math.max(1, rail.clientWidth));
+      setActivePage(idx);
     };
-
     rail.addEventListener("scroll", onScroll, { passive: true });
     return () => rail.removeEventListener("scroll", onScroll);
-  }, [cardPx, cardsPerView, pageCount]);
+  }, []);
 
-  // keyboard nav
-  const onRailKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); handleNext(); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); handlePrev(); }
-    else if (e.key === "Home") { e.preventDefault(); scrollToPage(0); }
-    else if (e.key === "End") { e.preventDefault(); scrollToPage(pageCount - 1); }
-  };
-
-  // close QuickView before opening another modal (prevents stacking issues on mobile)
+  // Close QuickView before opening other modals (prevents z-index stacking on mobile)
   const runAfterCloseQuickView = (fn: () => void) => {
     if (isQuickViewOpen) {
       setIsQuickViewOpen(false);
@@ -255,49 +213,23 @@ const VehicleDetails = () => {
     }
   };
 
-  if (!vehicle) return <div>Vehicle Not Found</div>;
+  // Actions
+  const handleToggleFavorite = () => {
+    setIsFavorite((x) => !x);
+    toast({ title: !isFavorite ? "Added to favorites" : "Removed from favorites", description: vehicle?.name });
+  };
+  const handleBookTestDrive = () => setIsBookingOpen(true);
+  const handleCarBuilder = () => setIsCarBuilderOpen(true);
+  const handleFinanceCalculator = () => setIsFinanceOpen(true);
+  const handleOfferClick = (offer: any) => { setSelectedOffer(offer); setIsOffersModalOpen(true); };
 
-  // card component with dynamic width
-  const ExperienceCard: React.FC<{ slide: Slide; index: number; }> = ({ slide, index }) => (
-    <motion.div
-      role="group"
-      aria-roledescription="slide"
-      aria-label={`Card ${index + 1} of ${slides.length}: ${slide.title}`}
-      initial={{ opacity: 0.95, scale: 0.995 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
-      style={{ width: cardPx ? `${cardPx}px` : undefined }}
-      onClick={() => openQuickView(index)}
-    >
-      <div className="flex flex-col">
-        <div className="relative w-full aspect-[4/3] overflow-hidden">
-          <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-        </div>
-        <div className="p-4 md:p-5 flex flex-col">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-semibold w-max">
-            {slide.icon}
-            {slide.title}
-          </div>
-          <h3 className="mt-2 text-base md:text-lg font-extrabold">{slide.subtitle}</h3>
-          {slide.meta && (
-            <ul className="mt-3 grid grid-cols-1 gap-1.5">
-              {slide.meta.map((m) => (
-                <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary" /> {m}
-                </li>
-              ))}
-            </ul>
-          )}
-          {slide.cta && (
-            <Button className="mt-4 w-full md:w-auto" onClick={(e) => { e.stopPropagation(); runAfterCloseQuickView(slide.cta!.onClick); }}>
-              {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
+  if (!vehicle) return <div />;
 
+  // Card flex-basis: pure CSS math (no measuring)
+  const basis = (per: number) =>
+    `calc((100% - ${GAP_PX * (per - 1)}px) / ${per})`;
+
+  const s = slides();
   const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
   const activeFirstIndex = activePage * cardsPerView;
 
@@ -313,8 +245,10 @@ const VehicleDetails = () => {
     >
       <EnhancedHeroSection
         vehicle={vehicle}
-        galleryImages={galleryImages}
-        monthlyEMI={monthlyEMI}
+        galleryImages={[
+          s[0].image, s[1].image, s[2].image, s[3].image, s[4].image, s[5].image
+        ]}
+        monthlyEMI={Math.round((vehicle?.price || 0) * 0.8 * (0.035/12) * Math.pow(1+0.035/12,60) / (Math.pow(1+0.035/12,60)-1))}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
         onBookTestDrive={handleBookTestDrive}
@@ -335,7 +269,7 @@ const VehicleDetails = () => {
           </motion.div>
 
           <div className="relative">
-            {/* arrows (page scroll) */}
+            {/* arrows: move exactly one page */}
             <button
               aria-label="Previous"
               onClick={handlePrev}
@@ -351,20 +285,63 @@ const VehicleDetails = () => {
               <ChevronRight className="h-6 w-6" />
             </button>
 
-            {/* rail: shows 1/2/3/4 cards per view depending on width */}
+            {/* rail: pure flex sizing, swipeable, page-sized scroll */}
             <div
               ref={railRef}
               tabIndex={0}
-              onKeyDown={onRailKeyDown}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight") { e.preventDefault(); handleNext(); }
+                else if (e.key === "ArrowLeft") { e.preventDefault(); handlePrev(); }
+                else if (e.key === "Home") { e.preventDefault(); scrollToPage(0); }
+                else if (e.key === "End") { e.preventDefault(); scrollToPage(pageCount - 1); }
+              }}
               className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2"
               style={{ scrollbarWidth: "none" as any }}
             >
-              {slides.map((s, i) => (
-                <ExperienceCard key={s.key} slide={s} index={i} />
+              {s.map((slide, i) => (
+                <motion.div
+                  key={slide.key}
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`Card ${i + 1} of ${s.length}: ${slide.title}`}
+                  initial={{ opacity: 0.95, scale: 0.995 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
+                  style={{ flex: `0 0 ${basis(cardsPerView)}`, width: basis(cardsPerView) }}
+                  onClick={() => openQuickView(i)}
+                >
+                  <div className="relative w-full aspect-[4/3] overflow-hidden">
+                    <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4 md:p-5">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-semibold w-max">
+                      {slide.icon}
+                      {slide.title}
+                    </div>
+                    <h3 className="mt-2 text-base md:text-lg font-extrabold">{slide.subtitle}</h3>
+                    {slide.meta && (
+                      <ul className="mt-3 grid grid-cols-1 gap-1.5">
+                        {slide.meta.map((m) => (
+                          <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Check className="h-4 w-4 text-primary" /> {m}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {slide.cta && (
+                      <Button
+                        className="mt-4 w-full md:w-auto"
+                        onClick={(e) => { e.stopPropagation(); runAfterCloseQuickView(slide.cta!.onClick); }}
+                      >
+                        {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
               ))}
             </div>
 
-            {/* pagination by PAGE (not by card) */}
+            {/* pagination by PAGE */}
             <div className="mt-6 mx-auto max-w-5xl">
               <div className="flex items-center gap-2">
                 {Array.from({ length: pageCount }).map((_, p) => (
@@ -380,8 +357,8 @@ const VehicleDetails = () => {
                 ))}
               </div>
               <p className="sr-only" aria-live="polite">
-                Page {activePage + 1} of {pageCount}. Showing cards {activeFirstIndex + 1} to{" "}
-                {Math.min(activeFirstIndex + cardsPerView, slides.length)}.
+                Page {activePage + 1} of {pageCount}. Cards {activeFirstIndex + 1}–
+                {Math.min(activeFirstIndex + cardsPerView, s.length)} visible.
               </p>
             </div>
 
@@ -389,7 +366,7 @@ const VehicleDetails = () => {
             <div className="mt-4 max-w-5xl mx-auto hidden md:flex items-center justify-between gap-3 rounded-2xl bg-card ring-1 ring-border px-4 py-3">
               <div className="text-sm text-muted-foreground">
                 Page {activePage + 1} of {pageCount} • Cards {activeFirstIndex + 1}–
-                {Math.min(activeFirstIndex + cardsPerView, slides.length)}
+                {Math.min(activeFirstIndex + cardsPerView, s.length)}
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activePage === 0}>
@@ -398,12 +375,7 @@ const VehicleDetails = () => {
                 <Button size="sm" onClick={() => scrollToPage(activePage + 1)} disabled={activePage >= pageCount - 1}>
                   Next Page <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openQuickView(activeFirstIndex)}
-                  disabled={activeFirstIndex >= slides.length}
-                >
+                <Button size="sm" variant="outline" onClick={() => openQuickView(activeFirstIndex)} disabled={activeFirstIndex >= s.length}>
                   Quick View
                 </Button>
               </div>
@@ -415,7 +387,7 @@ const VehicleDetails = () => {
                 <Tag className="mr-2 h-4 w-4" /> View Offers
               </Button>
               <Button variant="outline" onClick={handleFinanceCalculator} className="justify-center">
-                <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
+                <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {calculateEMI(vehicle?.price || 0).toLocaleString()} AED/mo
               </Button>
               <Button variant="outline" onClick={handleBookTestDrive} className="justify-center">
                 <Calendar className="mr-2 h-4 w-4" /> Book Test Drive
@@ -442,26 +414,26 @@ const VehicleDetails = () => {
       {/* Quick View */}
       <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
         <DialogContent className="max-w-5xl p-0 overflow-hidden z-[60]">
-          {slides[quickViewIndex] && (
+          {s[quickViewIndex] && (
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              <img src={slides[quickViewIndex].image} alt={slides[quickViewIndex].title} className="w-full h-full object-cover" />
+              <img src={s[quickViewIndex].image} alt={s[quickViewIndex].title} className="w-full h-full object-cover" />
               <div className="p-6 space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold w-max">
-                  {slides[quickViewIndex].icon}
-                  {slides[quickViewIndex].title}
+                  {s[quickViewIndex].icon}
+                  {s[quickViewIndex].title}
                 </div>
-                <h3 className="text-2xl font-extrabold">{slides[quickViewIndex].subtitle}</h3>
-                {slides[quickViewIndex].meta && (
+                <h3 className="text-2xl font-extrabold">{s[quickViewIndex].subtitle}</h3>
+                {s[quickViewIndex].meta && (
                   <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                    {slides[quickViewIndex].meta!.map((m) => (
+                    {s[quickViewIndex].meta!.map((m) => (
                       <li key={m} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {m}</li>
                     ))}
                   </ul>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  {slides[quickViewIndex].cta ? (
-                    <Button onClick={() => runAfterCloseQuickView(slides[quickViewIndex].cta!.onClick)}>
-                      {slides[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
+                  {s[quickViewIndex].cta ? (
+                    <Button onClick={() => runAfterCloseQuickView(s[quickViewIndex].cta!.onClick)}>
+                      {s[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
                     <Button onClick={() => runAfterCloseQuickView(handleBookTestDrive)}>
@@ -471,13 +443,13 @@ const VehicleDetails = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      const next = (quickViewIndex + 1) % slides.length;
+                      const next = (quickViewIndex + 1) % s.length;
                       setQuickViewIndex(next);
                       const nextPage = Math.floor(next / cardsPerView);
                       scrollToPage(nextPage);
                     }}
                   >
-                    Next: {slides[(quickViewIndex + 1) % slides.length].title}
+                    Next: {s[(quickViewIndex + 1) % s.length].title}
                   </Button>
                 </div>
               </div>
@@ -496,7 +468,7 @@ const VehicleDetails = () => {
       <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
       <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
 
-      {/* Desktop panel */}
+      {/* Desktop action panel */}
       <ActionPanel
         vehicle={vehicle}
         isFavorite={isFavorite}
@@ -507,6 +479,4 @@ const VehicleDetails = () => {
       />
     </ToyotaLayout>
   );
-};
-
-export default VehicleDetails;
+}
