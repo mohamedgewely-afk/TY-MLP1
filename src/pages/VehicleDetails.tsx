@@ -259,12 +259,16 @@ function VehicleDetails() {
       <OffersSection onOfferClick={handleOfferClick} />
       <VehicleMediaShowcase vehicle={vehicle} />
 
-      {/* ENHANCED EXPERIENCE RAIL */}
-      <EnhancedExperienceRail
-        slides={slides}
-        vehicleModelEnd={safeModelEnd}
-        onQuickView={openQuickView}
-      />
+    {/* ENHANCED EXPERIENCE RAIL — full width */}
+<section className="py-10 lg:py-16">
+  <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-10 xl:px-14">
+    <EnhancedExperienceRail
+      slides={slides}
+      vehicleModelEnd={safeModelEnd}
+      onQuickView={openQuickView}
+    />
+  </div>
+</section>
 
       {/* Quick Actions */}
       <section className="py-8 bg-muted/30">
