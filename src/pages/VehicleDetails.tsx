@@ -35,11 +35,9 @@ import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
-import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
 type Slide = {
   key: string;
@@ -50,6 +48,8 @@ type Slide = {
   meta?: string[];
   cta?: { label: string; onClick: () => void };
 };
+
+const GAP_PX = 24; // must match gap-6
 
 const VehicleDetails = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -62,18 +62,16 @@ const VehicleDetails = () => {
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // carousel
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [positions, setPositions] = useState<number[]>([]);
+  // carousel (page-based)
   const railRef = useRef<HTMLDivElement>(null);
+  const [cardsPerView, setCardsPerView] = useState(1);
+  const [cardPx, setCardPx] = useState(0);
+  const [activePage, setActivePage] = useState(0);
 
-  // quick view modal
+  // quick view
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [quickViewIndex, setQuickViewIndex] = useState(0);
-  const openQuickView = (i: number) => {
-    setQuickViewIndex(i);
-    setIsQuickViewOpen(true);
-  };
+  const openQuickView = (i: number) => { setQuickViewIndex(i); setIsQuickViewOpen(true); };
 
   const { toast } = useToast();
   const { personaData } = usePersona();
@@ -100,17 +98,15 @@ const VehicleDetails = () => {
   };
   const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
 
-  // Handler functions
+  // favorites
   const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: isFavorite ? "Vehicle removed from your favorites" : "Vehicle added to your favorites",
-    });
+    setIsFavorite((v) => !v);
+    toast({ title: !isFavorite ? "Added to favorites" : "Removed from favorites", description: vehicle?.name });
   };
   const handleBookTestDrive = () => setIsBookingOpen(true);
   const handleCarBuilder = () => setIsCarBuilderOpen(true);
   const handleFinanceCalculator = () => setIsFinanceOpen(true);
+  const handleOfferClick = (offer: any) => { setSelectedOffer(offer); setIsOffersModalOpen(true); };
 
   // slides
   const slides: Slide[] = [
@@ -183,75 +179,73 @@ const VehicleDetails = () => {
     }
   }, [vehicleName]);
 
-  // measure exact scroll positions
+  // measure layout -> decide cardsPerView & cardPx
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
+
     const measure = () => {
-      const cards = Array.from(rail.children) as HTMLElement[];
-      if (!cards.length) return;
-      const railW = rail.clientWidth;
-      const maxScroll = rail.scrollWidth - railW;
-      const pos = cards.map((card) => {
-        const left = card.offsetLeft;
-        const cardW = card.clientWidth;
-        const ideal = left - (railW - cardW) / 2;
-        return Math.max(0, Math.min(Math.round(ideal), Math.max(0, maxScroll)));
-      });
-      setPositions(pos);
+      const w = rail.clientWidth;
+      let per = 1;
+      if (w >= 1280) per = 4;      // desktop: 4 cards
+      else if (w >= 1024) per = 3; // large tablet: 3
+      else if (w >= 640) per = 2;  // tablet: 2
+      else per = 1;                // mobile: 1
+
+      const cw = Math.floor((w - GAP_PX * (per - 1)) / per);
+      setCardsPerView(per);
+      setCardPx(cw);
+      // keep active page within bounds if layout changed
+      setActivePage((p) => Math.min(p, Math.max(0, Math.ceil(slides.length / per) - 1)));
     };
+
     const ro = new ResizeObserver(measure);
     ro.observe(rail);
-    const imgs = rail.querySelectorAll("img");
-    imgs.forEach((img) => {
-      if (!img.complete) img.addEventListener("load", measure, { once: true });
-    });
+    window.addEventListener("resize", measure);
     requestAnimationFrame(measure);
+
     return () => {
       ro.disconnect();
-      imgs.forEach((img) => img.removeEventListener?.("load", measure));
+      window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [slides.length]);
 
-  const scrollToIndex = (idx: number) => {
+  const pageCount = Math.ceil(slides.length / cardsPerView);
+  const scrollToPage = (page: number) => {
     const rail = railRef.current;
-    if (!rail || !positions.length) return;
-    const clamped = Math.max(0, Math.min(idx, positions.length - 1));
-    rail.scrollTo({ left: positions[clamped], behavior: "smooth" });
+    if (!rail || !cardPx) return;
+    const clamped = Math.max(0, Math.min(page, pageCount - 1));
+    const pageWidth = (cardPx + GAP_PX) * cardsPerView;
+    rail.scrollTo({ left: clamped * pageWidth, behavior: "smooth" });
   };
-  const handlePrev = () => scrollToIndex(activeSlide - 1);
-  const handleNext = () => scrollToIndex(activeSlide + 1);
 
-  // active index detection
+  const handlePrev = () => scrollToPage(activePage - 1);
+  const handleNext = () => scrollToPage(activePage + 1);
+
+  // update activePage on scroll
   useEffect(() => {
     const rail = railRef.current;
-    if (!rail) return;
+    if (!rail || !cardPx) return;
+
     const onScroll = () => {
-      if (!positions.length) return;
-      const x = rail.scrollLeft;
-      let best = 0, bestDist = Infinity;
-      for (let i = 0; i < positions.length; i++) {
-        const d = Math.abs(positions[i] - x);
-        if (d < bestDist) {
-          best = i;
-          bestDist = d;
-        }
-      }
-      setActiveSlide(best);
+      const pageWidth = (cardPx + GAP_PX) * cardsPerView;
+      const idx = Math.round(rail.scrollLeft / Math.max(1, pageWidth));
+      setActivePage(Math.max(0, Math.min(idx, pageCount - 1)));
     };
+
     rail.addEventListener("scroll", onScroll, { passive: true });
     return () => rail.removeEventListener("scroll", onScroll);
-  }, [positions]);
+  }, [cardPx, cardsPerView, pageCount]);
 
   // keyboard nav
   const onRailKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowRight") { e.preventDefault(); handleNext(); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); handlePrev(); }
-    else if (e.key === "Home") { e.preventDefault(); scrollToIndex(0); }
-    else if (e.key === "End") { e.preventDefault(); scrollToIndex(slides.length - 1); }
+    else if (e.key === "Home") { e.preventDefault(); scrollToPage(0); }
+    else if (e.key === "End") { e.preventDefault(); scrollToPage(pageCount - 1); }
   };
 
-  // helper to close QuickView before opening another modal
+  // close QuickView before opening another modal (prevents stacking issues on mobile)
   const runAfterCloseQuickView = (fn: () => void) => {
     if (isQuickViewOpen) {
       setIsQuickViewOpen(false);
@@ -261,60 +255,65 @@ const VehicleDetails = () => {
     }
   };
 
-  if (!vehicle) {
-    return <div>Vehicle Not Found</div>;
-  }
+  if (!vehicle) return <div>Vehicle Not Found</div>;
 
-  // Experience Card
-  const ExperienceCard: React.FC<{ slide: Slide; index: number; isActive: boolean; }> = ({ slide, index, isActive }) => (
+  // card component with dynamic width
+  const ExperienceCard: React.FC<{ slide: Slide; index: number; }> = ({ slide, index }) => (
     <motion.div
       role="group"
       aria-roledescription="slide"
-      aria-label={`Slide ${index + 1} of ${slides.length}: ${slide.title}`}
-      initial={{ opacity: 0.85, scale: 0.98 }}
-      animate={{ opacity: isActive ? 1 : 0.9, scale: isActive ? 1 : 0.98 }}
-      className="snap-center shrink-0 w-[92vw] lg:w-[85vw] rounded-3xl shadow-2xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
+      aria-label={`Card ${index + 1} of ${slides.length}: ${slide.title}`}
+      initial={{ opacity: 0.95, scale: 0.995 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
+      style={{ width: cardPx ? `${cardPx}px` : undefined }}
       onClick={() => openQuickView(index)}
     >
-      <div className="flex flex-col md:flex-row">
-        <div className="relative w-full md:w-1/2 aspect-[4/3] md:aspect-auto overflow-hidden">
+      <div className="flex flex-col">
+        <div className="relative w-full aspect-[4/3] overflow-hidden">
           <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
         </div>
-        <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold w-max">
+        <div className="p-4 md:p-5 flex flex-col">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-semibold w-max">
             {slide.icon}
             {slide.title}
           </div>
-          <h3 className="mt-3 text-xl md:text-2xl font-extrabold">{slide.subtitle}</h3>
+          <h3 className="mt-2 text-base md:text-lg font-extrabold">{slide.subtitle}</h3>
           {slide.meta && (
-            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ul className="mt-3 grid grid-cols-1 gap-1.5">
               {slide.meta.map((m) => (
                 <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary" />
-                  {m}
+                  <Check className="h-4 w-4 text-primary" /> {m}
                 </li>
               ))}
             </ul>
           )}
-          <div className="mt-6">
-            {slide.cta && (
-              <Button onClick={() => runAfterCloseQuickView(slide.cta!.onClick)}>
-                {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          {slide.cta && (
+            <Button className="mt-4 w-full md:w-auto" onClick={(e) => { e.stopPropagation(); runAfterCloseQuickView(slide.cta!.onClick); }}>
+              {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>
   );
 
   const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
+  const activeFirstIndex = activePage * cardsPerView;
 
   return (
-    <ToyotaLayout vehicle={vehicle}>
-      <EnhancedHeroSection 
-        vehicle={vehicle} 
-        galleryImages={galleryImages} 
+    <ToyotaLayout
+      activeNavItem="models"
+      vehicle={vehicle}
+      isFavorite={isFavorite}
+      onToggleFavorite={handleToggleFavorite}
+      onBookTestDrive={handleBookTestDrive}
+      onCarBuilder={handleCarBuilder}
+      onFinanceCalculator={handleFinanceCalculator}
+    >
+      <EnhancedHeroSection
+        vehicle={vehicle}
+        galleryImages={galleryImages}
         monthlyEMI={monthlyEMI}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
@@ -322,10 +321,10 @@ const VehicleDetails = () => {
         onCarBuilder={handleCarBuilder}
       />
 
-      <OffersSection onOfferClick={setSelectedOffer} />
+      <OffersSection onOfferClick={handleOfferClick} />
       <VehicleMediaShowcase vehicle={vehicle} />
 
-      {/* Experience Rail */}
+      {/* EXPERIENCE RAIL */}
       <section className="py-12 lg:py-20 bg-gradient-to-b from-background via-muted/30 to-background">
         <div className="toyota-container max-w-none w-full">
           <motion.div className="mb-8 text-center">
@@ -336,70 +335,121 @@ const VehicleDetails = () => {
           </motion.div>
 
           <div className="relative">
-            {/* arrows */}
-            <button onClick={handlePrev} className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border">
+            {/* arrows (page scroll) */}
+            <button
+              aria-label="Previous"
+              onClick={handlePrev}
+              className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
-            <button onClick={handleNext} className="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border">
+            <button
+              aria-label="Next"
+              onClick={handleNext}
+              className="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border"
+            >
               <ChevronRight className="h-6 w-6" />
             </button>
 
-            <div ref={railRef} tabIndex={0} onKeyDown={onRailKeyDown} className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2">
+            {/* rail: shows 1/2/3/4 cards per view depending on width */}
+            <div
+              ref={railRef}
+              tabIndex={0}
+              onKeyDown={onRailKeyDown}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2"
+              style={{ scrollbarWidth: "none" as any }}
+            >
               {slides.map((s, i) => (
-                <ExperienceCard key={s.key} slide={s} index={i} isActive={activeSlide === i} />
+                <ExperienceCard key={s.key} slide={s} index={i} />
               ))}
             </div>
 
-            {/* dots */}
+            {/* pagination by PAGE (not by card) */}
             <div className="mt-6 mx-auto max-w-5xl">
               <div className="flex items-center gap-2">
-                {slides.map((_, i) => (
-                  <button key={i} onClick={() => scrollToIndex(i)} aria-current={activeSlide === i}
-                    className={`h-2.5 flex-1 rounded-full ${activeSlide === i ? "bg-primary" : "bg-muted-foreground/30"}`} />
+                {Array.from({ length: pageCount }).map((_, p) => (
+                  <button
+                    key={p}
+                    aria-label={`Go to page ${p + 1}`}
+                    aria-current={activePage === p}
+                    onClick={() => scrollToPage(p)}
+                    className={`h-2.5 flex-1 rounded-full transition-all ${
+                      activePage === p ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    }`}
+                  />
                 ))}
               </div>
+              <p className="sr-only" aria-live="polite">
+                Page {activePage + 1} of {pageCount}. Showing cards {activeFirstIndex + 1} to{" "}
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)}.
+              </p>
             </div>
 
             {/* connected journey */}
             <div className="mt-4 max-w-5xl mx-auto hidden md:flex items-center justify-between gap-3 rounded-2xl bg-card ring-1 ring-border px-4 py-3">
               <div className="text-sm text-muted-foreground">
-                Step {activeSlide + 1} of {slides.length}: <span className="font-medium">{slides[activeSlide]?.title}</span>
+                Page {activePage + 1} of {pageCount} • Cards {activeFirstIndex + 1}–
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)}
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activeSlide === 0}>
+                <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activePage === 0}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button size="sm" onClick={() => scrollToIndex(activeSlide + 1)}>
-                  Next: {slides[(activeSlide + 1) % slides.length]?.title} <ChevronRight className="h-4 w-4 ml-1" />
+                <Button size="sm" onClick={() => scrollToPage(activePage + 1)} disabled={activePage >= pageCount - 1}>
+                  Next Page <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => openQuickView(activeSlide)}>Quick View</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openQuickView(activeFirstIndex)}
+                  disabled={activeFirstIndex >= slides.length}
+                >
+                  Quick View
+                </Button>
               </div>
             </div>
 
-            {/* quick actions */}
+            {/* quick actions (ordered) */}
             <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
-              <Button variant="outline" onClick={() => setIsOffersModalOpen(true)}><Tag className="mr-2 h-4 w-4" />View Offers</Button>
-              <Button variant="outline" onClick={handleFinanceCalculator}><Gauge className="mr-2 h-4 w-4" />Estimate EMI • {monthlyEMI} AED/mo</Button>
-              <Button variant="outline" onClick={handleBookTestDrive}><Calendar className="mr-2 h-4 w-4" />Book Test Drive</Button>
-              <Button variant="outline" onClick={handleCarBuilder}><PencilRuler className="mr-2 h-4 w-4" />Build Your {safeModelEnd}</Button>
+              <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-center">
+                <Tag className="mr-2 h-4 w-4" /> View Offers
+              </Button>
+              <Button variant="outline" onClick={handleFinanceCalculator} className="justify-center">
+                <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
+              </Button>
+              <Button variant="outline" onClick={handleBookTestDrive} className="justify-center">
+                <Calendar className="mr-2 h-4 w-4" /> Book Test Drive
+              </Button>
+              <Button variant="outline" onClick={handleCarBuilder} className="justify-center">
+                <PencilRuler className="mr-2 h-4 w-4" /> Build Your {safeModelEnd}
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      <VehicleGallery />
+      {/* rest */}
+      <section className="py-8 lg:py-16 bg-muted/30">
+        <VehicleGallery />
+      </section>
       <EnhancedLifestyleGallery vehicle={vehicle} />
-      <RelatedVehicles currentVehicle={vehicle} />
+      <section className="py-8 lg:py-16 bg-muted/30">
+        <RelatedVehicles currentVehicle={vehicle} />
+      </section>
       <PreOwnedSimilar currentVehicle={vehicle} />
       <VehicleFAQ vehicle={vehicle} />
 
-      {/* quick view modal */}
+      {/* Quick View */}
       <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
         <DialogContent className="max-w-5xl p-0 overflow-hidden z-[60]">
           {slides[quickViewIndex] && (
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <img src={slides[quickViewIndex].image} alt={slides[quickViewIndex].title} className="w-full h-full object-cover" />
               <div className="p-6 space-y-5">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold w-max">
+                  {slides[quickViewIndex].icon}
+                  {slides[quickViewIndex].title}
+                </div>
                 <h3 className="text-2xl font-extrabold">{slides[quickViewIndex].subtitle}</h3>
                 {slides[quickViewIndex].meta && (
                   <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
@@ -408,17 +458,25 @@ const VehicleDetails = () => {
                     ))}
                   </ul>
                 )}
-                <div className="flex gap-3">
-                  {slides[quickViewIndex].cta && (
+                <div className="flex flex-wrap gap-3">
+                  {slides[quickViewIndex].cta ? (
                     <Button onClick={() => runAfterCloseQuickView(slides[quickViewIndex].cta!.onClick)}>
                       {slides[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
+                  ) : (
+                    <Button onClick={() => runAfterCloseQuickView(handleBookTestDrive)}>
+                      Book a Test Drive <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                   )}
-                  <Button variant="outline" onClick={() => {
-                    const next = (quickViewIndex + 1) % slides.length;
-                    setQuickViewIndex(next);
-                    scrollToIndex(next);
-                  }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const next = (quickViewIndex + 1) % slides.length;
+                      setQuickViewIndex(next);
+                      const nextPage = Math.floor(next / cardsPerView);
+                      scrollToPage(nextPage);
+                    }}
+                  >
                     Next: {slides[(quickViewIndex + 1) % slides.length].title}
                   </Button>
                 </div>
@@ -428,11 +486,18 @@ const VehicleDetails = () => {
         </DialogContent>
       </Dialog>
 
-      <OffersModal isOpen={isOffersModalOpen} onClose={() => setIsOffersModalOpen(false)} selectedOffer={selectedOffer} />
+      {/* Modals */}
+      <OffersModal
+        isOpen={isOffersModalOpen}
+        onClose={() => { setIsOffersModalOpen(false); setSelectedOffer(null); }}
+        selectedOffer={selectedOffer}
+      />
       <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
       <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
       <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
-      <ActionPanel 
+
+      {/* Desktop panel */}
+      <ActionPanel
         vehicle={vehicle}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
