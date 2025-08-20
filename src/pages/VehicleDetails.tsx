@@ -49,6 +49,18 @@ type Slide = {
 
 const GAP_PX = 24; // must match gap-6
 
+// Calculate EMI function
+const calculateEMI = (price: number, downPaymentPercent: number = 20, interestRate: number = 3.5, tenureYears: number = 5): number => {
+  const principal = price * (1 - downPaymentPercent / 100);
+  const monthlyRate = interestRate / 100 / 12;
+  const totalMonths = tenureYears * 12;
+  
+  if (monthlyRate === 0) return principal / totalMonths;
+  
+  const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+  return Math.round(emi);
+};
+
 export default function VehicleDetails() {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const navigate = useNavigate();
