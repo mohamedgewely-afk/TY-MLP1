@@ -104,7 +104,6 @@ const VehicleDetails = () => {
     window.dispatchEvent(new Event("favorites-updated"));
   };
 
-  const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
 
   const slides = [
     {
