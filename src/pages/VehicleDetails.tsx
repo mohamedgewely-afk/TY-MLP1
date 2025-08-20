@@ -299,112 +299,161 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
           <RefinedTechExperience vehicle={vehicle} />
-<section className="space-y-24 lg:space-y-32 py-20 bg-muted/30">
-  {/* Section 1 – Performance */}
-  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
-    <motion.div
-      initial={{ opacity: 0, x: -50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-    >
-      <h2 className="text-4xl font-bold mb-4">Immediate response with confident control.</h2>
-      <p className="text-muted-foreground mb-6">
-        Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.
-      </p>
-      <Button onClick={() => setIsBookingOpen(true)}>Feel it – Test Drive</Button>
-    </motion.div>
-    <motion.img
-      src={galleryImages[2]}
-      alt="Performance"
-      className="rounded-xl shadow-lg"
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-    />
-  </div>
+<section className="py-16 lg:py-28 bg-muted/30">
+  <div className="toyota-container max-w-[1400px] space-y-24 lg:space-y-32">
+    {/* Section 1 – Performance */}
+    <div className="grid lg:grid-cols-12 gap-10 items-center">
+      <motion.div
+        className="lg:col-span-5"
+        initial={{ opacity: 0, x: -50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+          Immediate response with confident control.
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.
+        </p>
+        <Button onClick={() => setIsBookingOpen(true)}>Feel it – Test Drive</Button>
+      </motion.div>
 
-  {/* Section 2 – Safety */}
-  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
-    <motion.img
-      src={galleryImages[1]}
-      alt="Safety Sense"
-      className="rounded-xl shadow-lg order-2 lg:order-1"
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-    />
-    <motion.div
-      className="order-1 lg:order-2"
-      initial={{ opacity: 0, x: 50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-    >
-      <h2 className="text-4xl font-bold mb-4">Proactive protection, 360° awareness.</h2>
-      <p className="text-muted-foreground mb-6">
-        Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.
-      </p>
-      <Button variant="outline" onClick={() => navigate("/safety")}>See Safety Suite</Button>
-    </motion.div>
-  </div>
+      <motion.div
+        className="lg:col-span-7"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
+          <img
+            src={galleryImages[2]}
+            alt="Performance"
+            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
+            loading="lazy"
+          />
+        </div>
+      </motion.div>
+    </div>
 
-  {/* Section 3 – Connected Life */}
-  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
-    <motion.div
-      initial={{ opacity: 0, x: -50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-    >
-      <h2 className="text-4xl font-bold mb-4">Wireless Apple CarPlay & Android Auto.</h2>
-      <p className="text-muted-foreground mb-6">
-        Stay connected with voice control, OTA updates, and smart integration.
-      </p>
-      <Button variant="outline" onClick={() => navigate("/connect")}>Explore Connectivity</Button>
-    </motion.div>
-    <motion.img
-      src={galleryImages[0]}
-      alt="Connected Tech"
-      className="rounded-xl shadow-lg"
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-    />
-  </div>
+    {/* Section 2 – Safety */}
+    <div className="grid lg:grid-cols-12 gap-10 items-center">
+      <motion.div
+        className="lg:col-span-7 order-2 lg:order-1"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
+          <img
+            src={galleryImages[1]}
+            alt="Safety Sense"
+            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
+            loading="lazy"
+          />
+        </div>
+      </motion.div>
 
-  {/* Section 4 – Ownership */}
-  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
-    <motion.img
-      src={galleryImages[1]}
-      alt="Ownership"
-      className="rounded-xl shadow-lg order-2 lg:order-1"
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-    />
-    <motion.div
-      className="order-1 lg:order-2"
-      initial={{ opacity: 0, x: 50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-    >
-      <h2 className="text-4xl font-bold mb-4">Clear pricing, finance made simple.</h2>
-      <p className="text-muted-foreground mb-6">
-        Get estimated EMI of <strong>{monthlyEMI.toLocaleString()} AED/mo</strong> or build your deal online.
-      </p>
-      <div className="flex flex-wrap gap-4">
-        <Button variant="outline" onClick={() => setIsFinanceOpen(true)}>Estimate EMI</Button>
-        <Button onClick={() => setIsCarBuilderOpen(true)}>Build Your {safeModelEnd}</Button>
-      </div>
-    </motion.div>
+      <motion.div
+        className="lg:col-span-5 order-1 lg:order-2"
+        initial={{ opacity: 0, x: 50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+          Proactive protection, 360° awareness.
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.
+        </p>
+        <Button variant="outline" onClick={() => navigate("/safety")}>
+          See Safety Suite
+        </Button>
+      </motion.div>
+    </div>
+
+    {/* Section 3 – Connected Life */}
+    <div className="grid lg:grid-cols-12 gap-10 items-center">
+      <motion.div
+        className="lg:col-span-5"
+        initial={{ opacity: 0, x: -50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+          Wireless Apple CarPlay & Android Auto.
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Stay connected with voice control, OTA updates, and smart integration.
+        </p>
+        <Button variant="outline" onClick={() => navigate("/connect")}>
+          Explore Connectivity
+        </Button>
+      </motion.div>
+
+      <motion.div
+        className="lg:col-span-7"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
+          <img
+            src={galleryImages[0]}
+            alt="Connected Tech"
+            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
+            loading="lazy"
+          />
+        </div>
+      </motion.div>
+    </div>
+
+    {/* Section 4 – Ownership */}
+    <div className="grid lg:grid-cols-12 gap-10 items-center">
+      <motion.div
+        className="lg:col-span-7 order-2 lg:order-1"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
+          <img
+            src={galleryImages[1]}
+            alt="Ownership"
+            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
+            loading="lazy"
+          />
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="lg:col-span-5 order-1 lg:order-2"
+        initial={{ opacity: 0, x: 50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+          Clear pricing, finance made simple.
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Get estimated EMI of <strong>{monthlyEMI.toLocaleString()} AED/mo</strong> or build your deal online.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Button variant="outline" onClick={() => setIsFinanceOpen(true)}>Estimate EMI</Button>
+          <Button onClick={() => setIsCarBuilderOpen(true)}>Build Your {safeModelEnd}</Button>
+        </div>
+      </motion.div>
+    </div>
   </div>
 </section>
+
       
 {/* Vehicle Gallery (restored) */}
 <section className="py-8 lg:py-16 bg-muted/30">
