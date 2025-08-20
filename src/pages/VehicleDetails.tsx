@@ -305,6 +305,7 @@ const VehicleDetails = () => {
   <div className="text-center text-sm text-muted-foreground font-medium uppercase tracking-wide">
     Tailored to Every Model
   </div>
+
 <h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
 Craft Your {safeModelEnd} Journey
 </h2>
