@@ -60,7 +60,6 @@ import OffersModal from "@/components/home/OffersModal";
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
-// import MobileStickyNav from "@/components/MobileStickyNav"; // intentionally not used
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
@@ -93,17 +92,14 @@ const VehicleDetails = () => {
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // hero image swipe (kept)
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // OLD per-card carousel state kept but unused (safe to keep to avoid refactors)
   const [activeSlide, setActiveSlide] = useState(0);
   const [cardWidth, setCardWidth] = useState(360);
   const firstCardRef = useRef<HTMLDivElement>(null);
 
-  // NEW page-based carousel state
   const railRef = useRef<HTMLDivElement>(null);
   const [cardsPerView, setCardsPerView] = useState(1);
   const [activePage, setActivePage] = useState(0);
@@ -113,7 +109,6 @@ const VehicleDetails = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Official images
   const galleryImages = [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
@@ -139,7 +134,6 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   };
 
-  // hero swipe (kept)
   const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
@@ -225,7 +219,6 @@ const VehicleDetails = () => {
     },
   ];
 
-  // Vehicle + favorites (kept)
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
@@ -244,7 +237,6 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
-  // Keep your hero auto-advance (kept)
   useEffect(() => {
     const id = setInterval(() => {
       setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
@@ -252,10 +244,6 @@ const VehicleDetails = () => {
     return () => clearInterval(id);
   }, [galleryImages.length]);
 
-  // REMOVE old per-card measurement listeners (no longer needed)
-  // We leave firstCardRef/cardWidth state in place to avoid wider refactors.
-
-  // NEW: decide cardsPerView by rail width (1/2/3/4-up) and keep page in range
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
@@ -281,7 +269,6 @@ const VehicleDetails = () => {
 
   const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
 
-  // Page-based scroll helpers (robust)
   const scrollToPage = (page: number) => {
     const rail = railRef.current;
     if (!rail) return;
@@ -291,7 +278,6 @@ const VehicleDetails = () => {
   const handlePrev = () => scrollToPage(activePage - 1);
   const handleNext = () => scrollToPage(activePage + 1);
 
-  // Track activePage on scroll (for dots/disabled arrows)
   useEffect(() => {
     const el = railRef.current;
     if (!el) return;
@@ -303,9 +289,7 @@ const VehicleDetails = () => {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Legacy scrollToIndex for dots (now maps to pages instead of single cards)
   const scrollToIndex = (idx: number) => {
-    // Map card index -> page index
     const page = Math.floor(idx / Math.max(1, cardsPerView));
     scrollToPage(page);
   };
@@ -342,7 +326,7 @@ const VehicleDetails = () => {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* HERO */}
+        {/* ENHANCED HERO SECTION with Accessibility */}
         <EnhancedHeroSection
           vehicle={vehicle}
           galleryImages={galleryImages}
@@ -359,7 +343,7 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* EXPERIENCE RAIL */}
+          {/* EXPERIENCE RAIL - keep existing implementation */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
             <div className="toyota-container max-w-none">
               <motion.div
@@ -379,7 +363,6 @@ const VehicleDetails = () => {
               </motion.div>
 
               <div className="relative">
-                {/* Desktop arrows (page-based) */}
                 <button
                   aria-label="Previous"
                   onClick={handlePrev}
@@ -397,7 +380,6 @@ const VehicleDetails = () => {
                   <ChevronRight className="h-5 w-5" />
                 </button>
 
-                {/* Rail: 1/2/3/4 cards per view, swipeable like mobile */}
                 <div
                   ref={railRef}
                   className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 touch-pan-x overscroll-x-contain"
@@ -421,7 +403,6 @@ const VehicleDetails = () => {
                         />
                       </div>
 
-                      {/* Content (removed glass effect as requested earlier) */}
                       <CardContent className="p-4">
                         <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
                           {s.icon}
@@ -465,7 +446,6 @@ const VehicleDetails = () => {
                   ))}
                 </div>
 
-                {/* Pagination: by page (not per-card) */}
                 <div className="mt-6 flex items-center justify-center gap-2">
                   {Array.from({ length: pageCount }).map((_, i) => (
                     <button
@@ -481,7 +461,6 @@ const VehicleDetails = () => {
                   ))}
                 </div>
 
-                {/* Quick actions — ordered: View Offers → Estimate EMI → Book Test Drive → Build */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
                     <Tag className="mr-2 h-4 w-4" />
@@ -504,7 +483,6 @@ const VehicleDetails = () => {
             </div>
           </section>
 
-          {/* Rest of page */}
           <section className="py-8 lg:py-16 bg-muted/30">
             <VehicleGallery />
           </section>
@@ -527,7 +505,7 @@ const VehicleDetails = () => {
         />
       </div>
 
-      {/* Modals */}
+      {/* Modals - keep existing code */}
       <OffersModal
         isOpen={isOffersModalOpen}
         onClose={() => {
