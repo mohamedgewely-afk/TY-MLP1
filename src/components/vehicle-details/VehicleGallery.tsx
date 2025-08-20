@@ -492,10 +492,10 @@ export default function LandCruiserLifestyleGalleryPro({
         }}
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-black/90 md:from-black/80 md:via-black/40 md:to-black/80" aria-hidden="true" />
 
       {/* Header */}
-      <header className="relative z-10 mx-auto max-w-[min(96vw,1600px)] flex flex-col items-center text-center gap-2 px-4 pt-6">
+      <header className="relative z-10 mx-auto max-w-[min(98vw,2000px)] flex flex-col items-center text-center gap-2 px-4 pt-6">
         <div className="flex items-center gap-3" style={{ color: TOYOTA_RED }}>
           <ToyotaLogo className="w-14 sm:w-16 md:w-20" />
           <span className="sr-only">Toyota</span>
@@ -628,7 +628,7 @@ export default function LandCruiserLifestyleGalleryPro({
       )}
 
       {/* Navigation indicators (progress + dots + desktop fraction) */}
-      <div className="relative z-10 mx-auto max-w-[min(96vw,1600px)] px-4 md:px-6">
+      <div className="relative z-10 mx-auto max-w-[min(98vw,2000px)] px-4 md:px-6">
         <div className="mt-1.5 h-1 w-full bg-white/10 rounded">
           <div
             className="h-1 rounded"
@@ -726,11 +726,12 @@ function SceneCardPro({
 }) {
   // tightened mobile size & heights (no xs: breakpoint)
   const cardCls = `snap-center shrink-0
-  min-w-[290px] max-w-[290px]
-  sm:min-w-[300px] sm:max-w-[300px]
-  md:min-w-[520px] md:max-w-[520px]
-  lg:min-w-[620px] lg:max-w-[620px]
-  xl:min-w-[700px] xl:max-w-[700px]
+  min-w-[260px] max-w-[260px]
+sm:min-w-[300px] sm:max-w-[300px]
+md:min-w-[640px] md:max-w-[640px]
+lg:min-w-[760px] lg:max-w-[760px]
+xl:min-w-[880px] xl:max-w-[880px]
+2xl:min-w-[1040px] 2xl:max-w-[1040px]
   rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
   return (
@@ -761,8 +762,8 @@ function SceneCardPro({
           alt={`${data.title} • ${data.scene}`}
           loading="lazy"
           decoding="async"
-          sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, (max-width: 1024px) 520px, 700px"
-className="w-full h-44 sm:h-56 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
+          sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, (max-width: 1024px) 640px, (max-width: 1280px) 760px, (max-width: 1536px) 880px, 1040px"
+className="w-full h-44 sm:h-56 md:h-72 lg:h-80 xl:h-96 2xl:h-[28rem] object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
         <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
