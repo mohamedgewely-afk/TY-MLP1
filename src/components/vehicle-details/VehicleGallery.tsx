@@ -25,13 +25,7 @@ const TOYOTA_BG = "#0D0F10";
 
 function ToyotaLogo({ className = "w-20 h-auto" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 100 60"
-      className={className}
-      aria-hidden
-      role="img"
-      focusable="false"
-    >
+    <svg viewBox="0 0 100 60" className={className} aria-hidden role="img" focusable="false">
       <g fill="currentColor">
         <ellipse cx="50" cy="30" rx="38" ry="22" className="opacity-90" />
         <ellipse cx="50" cy="30" rx="26" ry="14" fill={TOYOTA_BG} />
@@ -48,19 +42,19 @@ function ToyotaLogo({ className = "w-20 h-auto" }: { className?: string }) {
 export type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
 export interface SceneData {
   id: string;
-  title: string; // Land Cruiser
-  scene: SceneCategory; // lifestyle scene
-  image: string; // hero
-  description: string; // short copy
-  narration?: string; // optional voiceover
-  specs: Record<string, string>; // HUD specs per scene
+  title: string;
+  scene: SceneCategory;
+  image: string;
+  description: string;
+  narration?: string;
+  specs: Record<string, string>;
 }
 
 interface LandCruiserLifestyleGalleryProProps {
-  scenes?: SceneData[]; // default scenes below
+  scenes?: SceneData[];
   locale?: "en" | "ar";
   rtl?: boolean;
-  onAskToyota?: (scene: SceneData) => void; // hook for chat/lead
+  onAskToyota?: (scene: SceneData) => void;
 }
 
 const STR = {
@@ -136,7 +130,7 @@ const specIcons: Record<string, JSX.Element> = {
 };
 
 // —————————————————————————————————
-// DEFAULT LIFESTYLE SCENES (uses your DAM images)
+// DEFAULT LIFESTYLE SCENES
 // —————————————————————————————————
 const DEFAULT_SCENES: SceneData[] = [
   {
@@ -240,8 +234,11 @@ const sceneSpecPriority: Record<SceneCategory, string[]> = {
 function sortSpecs(scene: SceneCategory, specs: Record<string, string>): Array<[string, string]> {
   const entries = Object.entries(specs);
   const pri = sceneSpecPriority[scene] ?? [];
-  const rank = (k: string) => (pri.indexOf(k) === -1 ? 999 : pri.indexOf(k));
-  return entries.sort((a, b) => rank(a[0]) - rank(b[0]));
+  return entries.sort((a, b) => {
+    const ai = pri.indexOf(a[0]);
+    const bi = pri.indexOf(b[0]);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
 }
 
 const fmt = (t: number) => {
@@ -251,7 +248,7 @@ const fmt = (t: number) => {
   return `${m}:${s}`;
 };
 
-// Helper: lock body scroll when overlay is open (prevents background scroll on mobile)
+// Lock body scroll only while overlay is open
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -271,7 +268,7 @@ function useBodyScrollLock(locked: boolean) {
 }
 
 // —————————————————————————————————
-// MAIN COMPONENT (carousel-only, indicators added, a11y/RTL safe)
+// MAIN COMPONENT (carousel-only, indicators, embedded filters)
 // —————————————————————————————————
 export default function LandCruiserLifestyleGalleryPro({
   scenes = DEFAULT_SCENES,
@@ -294,9 +291,11 @@ export default function LandCruiserLifestyleGalleryPro({
   const liveAudioRef = useRef<HTMLDivElement>(null);
   const liveSlideRef = useRef<HTMLDivElement>(null);
 
-  const filtered = useMemo(() => (filter === "All" ? scenes : scenes.filter((s) => s.scene === filter)), [scenes, filter]);
+  const filtered = useMemo(
+    () => (filter === "All" ? scenes : scenes.filter((s) => s.scene === filter)),
+    [scenes, filter]
+  );
 
-  // Center active card
   const centerCard = useCallback((index: number) => {
     const el = trackRef.current;
     if (!el) return;
@@ -306,7 +305,7 @@ export default function LandCruiserLifestyleGalleryPro({
     el.scrollTo({ left, behavior: "smooth" });
   }, []);
 
-  // Focus the newly-active card when changed via keys
+  // roving focus for keyboard navigation
   const justChangedByArrow = useRef(false);
   useEffect(() => {
     if (!trackRef.current) return;
@@ -317,7 +316,7 @@ export default function LandCruiserLifestyleGalleryPro({
     }
   }, [activeIdx]);
 
-  // Ambient audio
+  // Ambient audio (loop) + ducking while narration plays
   useEffect(() => {
     const a = ambientRef.current;
     if (!a) return;
@@ -330,25 +329,34 @@ export default function LandCruiserLifestyleGalleryPro({
     }
   }, [ambientOn]);
 
+  // Duck ambient when narration plays
+  const [isNarrPlaying, setNarrPlaying] = useState(false);
+  useEffect(() => {
+    const a = ambientRef.current;
+    if (!a) return;
+    a.volume = isNarrPlaying ? 0.12 : 0.35;
+  }, [isNarrPlaying]);
+
   // Reset on filter change
   useEffect(() => {
     setActiveIdx(0);
     trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
   }, [filter]);
 
-  // Center on active change & announce slide
+  // Center on active change & announce
   useEffect(() => {
     centerCard(activeIdx);
     if (filtered[activeIdx]) {
       const name = `${filtered[activeIdx].scene}`;
-      if (liveSlideRef.current) liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name);
+      if (liveSlideRef.current) {
+        liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name);
+      }
     }
   }, [activeIdx, centerCard, filtered, T]);
 
   // Narration player state
   const [narrTime, setNarrTime] = useState(0);
   const [narrDur, setNarrDur] = useState(0);
-  const [isNarrPlaying, setNarrPlaying] = useState(false);
 
   useEffect(() => {
     const n = narrationRef.current;
@@ -404,11 +412,10 @@ export default function LandCruiserLifestyleGalleryPro({
     setActiveIdx((p) => (p - 1 + filtered.length) % filtered.length);
   }, [selected, filtered]);
 
-  // Keyboard: arrows navigate (RTL-aware); Enter/Space opens; Esc closes overlay
+  // Root keyboard (overlay handles its own keys)
   const onRootKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (selected) return; // overlay handles its own keys
-
+      if (selected) return;
       const goNext = () => {
         justChangedByArrow.current = true;
         setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
@@ -417,11 +424,24 @@ export default function LandCruiserLifestyleGalleryPro({
         justChangedByArrow.current = true;
         setActiveIdx((i) => Math.max(i - 1, 0));
       };
-
       if (e.key === "ArrowRight") {
         e.preventDefault();
         rtl ? goPrev() : goNext();
       } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        rtl ? goNext() : goPrev();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        justChangedByArrow.current = true;
+        setActiveIdx(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        justChangedByArrow.current = true;
+        setActiveIdx(filtered.length - 1);
+      } else if (e.key === "PageDown") {
+        e.preventDefault();
+        rtl ? goPrev() : goNext();
+      } else if (e.key === "PageUp") {
         e.preventDefault();
         rtl ? goNext() : goPrev();
       } else if (e.key === "Enter" || e.key === " ") {
@@ -433,7 +453,6 @@ export default function LandCruiserLifestyleGalleryPro({
     [selected, filtered, activeIdx, rtl]
   );
 
-  // Body scroll lock when overlay is open.
   useBodyScrollLock(!!selected);
 
   const hintId = "lc-hint";
@@ -509,7 +528,7 @@ export default function LandCruiserLifestyleGalleryPro({
           </button>
         </div>
 
-        {/* Lifestyle Filter (desktop) */}
+        {/* Embedded Lifestyle Filter (desktop) */}
         <nav className="mt-4 hidden md:flex flex-wrap items-center justify-center gap-2 px-2" aria-label={T.filters}>
           {["All", ...T.scenes].map((c) => (
             <button
@@ -528,13 +547,35 @@ export default function LandCruiserLifestyleGalleryPro({
             </button>
           ))}
         </nav>
+
+        {/* Embedded Lifestyle Filter (mobile chips in header) */}
+        <nav className="mt-3 md:hidden w-full overflow-x-auto px-4" aria-label={T.filters}>
+          <div className="flex gap-2 w-max">
+            {["All", ...T.scenes].map((c) => (
+              <button
+                key={`m-${c}`}
+                type="button"
+                onClick={() => setFilter(c as any)}
+                className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
+                style={{
+                  borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
+                  background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
+                  color: filter === (c as any) ? TOYOTA_RED : "#fff",
+                }}
+                aria-pressed={filter === (c as any)}
+              >
+                {c === "All" ? T.all : c}
+              </button>
+            ))}
+          </div>
+        </nav>
       </header>
 
       {/* Carousel Track */}
       <div
         id="content"
         ref={trackRef}
-        className="relative z-10 mt-4 md:mt-8 flex gap-2.5 sm:gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),12px)] pr-[max(env(safe-area-inset-right),12px)]"
+        className="relative z-10 mt-4 md:mt-8 flex gap-2.5 sm:gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),12px)] pr-[max(env(safe-area-inset-right),12px)]"
         role="region"
         aria-roledescription="carousel"
         aria-label={T.sceneList}
@@ -553,16 +594,42 @@ export default function LandCruiserLifestyleGalleryPro({
               setActiveIdx(idx);
             }}
             onFocus={() => setActiveIdx(idx)}
-            prefersReduced={prefersReduced}
+            prefersReduced={useReducedMotion()}
             ariaLabel={T.openScene(sc.scene)}
+            expandLabel={T.expand}
           />
         ))}
       </div>
 
-      {/* Nav indicators (mobile + desktop) */}
+      {/* Desktop carousel arrows (outside overlay) */}
+      {filtered.length > 0 && (
+        <div className="relative hidden md:block z-10">
+          <div className="pointer-events-none absolute top-1/2 left-0 right-0 mx-auto max-w-[min(96vw,1800px)] px-2 md:px-6 -translate-y-1/2">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+                aria-label={T.prevScene}
+                onClick={() => setActiveIdx((i) => Math.max(i - 1, 0))}
+              >
+                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+                aria-label={T.nextScene}
+                onClick={() => setActiveIdx((i) => Math.min(i + 1, filtered.length - 1))}
+              >
+                <ChevronRight className="w-6 h-6" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation indicators (progress + dots + desktop fraction) */}
       <div className="relative z-10 mx-auto max-w-[min(96vw,1600px)] px-4 md:px-6">
-        {/* Progress bar */}
-        <div className="mt-2 h-1 w-full bg-white/10 rounded">
+        <div className="mt-1.5 h-1 w-full bg-white/10 rounded">
           <div
             className="h-1 rounded"
             style={{
@@ -572,56 +639,31 @@ export default function LandCruiserLifestyleGalleryPro({
             aria-hidden="true"
           />
         </div>
-
-        {/* Dots */}
         <div className="mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
-          {filtered.map((s, i) => (
-            <button
-              key={`dot-${s.id}`}
-              type="button"
-              role="tab"
-              aria-selected={i === activeIdx}
-              aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
-              className={`h-2.5 rounded-full transition-all ${i === activeIdx ? "w-6" : "w-2.5"}`}
-              onClick={() => setActiveIdx(i)}
-              style={{ background: i === activeIdx ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
-            />
-          ))}
+          {filtered.map((s, i) => {
+            const selectedDot = i === activeIdx;
+            return (
+              <button
+                key={`dot-${s.id}`}
+                type="button"
+                role="tab"
+                aria-selected={selectedDot}
+                aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
+                className={`h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
+                  selectedDot ? "w-6" : "w-2.5"
+                }`}
+                onClick={() => setActiveIdx(i)}
+                style={{ background: selectedDot ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
+              />
+            );
+          })}
         </div>
-
-        {/* Fraction label (desktop) */}
-        <div className="hidden md:flex items-center justify-center gap-3 mt-3">
+        <div className="hidden md:flex items-center justify-center gap-3 mt-2">
           <span className="text-xs text-white/70" aria-live="polite">
-            {activeIdx + 1} / {filtered.length}
+            {Math.min(activeIdx + 1, filtered.length)} / {filtered.length}
           </span>
         </div>
       </div>
-
-      {/* Mobile Sticky Filter (kept exactly, no feature loss) */}
-      <nav
-        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,680px)] rounded-full bg-white/5 backdrop-blur border border-white/10 px-2 py-2 flex items-center gap-2 overflow-x-auto pb-[max(env(safe-area-inset-bottom),8px)]"
-        aria-label={T.filters}
-      >
-        {["All", ...T.scenes].map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => setFilter(c as any)}
-            className="shrink-0 rounded-full px-3 py-2 min-h-[40px] text-xs border"
-            style={{
-              borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-              background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-              color: filter === (c as any) ? TOYOTA_RED : "#fff",
-            }}
-            aria-pressed={filter === (c as any)}
-          >
-            {c === "All" ? T.all : c}
-          </button>
-        ))}
-      </nav>
-
-      {/* Spacer so sticky filter doesn’t overlap indicators */}
-      <div className="h-16 md:hidden" aria-hidden="true" />
 
       {/* Overlay / Expanded Scene */}
       <AnimatePresence>
@@ -661,7 +703,7 @@ export default function LandCruiserLifestyleGalleryPro({
 }
 
 // —————————————————————————————————
-// CARD (compact, tuned widths/heights)
+// CARD
 // —————————————————————————————————
 function SceneCardPro({
   data,
@@ -671,6 +713,7 @@ function SceneCardPro({
   prefersReduced,
   tabIndex,
   ariaLabel,
+  expandLabel,
 }: {
   data: SceneData;
   active: boolean;
@@ -679,8 +722,10 @@ function SceneCardPro({
   prefersReduced: boolean;
   tabIndex: number;
   ariaLabel: string;
+  expandLabel: string;
 }) {
-  const cardCls = `snap-center shrink-0 min-w-[82vw] xs:min-w-[78vw] sm:min-w-[360px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
+  // tightened mobile size & heights (no xs: breakpoint)
+  const cardCls = `snap-center shrink-0 min-w-[82vw] sm:min-w-[360px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
     rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
   return (
@@ -712,7 +757,7 @@ function SceneCardPro({
           loading="lazy"
           decoding="async"
           sizes="(max-width: 640px) 82vw, (max-width: 1024px) 520px, 700px"
-          className="w-full h-44 xs:h-52 sm:h-60 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
+          className="w-full h-44 sm:h-60 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
         <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
@@ -723,37 +768,33 @@ function SceneCardPro({
             </p>
           </div>
           <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 text-xs sm:text-sm">
-            {STR.en.expand}
+            {expandLabel}
           </span>
         </div>
       </button>
 
       <div className="p-4 sm:p-5 md:p-6">
         <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
-        {/* Specs as list for semantics */}
-        <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
           {sortSpecs(data.scene, data.specs)
             .slice(0, 4)
             .map(([key, val], i) => (
-              <li key={key}>
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
-                >
-                  <span style={{ color: TOYOTA_RED }}>
-                    {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
-                  </span>
-                  <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                    <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                    <div className="font-semibold text-white">{val}</div>
-                  </div>
-                </motion.div>
-              </li>
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
+                className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+              >
+                <span style={{ color: TOYOTA_RED }}>{specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}</span>
+                <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
+                  <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
+                  <div className="font-semibold text-white">{val}</div>
+                </div>
+              </motion.div>
             ))}
-        </ul>
+        </div>
       </div>
     </motion.article>
   );
@@ -801,7 +842,7 @@ function ExpandedSceneOverlay({
   const T = localeStrings;
   const headingId = `scene-title-${scene.id}`;
 
-  // Focus trap & Esc close
+  // Focus trap & Esc/Arrows/Space
   useEffect(() => {
     const root = overlayRef.current;
     if (!root) return;
@@ -854,7 +895,7 @@ function ExpandedSceneOverlay({
     };
   }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying, rtl]);
 
-  // Swipe on hero area
+  // Touch swipe on hero
   const startX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0]?.clientX ?? null;
@@ -862,7 +903,7 @@ function ExpandedSceneOverlay({
   const onTouchEnd = (e: React.TouchEvent) => {
     if (startX.current == null) return;
     const dx = (e.changedTouches[0]?.clientX ?? startX.current) - startX.current;
-    const threshold = 40; // px
+    const threshold = 40;
     if (Math.abs(dx) > threshold) {
       rtl ? (dx > 0 ? onNext() : onPrev()) : (dx > 0 ? onPrev() : onNext());
     }
@@ -893,7 +934,7 @@ function ExpandedSceneOverlay({
       {/* Panel */}
       <motion.div
         layoutId={scene.id}
-        className="relative z-10 mx-auto h-full w-full md:w:[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
+        className="relative z-10 mx-auto h-full w-full md:w-[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
         style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
         transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28 }}
       >
@@ -914,7 +955,7 @@ function ExpandedSceneOverlay({
               type="button"
               onClick={onPrev}
               className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.prevScene}
+              aria-label={T.prevScene}
             >
               <ChevronLeft className="w-6 h-6" aria-hidden="true" />
             </button>
@@ -923,7 +964,7 @@ function ExpandedSceneOverlay({
               onClick={onClose}
               data-close
               className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.collapse}
+              aria-label={T.collapse}
             >
               <X className="w-6 h-6" aria-hidden="true" />
             </button>
@@ -931,7 +972,7 @@ function ExpandedSceneOverlay({
               type="button"
               onClick={onNext}
               className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.nextScene}
+              aria-label={T.nextScene}
             >
               <ChevronRight className="w-6 h-6" aria-hidden="true" />
             </button>
@@ -953,7 +994,7 @@ function ExpandedSceneOverlay({
               className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15"
               style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
             >
-              {STR.en.ask}
+              {T.ask}
             </button>
           </div>
         </div>
@@ -963,26 +1004,23 @@ function ExpandedSceneOverlay({
           <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 pt-4 pb-24">
             <p className="text-white/85 text-sm sm:text-base md:text-lg">{scene.description}</p>
 
-            <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3" aria-label="Specifications">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
               {Object.entries(scene.specs).map(([key, val], i) => (
-                <li key={key}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
-                    className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
-                  >
-                    <span style={{ color: TOYOTA_RED }}>
-                      {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
-                    </span>
-                    <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                      <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                      <div className="font-semibold text-white">{val}</div>
-                    </div>
-                  </motion.div>
-                </li>
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
+                  className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+                >
+                  <span style={{ color: TOYOTA_RED }}>{specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}</span>
+                  <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
+                    <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
+                    <div className="font-semibold text-white">{val}</div>
+                  </div>
+                </motion.div>
               ))}
-            </ul>
+            </div>
 
             <div className="sm:hidden mt-4">
               <button
@@ -991,13 +1029,13 @@ function ExpandedSceneOverlay({
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15"
                 style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
               >
-                {STR.en.ask}
+                {T.ask}
               </button>
             </div>
           </div>
 
           {/* Bottom controls */}
-          <div className="fixed md:absolute bottom-0 left-0 right-0 z-20 bg-black/70 backdrop-blur border-t border-white/10">
+          <div className="fixed md:absolute bottom-0 left-0 right-0 z-50 bg-black/70 backdrop-blur border-t border-white/10">
             <div className="mx-auto max-w-[1320px] px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3 pb-[max(env(safe-area-inset-bottom),12px)]">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
@@ -1005,22 +1043,22 @@ function ExpandedSceneOverlay({
                   onClick={() => setNarrOn(!narrOn)}
                   className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[44px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm"
                   aria-pressed={narrOn}
-                  title={narrOn ? STR.en.narrationOn : STR.en.narrationOff}
+                  title={narrOn ? T.narrationOn : T.narrationOff}
                 >
-                  {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {STR.en.narrationOn}
+                  {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {narrOn ? T.narrationOn : T.narrationOff}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsNarrPlaying(!isNarrPlaying)}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={isNarrPlaying ? STR.en.paused : STR.en.playing}
+                  aria-label={isNarrPlaying ? T.paused : T.playing}
                   aria-pressed={isNarrPlaying}
                 >
                   {isNarrPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
                 </button>
                 <div className="flex items-center gap-2 w-full sm:w-[420px]">
                   <label htmlFor="narrationRange" className="sr-only">
-                    {STR.en.narrationPosition}
+                    {T.narrationPosition}
                   </label>
                   <span className="text-[10px] text-white/70 w-10 text-right" aria-hidden="true">
                     {fmt(narrTime)}
@@ -1035,6 +1073,9 @@ function ExpandedSceneOverlay({
                     onChange={(e) => setNarrTime(parseFloat(e.currentTarget.value))}
                     className="w-full"
                     style={{ accentColor: TOYOTA_RED }}
+                    aria-valuemin={0}
+                    aria-valuemax={Math.floor(narrDur || 0)}
+                    aria-valuenow={Math.floor(Math.min(narrTime, narrDur || 0))}
                     aria-valuetext={`${fmt(narrTime)} of ${fmt(narrDur)}`}
                   />
                   <span className="text-[10px] text-white/70 w-10" aria-hidden="true">
@@ -1047,7 +1088,7 @@ function ExpandedSceneOverlay({
                   type="button"
                   onClick={onPrev}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={STR.en.prevScene}
+                  aria-label={T.prevScene}
                 >
                   <ChevronLeft className="w-5 h-5" aria-hidden="true" />
                 </button>
@@ -1055,7 +1096,7 @@ function ExpandedSceneOverlay({
                   type="button"
                   onClick={onNext}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={STR.en.nextScene}
+                  aria-label={T.nextScene}
                 >
                   <ChevronRight className="w-5 h-5" aria-hidden="true" />
                 </button>
