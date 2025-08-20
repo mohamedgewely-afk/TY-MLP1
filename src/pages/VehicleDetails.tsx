@@ -19,23 +19,22 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import ToyotaLayout from "@/components/ToyotaLayout";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
-import ToyotaLayout from "@/components/ToyotaLayout";
 import VehicleGallery from "@/components/vehicle-details/VehicleGallery";
-import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
-import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
+import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import RelatedVehicles from "@/components/vehicle-details/RelatedVehicles";
-import LifestyleGallery from "@/components/vehicle-details/LifestyleGallery";
-import CarBuilder from "@/components/vehicle-details/CarBuilder";
+import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
+import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
+import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
+import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
+import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
-import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
-import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 
 type Slide = {
   key: string;
@@ -47,19 +46,7 @@ type Slide = {
   cta?: { label: string; onClick: () => void };
 };
 
-const GAP_PX = 24; // must match gap-6
-
-// Calculate EMI function
-const calculateEMI = (price: number, downPaymentPercent: number = 20, interestRate: number = 3.5, tenureYears: number = 5): number => {
-  const principal = price * (1 - downPaymentPercent / 100);
-  const monthlyRate = interestRate / 100 / 12;
-  const totalMonths = tenureYears * 12;
-  
-  if (monthlyRate === 0) return principal / totalMonths;
-  
-  const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
-  return Math.round(emi);
-};
+const GAP_PX = 24; // must match Tailwind gap-6
 
 export default function VehicleDetails() {
   const { vehicleName } = useParams<{ vehicleName: string }>();
@@ -67,6 +54,7 @@ export default function VehicleDetails() {
   const { toast } = useToast();
 
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Modals
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -74,88 +62,116 @@ export default function VehicleDetails() {
   const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   // Quick View
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [quickViewIndex, setQuickViewIndex] = useState(0);
-  const openQuickView = (i: number) => { setQuickViewIndex(i); setIsQuickViewOpen(true); };
+  const openQuickView = (i: number) => {
+    setQuickViewIndex(i);
+    setIsQuickViewOpen(true);
+  };
 
   // Carousel (PAGE-BASED)
   const railRef = useRef<HTMLDivElement>(null);
   const [cardsPerView, setCardsPerView] = useState(1);
   const [activePage, setActivePage] = useState(0);
-  const pageCount = Math.max(1, Math.ceil(slides().length / cardsPerView));
 
-  // Data
-  function slides(): Slide[] {
-    const galleryImages = [
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
-    ];
-    return [
-      {
-        key: "performance",
-        title: "Performance",
-        subtitle: "Feel the surge of hybrid power, always in command.",
-        image: galleryImages[2],
-        icon: <Gauge className="h-5 w-5" />,
-        meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
-        cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
-      },
-      {
-        key: "safety",
-        title: "Safety Sense",
-        subtitle: "Guardian tech that's always watching out for you.",
-        image: galleryImages[1],
-        icon: <Shield className="h-5 w-5" />,
-        meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
-        cta: { label: "See Safety Suite", onClick: () => navigate("/safety") },
-      },
-      {
-        key: "connected",
-        title: "Connected Life",
-        subtitle: "Wireless Apple CarPlay & Android Auto.",
-        image: galleryImages[0],
-        icon: <Smartphone className="h-5 w-5" />,
-        meta: ["Voice control", "Remote start", "OTA-ready"],
-        cta: { label: "Explore Connectivity", onClick: () => navigate("/connect") },
-      },
-      {
-        key: "comfort",
-        title: "Comfort & Climate",
-        subtitle: "Dual‑zone control and clean air tech.",
-        image: galleryImages[3],
-        icon: <Wind className="h-5 w-5" />,
-        meta: ["HEPA filtration", "Whisper quiet", "Smart venting"],
-        cta: { label: "Inside the Cabin", onClick: () => navigate("/interior") },
-      },
-      {
-        key: "ownership",
-        title: "Ownership",
-        subtitle: "Clear pricing, finance made simple.",
-        image: galleryImages[4],
-        icon: <Award className="h-5 w-5" />,
-        meta: ["Flexible EMI", "Trade‑in support", "Top‑rated service"],
-        cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
-      },
-      {
-        key: "build",
-        title: "Build & Offers",
-        subtitle: "Pick your trim, colors, accessories.",
-        image: galleryImages[5],
-        icon: <PencilRuler className="h-5 w-5" />,
-        meta: ["Live price", "Compare trims", "Limited‑time offers"],
-        cta: { label: "Start Building", onClick: handleCarBuilder },
-      },
-    ];
-  }
+  // Gallery images (for hero + slides)
+  const galleryImages = [
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+  ];
 
-  // Vehicle + page title
+  // Finance calc
+  const calculateEMI = (price: number) => {
+    const principal = price * 0.8;
+    const rate = 0.035 / 12;
+    const tenure = 60;
+    const emi =
+      (principal * rate * Math.pow(1 + rate, tenure)) /
+      (Math.pow(1 + rate, tenure) - 1);
+    return Math.round(emi);
+  };
+
+  // Actions
+  const handleToggleFavorite = () => {
+    setIsFavorite((x) => !x);
+    toast({
+      title: !isFavorite ? "Added to favorites" : "Removed from favorites",
+      description: vehicle?.name,
+    });
+  };
+  const handleBookTestDrive = () => setIsBookingOpen(true);
+  const handleCarBuilder = () => setIsCarBuilderOpen(true);
+  const handleFinanceCalculator = () => setIsFinanceOpen(true);
+  const handleOfferClick = (offer: any) => {
+    setSelectedOffer(offer);
+    setIsOffersModalOpen(true);
+  };
+
+  // Slides
+  const slides: Slide[] = [
+    {
+      key: "performance",
+      title: "Performance",
+      subtitle: "Feel the surge of hybrid power, always in command.",
+      image: galleryImages[2],
+      icon: <Gauge className="h-5 w-5" />,
+      meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
+      cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
+    },
+    {
+      key: "safety",
+      title: "Safety Sense",
+      subtitle: "Guardian tech that's always watching out for you.",
+      image: galleryImages[1],
+      icon: <Shield className="h-5 w-5" />,
+      meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
+      cta: { label: "See Safety Suite", onClick: () => navigate("/safety") },
+    },
+    {
+      key: "connected",
+      title: "Connected Life",
+      subtitle: "Wireless Apple CarPlay & Android Auto.",
+      image: galleryImages[0],
+      icon: <Smartphone className="h-5 w-5" />,
+      meta: ["Voice control", "Remote start", "OTA‑ready"],
+      cta: { label: "Explore Connectivity", onClick: () => navigate("/connect") },
+    },
+    {
+      key: "comfort",
+      title: "Comfort & Climate",
+      subtitle: "Dual‑zone control and clean air tech.",
+      image: galleryImages[3],
+      icon: <Wind className="h-5 w-5" />,
+      meta: ["HEPA filtration", "Whisper quiet", "Smart venting"],
+      cta: { label: "Inside the Cabin", onClick: () => navigate("/interior") },
+    },
+    {
+      key: "ownership",
+      title: "Ownership",
+      subtitle: "Clear pricing, finance made simple.",
+      image: galleryImages[4],
+      icon: <Award className="h-5 w-5" />,
+      meta: ["Flexible EMI", "Trade‑in support", "Top‑rated service"],
+      cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
+    },
+    {
+      key: "build",
+      title: "Build & Offers",
+      subtitle: "Pick your trim, colors, accessories.",
+      image: galleryImages[5],
+      icon: <PencilRuler className="h-5 w-5" />,
+      meta: ["Live price", "Compare trims", "Limited‑time offers"],
+      cta: { label: "Start Building", onClick: handleCarBuilder },
+    },
+  ];
+
+  // Vehicle
   useEffect(() => {
     const found = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
@@ -165,10 +181,12 @@ export default function VehicleDetails() {
     if (found) {
       setVehicle(found);
       document.title = `${found.name} | Toyota UAE`;
+      const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+      setIsFavorite(favs.includes(found.name));
     }
   }, [vehicleName]);
 
-  // Decide cardsPerView purely from rail width (no measuring cards)
+  // Determine cardsPerView by rail width (no measuring cards)
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
@@ -180,8 +198,7 @@ export default function VehicleDetails() {
       else if (w >= 640) per = 2;  // tablet
       else per = 1;                // mobile
       setCardsPerView(per);
-      // keep page in range if layout changed
-      setActivePage((p) => Math.min(p, Math.ceil(slides().length / per) - 1));
+      setActivePage((p) => Math.min(p, Math.ceil(slides.length / per) - 1));
     };
     const ro = new ResizeObserver(measure);
     ro.observe(rail);
@@ -191,13 +208,15 @@ export default function VehicleDetails() {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [slides.length]);
 
-  // Scroll helpers: **one full rail width per page**
+  const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
+
+  // Page scroll helpers: move by rail width (reliable)
   const scrollToPage = (page: number) => {
     const rail = railRef.current;
     if (!rail) return;
-    const clamped = Math.max(0, Math.min(page, Math.ceil(slides().length / cardsPerView) - 1));
+    const clamped = Math.max(0, Math.min(page, pageCount - 1));
     rail.scrollTo({ left: clamped * rail.clientWidth, behavior: "smooth" });
   };
   const handlePrev = () => scrollToPage(activePage - 1);
@@ -215,7 +234,7 @@ export default function VehicleDetails() {
     return () => rail.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close QuickView before opening other modals (prevents z-index stacking on mobile)
+  // Close QuickView before opening another modal (prevents stacking issues on mobile)
   const runAfterCloseQuickView = (fn: () => void) => {
     if (isQuickViewOpen) {
       setIsQuickViewOpen(false);
@@ -225,24 +244,12 @@ export default function VehicleDetails() {
     }
   };
 
-  // Actions
-  const handleToggleFavorite = () => {
-    setIsFavorite((x) => !x);
-    toast({ title: !isFavorite ? "Added to favorites" : "Removed from favorites", description: vehicle?.name });
-  };
-  const handleBookTestDrive = () => setIsBookingOpen(true);
-  const handleCarBuilder = () => setIsCarBuilderOpen(true);
-  const handleFinanceCalculator = () => setIsFinanceOpen(true);
-  const handleOfferClick = (offer: any) => { setSelectedOffer(offer); setIsOffersModalOpen(true); };
-
   if (!vehicle) return <div />;
 
-  // Card flex-basis: pure CSS math (no measuring)
-  const basis = (per: number) =>
-    `calc((100% - ${GAP_PX * (per - 1)}px) / ${per})`;
-
-  const s = slides();
+  // CSS flex-basis for N-per-view (no JS measuring)
+  const basis = (per: number) => `calc((100% - ${GAP_PX * (per - 1)}px) / ${per})`;
   const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
+  const monthlyEMI = calculateEMI(vehicle?.price || 0);
   const activeFirstIndex = activePage * cardsPerView;
 
   return (
@@ -255,12 +262,11 @@ export default function VehicleDetails() {
       onCarBuilder={handleCarBuilder}
       onFinanceCalculator={handleFinanceCalculator}
     >
+      {/* HERO */}
       <EnhancedHeroSection
         vehicle={vehicle}
-        galleryImages={[
-          s[0].image, s[1].image, s[2].image, s[3].image, s[4].image, s[5].image
-        ]}
-        monthlyEMI={Math.round((vehicle?.price || 0) * 0.8 * (0.035/12) * Math.pow(1+0.035/12,60) / (Math.pow(1+0.035/12,60)-1))}
+        galleryImages={galleryImages}
+        monthlyEMI={monthlyEMI}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
         onBookTestDrive={handleBookTestDrive}
@@ -275,7 +281,8 @@ export default function VehicleDetails() {
         <div className="toyota-container max-w-none w-full">
           <motion.div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-medium">
-              <Sparkles className="h-4 w-4" /> Tailored to Every Model
+              <Sparkles className="h-4 w-4" />
+              Tailored to Every Model
             </div>
             <h2 className="mt-3 text-3xl lg:text-5xl font-black">Craft Your {safeModelEnd} Journey</h2>
           </motion.div>
@@ -297,7 +304,7 @@ export default function VehicleDetails() {
               <ChevronRight className="h-6 w-6" />
             </button>
 
-            {/* rail: pure flex sizing, swipeable, page-sized scroll */}
+            {/* rail: 1/2/3/4 cards per view, swipeable like mobile */}
             <div
               ref={railRef}
               tabIndex={0}
@@ -307,15 +314,15 @@ export default function VehicleDetails() {
                 else if (e.key === "Home") { e.preventDefault(); scrollToPage(0); }
                 else if (e.key === "End") { e.preventDefault(); scrollToPage(pageCount - 1); }
               }}
-              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2"
-              style={{ scrollbarWidth: "none" as any }}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2 touch-pan-x overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" as any }}
             >
-              {s.map((slide, i) => (
+              {slides.map((slide, i) => (
                 <motion.div
                   key={slide.key}
                   role="group"
                   aria-roledescription="slide"
-                  aria-label={`Card ${i + 1} of ${s.length}: ${slide.title}`}
+                  aria-label={`Card ${i + 1} of ${slides.length}: ${slide.title}`}
                   initial={{ opacity: 0.95, scale: 0.995 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
@@ -343,7 +350,10 @@ export default function VehicleDetails() {
                     {slide.cta && (
                       <Button
                         className="mt-4 w-full md:w-auto"
-                        onClick={(e) => { e.stopPropagation(); runAfterCloseQuickView(slide.cta!.onClick); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          runAfterCloseQuickView(slide.cta!.onClick);
+                        }}
                       >
                         {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
@@ -363,14 +373,16 @@ export default function VehicleDetails() {
                     aria-current={activePage === p}
                     onClick={() => scrollToPage(p)}
                     className={`h-2.5 flex-1 rounded-full transition-all ${
-                      activePage === p ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      activePage === p
+                        ? "bg-primary"
+                        : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     }`}
                   />
                 ))}
               </div>
               <p className="sr-only" aria-live="polite">
                 Page {activePage + 1} of {pageCount}. Cards {activeFirstIndex + 1}–
-                {Math.min(activeFirstIndex + cardsPerView, s.length)} visible.
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)} visible.
               </p>
             </div>
 
@@ -378,7 +390,7 @@ export default function VehicleDetails() {
             <div className="mt-4 max-w-5xl mx-auto hidden md:flex items-center justify-between gap-3 rounded-2xl bg-card ring-1 ring-border px-4 py-3">
               <div className="text-sm text-muted-foreground">
                 Page {activePage + 1} of {pageCount} • Cards {activeFirstIndex + 1}–
-                {Math.min(activeFirstIndex + cardsPerView, s.length)}
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)}
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activePage === 0}>
@@ -387,7 +399,7 @@ export default function VehicleDetails() {
                 <Button size="sm" onClick={() => scrollToPage(activePage + 1)} disabled={activePage >= pageCount - 1}>
                   Next Page <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => openQuickView(activeFirstIndex)} disabled={activeFirstIndex >= s.length}>
+                <Button size="sm" variant="outline" onClick={() => openQuickView(activeFirstIndex)} disabled={activeFirstIndex >= slides.length}>
                   Quick View
                 </Button>
               </div>
@@ -399,7 +411,7 @@ export default function VehicleDetails() {
                 <Tag className="mr-2 h-4 w-4" /> View Offers
               </Button>
               <Button variant="outline" onClick={handleFinanceCalculator} className="justify-center">
-                <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {calculateEMI(vehicle?.price || 0).toLocaleString()} AED/mo
+                <Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
               </Button>
               <Button variant="outline" onClick={handleBookTestDrive} className="justify-center">
                 <Calendar className="mr-2 h-4 w-4" /> Book Test Drive
@@ -412,7 +424,7 @@ export default function VehicleDetails() {
         </div>
       </section>
 
-      {/* rest */}
+      {/* Rest of page */}
       <section className="py-8 lg:py-16 bg-muted/30">
         <VehicleGallery />
       </section>
@@ -426,26 +438,32 @@ export default function VehicleDetails() {
       {/* Quick View */}
       <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
         <DialogContent className="max-w-5xl p-0 overflow-hidden z-[60]">
-          {s[quickViewIndex] && (
+          {slides[quickViewIndex] && (
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              <img src={s[quickViewIndex].image} alt={s[quickViewIndex].title} className="w-full h-full object-cover" />
+              <img
+                src={slides[quickViewIndex].image}
+                alt={slides[quickViewIndex].title}
+                className="w-full h-full object-cover"
+              />
               <div className="p-6 space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold w-max">
-                  {s[quickViewIndex].icon}
-                  {s[quickViewIndex].title}
+                  {slides[quickViewIndex].icon}
+                  {slides[quickViewIndex].title}
                 </div>
-                <h3 className="text-2xl font-extrabold">{s[quickViewIndex].subtitle}</h3>
-                {s[quickViewIndex].meta && (
+                <h3 className="text-2xl font-extrabold">{slides[quickViewIndex].subtitle}</h3>
+                {slides[quickViewIndex].meta && (
                   <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                    {s[quickViewIndex].meta!.map((m) => (
-                      <li key={m} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {m}</li>
+                    {slides[quickViewIndex].meta!.map((m) => (
+                      <li key={m} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" /> {m}
+                      </li>
                     ))}
                   </ul>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  {s[quickViewIndex].cta ? (
-                    <Button onClick={() => runAfterCloseQuickView(s[quickViewIndex].cta!.onClick)}>
-                      {s[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
+                  {slides[quickViewIndex].cta ? (
+                    <Button onClick={() => runAfterCloseQuickView(slides[quickViewIndex].cta!.onClick)}>
+                      {slides[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
                     <Button onClick={() => runAfterCloseQuickView(handleBookTestDrive)}>
@@ -455,13 +473,13 @@ export default function VehicleDetails() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      const next = (quickViewIndex + 1) % s.length;
+                      const next = (quickViewIndex + 1) % slides.length;
                       setQuickViewIndex(next);
                       const nextPage = Math.floor(next / cardsPerView);
                       scrollToPage(nextPage);
                     }}
                   >
-                    Next: {s[(quickViewIndex + 1) % s.length].title}
+                    Next: {slides[(quickViewIndex + 1) % slides.length].title}
                   </Button>
                 </div>
               </div>
@@ -473,14 +491,29 @@ export default function VehicleDetails() {
       {/* Modals */}
       <OffersModal
         isOpen={isOffersModalOpen}
-        onClose={() => { setIsOffersModalOpen(false); setSelectedOffer(null); }}
+        onClose={() => {
+          setIsOffersModalOpen(false);
+          setSelectedOffer(null);
+        }}
         selectedOffer={selectedOffer}
       />
-      <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
-      <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
-      <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
+      <BookTestDrive
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        vehicle={vehicle}
+      />
+      <FinanceCalculator
+        isOpen={isFinanceOpen}
+        onClose={() => setIsFinanceOpen(false)}
+        vehicle={vehicle}
+      />
+      <CarBuilder
+        isOpen={isCarBuilderOpen}
+        onClose={() => setIsCarBuilderOpen(false)}
+        vehicle={vehicle}
+      />
 
-      {/* Desktop action panel */}
+      {/* Desktop panel */}
       <ActionPanel
         vehicle={vehicle}
         isFavorite={isFavorite}
@@ -492,3 +525,4 @@ export default function VehicleDetails() {
     </ToyotaLayout>
   );
 }
+export default VehicleDetails;
