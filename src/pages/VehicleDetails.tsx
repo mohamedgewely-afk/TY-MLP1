@@ -298,7 +298,7 @@ const VehicleDetails = () => {
           <InteractiveSpecsTech vehicle={vehicle} />
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
-          
+          <RefinedTechExperience vehicle={vehicle} />
 <section className="space-y-24 lg:space-y-32 py-20 bg-muted/30">
   {/* Section 1 – Performance */}
   <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
