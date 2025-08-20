@@ -726,7 +726,7 @@ function SceneCardPro({
 }) {
   // tightened mobile size & heights (no xs: breakpoint)
   const cardCls = `snap-center shrink-0
-  min-w-[260px] max-w-[260px]
+  min-w-[290px] max-w-[290px]
   sm:min-w-[300px] sm:max-w-[300px]
   md:min-w-[520px] md:max-w-[520px]
   lg:min-w-[620px] lg:max-w-[620px]
