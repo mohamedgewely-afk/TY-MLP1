@@ -725,8 +725,8 @@ function SceneCardPro({
   expandLabel: string;
 }) {
   // tightened mobile size & heights (no xs: breakpoint)
-  const cardCls = `snap-center shrink-0 min-w-[82vw] sm:min-w-[360px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
-    rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
+  const cardCls = `snap-center shrink-0 min-w-[70vw] sm:min-w-[320px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
+  rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
   return (
     <motion.article
@@ -757,7 +757,7 @@ function SceneCardPro({
           loading="lazy"
           decoding="async"
           sizes="(max-width: 640px) 82vw, (max-width: 1024px) 520px, 700px"
-          className="w-full h-44 sm:h-60 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
+          className="w-full h-60 sm:h-70 md:h-84 lg:h-72 xl:h-80 object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
         <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
