@@ -104,6 +104,27 @@ const VehicleDetails = () => {
   };
   const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
 
+  // Handler functions
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    toast({
+      title: isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: isFavorite ? "Vehicle removed from your favorites" : "Vehicle added to your favorites",
+    });
+  };
+
+  const handleBookTestDrive = () => {
+    setIsBookingOpen(true);
+  };
+
+  const handleCarBuilder = () => {
+    setIsCarBuilderOpen(true);
+  };
+
+  const handleFinanceCalculator = () => {
+    setIsFinanceOpen(true);
+  };
+
   // slides
   const slides: Slide[] = [
     {
@@ -118,7 +139,7 @@ const VehicleDetails = () => {
     {
       key: "safety",
       title: "Safety Sense",
-      subtitle: "Guardian tech that’s always watching out for you.",
+      subtitle: "Guardian tech that's always watching out for you.",
       image: galleryImages[1],
       icon: <Shield className="h-5 w-5" />,
       meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
@@ -291,7 +312,15 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout vehicle={vehicle}>
-      <EnhancedHeroSection vehicle={vehicle} galleryImages={galleryImages} monthlyEMI={monthlyEMI} />
+      <EnhancedHeroSection 
+        vehicle={vehicle} 
+        galleryImages={galleryImages} 
+        monthlyEMI={monthlyEMI}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        onBookTestDrive={handleBookTestDrive}
+        onCarBuilder={handleCarBuilder}
+      />
 
       <OffersSection onOfferClick={setSelectedOffer} />
       <VehicleMediaShowcase vehicle={vehicle} />
@@ -393,7 +422,14 @@ const VehicleDetails = () => {
       <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
       <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
       <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
-      <ActionPanel vehicle={vehicle} />
+      <ActionPanel 
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        onBookTestDrive={handleBookTestDrive}
+        onCarBuilder={handleCarBuilder}
+        onFinanceCalculator={handleFinanceCalculator}
+      />
     </ToyotaLayout>
   );
 };
