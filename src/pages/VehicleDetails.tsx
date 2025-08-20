@@ -67,6 +67,7 @@ const VehicleDetails = () => {
   // carousel
   const [activeSlide, setActiveSlide] = useState(0);
   const [cardWidth, setCardWidth] = useState(360);
+  const [positions, setPositions] = useState<number[]>([]);
   const railRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLDivElement>(null);
 
@@ -112,9 +113,17 @@ const VehicleDetails = () => {
     });
   };
 
-  const handleBookTestDrive = () => setIsBookingOpen(true);
-  const handleCarBuilder = () => setIsCarBuilderOpen(true);
-  const handleFinanceCalculator = () => setIsFinanceOpen(true);
+  const handleBookTestDrive = () => {
+    setIsBookingOpen(true);
+  };
+
+  const handleCarBuilder = () => {
+    setIsCarBuilderOpen(true);
+  };
+
+  const handleFinanceCalculator = () => {
+    setIsFinanceOpen(true);
+  };
 
   // slides
   const slides: Slide[] = [
@@ -125,7 +134,7 @@ const VehicleDetails = () => {
       image: galleryImages[2],
       icon: <Gauge className="h-5 w-5" />,
       meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
-      cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
+      cta: { label: "Feel it – Test Drive", onClick: () => setIsBookingOpen(true) },
     },
     {
       key: "safety",
@@ -161,7 +170,7 @@ const VehicleDetails = () => {
       image: galleryImages[4],
       icon: <Award className="h-5 w-5" />,
       meta: ["Flexible EMI", "Trade-in support", "Top-rated service"],
-      cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
+      cta: { label: "Calculate EMI", onClick: () => setIsFinanceOpen(true) },
     },
     {
       key: "build",
@@ -170,7 +179,7 @@ const VehicleDetails = () => {
       image: galleryImages[5],
       icon: <PencilRuler className="h-5 w-5" />,
       meta: ["Live price", "Compare trims", "Limited-time offers"],
-      cta: { label: "Start Building", onClick: handleCarBuilder },
+      cta: { label: "Start Building", onClick: () => setIsCarBuilderOpen(true) },
     },
   ];
 
@@ -187,39 +196,62 @@ const VehicleDetails = () => {
     }
   }, [vehicleName]);
 
-  // measure card width once
+  // measure card positions
   useEffect(() => {
-    if (!firstCardRef.current) return;
-    const measure = () => {
-      setCardWidth(Math.round(firstCardRef.current!.getBoundingClientRect().width));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(firstCardRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  const scrollToIndex = (i: number) => {
     const el = railRef.current;
     if (!el) return;
-    const clamped = Math.max(0, Math.min(i, slides.length - 1));
-    el.scrollTo({ left: clamped * (cardWidth + GAP_PX), behavior: "smooth" });
-  };
+    const measurePositions = () => {
+      const cards = Array.from(el.children) as HTMLElement[];
+      if (!cards.length) return;
+      const centerOffset = el.clientWidth / 2;
+      const pos = cards.map((card) => {
+        const left = card.offsetLeft;
+        const cardCenter = left + card.clientWidth / 2;
+        return Math.max(0, Math.round(cardCenter - centerOffset));
+      });
+      setPositions(pos);
+      setCardWidth(Math.round(cards[0].getBoundingClientRect().width));
+    };
+    measurePositions();
+    const ro = new ResizeObserver(measurePositions);
+    ro.observe(el);
+    window.addEventListener("resize", measurePositions);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measurePositions);
+    };
+  }, []);
 
+  const scrollToIndex = (idx: number) => {
+    const el = railRef.current;
+    if (!el || !positions.length) return;
+    const clamped = Math.max(0, Math.min(idx, positions.length - 1));
+    el.scrollTo({ left: positions[clamped], behavior: "smooth" });
+  };
   const handlePrev = () => scrollToIndex(activeSlide - 1);
   const handleNext = () => scrollToIndex(activeSlide + 1);
 
-  // update activeSlide on scroll
+  // active index detection
   useEffect(() => {
     const el = railRef.current;
     if (!el) return;
     const onScroll = () => {
-      const idx = Math.round(el.scrollLeft / (cardWidth + GAP_PX));
-      setActiveSlide(idx);
+      if (!positions.length) return;
+      const left = el.scrollLeft;
+      let best = 0,
+        bestDist = Infinity;
+      for (let i = 0; i < positions.length; i++) {
+        const d = Math.abs(positions[i] - left);
+        if (d < bestDist) {
+          best = i;
+          bestDist = d;
+        }
+      }
+      setActiveSlide(best);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, [cardWidth]);
+  }, [positions]);
 
   // keyboard nav
   const onRailKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -229,12 +261,13 @@ const VehicleDetails = () => {
     else if (e.key === "End") { e.preventDefault(); scrollToIndex(slides.length - 1); }
   };
 
-  if (!vehicle) return <div>Vehicle Not Found</div>;
+  if (!vehicle) {
+    return <div>Vehicle Not Found</div>;
+  }
 
   // Experience Card
   const ExperienceCard: React.FC<{ slide: Slide; index: number; isActive: boolean; }> = ({ slide, index, isActive }) => (
     <motion.div
-      ref={index === 0 ? firstCardRef : undefined}
       role="group"
       aria-roledescription="slide"
       aria-label={`Slide ${index + 1} of ${slides.length}: ${slide.title}`}
@@ -257,7 +290,8 @@ const VehicleDetails = () => {
             <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
               {slide.meta.map((m) => (
                 <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary" /> {m}
+                  <Check className="h-4 w-4 text-primary" />
+                  {m}
                 </li>
               ))}
             </ul>
@@ -278,9 +312,9 @@ const VehicleDetails = () => {
 
   return (
     <ToyotaLayout vehicle={vehicle}>
-      <EnhancedHeroSection
-        vehicle={vehicle}
-        galleryImages={galleryImages}
+      <EnhancedHeroSection 
+        vehicle={vehicle} 
+        galleryImages={galleryImages} 
         monthlyEMI={monthlyEMI}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
@@ -310,12 +344,7 @@ const VehicleDetails = () => {
               <ChevronRight className="h-6 w-6" />
             </button>
 
-            <div
-              ref={railRef}
-              tabIndex={0}
-              onKeyDown={onRailKeyDown}
-              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2"
-            >
+            <div ref={railRef} tabIndex={0} onKeyDown={onRailKeyDown} className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2">
               {slides.map((s, i) => (
                 <ExperienceCard key={s.key} slide={s} index={i} isActive={activeSlide === i} />
               ))}
@@ -325,17 +354,84 @@ const VehicleDetails = () => {
             <div className="mt-6 mx-auto max-w-5xl">
               <div className="flex items-center gap-2">
                 {slides.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => scrollToIndex(i)}
-                    aria-current={activeSlide === i}
-                    className={`h-2.5 flex-1 rounded-full ${activeSlide === i ? "bg-primary" : "bg-muted-foreground/30"}`}
-                  />
+                  <button key={i} onClick={() => scrollToIndex(i)} aria-current={activeSlide === i}
+                    className={`h-2.5 flex-1 rounded-full ${activeSlide === i ? "bg-primary" : "bg-muted-foreground/30"}`} />
                 ))}
               </div>
             </div>
 
-            {/* connected journey footer */}
+            {/* connected journey */}
             <div className="mt-4 max-w-5xl mx-auto hidden md:flex items-center justify-between gap-3 rounded-2xl bg-card ring-1 ring-border px-4 py-3">
               <div className="text-sm text-muted-foreground">
-                Step {activeSlide + 1} of {slides.length}: <span className="font-medium">{slides[activeSlide]?.title}</
+                Step {activeSlide + 1} of {slides.length}: <span className="font-medium">{slides[activeSlide]?.title}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activeSlide === 0}>
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                </Button>
+                <Button size="sm" onClick={handleNext}>
+                  Next: {slides[(activeSlide + 1) % slides.length]?.title} <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => openQuickView(activeSlide)}>Quick View</Button>
+              </div>
+            </div>
+
+            {/* quick actions */}
+            <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
+              <Button variant="outline" onClick={() => setIsOffersModalOpen(true)}><Tag className="mr-2 h-4 w-4" />View Offers</Button>
+              <Button variant="outline" onClick={() => setIsFinanceOpen(true)}><Gauge className="mr-2 h-4 w-4" />Estimate EMI • {monthlyEMI} AED/mo</Button>
+              <Button variant="outline" onClick={() => setIsBookingOpen(true)}><Calendar className="mr-2 h-4 w-4" />Book Test Drive</Button>
+              <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)}><PencilRuler className="mr-2 h-4 w-4" />Build Your {safeModelEnd}</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <VehicleGallery />
+      <EnhancedLifestyleGallery vehicle={vehicle} />
+      <RelatedVehicles currentVehicle={vehicle} />
+      <PreOwnedSimilar currentVehicle={vehicle} />
+      <VehicleFAQ vehicle={vehicle} />
+
+      {/* quick view modal */}
+      <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
+        <DialogContent className="max-w-5xl p-0 overflow-hidden">
+          {slides[quickViewIndex] && (
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              <img src={slides[quickViewIndex].image} alt={slides[quickViewIndex].title} className="w-full h-full object-cover" />
+              <div className="p-6 space-y-5">
+                <h3 className="text-2xl font-extrabold">{slides[quickViewIndex].subtitle}</h3>
+                {slides[quickViewIndex].meta && (
+                  <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    {slides[quickViewIndex].meta!.map((m) => (
+                      <li key={m} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {m}</li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex gap-3">
+                  <Button onClick={slides[quickViewIndex].cta?.onClick}>{slides[quickViewIndex].cta?.label || "Action"} <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  <Button variant="outline" onClick={() => setQuickViewIndex((quickViewIndex + 1) % slides.length)}>Next</Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <OffersModal isOpen={isOffersModalOpen} onClose={() => setIsOffersModalOpen(false)} selectedOffer={selectedOffer} />
+      <BookTestDrive isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} vehicle={vehicle} />
+      <FinanceCalculator isOpen={isFinanceOpen} onClose={() => setIsFinanceOpen(false)} vehicle={vehicle} />
+      <CarBuilder isOpen={isCarBuilderOpen} onClose={() => setIsCarBuilderOpen(false)} vehicle={vehicle} />
+      <ActionPanel 
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        onBookTestDrive={handleBookTestDrive}
+        onCarBuilder={handleCarBuilder}
+        onFinanceCalculator={handleFinanceCalculator}
+      />
+    </ToyotaLayout>
+  );
+};
+
+export default VehicleDetails;
