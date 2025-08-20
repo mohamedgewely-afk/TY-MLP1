@@ -268,12 +268,7 @@ const VehicleDetails = () => {
 
   const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
   return (
-  <ToyotaLayout
-    ...
-  >
-    {/* children here */}
-  </ToyotaLayout>
-);
+    <ToyotaLayout
       activeNavItem="models"
       vehicle={vehicle}
       isFavorite={isFavorite}
@@ -307,16 +302,24 @@ const VehicleDetails = () => {
 
   
 <section className="py-14 lg:py-24 bg-muted/30 relative">
-Tailored to Every Model
-</div>
-<h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
-Craft Your {safeModelEnd} Journey
-</h2>
-<p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
-Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
-</p>
-</motion.div>
-
+  <div className="toyota-container max-w-none">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-10 text-center"
+    >
+      <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-5 py-2 text-sm font-semibold">
+        <Sparkles className="h-4 w-4" />
+        Tailored to Every Model
+      </div>
+      <h2 className="mt-4 text-4xl lg:text-6xl font-extrabold tracking-tight">
+        Craft Your {safeModelEnd} Journey
+      </h2>
+      <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-base lg:text-lg">
+        Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
+      </p>
+    </motion.div>
 
 <div className="relative">
 <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-border">
