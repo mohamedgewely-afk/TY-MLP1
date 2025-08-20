@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import YouTubeEmbed from "@/components/ui/youtube-embed";
 import AnimatedCounter from "@/components/ui/animated-counter";
 import { openTestDrivePopup } from "@/utils/testDriveUtils";
 import { AccessibleCarousel } from "@/components/ui/AccessibleCarousel";
+import { cn } from "@/lib/utils";
 
 interface EnhancedHeroSectionProps {
   vehicle: VehicleModel;
