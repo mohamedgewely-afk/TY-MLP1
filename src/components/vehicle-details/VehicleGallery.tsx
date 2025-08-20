@@ -725,7 +725,7 @@ function SceneCardPro({
   expandLabel: string;
 }) {
   // tightened mobile size & heights (no xs: breakpoint)
-  const cardCls = `snap-center shrink-0 min-w-[70vw] sm:min-w-[320px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
+  const cardCls = `snap-center shrink-0 min-w-[50vw] sm:min-w-[290px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
   rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
   return (
