@@ -165,7 +165,7 @@ const VehicleDetails = () => {
     {
       key: "performance",
       title: "Performance",
-      subtitle: "Immediate response with confident control.",
+      subtitle: "Feel the surge of hybrid power, always in command.",
       image: galleryImages[2],
       icon: <Gauge className="h-5 w-5" />,
       meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
@@ -174,7 +174,7 @@ const VehicleDetails = () => {
     {
       key: "safety",
       title: "Safety Sense",
-      subtitle: "Proactive protection, 360° awareness.",
+      subtitle: "Guardian tech that’s always watching out for you.",
       image: galleryImages[1],
       icon: <Shield className="h-5 w-5" />,
       meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
@@ -287,6 +287,16 @@ const VehicleDetails = () => {
   const handlePrev = () => scrollToIndex(activeSlide - 1);
   const handleNext = () => scrollToIndex(activeSlide + 1);
 
+  const onRailKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      handleNext();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      handlePrev();
+    }
+  };
+
   if (!vehicle) {
     return (
       <ToyotaLayout>
@@ -302,6 +312,87 @@ const VehicleDetails = () => {
       </ToyotaLayout>
     );
   }
+
+  // ============= NEW EXPERIENCE CARD (solid, split layout, no glass) =============
+  type ExperienceCardProps = {
+    slide: Slide;
+    isActive: boolean;
+    innerRef?: React.Ref<HTMLDivElement>;
+  };
+
+  const ExperienceCard: React.FC<ExperienceCardProps> = ({ slide, isActive, innerRef }) => {
+    return (
+      <motion.div
+        ref={innerRef}
+        role="group"
+        aria-label={`${slide.title}: ${slide.subtitle}`}
+        initial={{ opacity: 0.85, scale: 0.98 }}
+        animate={{ opacity: isActive ? 1 : 0.9, scale: isActive ? 1 : 0.98 }}
+        transition={{ type: "spring", stiffness: 160, damping: 22 }}
+        className="snap-center shrink-0 w-[92vw] sm:w-[620px] lg:w-[760px] rounded-3xl shadow-2xl ring-1 ring-border bg-card overflow-hidden group focus-within:ring-2 focus-within:ring-primary motion-reduce:transform-none"
+      >
+        <div className="flex flex-col md:flex-row">
+          {/* Media */}
+          <div className="relative w-full md:w-1/2 aspect-[4/3] md:aspect-auto overflow-hidden">
+            <img
+              src={slide.image}
+              alt={slide.title}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:transform-none"
+            />
+            {/* Subtle edge vignette for depth – not glass */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+          </div>
+
+          {/* Content */}
+          <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-semibold w-max">
+              {slide.icon}
+              <span className="leading-none">{slide.title}</span>
+            </div>
+
+            <h3 className="mt-3 text-xl md:text-2xl font-extrabold text-foreground">
+              {slide.subtitle}
+            </h3>
+
+            {slide.meta && (
+              <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                {slide.meta.map((m) => (
+                  <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span className="truncate">{m}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="mt-6">
+              {slide.cta ? (
+                <Button
+                  size="lg"
+                  className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90"
+                  onClick={slide.cta.onClick}
+                >
+                  {slide.cta.label}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  variant="default"
+                  className="w-full md:w-auto"
+                  onClick={() => setIsBookingOpen(true)}
+                >
+                  Book a Test Drive
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <ToyotaLayout
@@ -336,7 +427,7 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* EXPERIENCE RAIL */}
+          {/* ===================== EXPERIENCE RAIL (NEW LOOK) ===================== */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
             <div className="toyota-container">
               <motion.div
@@ -360,106 +451,62 @@ const VehicleDetails = () => {
                 <button
                   aria-label="Previous"
                   onClick={handlePrev}
-                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-card shadow ring-1 ring-border hover:bg-accent"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   aria-label="Next"
                   onClick={handleNext}
-                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-card shadow ring-1 ring-border hover:bg-accent"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
 
+                {/* Focusable rail (keyboard + screen reader friendly) */}
                 <div
                   ref={railRef}
-                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1"
+                  tabIndex={0}
+                  onKeyDown={onRailKeyDown}
+                  role="region"
+                  aria-roledescription="carousel"
+                  aria-label="Experience carousel"
+                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 focus:outline-none"
                   style={{ scrollbarWidth: "none" as any }}
                 >
                   {slides.map((s, i) => (
-                    <div key={s.key} ref={i === 0 ? firstCardRef : undefined} className="snap-center shrink-0 w-[90vw] sm:w-[520px] lg:w-[640px]">
-                      <Card className="relative overflow-hidden h-full rounded-2xl shadow-xl border-0 bg-transparent group">
-                        {/* Media */}
-                        <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
-                          <img
-                            src={s.image}
-                            alt=""
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                          {/* Gentle edge shading only — no full overlay */}
-                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                        </div>
-
-                        {/* Compact glass panel (bottom-left) */}
-                        <CardContent className="absolute left-4 bottom-4 right-auto z-10 max-w-[86%] sm:max-w-[460px]">
-                          <div className="rounded-xl bg-black/40 backdrop-blur-md text-white p-4 md:p-5 ring-1 ring-white/10 shadow-2xl">
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1">
-                              {s.icon}
-                              <span className="text-xs font-semibold">{s.title}</span>
-                            </div>
-
-                            <h3 className="mt-2 text-base md:text-lg font-extrabold leading-snug">
-                              {s.subtitle}
-                            </h3>
-
-                            {s.meta && (
-                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-white/90 text-[12px] md:text-sm">
-                                {s.meta.map((m) => (
-                                  <li key={m} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                                    <Check className="h-4 w-4 text-emerald-300 shrink-0" />
-                                    <span className="truncate">{m}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-
-                            <div className="mt-3">
-                              {s.cta ? (
-                                <Button
-                                  size="sm"
-                                  className="bg-white text-black hover:bg-white/90"
-                                  onClick={s.cta.onClick}
-                                >
-                                  {s.cta.label}
-                                  <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="bg-white text-black hover:bg-white/90"
-                                  onClick={() => setIsBookingOpen(true)}
-                                >
-                                  Book a Test Drive
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                <div className="mt-6 flex items-center justify-center gap-2">
-                  {slides.map((_, i) => (
-                    <button
-                      key={i}
-                      aria-label={`Go to slide ${i + 1}`}
-                      onClick={() => scrollToIndex(i)}
-                      className={`h-2.5 rounded-full transition-all ${
-                        activeSlide === i
-                          ? "w-8 bg-primary"
-                          : "w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                      }`}
+                    <ExperienceCard
+                      key={s.key}
+                      slide={s}
+                      isActive={activeSlide === i}
+                      innerRef={i === 0 ? firstCardRef : undefined}
                     />
                   ))}
                 </div>
 
-                {/* Quick actions — not sticky */}
+                {/* Progress pagination (clickable segments) */}
+                <div className="mt-6 mx-auto max-w-[760px]">
+                  <div className="flex items-center gap-2">
+                    {slides.map((_, i) => (
+                      <button
+                        key={i}
+                        aria-label={`Go to slide ${i + 1}`}
+                        aria-current={activeSlide === i}
+                        onClick={() => scrollToIndex(i)}
+                        className={`h-2.5 flex-1 rounded-full transition-all ring-0 ${
+                          activeSlide === i
+                            ? "bg-primary"
+                            : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="sr-only" aria-live="polite">
+                    Slide {activeSlide + 1} of {slides.length}: {slides[activeSlide]?.title}
+                  </p>
+                </div>
+
+                {/* Quick actions */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
                     <PencilRuler className="mr-2 h-4 w-4" />
@@ -481,6 +528,7 @@ const VehicleDetails = () => {
               </div>
             </div>
           </section>
+          {/* =================== /EXPERIENCE RAIL =================== */}
 
           {/* Rest of page */}
           <section className="py-8 lg:py-16 bg-muted/30">
