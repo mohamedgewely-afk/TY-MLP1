@@ -406,6 +406,10 @@ const VehicleDetails = () => {
   </div>
 </section>
       
+{/* Vehicle Gallery (restored) */}
+<section className="py-8 lg:py-16 bg-muted/30">
+  <VehicleGallery />
+</section>
 
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
