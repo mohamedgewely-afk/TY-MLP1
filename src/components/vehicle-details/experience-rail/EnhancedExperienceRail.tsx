@@ -126,7 +126,7 @@ export const EnhancedExperienceRail: React.FC<EnhancedExperienceRailProps> = ({
         </motion.div>
 
         {/* Main Carousel Container */}
-        <div className="relative w-full max-w-none px-4 sm:px-6 lg:px-10 xl:px-14">
+        <div className="relative max-w-7xl mx-auto">
           {/* Navigation Arrows */}
           <button
             aria-label="View previous experience cards"
