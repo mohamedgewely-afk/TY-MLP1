@@ -427,107 +427,108 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* ===================== EXPERIENCE RAIL (NEW LOOK) ===================== */}
-          <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
-            <div className="toyota-container">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="mb-8 lg:mb-10 text-center"
-              >
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-medium">
-                  <Sparkles className="h-4 w-4" />
-                  Tailored to Every Model
-                </div>
-                <h2 className="mt-3 text-3xl lg:text-5xl font-black">Craft Your {safeModelEnd} Journey</h2>
-                <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
-                  Swipe to explore performance, safety, connectivity and ownership — then act with a tap.
-                </p>
-              </motion.div>
+  {/* ===================== EXPERIENCE RAIL (ENHANCED DESKTOP) ===================== */}
+<section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
+  <div className="toyota-container max-w-none w-full">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-8 lg:mb-10 text-center"
+    >
+      <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-medium">
+        <Sparkles className="h-4 w-4" />
+        Tailored to Every Model
+      </div>
+      <h2 className="mt-3 text-3xl lg:text-5xl font-black">Craft Your {safeModelEnd} Journey</h2>
+      <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
+        Swipe or click through to explore performance, safety, connectivity and ownership — then act with a tap.
+      </p>
+    </motion.div>
 
-              <div className="relative">
-                {/* Desktop arrows */}
-                <button
-                  aria-label="Previous"
-                  onClick={handlePrev}
-                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-card shadow ring-1 ring-border hover:bg-accent"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  aria-label="Next"
-                  onClick={handleNext}
-                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-card shadow ring-1 ring-border hover:bg-accent"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
+    <div className="relative">
+      {/* Desktop arrows */}
+      <button
+        aria-label="Previous slide"
+        onClick={handlePrev}
+        className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow-lg ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </button>
+      <button
+        aria-label="Next slide"
+        onClick={handleNext}
+        className="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow-lg ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
 
-                {/* Focusable rail (keyboard + screen reader friendly) */}
-                <div
-                  ref={railRef}
-                  tabIndex={0}
-                  onKeyDown={onRailKeyDown}
-                  role="region"
-                  aria-roledescription="carousel"
-                  aria-label="Experience carousel"
-                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 focus:outline-none"
-                  style={{ scrollbarWidth: "none" as any }}
-                >
-                  {slides.map((s, i) => (
-                    <ExperienceCard
-                      key={s.key}
-                      slide={s}
-                      isActive={activeSlide === i}
-                      innerRef={i === 0 ? firstCardRef : undefined}
-                    />
-                  ))}
-                </div>
+      {/* Focusable rail */}
+      <div
+        ref={railRef}
+        tabIndex={0}
+        onKeyDown={onRailKeyDown}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Experience carousel"
+        className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 focus:outline-none"
+        style={{ scrollbarWidth: "none" as any }}
+      >
+        {slides.map((s, i) => (
+          <ExperienceCard
+            key={s.key}
+            slide={s}
+            isActive={activeSlide === i}
+            innerRef={i === 0 ? firstCardRef : undefined}
+          />
+        ))}
+      </div>
 
-                {/* Progress pagination (clickable segments) */}
-                <div className="mt-6 mx-auto max-w-[760px]">
-                  <div className="flex items-center gap-2">
-                    {slides.map((_, i) => (
-                      <button
-                        key={i}
-                        aria-label={`Go to slide ${i + 1}`}
-                        aria-current={activeSlide === i}
-                        onClick={() => scrollToIndex(i)}
-                        className={`h-2.5 flex-1 rounded-full transition-all ring-0 ${
-                          activeSlide === i
-                            ? "bg-primary"
-                            : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="sr-only" aria-live="polite">
-                    Slide {activeSlide + 1} of {slides.length}: {slides[activeSlide]?.title}
-                  </p>
-                </div>
+      {/* Progress pagination */}
+      <div className="mt-6 mx-auto w-full max-w-5xl">
+        <div className="flex items-center gap-2">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Go to slide ${i + 1}`}
+              aria-current={activeSlide === i}
+              onClick={() => scrollToIndex(i)}
+              className={`h-2.5 flex-1 rounded-full transition-all ring-0 ${
+                activeSlide === i
+                  ? "bg-primary"
+                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+            />
+          ))}
+        </div>
+        <p className="sr-only" aria-live="polite">
+          Slide {activeSlide + 1} of {slides.length}: {slides[activeSlide]?.title}
+        </p>
+      </div>
 
-                {/* Quick actions */}
-                <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
-                    <PencilRuler className="mr-2 h-4 w-4" />
-                    Build Your {safeModelEnd}
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-start">
-                    <Gauge className="mr-2 h-4 w-4" />
-                    Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
-                    <Tag className="mr-2 h-4 w-4" />
-                    View Offers
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-start">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Book Test Drive
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </section>
+      {/* Quick actions */}
+      <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
+        <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-center">
+          <Tag className="mr-2 h-4 w-4" />
+          View Offers
+        </Button>
+        <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-center">
+          <Gauge className="mr-2 h-4 w-4" />
+          Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
+        </Button>
+        <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-center">
+          <Calendar className="mr-2 h-4 w-4" />
+          Book Test Drive
+        </Button>
+        <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-center">
+          <PencilRuler className="mr-2 h-4 w-4" />
+          Build Your {safeModelEnd}
+        </Button>
+      </div>
+    </div>
+  </div>
+</section>
+
           {/* =================== /EXPERIENCE RAIL =================== */}
 
           {/* Rest of page */}
