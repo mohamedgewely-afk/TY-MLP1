@@ -251,211 +251,161 @@ const VehicleDetails = () => {
   };
 
   if (!vehicle) {
-   return (
-  <ToyotaLayout
-    ...
-  >
-    <div> {/* ✅ single root container */}
-      <EnhancedHeroSection ... />
-      ...
-    </div>
-  </ToyotaLayout>
-);
+    return (
+      <ToyotaLayout>
+        <div className="toyota-container py-16 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
+            <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
+            <Button asChild>
+              <Link to="/">Return to Home</Link>
+            </Button>
+          </motion.div>
+        </div>
+      </ToyotaLayout>
+    );
+  }
 
-
-      <div className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-      <EnhancedHeroSection
-        vehicle={vehicle}
-        galleryImages={galleryImages}
-        isFavorite={isFavorite}
-        onToggleFavorite={toggleFavorite}
-        onBookTestDrive={() => setIsBookingOpen(true)}
-        onCarBuilder={() => setIsCarBuilderOpen(true)}
-        monthlyEMI={monthlyEMI}
-      />
-
-      <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-        <VirtualShowroom vehicle={vehicle} />
-        <InteractiveSpecsTech vehicle={vehicle} />
-        <OffersSection onOfferClick={handleOfferClick} />
-        <VehicleMediaShowcase vehicle={vehicle} />
-        <RefinedTechExperience vehicle={vehicle} />
-
-        <section className="py-14 lg:py-24 bg-muted/30 relative text-center">
-          <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
-            Tailored to Every Model
-          </div>
-          <h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
-            Craft Your {safeModelEnd} Journey
-          </h2>
-          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
-            Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
-          </p>
-
-          {/* Optional: remove this next block if you no longer want the slider */}
-          {/* <SliderComponent slides={slides} /> */}
-        </section>
-
-        <EnhancedLifestyleGallery vehicle={vehicle} />
-
-        <section className="py-8 lg:py-16 bg-muted/30">
-          <RelatedVehicles currentVehicle={vehicle} />
-        </section>
-
-        <PreOwnedSimilar currentVehicle={vehicle} />
-        <VehicleFAQ vehicle={vehicle} />
-      </React.Suspense>
-
-      <ActionPanel
-        vehicle={vehicle}
-        isFavorite={isFavorite}
-        onToggleFavorite={toggleFavorite}
-        onBookTestDrive={() => setIsBookingOpen(true)}
-        onCarBuilder={() => setIsCarBuilderOpen(true)}
-        onFinanceCalculator={() => setIsFinanceOpen(true)}
-      />
-    </div>
-
-    <OffersModal
-      isOpen={isOffersModalOpen}
-      onClose={() => {
-        setIsOffersModalOpen(false);
-        setSelectedOffer(null);
-      }}
-      selectedOffer={selectedOffer}
-    />
-
-    <BookTestDrive
-      isOpen={isBookingOpen}
-      onClose={() => setIsBookingOpen(false)}
+  const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
+  return (
+    <ToyotaLayout
+      activeNavItem="models"
       vehicle={vehicle}
-    />
-
-    <FinanceCalculator
-      isOpen={isFinanceOpen}
-      onClose={() => setIsFinanceOpen(false)}
-      vehicle={vehicle}
-    />
-
-    <CarBuilder
-      isOpen={isCarBuilderOpen}
-      onClose={() => setIsCarBuilderOpen(false)}
-      vehicle={vehicle}
-    />
-
+      isFavorite={isFavorite}
+      onToggleFavorite={toggleFavorite}
+      onBookTestDrive={() => setIsBookingOpen(true)}
+      onCarBuilder={() => setIsCarBuilderOpen(true)}
+      onFinanceCalculator={() => setIsFinanceOpen(true)}
+    >
+      <div
+        className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <EnhancedHeroSection
+          vehicle={vehicle}
+          galleryImages={galleryImages}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => setIsCarBuilderOpen(true)}
+          monthlyEMI={monthlyEMI}
+        />
 
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-  <VirtualShowroom vehicle={vehicle} />
-  <InteractiveSpecsTech vehicle={vehicle} />
-  <OffersSection onOfferClick={handleOfferClick} />
-  <VehicleMediaShowcase vehicle={vehicle} />
-  <RefinedTechExperience vehicle={vehicle} />
-  {/* ... more components */}
-  <VehicleFAQ vehicle={vehicle} />
-</React.Suspense> {/* ✅ ADD THIS */}
-
-  
-<section className="py-14 lg:py-24 bg-muted/30 relative text-center">
-  <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
-    Tailored to Every Model
+          <VirtualShowroom vehicle={vehicle} />
+          <InteractiveSpecsTech vehicle={vehicle} />
+          <OffersSection onOfferClick={handleOfferClick} />
+          <VehicleMediaShowcase vehicle={vehicle} />
+          
+<section className="space-y-24 lg:space-y-32 py-20 bg-muted/30">
+  {/* Section 1 – Performance */}
+  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
+    <motion.div
+      initial={{ opacity: 0, x: -50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-4xl font-bold mb-4">Immediate response with confident control.</h2>
+      <p className="text-muted-foreground mb-6">
+        Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.
+      </p>
+      <Button onClick={() => setIsBookingOpen(true)}>Feel it – Test Drive</Button>
+    </motion.div>
+    <motion.img
+      src={galleryImages[2]}
+      alt="Performance"
+      className="rounded-xl shadow-lg"
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+    />
   </div>
-  <h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
-    Craft Your {safeModelEnd} Journey
-  </h2>
-  <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
-    Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
-  </p>
+
+  {/* Section 2 – Safety */}
+  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
+    <motion.img
+      src={galleryImages[1]}
+      alt="Safety Sense"
+      className="rounded-xl shadow-lg order-2 lg:order-1"
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+    />
+    <motion.div
+      className="order-1 lg:order-2"
+      initial={{ opacity: 0, x: 50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-4xl font-bold mb-4">Proactive protection, 360° awareness.</h2>
+      <p className="text-muted-foreground mb-6">
+        Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.
+      </p>
+      <Button variant="outline" onClick={() => navigate("/safety")}>See Safety Suite</Button>
+    </motion.div>
+  </div>
+
+  {/* Section 3 – Connected Life */}
+  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
+    <motion.div
+      initial={{ opacity: 0, x: -50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-4xl font-bold mb-4">Wireless Apple CarPlay & Android Auto.</h2>
+      <p className="text-muted-foreground mb-6">
+        Stay connected with voice control, OTA updates, and smart integration.
+      </p>
+      <Button variant="outline" onClick={() => navigate("/connect")}>Explore Connectivity</Button>
+    </motion.div>
+    <motion.img
+      src={galleryImages[0]}
+      alt="Connected Tech"
+      className="rounded-xl shadow-lg"
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+    />
+  </div>
+
+  {/* Section 4 – Ownership */}
+  <div className="toyota-container grid lg:grid-cols-2 gap-10 items-center">
+    <motion.img
+      src={galleryImages[1]}
+      alt="Ownership"
+      className="rounded-xl shadow-lg order-2 lg:order-1"
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+    />
+    <motion.div
+      className="order-1 lg:order-2"
+      initial={{ opacity: 0, x: 50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-4xl font-bold mb-4">Clear pricing, finance made simple.</h2>
+      <p className="text-muted-foreground mb-6">
+        Get estimated EMI of <strong>{monthlyEMI.toLocaleString()} AED/mo</strong> or build your deal online.
+      </p>
+      <div className="flex flex-wrap gap-4">
+        <Button variant="outline" onClick={() => setIsFinanceOpen(true)}>Estimate EMI</Button>
+        <Button onClick={() => setIsCarBuilderOpen(true)}>Build Your {safeModelEnd}</Button>
+      </div>
+    </motion.div>
+  </div>
 </section>
-
-
-<div className="relative">
-<div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-border">
-<div
-ref={railRef}
-className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-4 touch-pan-x"
->
-{slides.map((s, i) => (
-<div
-key={s.key}
-ref={i === 0 ? firstCardRef : undefined}
-className="snap-start shrink-0 w-full md:w-[calc((100%-72px)/2)] xl:w-[calc((100%-144px)/3)] bg-white rounded-2xl overflow-hidden ring-1 ring-muted shadow-sm"
->
-<div className="aspect-video overflow-hidden">
-<img
-src={s.image}
-alt={s.title}
-className="w-full h-full object-cover scale-105 transition-transform hover:scale-100"
-loading="lazy"
-/>
-</div>
-<div className="p-5 space-y-3">
-<div className="flex items-center gap-2 text-sm font-semibold text-primary">
-{s.icon}
-{s.title}
-</div>
-<h3 className="text-lg font-bold leading-snug text-foreground">
-{s.subtitle}
-</h3>
-<ul className="space-y-1 text-sm text-muted-foreground">
-{s.meta?.map((m) => (
-<li key={m} className="flex items-center gap-2">
-<Check className="h-4 w-4 text-green-500" />
-{m}
-</li>
-))}
-</ul>
-<div>
-<Button
-variant="link"
-className="p-0 text-primary inline-flex items-center hover:underline"
-onClick={s.cta.onClick}
->
-{s.cta.label}
-<ArrowRight className="ml-2 h-4 w-4" />
-</Button>
-</div>
-</div>
-</div>
-))}
-</div>
-</div>
-
-
-{/* Pagination */}
-<div className="mt-6 flex justify-center gap-2">
-{Array.from({ length: pageCount }).map((_, i) => (
-<button
-key={i}
-aria-label={`Go to page ${i + 1}`}
-onClick={() => scrollToPage(i)}
-className={`h-2.5 w-2.5 rounded-full transition-colors duration-200 ${
-activePage === i ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-}`}
-/>
-))}
-</div>
-
-
-{/* Quick Actions */}
-<div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-<Button variant="secondary" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
-<Tag className="mr-2 h-4 w-4" /> View Offers
-</Button>
-<Button variant="secondary" onClick={() => setIsFinanceOpen(true)} className="justify-start">
-<Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
-</Button>
-<Button variant="secondary" onClick={() => setIsBookingOpen(true)} className="justify-start">
-<Calendar className="mr-2 h-4 w-4" /> Book Test Drive
-</Button>
-<Button variant="secondary" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
-<PencilRuler className="mr-2 h-4 w-4" /> Build Your {safeModelEnd}
-</Button>
-</div>
-</div>
-</div>
-</section>
-
-          <EnhancedLifestyleGallery vehicle={vehicle} />
+      
 
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
