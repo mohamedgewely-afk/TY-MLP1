@@ -263,32 +263,86 @@ const VehicleDetails = () => {
 );
 
 
-  const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
-  return (
-    <ToyotaLayout
-      activeNavItem="models"
+      <div className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <EnhancedHeroSection
+        vehicle={vehicle}
+        galleryImages={galleryImages}
+        isFavorite={isFavorite}
+        onToggleFavorite={toggleFavorite}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
+        monthlyEMI={monthlyEMI}
+      />
+
+      <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
+        <VirtualShowroom vehicle={vehicle} />
+        <InteractiveSpecsTech vehicle={vehicle} />
+        <OffersSection onOfferClick={handleOfferClick} />
+        <VehicleMediaShowcase vehicle={vehicle} />
+        <RefinedTechExperience vehicle={vehicle} />
+
+        <section className="py-14 lg:py-24 bg-muted/30 relative text-center">
+          <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
+            Tailored to Every Model
+          </div>
+          <h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
+            Craft Your {safeModelEnd} Journey
+          </h2>
+          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
+            Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
+          </p>
+
+          {/* Optional: remove this next block if you no longer want the slider */}
+          {/* <SliderComponent slides={slides} /> */}
+        </section>
+
+        <EnhancedLifestyleGallery vehicle={vehicle} />
+
+        <section className="py-8 lg:py-16 bg-muted/30">
+          <RelatedVehicles currentVehicle={vehicle} />
+        </section>
+
+        <PreOwnedSimilar currentVehicle={vehicle} />
+        <VehicleFAQ vehicle={vehicle} />
+      </React.Suspense>
+
+      <ActionPanel
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={toggleFavorite}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
+        onFinanceCalculator={() => setIsFinanceOpen(true)}
+      />
+    </div>
+
+    <OffersModal
+      isOpen={isOffersModalOpen}
+      onClose={() => {
+        setIsOffersModalOpen(false);
+        setSelectedOffer(null);
+      }}
+      selectedOffer={selectedOffer}
+    />
+
+    <BookTestDrive
+      isOpen={isBookingOpen}
+      onClose={() => setIsBookingOpen(false)}
       vehicle={vehicle}
-      isFavorite={isFavorite}
-      onToggleFavorite={toggleFavorite}
-      onBookTestDrive={() => setIsBookingOpen(true)}
-      onCarBuilder={() => setIsCarBuilderOpen(true)}
-      onFinanceCalculator={() => setIsFinanceOpen(true)}
-    >
-      <div
-        className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <EnhancedHeroSection
-          vehicle={vehicle}
-          galleryImages={galleryImages}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onBookTestDrive={() => setIsBookingOpen(true)}
-          onCarBuilder={() => setIsCarBuilderOpen(true)}
-          monthlyEMI={monthlyEMI}
-        />
+    />
+
+    <FinanceCalculator
+      isOpen={isFinanceOpen}
+      onClose={() => setIsFinanceOpen(false)}
+      vehicle={vehicle}
+    />
+
+    <CarBuilder
+      isOpen={isCarBuilderOpen}
+      onClose={() => setIsCarBuilderOpen(false)}
+      vehicle={vehicle}
+    />
+
 
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
   <VirtualShowroom vehicle={vehicle} />
