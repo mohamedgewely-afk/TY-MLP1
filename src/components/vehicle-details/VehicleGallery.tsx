@@ -575,7 +575,7 @@ export default function LandCruiserLifestyleGalleryPro({
       <div
         id="content"
         ref={trackRef}
-        className="relative z-10 mt-4 md:mt-8 flex gap-2.5 sm:gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),12px)] pr-[max(env(safe-area-inset-right),12px)]"
+        className="relative z-10 mt-4 md:mt-8 flex gap-2 sm:gap-2.5 md:gap-3 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),12px)] pr-[max(env(safe-area-inset-right),12px)]"
         role="region"
         aria-roledescription="carousel"
         aria-label={T.sceneList}
@@ -725,7 +725,12 @@ function SceneCardPro({
   expandLabel: string;
 }) {
   // tightened mobile size & heights (no xs: breakpoint)
-  const cardCls = `snap-center shrink-0 min-w-[50vw] sm:min-w-[290px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
+  const cardCls = `snap-center shrink-0
+  min-w-[260px] max-w-[260px]
+  sm:min-w-[300px] sm:max-w-[300px]
+  md:min-w-[520px] md:max-w-[520px]
+  lg:min-w-[620px] lg:max-w-[620px]
+  xl:min-w-[700px] xl:max-w-[700px]
   rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
   return (
@@ -756,8 +761,8 @@ function SceneCardPro({
           alt={`${data.title} • ${data.scene}`}
           loading="lazy"
           decoding="async"
-          sizes="(max-width: 640px) 82vw, (max-width: 1024px) 520px, 700px"
-          className="w-full h-60 sm:h-70 md:h-84 lg:h-72 xl:h-80 object-cover object-center"
+          sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, (max-width: 1024px) 520px, 700px"
+className="w-full h-44 sm:h-56 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
         <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
