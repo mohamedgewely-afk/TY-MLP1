@@ -301,129 +301,103 @@ const VehicleDetails = () => {
           <RefinedTechExperience vehicle={vehicle} />
 
   
-<section className="py-16 lg:py-24 bg-gradient-to-b from-background via-muted/40 to-background">
-  <div className="toyota-container max-w-none">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="mb-10 text-center"
-    >
-      <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-5 py-2 text-sm font-semibold">
-        <Sparkles className="h-4 w-4" />
-        Tailored to Every Model
-      </div>
-      <h2 className="mt-4 text-4xl lg:text-6xl font-extrabold tracking-tight">
-        Craft Your {safeModelEnd} Journey
-      </h2>
-      <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-base lg:text-lg">
-        Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
-      </p>
-    </motion.div>
-       <div className="relative">
-      {/* Arrows */}
-      <button
-        aria-label="Previous"
-        onClick={handlePrev}
-        disabled={activePage === 0}
-        className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-background/90 ring-1 ring-border hover:bg-accent disabled:opacity-40"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-      <button
-        aria-label="Next"
-        onClick={handleNext}
-        disabled={activePage >= pageCount - 1}
-        className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-background/90 ring-1 ring-border hover:bg-accent disabled:opacity-40"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
+<section className="py-14 lg:py-24 bg-muted/30 relative">
+Tailored to Every Model
+</div>
+<h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
+Craft Your {safeModelEnd} Journey
+</h2>
+<p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
+Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
+</p>
+</motion.div>
 
-      {/* Slide Rail */}
-      <div
-        ref={railRef}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 px-1 touch-pan-x hide-scrollbar"
-      >
-        {slides.map((s, i) => (
-          <div
-            key={s.key}
-            ref={i === 0 ? firstCardRef : undefined}
-            className="snap-start shrink-0 bg-background/80 backdrop-blur rounded-3xl shadow-md ring-1 ring-border transition hover:shadow-lg"
-            style={{
-              flex: `0 0 calc((100% - ${(cardsPerView - 1) * GAP_PX}px) / ${cardsPerView})`,
-            }}
-          >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-t-3xl">
-              <img
-                src={s.image}
-                alt={s.title}
-                className="w-full h-full object-cover transition-transform hover:scale-105"
-                loading="lazy"
-              />
-            </div>
-            <CardContent className="p-5 space-y-3">
-              <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold">
-                {s.icon}
-                {s.title}
-              </div>
-              <h3 className="text-lg font-bold">{s.subtitle}</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                {s.meta.map((m) => (
-                  <li key={m} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    {m}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-primary hover:underline mt-2"
-                onClick={s.cta.onClick}
-              >
-                {s.cta.label}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </div>
-        ))}
-      </div>
 
-      {/* Pagination Dots */}
-      <div className="mt-6 flex items-center justify-center gap-2">
-        {Array.from({ length: pageCount }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => scrollToPage(i)}
-            className={`h-2.5 rounded-full transition-all ${
-              activePage === i
-                ? "w-8 bg-primary"
-                : "w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
-            }`}
-          />
-        ))}
-      </div>
-      {/* Quick Actions */}
-      <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
-          <Tag className="mr-2 h-4 w-4" />
-          View Offers
-        </Button>
-        <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-start">
-          <Gauge className="mr-2 h-4 w-4" />
-          Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
-        </Button>
-        <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-start">
-          <Calendar className="mr-2 h-4 w-4" />
-          Book Test Drive
-        </Button>
-        <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
-          <PencilRuler className="mr-2 h-4 w-4" />
-          Build Your {safeModelEnd}
-        </Button>
-      </div>
-    </div>
-  </div>
+<div className="relative">
+<div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-border">
+<div
+ref={railRef}
+className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-4 touch-pan-x"
+>
+{slides.map((s, i) => (
+<div
+key={s.key}
+ref={i === 0 ? firstCardRef : undefined}
+className="snap-start shrink-0 w-full md:w-[calc((100%-72px)/2)] xl:w-[calc((100%-144px)/3)] bg-white rounded-2xl overflow-hidden ring-1 ring-muted shadow-sm"
+>
+<div className="aspect-video overflow-hidden">
+<img
+src={s.image}
+alt={s.title}
+className="w-full h-full object-cover scale-105 transition-transform hover:scale-100"
+loading="lazy"
+/>
+</div>
+<div className="p-5 space-y-3">
+<div className="flex items-center gap-2 text-sm font-semibold text-primary">
+{s.icon}
+{s.title}
+</div>
+<h3 className="text-lg font-bold leading-snug text-foreground">
+{s.subtitle}
+</h3>
+<ul className="space-y-1 text-sm text-muted-foreground">
+{s.meta?.map((m) => (
+<li key={m} className="flex items-center gap-2">
+<Check className="h-4 w-4 text-green-500" />
+{m}
+</li>
+))}
+</ul>
+<div>
+<Button
+variant="link"
+className="p-0 text-primary inline-flex items-center hover:underline"
+onClick={s.cta.onClick}
+>
+{s.cta.label}
+<ArrowRight className="ml-2 h-4 w-4" />
+</Button>
+</div>
+</div>
+</div>
+))}
+</div>
+</div>
+
+
+{/* Pagination */}
+<div className="mt-6 flex justify-center gap-2">
+{Array.from({ length: pageCount }).map((_, i) => (
+<button
+key={i}
+aria-label={`Go to page ${i + 1}`}
+onClick={() => scrollToPage(i)}
+className={`h-2.5 w-2.5 rounded-full transition-colors duration-200 ${
+activePage === i ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+}`}
+/>
+))}
+</div>
+
+
+{/* Quick Actions */}
+<div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+<Button variant="secondary" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
+<Tag className="mr-2 h-4 w-4" /> View Offers
+</Button>
+<Button variant="secondary" onClick={() => setIsFinanceOpen(true)} className="justify-start">
+<Gauge className="mr-2 h-4 w-4" /> Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
+</Button>
+<Button variant="secondary" onClick={() => setIsBookingOpen(true)} className="justify-start">
+<Calendar className="mr-2 h-4 w-4" /> Book Test Drive
+</Button>
+<Button variant="secondary" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
+<PencilRuler className="mr-2 h-4 w-4" /> Build Your {safeModelEnd}
+</Button>
+</div>
+</div>
+</div>
 </section>
 
           <EnhancedLifestyleGallery vehicle={vehicle} />
