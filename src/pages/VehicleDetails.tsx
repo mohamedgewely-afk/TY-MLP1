@@ -1,1143 +1,400 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
 import {
-  Volume2,
-  VolumeX,
-  X,
-  Play,
-  Pause,
   ChevronLeft,
   ChevronRight,
-  GaugeCircle,
-  Zap,
-  TimerReset,
-  Navigation,
+  Calendar,
+  Shield,
+  Award,
+  PencilRuler,
+  Tag,
+  Smartphone,
   Gauge,
-  BatteryCharging,
+  Wind,
+  ArrowRight,
+  Check,
   Sparkles,
-  Grid3X3,
-  SlidersHorizontal,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import ToyotaLayout from "@/components/ToyotaLayout";
+import { vehicles } from "@/data/vehicles";
+import { VehicleModel } from "@/types/vehicle";
+import VehicleGallery from "@/components/vehicle-details/VehicleGallery";
+import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
+import RelatedVehicles from "@/components/vehicle-details/RelatedVehicles";
+import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
+import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
+import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
+import OffersSection from "@/components/home/OffersSection";
+import OffersModal from "@/components/home/OffersModal";
+import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
+import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
+import CarBuilder from "@/components/vehicle-details/CarBuilder";
+import ActionPanel from "@/components/vehicle-details/ActionPanel";
+import { EnhancedHeroSectionRefactored } from "@/components/vehicle-details/enhanced-hero-section/EnhancedHeroSectionRefactored";
+import { ExperienceCard } from "@/components/vehicle-details/experience-rail/ExperienceCard";
+import { useCarousel } from "@/hooks/use-carousel";
+import { useTouchGestures } from "@/hooks/use-touch-gestures";
+import { EnhancedExperienceRail } from "@/components/vehicle-details/experience-rail/EnhancedExperienceRail";
 
-// —————————————————————————————————
-// THEME (Toyota)
-// —————————————————————————————————
-const TOYOTA_RED = "#EB0A1E";
-const TOYOTA_BG = "#0D0F10";
-
-function ToyotaLogo({ className = "w-20 h-auto" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 100 60"
-      className={className}
-      aria-hidden="true"
-      role="img"
-      focusable="false"
-    >
-      <g fill="currentColor">
-        <ellipse cx="50" cy="30" rx="38" ry="22" className="opacity-90" />
-        <ellipse cx="50" cy="30" rx="26" ry="14" fill={TOYOTA_BG} />
-        <ellipse cx="50" cy="30" rx="10" ry="22" fill={TOYOTA_BG} />
-      </g>
-      <title>Toyota</title>
-    </svg>
-  );
-}
-
-// —————————————————————————————————
-// TYPES
-// —————————————————————————————————
-export type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
-export interface SceneData {
-  id: string;
+type Slide = {
+  key: string;
   title: string;
-  scene: SceneCategory;
+  subtitle: string;
   image: string;
-  description: string;
-  narration?: string;
-  specs: Record<string, string>;
-}
-
-interface LandCruiserLifestyleGalleryProProps {
-  scenes?: SceneData[];
-  locale?: "en" | "ar";
-  rtl?: boolean;
-  onAskToyota?: (scene: SceneData) => void;
-}
-
-const STR = {
-  en: {
-    title: "TOYOTA LAND CRUISER",
-    subtitle: "Conquer Every Land. Crafted for the impossible.",
-    hint: "Swipe, drag, or use arrows · click a scene",
-    expand: "Enter Scene",
-    collapse: "Close",
-    ask: "Ask Toyota",
-    ambientOn: "Ambient on",
-    ambientOff: "Ambient off",
-    narrationOn: "Narration on",
-    narrationOff: "Narration off",
-    scenes: ["Exterior", "Urban", "Capability", "Interior", "Night"] as SceneCategory[],
-    empty: "No scenes in this filter.",
-    playing: "Playing",
-    paused: "Paused",
-    skipToContent: "Skip to content",
-    filters: "Lifestyle filters",
-    sceneList: "Land Cruiser lifestyle scenes",
-    openScene: (scene: string) => `Open ${scene} scene`,
-    prevScene: "Previous scene",
-    nextScene: "Next scene",
-    narrationPosition: "Narration position",
-    all: "All",
-    slideOf: (i: number, total: number, name: string) => `Slide ${i} of ${total}: ${name}`,
-    viewCarousel: "Carousel",
-    viewGrid: "Grid",
-    thumbnails: "Thumbnails",
-    goToSlide: (i: number) => `Go to slide ${i}`,
-  },
-  ar: {
-    title: "تويوتا لاندكروزر",
-    subtitle: "قهر كل أرض. صُمم للمستحيل.",
-    hint: "اسحب أو استخدم الأسهم · اضغط على مشهد",
-    expand: "ادخل المشهد",
-    collapse: "إغلاق",
-    ask: "اسأل تويوتا",
-    ambientOn: "صوت الخلفية مُفعل",
-    ambientOff: "صوت الخلفية متوقف",
-    narrationOn: "السرد مُفعل",
-    narrationOff: "السرد متوقف",
-    scenes: ["Exterior", "Urban", "Capability", "Interior", "Night"] as SceneCategory[],
-    empty: "لا توجد مشاهد لهذا الفلتر.",
-    playing: "يعمل",
-    paused: "متوقف",
-    skipToContent: "تخطّي إلى المحتوى",
-    filters: "فلاتر أنماط الحياة",
-    sceneList: "مشاهد لاند كروزر",
-    openScene: (scene: string) => `افتح مشهد ${scene}`,
-    prevScene: "المشهد السابق",
-    nextScene: "المشهد التالي",
-    narrationPosition: "موضع السرد",
-    all: "الكل",
-    slideOf: (i: number, total: number, name: string) => `الشريحة ${i} من ${total}: ${name}`,
-    viewCarousel: "شريط الشرائح",
-    viewGrid: "شبكة",
-    thumbnails: "الصور المصغرة",
-    goToSlide: (i: number) => `اذهب إلى الشريحة ${i}`,
-  },
+  icon: React.ReactNode;
+  meta?: string[];
+  cta?: { label: string; onClick: () => void };
 };
 
-// Icon map for common specs
-const specIcons: Record<string, JSX.Element> = {
-  horsepower: <Zap className="w-5 h-5" aria-hidden="true" />,
-  torque: <GaugeCircle className="w-5 h-5" aria-hidden="true" />,
-  range: <Navigation className="w-5 h-5" aria-hidden="true" />,
-  zeroToSixty: <TimerReset className="w-5 h-5" aria-hidden="true" />,
-  topSpeed: <Gauge className="w-5 h-5" aria-hidden="true" />,
-  battery: <BatteryCharging className="w-5 h-5" aria-hidden="true" />,
-  fuelEconomy: <Gauge className="w-5 h-5" aria-hidden="true" />,
-  drivetrain: <Navigation className="w-5 h-5" aria-hidden="true" />,
-  suspension: <GaugeCircle className="w-5 h-5" aria-hidden="true" />,
-  seats: <Gauge className="w-5 h-5" aria-hidden="true" />,
-  safety: <GaugeCircle className="w-5 h-5" aria-hidden="true" />,
-};
+const GAP_PX = 24; // must match Tailwind gap-6
 
-// —————————————————————————————————
-// DEFAULT LIFESTYLE SCENES (uses your DAM images)
-// —————————————————————————————————
-const DEFAULT_SCENES: SceneData[] = [
-  {
-    id: "lc-exterior-hero",
-    title: "Land Cruiser",
-    scene: "Exterior",
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true",
-    description: "TNGA‑F platform. Lighter, tougher, more capable.",
-    narration: "/audio/lc_exterior.mp3",
-    specs: {
-      drivetrain: "Full‑time 4WD, locking diffs",
-      horsepower: "409 hp (3.5L V6 TT)",
-      torque: "650 Nm",
-      suspension: "Adaptive Variable Suspension",
-      zeroToSixty: "~6.7s",
-      fuelEconomy: "~10 L/100km",
-    },
-  },
-  {
-    id: "lc-urban",
-    title: "Land Cruiser",
-    scene: "Urban",
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
-    description: "Commanding stance with refined aerodynamics.",
-    narration: "/audio/lc_urban.mp3",
-    specs: {
-      drivetrain: "10‑speed automatic",
-      horsepower: "409 hp",
-      torque: "650 Nm",
-      suspension: "AVS + SDM",
-      range: "~800+ km",
-      fuelEconomy: "~10 L/100km",
-    },
-  },
-  {
-    id: "lc-capability",
-    title: "Land Cruiser",
-    scene: "Capability",
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f9670484-f03f-46ba-aac8-424889e779a0/renditions/ad34680c-160b-43a6-9785-541adba34a45?binary=true&mformat=true",
-    description: "Born for dunes. Crawl Control and Multi‑Terrain Select.",
-    narration: "/audio/lc_capability.mp3",
-    specs: {
-      drivetrain: "MTS + Crawl",
-      torque: "650 Nm",
-      suspension: "KDSS/SDM tuned",
-      topSpeed: "210 km/h",
-      range: "~800+ km",
-      horsepower: "409 hp",
-    },
-  },
-  {
-    id: "lc-interior",
-    title: "Land Cruiser",
-    scene: "Interior",
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
-    description: "Functional luxury. 12.3'' display & Terrain Monitor.",
-    narration: "/audio/lc_interior.mp3",
-    specs: {
-      seats: "Ventilated leather, flexible 3rd row",
-      drivetrain: "Under‑body camera",
-      battery: "Dual‑battery ready",
-      suspension: "Drive Mode Select",
-      safety: "Toyota Safety Sense",
-      fuelEconomy: "USB‑C fast charge",
-    },
-  },
-  {
-    id: "lc-night",
-    title: "Land Cruiser",
-    scene: "Night",
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/0e241336-53f3-4bd0-8c67-61baf34bfdbd/renditions/cda649a1-788a-481d-a794-15dc2d9f7d64?binary=true&mformat=true",
-    description: "Quiet power after dark. LED signature.",
-    narration: "/audio/lc_night.mp3",
-    specs: {
-      drivetrain: "Full‑time 4WD",
-      suspension: "Adaptive lighting",
-      range: "~800+ km",
-      horsepower: "409 hp",
-      torque: "650 Nm",
-      topSpeed: "210 km/h",
-    },
-  },
-];
+function VehicleDetails() {
+  const { vehicleName } = useParams<{ vehicleName: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-// —————————————————————————————————
-// UTILS
-// —————————————————————————————————
-const sceneSpecPriority: Record<SceneCategory, string[]> = {
-  Exterior: ["horsepower", "torque", "drivetrain", "fuelEconomy"],
-  Urban: ["fuelEconomy", "range", "drivetrain", "suspension"],
-  Capability: ["drivetrain", "torque", "suspension", "range"],
-  Interior: ["seats", "safety", "battery", "drivetrain"],
-  Night: ["drivetrain", "topSpeed", "range", "horsepower"],
-};
+  const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
-function sortSpecs(scene: SceneCategory, specs: Record<string, string>): Array<[string, string]> {
-  const entries = Object.entries(specs);
-  const pri = sceneSpecPriority[scene] ?? [];
-  return entries.sort(
-    (a, b) => (pri.indexOf(a[0]) === -1 ? 999 : pri.indexOf(a[0])) - (pri.indexOf(b[0]) === -1 ? 999 : pri.indexOf(b[0]))
-  );
-}
+  // Modals
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isFinanceOpen, setIsFinanceOpen] = useState(false);
+  const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
+  const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<any>(null);
 
-const fmt = (t: number) => {
-  if (!isFinite(t)) return "0:00";
-  const m = Math.floor(t / 60).toString();
-  const s = Math.floor(t % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-};
+  // Quick View
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [quickViewIndex, setQuickViewIndex] = useState(0);
 
-function useBodyScrollLock(locked: boolean) {
+  // Carousel
+  const railRef = useRef<HTMLDivElement>(null);
+  const [cardsPerView, setCardsPerView] = useState(1);
+
+  // Gallery images
+  const galleryImages = [
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+  ];
+
+  // Finance calc
+  const calculateEMI = (price: number) => {
+    const principal = price * 0.8;
+    const rate = 0.035 / 12;
+    const tenure = 60;
+    const emi =
+      (principal * rate * Math.pow(1 + rate, tenure)) /
+      (Math.pow(1 + rate, tenure) - 1);
+    return Math.round(emi);
+  };
+
+  // Actions
+  const handleToggleFavorite = () => setIsFavorite((x) => !x);
+  const handleBookTestDrive = () => setIsBookingOpen(true);
+  const handleCarBuilder = () => setIsCarBuilderOpen(true);
+  const handleFinanceCalculator = () => setIsFinanceOpen(true);
+  const handleOfferClick = (offer: any) => {
+    setSelectedOffer(offer);
+    setIsOffersModalOpen(true);
+  };
+
+  // Slides
+  const slides: Slide[] = [
+    {
+      key: "performance",
+      title: "Performance",
+      subtitle: "Feel the surge of hybrid power, always in command.",
+      image: galleryImages[2],
+      icon: <Gauge className="h-5 w-5" />,
+      meta: ["Smooth acceleration", "Balanced handling", "Quiet cabin"],
+      cta: { label: "Feel it – Test Drive", onClick: handleBookTestDrive },
+    },
+    {
+      key: "safety",
+      title: "Safety Sense",
+      subtitle: "Guardian tech that's always watching out for you.",
+      image: galleryImages[1],
+      icon: <Shield className="h-5 w-5" />,
+      meta: ["Adaptive systems", "Collision assist", "Lane guidance"],
+      cta: { label: "See Safety Suite", onClick: () => navigate("/safety") },
+    },
+    {
+      key: "connected",
+      title: "Connected Life",
+      subtitle: "Wireless Apple CarPlay & Android Auto.",
+      image: galleryImages[0],
+      icon: <Smartphone className="h-5 w-5" />,
+      meta: ["Voice control", "Remote start", "OTA‑ready"],
+      cta: { label: "Explore Connectivity", onClick: () => navigate("/connect") },
+    },
+    {
+      key: "comfort",
+      title: "Comfort & Climate",
+      subtitle: "Dual‑zone control and clean air tech.",
+      image: galleryImages[3],
+      icon: <Wind className="h-5 w-5" />,
+      meta: ["HEPA filtration", "Whisper quiet", "Smart venting"],
+      cta: { label: "Inside the Cabin", onClick: () => navigate("/interior") },
+    },
+    {
+      key: "ownership",
+      title: "Ownership",
+      subtitle: "Clear pricing, finance made simple.",
+      image: galleryImages[4],
+      icon: <Award className="h-5 w-5" />,
+      meta: ["Flexible EMI", "Trade‑in support", "Top‑rated service"],
+      cta: { label: "Calculate EMI", onClick: handleFinanceCalculator },
+    },
+    {
+      key: "build",
+      title: "Build & Offers",
+      subtitle: "Pick your trim, colors, accessories.",
+      image: galleryImages[5],
+      icon: <PencilRuler className="h-5 w-5" />,
+      meta: ["Live price", "Compare trims", "Limited‑time offers"],
+      cta: { label: "Start Building", onClick: handleCarBuilder },
+    },
+  ];
+
+  const openQuickView = (i: number) => {
+    setQuickViewIndex(i);
+    setIsQuickViewOpen(true);
+  };
+
+  // Decide cardsPerView by rail width
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    const prevTouchAction = document.body.style.touchAction as string | undefined;
-    if (locked) {
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
-    } else {
-      document.body.style.overflow = prevOverflow || "";
-      document.body.style.touchAction = prevTouchAction || "";
-    }
-    return () => {
-      document.body.style.overflow = prevOverflow || "";
-      document.body.style.touchAction = prevTouchAction || "";
+    const rail = railRef.current;
+    if (!rail) return;
+    const measure = () => {
+      const w = rail.clientWidth;
+      let per = 1;
+      if (w >= 1280) per = 4;
+      else if (w >= 1024) per = 3;
+      else if (w >= 640) per = 2;
+      else per = 1;
+      setCardsPerView(per);
     };
-  }, [locked]);
-}
-
-// —————————————————————————————————
-// MAIN COMPONENT (enhanced mobile, usability & a11y)
-// —————————————————————————————————
-export default function LandCruiserLifestyleGalleryPro({
-  scenes = DEFAULT_SCENES,
-  locale = "en",
-  rtl = false,
-  onAskToyota,
-}: LandCruiserLifestyleGalleryProProps) {
-  const T = STR[locale] ?? STR.en;
-  const prefersReduced = useReducedMotion();
-
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [selected, setSelected] = useState<SceneData | null>(null);
-  const [filter, setFilter] = useState<SceneCategory | "All">("All");
-  const [ambientOn, setAmbientOn] = useState(false);
-  const [narrOn, setNarrOn] = useState(false);
-  const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
-
-  const trackRef = useRef<HTMLDivElement>(null);
-  const ambientRef = useRef<HTMLAudioElement>(null);
-  const narrationRef = useRef<HTMLAudioElement>(null);
-  const liveAudioRef = useRef<HTMLDivElement>(null);
-  const liveSlideRef = useRef<HTMLDivElement>(null);
-
-  const filtered = useMemo(() => (filter === "All" ? scenes : scenes.filter((s) => s.scene === filter)), [scenes, filter]);
-
-  const centerCard = useCallback((index: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const child = el.children[index] as HTMLElement | undefined;
-    if (!child) return;
-    const left = child.offsetLeft - (el.clientWidth - child.clientWidth) / 2;
-    el.scrollTo({ left, behavior: "smooth" });
-  }, []);
-
-  const justChangedByArrow = useRef(false);
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const btn = trackRef.current.children[activeIdx]?.querySelector<HTMLButtonElement>("[data-card-trigger]");
-    if (btn && justChangedByArrow.current) {
-      btn.focus({ preventScroll: true });
-      justChangedByArrow.current = false;
-    }
-  }, [activeIdx]);
-
-  useEffect(() => {
-    const a = ambientRef.current;
-    if (!a) return;
-    if (ambientOn) {
-      a.loop = true;
-      a.volume = 0.35;
-      a.play().catch(() => {});
-    } else {
-      a.pause();
-    }
-  }, [ambientOn]);
-
-  useEffect(() => {
-    setActiveIdx(0);
-    trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-  }, [filter, viewMode]);
-
-  useEffect(() => {
-    if (viewMode === "carousel") {
-      centerCard(activeIdx);
-      if (filtered[activeIdx]) {
-        const name = `${filtered[activeIdx].scene}`;
-        liveSlideRef.current && (liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name));
-      }
-    }
-  }, [activeIdx, centerCard, filtered, T, viewMode]);
-
-  const [narrTime, setNarrTime] = useState(0);
-  const [narrDur, setNarrDur] = useState(0);
-  const [isNarrPlaying, setNarrPlaying] = useState(false);
-
-  useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    const onTime = () => setNarrTime(n.currentTime || 0);
-    const onMeta = () => setNarrDur(isFinite(n.duration) ? n.duration : 0);
-    const onPlay = () => setNarrPlaying(true);
-    const onPause = () => setNarrPlaying(false);
-    n.addEventListener("timeupdate", onTime);
-    n.addEventListener("loadedmetadata", onMeta);
-    n.addEventListener("play", onPlay);
-    n.addEventListener("pause", onPause);
+    const ro = new ResizeObserver(measure);
+    ro.observe(rail);
+    window.addEventListener("resize", measure);
+    requestAnimationFrame(measure);
     return () => {
-      n.removeEventListener("timeupdate", onTime);
-      n.removeEventListener("loadedmetadata", onMeta);
-      n.removeEventListener("play", onPlay);
-      n.removeEventListener("pause", onPause);
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
     };
   }, []);
 
+  // Vehicle setup
   useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    n.pause();
-    n.currentTime = 0;
-    if (selected?.narration && narrOn) {
-      n.src = selected.narration;
-      n.play().catch(() => {});
-      liveAudioRef.current && (liveAudioRef.current.textContent = T.playing);
-    } else {
-      n.removeAttribute("src");
-      setNarrTime(0);
-      setNarrDur(0);
-      liveAudioRef.current && (liveAudioRef.current.textContent = T.paused);
+    const found = vehicles.find((v) => {
+      if (v.id === vehicleName) return true;
+      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
+      return slug === vehicleName;
+    });
+    if (found) {
+      setVehicle(found);
+      document.title = `${found.name} | Toyota UAE`;
+      const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+      setIsFavorite(favs.includes(found.name));
     }
-  }, [selected, narrOn, T]);
+  }, [vehicleName]);
 
-  const currentBG = filtered[activeIdx]?.image;
+  const runAfterCloseQuickView = (fn: () => void) => {
+    if (isQuickViewOpen) {
+      setIsQuickViewOpen(false);
+      setTimeout(fn, 0);
+    } else {
+      fn();
+    }
+  };
 
-  const openNext = useCallback(() => {
-    if (!selected) return;
-    const idx = filtered.findIndex((s) => s.id === selected.id);
-    const next = filtered[(idx + 1) % filtered.length];
-    setSelected(next);
-    setActiveIdx((p) => (p + 1) % filtered.length);
-  }, [selected, filtered]);
+  if (!vehicle) return <div />;
 
-  const openPrev = useCallback(() => {
-    if (!selected) return;
-    const idx = filtered.findIndex((s) => s.id === selected.id);
-    const prev = filtered[(idx - 1 + filtered.length) % filtered.length];
-    setSelected(prev);
-    setActiveIdx((p) => (p - 1 + filtered.length) % filtered.length);
-  }, [selected, filtered]);
-
-  const onRootKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (selected || viewMode === "grid") return; // overlay handles keys; grid is static
-
-      const goNext = () => {
-        justChangedByArrow.current = true;
-        setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
-      };
-      const goPrev = () => {
-        justChangedByArrow.current = true;
-        setActiveIdx((i) => Math.max(i - 1, 0));
-      };
-
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        rtl ? goPrev() : goNext();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        rtl ? goNext() : goPrev();
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const item = filtered[activeIdx];
-        if (item) setSelected(item);
-      }
-    },
-    [selected, filtered, activeIdx, rtl, viewMode]
-  );
-
-  useBodyScrollLock(!!selected);
-
-  const hintId = "lc-hint";
+  const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
+  const monthlyEMI = calculateEMI(vehicle?.price || 0);
+  const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
 
   return (
-    <section
-      className="relative w-full min-h-[100svh] text-white overflow-x-clip"
-      style={{ backgroundColor: TOYOTA_BG }}
-      dir={rtl ? "rtl" : "ltr"}
-      lang={locale}
-      aria-label={T.title}
-      onKeyDown={onRootKeyDown}
-    >
-      <a
-        href="#content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded-md"
-      >
-        {T.skipToContent}
-      </a>
-
-      {/* Live regions */}
-      <div ref={liveAudioRef} className="sr-only" aria-live="polite" aria-atomic="true" />
-      <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
-
-      {/* Audio */}
-      <audio ref={ambientRef} src="/audio/toyota-ambient.mp3" className="hidden" />
-      <audio ref={narrationRef} className="hidden" />
-
-      {/* Background */}
-      <div
-        className="absolute inset-0 -z-10 transition-opacity duration-700"
-        style={{
-          backgroundImage: `url(${currentBG})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          opacity: 0.12,
-        }}
-        aria-hidden="true"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black" aria-hidden="true" />
-
-      {/* Header */}
-      <header className="relative z-10 mx-auto max-w-[min(96vw,1600px)] flex flex-col items-center text-center gap-2 px-4 pt-6">
-        <div className="flex items-center gap-3" style={{ color: TOYOTA_RED }}>
-          <ToyotaLogo className="w-14 sm:w-16 md:w-20" />
-          <span className="sr-only">Toyota</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight">{T.title}</h1>
-        <p className="mt-1 text-sm sm:text-base md:text-lg text-white/80">{T.subtitle}</p>
-        <p id={hintId} className="mt-1 text-[11px] sm:text-xs flex items-center gap-1" style={{ color: TOYOTA_RED }}>
-          <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> {T.hint}
-        </p>
-
-        {/* Top Controls */}
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAmbientOn((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={ambientOn}
-            title={ambientOn ? T.ambientOn : T.ambientOff}
-          >
-            {ambientOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {ambientOn ? T.ambientOn : T.ambientOff}
-          </button>
-          <button
-            type="button"
-            onClick={() => setNarrOn((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={narrOn}
-            title={narrOn ? T.narrationOn : T.narrationOff}
-          >
-            {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {narrOn ? T.narrationOn : T.narrationOff}
-          </button>
-
-          {/* View toggle (desktop only) */}
-          <div className="hidden md:flex items-center gap-2 ml-2" role="group" aria-label="View">
-            <button
-              type="button"
-              onClick={() => setViewMode("carousel")}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] text-xs border ${
-                viewMode === "carousel" ? "bg-white/20" : "bg-white/10"
-              }`}
-              aria-pressed={viewMode === "carousel"}
-              title={T.viewCarousel}
-            >
-              <SlidersHorizontal className="w-4 h-4" aria-hidden="true" /> {T.viewCarousel}
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] text-xs border ${
-                viewMode === "grid" ? "bg-white/20" : "bg-white/10"
-              }`}
-              aria-pressed={viewMode === "grid"}
-              title={T.viewGrid}
-            >
-              <Grid3X3 className="w-4 h-4" aria-hidden="true" /> {T.viewGrid}
-            </button>
-          </div>
-        </div>
-
-        {/* Lifestyle Filter (desktop) */}
-        <nav className="mt-4 hidden md:flex flex-wrap items-center justify-center gap-2 px-2" aria-label={T.filters}>
-          {["All", ...T.scenes].map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setFilter(c as any)}
-              className="rounded-full px-3 py-2 min-h-[40px] text-xs sm:text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-              style={{
-                borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-                background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-                color: filter === (c as any) ? TOYOTA_RED : "#fff",
-              }}
-              aria-pressed={filter === (c as any)}
-            >
-              {c === "All" ? T.all : c}
-            </button>
-          ))}
-        </nav>
-
-        {/* Lifestyle Filter (mobile chips) */}
-        <nav className="mt-3 md:hidden w-full overflow-x-auto px-4" aria-label={T.filters}>
-          <div className="flex gap-2 w-max">
-            {["All", ...T.scenes].map((c) => (
-              <button
-                key={`m-${c}`}
-                type="button"
-                onClick={() => setFilter(c as any)}
-                className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
-                style={{
-                  borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-                  background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-                  color: filter === (c as any) ? TOYOTA_RED : "#fff",
-                }}
-                aria-pressed={filter === (c as any)}
-              >
-                {c === "All" ? T.all : c}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </header>
-
-      {/* CONTENT AREA: Carousel or Grid (desktop) */}
-      {viewMode === "grid" ? (
-        <div
-          className="relative z-10 mt-6 md:mt-8 mx-auto w-full max-w-[min(96vw,1600px)] px-4 md:px-6"
-          role="region"
-          aria-label={`${T.sceneList} — ${T.viewGrid}`}
-        >
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-            {filtered.map((sc, idx) => (
-              <SceneCardPro
-                key={`grid-${sc.id}`}
-                data={sc}
-                active={idx === activeIdx}
-                tabIndex={0}
-                onEnter={() => {
-                  setSelected(sc);
-                  setActiveIdx(idx);
-                }}
-                onFocus={() => setActiveIdx(idx)}
-                prefersReduced={prefersReduced}
-                ariaLabel={T.openScene(sc.scene)}
-              />
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Carousel Track */}
-          <div
-            id="content"
-            ref={trackRef}
-            className="relative z-10 mt-4 md:mt-8 flex gap-2.5 sm:gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),12px)] pr-[max(env(safe-area-inset-right),12px)]"
-            role="region"
-            aria-roledescription="carousel"
-            aria-label={T.sceneList}
-            aria-describedby={hintId}
-            aria-live="off"
-          >
-            {filtered.length === 0 && <div className="text-white/70 text-sm py-10">{T.empty}</div>}
-            {filtered.map((sc, idx) => (
-              <SceneCardPro
-                key={sc.id}
-                data={sc}
-                active={idx === activeIdx}
-                tabIndex={idx === activeIdx ? 0 : -1}
-                onEnter={() => {
-                  setSelected(sc);
-                  setActiveIdx(idx);
-                }}
-                onFocus={() => setActiveIdx(idx)}
-                prefersReduced={prefersReduced}
-                ariaLabel={T.openScene(sc.scene)}
-              />
-            ))}
-          </div>
-
-          {/* Nav indicators (mobile-first, also helpful on desktop) */}
-          <div className="relative z-10 mx-auto max-w-[min(96vw,1600px)] px-4 md:px-6">
-            {/* Progress bar */}
-            <div className="mt-2 h-1 w-full bg-white/10 rounded">
-              <div
-                className="h-1 rounded"
-                style={{
-                  width: `${filtered.length ? ((activeIdx + 1) / filtered.length) * 100 : 0}%`,
-                  backgroundColor: TOYOTA_RED,
-                }}
-                aria-hidden="true"
-              />
-            </div>
-
-            {/* Dots */}
-            <div className="mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
-              {filtered.map((s, i) => (
-                <button
-                  key={`dot-${s.id}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === activeIdx}
-                  aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
-                  className={`h-2.5 rounded-full transition-all ${i === activeIdx ? "w-6" : "w-2.5"}`}
-                  onClick={() => setActiveIdx(i)}
-                  style={{ background: i === activeIdx ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
-                />
-              ))}
-            </div>
-
-            {/* Fraction label with mini thumbs (desktop only) */}
-            <div className="hidden md:flex items-center justify-center gap-3 mt-3">
-              <span className="text-xs text-white/70" aria-live="polite">
-                {activeIdx + 1} / {filtered.length}
-              </span>
-              <div className="hidden lg:flex gap-2">
-                {filtered.slice(Math.max(0, activeIdx - 2), activeIdx + 3).map((s, i) => (
-                  <button
-                    key={`thumb-${s.id}`}
-                    type="button"
-                    onClick={() => setActiveIdx(filtered.indexOf(s))}
-                    className={`overflow-hidden rounded-md border ${s.id === filtered[activeIdx]?.id ? "border-white/60" : "border-white/15"}`}
-                    aria-label={`${T.goToSlide(filtered.indexOf(s) + 1)} — ${s.scene}`}
-                  >
-                    <img src={s.image} alt="" className="w-16 h-10 object-cover" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Overlay / Expanded Scene */}
-      <AnimatePresence>
-        {selected && (
-          <ExpandedSceneOverlay
-            key={selected.id}
-            scene={selected}
-            onClose={() => setSelected(null)}
-            onNext={openNext}
-            onPrev={openPrev}
-            narrationRef={narrationRef}
-            narrOn={narrOn}
-            setNarrOn={setNarrOn}
-            narrTime={narrTime}
-            narrDur={narrDur}
-            setNarrTime={(t) => {
-              const n = narrationRef.current;
-              if (!n) return;
-              n.currentTime = t;
-              setNarrTime(t);
-            }}
-            isNarrPlaying={isNarrPlaying}
-            setIsNarrPlaying={(p) => {
-              const n = narrationRef.current;
-              if (!n) return;
-              p ? n.play().catch(() => {}) : n.pause();
-            }}
-            onAskToyota={onAskToyota}
-            prefersReduced={prefersReduced}
-            localeStrings={T}
-            rtl={rtl}
-          />
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
-
-// —————————————————————————————————
-// CARD (compact, tuned widths/heights)
-// —————————————————————————————————
-function SceneCardPro({
-  data,
-  active,
-  onEnter,
-  onFocus,
-  prefersReduced,
-  tabIndex,
-  ariaLabel,
-}: {
-  data: SceneData;
-  active: boolean;
-  onEnter: () => void;
-  onFocus: () => void;
-  prefersReduced: boolean;
-  tabIndex: number;
-  ariaLabel: string;
-}) {
-  const cardCls = `snap-center shrink-0 min-w-[82vw] xs:min-w-[78vw] sm:min-w-[360px] md:min-w-[520px] lg:min-w-[620px] xl:min-w-[700px] max-w-[820px]
-    rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
-
-  return (
-    <motion.article
-      className={cardCls}
-      layoutId={data.id}
-      initial={false}
-      animate={{
-        boxShadow: active
-          ? `0 0 0 2px ${TOYOTA_RED}55, 0 15px 35px 0 rgba(0,0,0,0.5)`
-          : "0 10px 25px rgba(0,0,0,0.35)",
-        y: active && !prefersReduced ? -2 : 0,
+    <ToyotaLayout
+      activeNavItem="models"
+      vehicle={vehicle}
+      isFavorite={isFavorite}
+      onToggleFavorite={() => {
+        const next = !isFavorite;
+        setIsFavorite(next);
+        const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+        if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+        localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        toast({ title: next ? "Added to favorites" : "Removed from favorites", description: vehicle.name });
       }}
-      transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 26 }}
+      onBookTestDrive={() => setIsBookingOpen(true)}
+      onCarBuilder={() => setIsCarBuilderOpen(true)}
+      onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
-      <button
-        type="button"
-        onClick={onEnter}
-        onFocus={onFocus}
-        data-card-trigger
-        className="relative w-full text-left select-none focus-visible:outline-none"
-        aria-label={ariaLabel}
-        aria-haspopup="dialog"
-        tabIndex={tabIndex}
-      >
-        <img
-          src={data.image}
-          alt={`${data.title} • ${data.scene}`}
-          loading="lazy"
-          decoding="async"
-          sizes="(max-width: 640px) 82vw, (max-width: 1024px) 520px, 700px"
-          className="w-full h-44 xs:h-52 sm:h-60 md:h-64 lg:h-72 xl:h-80 object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
-        <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">{data.title}</h3>
-            <p className="text-xs sm:text-sm" style={{ color: TOYOTA_RED }}>
-              {data.scene}
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 text-xs sm:text-sm">
-            {STR.en.expand}
-          </span>
-        </div>
-      </button>
-
-      <div className="p-4 sm:p-5 md:p-6">
-        <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
-        <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
-          {sortSpecs(data.scene, data.specs)
-            .slice(0, 4)
-            .map(([key, val], i) => (
-              <li key={key}>
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
-                >
-                  <span style={{ color: TOYOTA_RED }}>
-                    {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
-                  </span>
-                  <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                    <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                    <div className="font-semibold text-white">{val}</div>
-                  </div>
-                </motion.div>
-              </li>
-            ))}
-        </ul>
-      </div>
-    </motion.article>
-  );
-}
-
-// —————————————————————————————————
-// OVERLAY (immersive)
-// —————————————————————————————————
-function ExpandedSceneOverlay({
-  scene,
-  onClose,
-  onNext,
-  onPrev,
-  narrationRef,
-  narrOn,
-  setNarrOn,
-  narrTime,
-  narrDur,
-  setNarrTime,
-  isNarrPlaying,
-  setIsNarrPlaying,
-  onAskToyota,
-  prefersReduced,
-  localeStrings,
-  rtl,
-}: {
-  scene: SceneData;
-  onClose: () => void;
-  onNext: () => void;
-  onPrev: () => void;
-  narrationRef: React.RefObject<HTMLAudioElement>;
-  narrOn: boolean;
-  setNarrOn: (v: boolean) => void;
-  narrTime: number;
-  narrDur: number;
-  setNarrTime: (t: number) => void;
-  isNarrPlaying: boolean;
-  setIsNarrPlaying: (p: boolean) => void;
-  onAskToyota?: (s: SceneData) => void;
-  prefersReduced: boolean;
-  localeStrings: typeof STR["en"];
-  rtl: boolean;
-}) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const T = localeStrings;
-  const headingId = `scene-title-${scene.id}`;
-
-  useEffect(() => {
-    const root = overlayRef.current;
-    if (!root) return;
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const closeBtn = root.querySelector<HTMLButtonElement>("[data-close]");
-    closeBtn?.focus();
-
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      } else if (e.key === "ArrowRight") {
-        rtl ? onPrev() : onNext();
-      } else if (e.key === "ArrowLeft") {
-        rtl ? onNext() : onPrev();
-      } else if (e.key === " ") {
-        const target = e.target as HTMLElement;
-        if (target?.getAttribute("role") !== "slider" && (target as any)?.tagName !== "INPUT") {
-          e.preventDefault();
-          setIsNarrPlaying(!isNarrPlaying);
-        }
-      }
-    };
-
-    const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-      const focusables = root.querySelectorAll<HTMLElement>(
-        'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
-      );
-      const list = Array.from(focusables).filter((el) => !el.hasAttribute("disabled"));
-      if (list.length === 0) return;
-      const first = list[0];
-      const last = list[list.length - 1];
-      if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      } else if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKey);
-    document.addEventListener("keydown", handleTab);
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.removeEventListener("keydown", handleTab);
-      previouslyFocused?.focus();
-    };
-  }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying, rtl]);
-
-  const startX = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0]?.clientX ?? null;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (startX.current == null) return;
-    const dx = (e.changedTouches[0]?.clientX ?? startX.current) - startX.current;
-    const threshold = 40;
-    if (Math.abs(dx) > threshold) {
-      rtl ? (dx > 0 ? onNext() : onPrev()) : (dx > 0 ? onPrev() : onNext());
-    }
-    startX.current = null;
-  };
-
-  return (
-    <motion.div
-      ref={overlayRef}
-      className="fixed inset-0 z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby={headingId}
-    >
-      {/* Backdrop */}
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.8)" }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        aria-hidden="true"
+      {/* HERO - Now using refactored component */}
+      <EnhancedHeroSectionRefactored
+        vehicle={vehicle}
+        galleryImages={galleryImages}
+        monthlyEMI={monthlyEMI}
+        isFavorite={isFavorite}
+        onToggleFavorite={() => {
+          const next = !isFavorite;
+          setIsFavorite(next);
+          const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+          if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+          localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        }}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
       />
 
-      {/* Panel */}
-      <motion.div
-        layoutId={scene.id}
-        className="relative z-10 mx-auto h-full w-full md:w-[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
-        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
-        transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28 }}
-      >
-        {/* Hero */}
-        <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <img
-            src={scene.image}
-            alt={`${scene.title} • ${scene.scene}`}
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/0" aria-hidden="true" />
+      <OffersSection onOfferClick={handleOfferClick} />
+      <VehicleMediaShowcase vehicle={vehicle} />
 
-          {/* Top Bar */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pt-[env(safe-area-inset-top)]">
-            <button
-              type="button"
-              onClick={onPrev}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.prevScene}
-            >
-              <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              data-close
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.collapse}
-            >
-              <X className="w-6 h-6" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={onNext}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-              aria-label={STR.en.nextScene}
-            >
-              <ChevronRight className="w-6 h-6" aria-hidden="true" />
-            </button>
-          </div>
+    {/* ENHANCED EXPERIENCE RAIL — full width */}
+<section className="py-10 lg:py-16">
+  <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-10 xl:px-14">
+    <EnhancedExperienceRail
+      slides={slides}
+      vehicleModelEnd={safeModelEnd}
+      onQuickView={openQuickView}
+    />
+  </div>
+</section>
 
-          {/* Title */}
-          <div className="absolute left-0 right-0 bottom-3 px-4 sm:px-6 flex items-end justify-between gap-3">
-            <div>
-              <h3 id={headingId} className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-                {scene.title}
-              </h3>
-              <p className="text-sm sm:text-base" style={{ color: TOYOTA_RED }}>
-                {scene.scene}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => onAskToyota?.(scene)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15"
-              style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
-            >
-              {STR.en.ask}
-            </button>
+      {/* Quick Actions */}
+      <section className="py-8 bg-muted/30">
+        <div className="toyota-container">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-center">
+              <Tag className="mr-2 h-4 w-4" /> View Offers
+            </Button>
+            <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-center">
+              <Gauge className="mr-2 h-4 w-4" /> EMI • {monthlyEMI.toLocaleString()} AED/mo
+            </Button>
+            <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-center">
+              <Calendar className="mr-2 h-4 w-4" /> Book Test Drive
+            </Button>
+            <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-center">
+              <PencilRuler className="mr-2 h-4 w-4" /> Build Your {safeModelEnd}
+            </Button>
           </div>
         </div>
+      </section>
 
-        {/* Content */}
-        <div className="relative bg-gradient-to-b from-zinc-950 to-black">
-          <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 pt-4 pb-24">
-            <p className="text-white/85 text-sm sm:text-base md:text-lg">{scene.description}</p>
+      {/* Rest of page */}
+      
+      <section className="py-8 lg:py-16 bg-muted/30">
+        <VehicleGallery />
+      </section>
+      <EnhancedLifestyleGallery vehicle={vehicle} />
+      <section className="py-8 lg:py-16 bg-muted/30">
+        <RelatedVehicles currentVehicle={vehicle} />
+      </section>
+      <PreOwnedSimilar currentVehicle={vehicle} />
+      <VehicleFAQ vehicle={vehicle} />
 
-            <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3" aria-label="Specifications">
-              {Object.entries(scene.specs).map(([key, val], i) => (
-                <li key={key}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
-                    className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+      {/* Quick View */}
+      <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
+        <DialogContent className="max-w-5xl p-0 overflow-hidden z-[60]">
+          {slides[quickViewIndex] && (
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              <img
+                src={slides[quickViewIndex].image}
+                alt={slides[quickViewIndex].title}
+                className="w-full h-full object-cover"
+              />
+              <div className="p-6 space-y-5">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold w-max">
+                  {slides[quickViewIndex].icon}
+                  {slides[quickViewIndex].title}
+                </div>
+                <h3 className="text-2xl font-extrabold">{slides[quickViewIndex].subtitle}</h3>
+                {slides[quickViewIndex].meta && (
+                  <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    {slides[quickViewIndex].meta!.map((m) => (
+                      <li key={m} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" /> {m}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  {slides[quickViewIndex].cta ? (
+                    <Button onClick={() => runAfterCloseQuickView(slides[quickViewIndex].cta!.onClick)}>
+                      {slides[quickViewIndex].cta!.label} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button onClick={() => runAfterCloseQuickView(() => setIsBookingOpen(true))}>
+                      Book a Test Drive <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const next = (quickViewIndex + 1) % slides.length;
+                      setQuickViewIndex(next);
+                    }}
                   >
-                    <span style={{ color: TOYOTA_RED }}>
-                      {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
-                    </span>
-                    <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                      <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                      <div className="font-semibold text-white">{val}</div>
-                    </div>
-                  </motion.div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="sm:hidden mt-4">
-              <button
-                type="button"
-                onClick={() => onAskToyota?.(scene)}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15"
-                style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
-              >
-                {STR.en.ask}
-              </button>
-            </div>
-          </div>
-
-          {/* Bottom controls */}
-          <div className="fixed md:absolute bottom-0 left-0 right-0 z-20 bg-black/70 backdrop-blur border-t border-white/10">
-            <div className="mx-auto max-w-[1320px] px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3 pb-[max(env(safe-area-inset-bottom),12px)]">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setNarrOn(!narrOn)}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[44px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm"
-                  aria-pressed={narrOn}
-                  title={narrOn ? STR.en.narrationOn : STR.en.narrationOff}
-                >
-                  {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {narrOn ? STR.en.narrationOn : STR.en.narrationOff}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsNarrPlaying(!isNarrPlaying)}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={isNarrPlaying ? STR.en.paused : STR.en.playing}
-                  aria-pressed={isNarrPlaying}
-                >
-                  {isNarrPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
-                </button>
-                <div className="flex items-center gap-2 w-full sm:w-[420px]">
-                  <label htmlFor="narrationRange" className="sr-only">
-                    {STR.en.narrationPosition}
-                  </label>
-                  <span className="text-[10px] text-white/70 w-10 text-right" aria-hidden="true">
-                    {fmt(narrTime)}
-                  </span>
-                  <input
-                    id="narrationRange"
-                    type="range"
-                    min={0}
-                    max={narrDur || 0}
-                    step={0.1}
-                    value={Math.min(narrTime, narrDur || 0)}
-                    onChange={(e) => setNarrTime(parseFloat(e.currentTarget.value))}
-                    className="w-full"
-                    style={{ accentColor: TOYOTA_RED }}
-                    aria-valuemin={0}
-                    aria-valuemax={Math.floor(narrDur || 0)}
-                    aria-valuenow={Math.floor(Math.min(narrTime, narrDur || 0))}
-                    aria-valuetext={`${fmt(narrTime)} of ${fmt(narrDur)}`}
-                  />
-                  <span className="text-[10px] text-white/70 w-10" aria-hidden="true">
-                    {fmt(narrDur)}
-                  </span>
+                    Next: {slides[(quickViewIndex + 1) % slides.length].title}
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2 sm:ml-auto">
-                <button
-                  type="button"
-                  onClick={onPrev}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={STR.en.prevScene}
-                >
-                  <ChevronLeft className="w-5 h-5" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onNext}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={STR.en.nextScene}
-                >
-                  <ChevronRight className="w-5 h-5" aria-hidden="true" />
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* All modals */}
+      <OffersModal
+        isOpen={isOffersModalOpen}
+        onClose={() => {
+          setIsOffersModalOpen(false);
+          setSelectedOffer(null);
+        }}
+        selectedOffer={selectedOffer}
+      />
+      <BookTestDrive
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        vehicle={vehicle}
+      />
+      <FinanceCalculator
+        isOpen={isFinanceOpen}
+        onClose={() => setIsFinanceOpen(false)}
+        vehicle={vehicle}
+      />
+      <CarBuilder
+        isOpen={isCarBuilderOpen}
+        onClose={() => setIsCarBuilderOpen(false)}
+        vehicle={vehicle}
+      />
+
+      {/* Desktop panel */}
+      <ActionPanel
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={() => {
+          const next = !isFavorite;
+          setIsFavorite(next);
+          const favs = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
+          if (next) favs.add(vehicle.name); else favs.delete(vehicle.name);
+          localStorage.setItem("favorites", JSON.stringify(Array.from(favs)));
+        }}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
+        onFinanceCalculator={() => setIsFinanceOpen(true)}
+      />
+    </ToyotaLayout>
   );
 }
 
-/*
-Additions in this iteration:
-- Mobile card footprint reduced: min-w 82vw, lower hero heights; tighter gaps.
-- Carousel nav: progress bar, focusable dots, fraction indicator, and desktop mini-thumbnails.
-- Desktop view toggle: Carousel/Grid switch with responsive grid layout.
-- Accessibility: dots use role=tablist; buttons announce "Go to slide N"; fraction label is aria-live; RTL-aware.
-- Reset/center behaviors updated when switching filter or view mode.
-*/
+export default VehicleDetails;
