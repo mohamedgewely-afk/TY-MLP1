@@ -34,10 +34,7 @@ import BookTestDrive from "@/components/vehicle-details/BookTestDrive";
 import FinanceCalculator from "@/components/vehicle-details/FinanceCalculator";
 import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
-import { EnhancedHeroSectionRefactored } from "@/components/vehicle-details/enhanced-hero-section/EnhancedHeroSectionRefactored";
-import { ExperienceCard } from "@/components/vehicle-details/experience-rail/ExperienceCard";
-import { useCarousel } from "@/hooks/use-carousel";
-import { useTouchGestures } from "@/hooks/use-touch-gestures";
+import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 
 type Slide = {
   key: string;
@@ -69,10 +66,15 @@ function VehicleDetails() {
   // Quick View
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [quickViewIndex, setQuickViewIndex] = useState(0);
+  const openQuickView = (i: number) => {
+    setQuickViewIndex(i);
+    setIsQuickViewOpen(true);
+  };
 
-  // Carousel
+  // Carousel (PAGE-BASED)
   const railRef = useRef<HTMLDivElement>(null);
   const [cardsPerView, setCardsPerView] = useState(1);
+  const [activePage, setActivePage] = useState(0);
 
   // Gallery images
   const galleryImages = [
@@ -96,7 +98,13 @@ function VehicleDetails() {
   };
 
   // Actions
-  const handleToggleFavorite = () => setIsFavorite((x) => !x);
+  const handleToggleFavorite = () => {
+    setIsFavorite((x) => !x);
+    toast({
+      title: !isFavorite ? "Added to favorites" : "Removed from favorites",
+      description: vehicle?.name,
+    });
+  };
   const handleBookTestDrive = () => setIsBookingOpen(true);
   const handleCarBuilder = () => setIsCarBuilderOpen(true);
   const handleFinanceCalculator = () => setIsFinanceOpen(true);
@@ -163,54 +171,7 @@ function VehicleDetails() {
     },
   ];
 
-  const {
-    currentIndex,
-    canGoPrev,
-    canGoNext,
-    goNext,
-    goPrev,
-    goToIndex
-  } = useCarousel({
-    itemCount: slides.length,
-    itemsPerView: cardsPerView,
-    autoPlay: false,
-    loop: false
-  });
-
-  const { touchHandlers } = useTouchGestures({
-    onSwipeLeft: goNext,
-    onSwipeRight: goPrev
-  });
-
-  const openQuickView = (i: number) => {
-    setQuickViewIndex(i);
-    setIsQuickViewOpen(true);
-  };
-
-  // Decide cardsPerView by rail width
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const measure = () => {
-      const w = rail.clientWidth;
-      let per = 1;
-      if (w >= 1280) per = 4;
-      else if (w >= 1024) per = 3;
-      else if (w >= 640) per = 2;
-      else per = 1;
-      setCardsPerView(per);
-    };
-    const ro = new ResizeObserver(measure);
-    ro.observe(rail);
-    window.addEventListener("resize", measure);
-    requestAnimationFrame(measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
-
-  // Vehicle setup
+  // Vehicle
   useEffect(() => {
     const found = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
@@ -225,6 +186,55 @@ function VehicleDetails() {
     }
   }, [vehicleName]);
 
+  // Decide cardsPerView by rail width (no per-card measuring)
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const measure = () => {
+      const w = rail.clientWidth;
+      let per = 1;
+      if (w >= 1280) per = 4;
+      else if (w >= 1024) per = 3;
+      else if (w >= 640) per = 2;
+      else per = 1;
+      setCardsPerView(per);
+      setActivePage((p) => Math.min(p, Math.ceil(slides.length / per) - 1));
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(rail);
+    window.addEventListener("resize", measure);
+    requestAnimationFrame(measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [slides.length]);
+
+  const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
+
+  // Scroll by rail width (1 full page)
+  const scrollToPage = (page: number) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const clamped = Math.max(0, Math.min(page, pageCount - 1));
+    rail.scrollTo({ left: clamped * rail.clientWidth, behavior: "smooth" });
+  };
+  const handlePrev = () => scrollToPage(activePage - 1);
+  const handleNext = () => scrollToPage(activePage + 1);
+
+  // Track active page
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const onScroll = () => {
+      const idx = Math.round(rail.scrollLeft / Math.max(1, rail.clientWidth));
+      setActivePage(idx);
+    };
+    rail.addEventListener("scroll", onScroll, { passive: true });
+    return () => rail.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close QuickView before opening another modal (prevents stacking issues on mobile)
   const runAfterCloseQuickView = (fn: () => void) => {
     if (isQuickViewOpen) {
       setIsQuickViewOpen(false);
@@ -236,9 +246,11 @@ function VehicleDetails() {
 
   if (!vehicle) return <div />;
 
+  // CSS flex-basis for N-per-view (no JS measuring)
+  const basis = (per: number) => `calc((100% - ${GAP_PX * (per - 1)}px) / ${per})`;
   const safeModelEnd = (vehicle?.name || "Toyota").split(" ").pop() || "Toyota";
   const monthlyEMI = calculateEMI(vehicle?.price || 0);
-  const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
+  const activeFirstIndex = activePage * cardsPerView;
 
   return (
     <ToyotaLayout
@@ -257,8 +269,8 @@ function VehicleDetails() {
       onCarBuilder={() => setIsCarBuilderOpen(true)}
       onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
-      {/* HERO - Now using refactored component */}
-      <EnhancedHeroSectionRefactored
+      {/* HERO */}
+      <EnhancedHeroSection
         vehicle={vehicle}
         galleryImages={galleryImages}
         monthlyEMI={monthlyEMI}
@@ -277,77 +289,93 @@ function VehicleDetails() {
       <OffersSection onOfferClick={handleOfferClick} />
       <VehicleMediaShowcase vehicle={vehicle} />
 
-      {/* EXPERIENCE RAIL - Enhanced with accessibility */}
-      <section 
-        className="py-12 lg:py-20 bg-gradient-to-b from-background via-muted/30 to-background"
-        aria-labelledby="experience-rail-heading"
-      >
+      {/* EXPERIENCE RAIL */}
+      <section className="py-12 lg:py-20 bg-gradient-to-b from-background via-muted/30 to-background">
         <div className="toyota-container max-w-none w-full">
           <motion.div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-medium">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <Sparkles className="h-4 w-4" />
               Tailored to Every Model
             </div>
-            <h2 id="experience-rail-heading" className="mt-3 text-3xl lg:text-5xl font-black">
-              Craft Your {safeModelEnd} Journey
-            </h2>
+            <h2 className="mt-3 text-3xl lg:text-5xl font-black">Craft Your {safeModelEnd} Journey</h2>
           </motion.div>
 
           <div className="relative">
-            {/* Navigation arrows - Enhanced with accessibility */}
+            {/* arrows: move exactly one page */}
             <button
-              aria-label="View previous experience cards"
-              onClick={goPrev}
-              disabled={!canGoPrev}
-              className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-shadow focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label="Previous"
+              onClick={handlePrev}
+              className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border"
             >
-              <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
             <button
-              aria-label="View next experience cards"
-              onClick={goNext}
-              disabled={!canGoNext}
-              className="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-shadow focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label="Next"
+              onClick={handleNext}
+              className="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 z-10 h-14 w-14 items-center justify-center rounded-full bg-card shadow ring-1 ring-border"
             >
-              <ChevronRight className="h-6 w-6" aria-hidden="true" />
+              <ChevronRight className="h-6 w-6" />
             </button>
 
-            {/* Experience cards rail */}
+            {/* rail: 1/2/3/4 cards per view, swipeable like mobile */}
             <div
               ref={railRef}
-              role="region"
-              aria-label="Vehicle experience features"
-              aria-live="polite"
-              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2 touch-pan-x overscroll-x-contain focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-lg"
-              style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" as any }}
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
-                else if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
-                else if (e.key === "Home") { e.preventDefault(); goToIndex(0); }
-                else if (e.key === "End") { e.preventDefault(); goToIndex(slides.length - 1); }
+                if (e.key === "ArrowRight") { e.preventDefault(); handleNext(); }
+                else if (e.key === "ArrowLeft") { e.preventDefault(); handlePrev(); }
+                else if (e.key === "Home") { e.preventDefault(); scrollToPage(0); }
+                else if (e.key === "End") { e.preventDefault(); scrollToPage(pageCount - 1); }
               }}
-              {...touchHandlers}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-0 pb-2 touch-pan-x overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" as any }}
             >
               {slides.map((slide, i) => (
-                <div
+                <motion.div
                   key={slide.key}
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`Card ${i + 1} of ${slides.length}: ${slide.title}`}
+                  initial={{ opacity: 0.95, scale: 0.995 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="snap-start shrink-0 rounded-2xl shadow-xl ring-1 ring-border bg-card overflow-hidden cursor-pointer"
                   style={{
-                    flex: `0 0 calc((100% - ${GAP_PX * (cardsPerView - 1)}px) / ${cardsPerView})`,
+                    flex: `0 0 ${`calc((100% - ${GAP_PX * (cardsPerView - 1)}px) / ${cardsPerView})`}`,
                     width: `calc((100% - ${GAP_PX * (cardsPerView - 1)}px) / ${cardsPerView})`,
                   }}
+                  onClick={() => openQuickView(i)}
                 >
-                  <ExperienceCard
-                    title={slide.title}
-                    subtitle={slide.subtitle}
-                    image={slide.image}
-                    icon={slide.icon}
-                    meta={slide.meta}
-                    cta={slide.cta}
-                    onClick={() => openQuickView(i)}
-                    index={i}
-                  />
-                </div>
+                  <div className="relative w-full aspect-[4/3] overflow-hidden">
+                    <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4 md:p-5">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-semibold w-max">
+                      {slide.icon}
+                      {slide.title}
+                    </div>
+                    <h3 className="mt-2 text-base md:text-lg font-extrabold">{slide.subtitle}</h3>
+                    {slide.meta && (
+                      <ul className="mt-3 grid grid-cols-1 gap-1.5">
+                        {slide.meta.map((m) => (
+                          <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Check className="h-4 w-4 text-primary" /> {m}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {slide.cta && (
+                      <Button
+                        className="mt-4 w-full md:w-auto"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          runAfterCloseQuickView(slide.cta!.onClick);
+                        }}
+                      >
+                        {slide.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
               ))}
             </div>
 
@@ -358,10 +386,10 @@ function VehicleDetails() {
                   <button
                     key={p}
                     aria-label={`Go to page ${p + 1}`}
-                    aria-current={currentIndex === p}
-                    onClick={() => goToIndex(p)}
+                    aria-current={activePage === p}
+                    onClick={() => scrollToPage(p)}
                     className={`h-2.5 flex-1 rounded-full transition-all ${
-                      currentIndex === p
+                      activePage === p
                         ? "bg-primary"
                         : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     }`}
@@ -369,25 +397,25 @@ function VehicleDetails() {
                 ))}
               </div>
               <p className="sr-only" aria-live="polite">
-                Page {currentIndex + 1} of {pageCount}. Cards {currentIndex + 1}–
-                {Math.min(currentIndex + cardsPerView, slides.length)} visible.
+                Page {activePage + 1} of {pageCount}. Cards {activeFirstIndex + 1}–
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)} visible.
               </p>
             </div>
 
             {/* connected journey */}
             <div className="mt-4 max-w-5xl mx-auto hidden md:flex items-center justify-between gap-3 rounded-2xl bg-card ring-1 ring-border px-4 py-3">
               <div className="text-sm text-muted-foreground">
-                Page {currentIndex + 1} of {pageCount} • Cards {currentIndex + 1}–
-                {Math.min(currentIndex + cardsPerView, slides.length)}
+                Page {activePage + 1} of {pageCount} • Cards {activeFirstIndex + 1}–
+                {Math.min(activeFirstIndex + cardsPerView, slides.length)}
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={goPrev} disabled={!canGoPrev}>
+                <Button variant="ghost" size="sm" onClick={handlePrev} disabled={activePage === 0}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button size="sm" onClick={goNext} disabled={!canGoNext}>
+                <Button size="sm" onClick={() => scrollToPage(activePage + 1)} disabled={activePage >= pageCount - 1}>
                   Next Page <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => openQuickView(currentIndex)} disabled={currentIndex >= slides.length}>
+                <Button size="sm" variant="outline" onClick={() => openQuickView(activeFirstIndex)} disabled={activeFirstIndex >= slides.length}>
                   Quick View
                 </Button>
               </div>
@@ -413,7 +441,6 @@ function VehicleDetails() {
       </section>
 
       {/* Rest of page */}
-      
       <section className="py-8 lg:py-16 bg-muted/30">
         <VehicleGallery />
       </section>
@@ -464,7 +491,8 @@ function VehicleDetails() {
                     onClick={() => {
                       const next = (quickViewIndex + 1) % slides.length;
                       setQuickViewIndex(next);
-                      goToIndex(next);
+                      const nextPage = Math.floor(next / cardsPerView);
+                      scrollToPage(nextPage);
                     }}
                   >
                     Next: {slides[(quickViewIndex + 1) % slides.length].title}
