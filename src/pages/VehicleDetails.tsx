@@ -251,20 +251,17 @@ const VehicleDetails = () => {
   };
 
   if (!vehicle) {
-    return (
-      <ToyotaLayout>
-        <div className="toyota-container py-16 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
-            <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
-            <Button asChild>
-              <Link to="/">Return to Home</Link>
-            </Button>
-          </motion.div>
-        </div>
-      </ToyotaLayout>
-    );
-  }
+   return (
+  <ToyotaLayout
+    ...
+  >
+    <div> {/* ✅ single root container */}
+      <EnhancedHeroSection ... />
+      ...
+    </div>
+  </ToyotaLayout>
+);
+
 
   const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
   return (
@@ -294,25 +291,27 @@ const VehicleDetails = () => {
         />
 
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-          <VirtualShowroom vehicle={vehicle} />
-          <InteractiveSpecsTech vehicle={vehicle} />
-          <OffersSection onOfferClick={handleOfferClick} />
-          <VehicleMediaShowcase vehicle={vehicle} />
-          <RefinedTechExperience vehicle={vehicle} />
+  <VirtualShowroom vehicle={vehicle} />
+  <InteractiveSpecsTech vehicle={vehicle} />
+  <OffersSection onOfferClick={handleOfferClick} />
+  <VehicleMediaShowcase vehicle={vehicle} />
+  <RefinedTechExperience vehicle={vehicle} />
+  {/* ... more components */}
+  <VehicleFAQ vehicle={vehicle} />
+</React.Suspense> {/* ✅ ADD THIS */}
 
   
-<section className="py-14 lg:py-24 bg-muted/30 relative">
-  <div className="text-center text-sm text-muted-foreground font-medium uppercase tracking-wide">
+<section className="py-14 lg:py-24 bg-muted/30 relative text-center">
+  <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
     Tailored to Every Model
   </div>
-
-<h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
-Craft Your {safeModelEnd} Journey
-</h2>
-<p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
-Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
-</p>
-</motion.div>
+  <h2 className="mt-3 text-4xl lg:text-6xl font-extrabold tracking-tight">
+    Craft Your {safeModelEnd} Journey
+  </h2>
+  <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm lg:text-base">
+    Tap into Toyota's unique experiences. Slide through innovation, safety, and smart tech.
+  </p>
+</section>
 
 
 <div className="relative">
