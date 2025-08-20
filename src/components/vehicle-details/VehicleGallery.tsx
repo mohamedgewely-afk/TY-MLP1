@@ -25,8 +25,14 @@ const TOYOTA_BG = "#0D0F10";
 
 function ToyotaLogo({ className = "w-20 h-auto" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 60" className={className} aria-label="Toyota" role="img">
-      <g fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox="0 0 100 60"
+      className={className}
+      aria-hidden="true" // avoid double announcement; use adjacent sr-only text instead
+      role="img"
+      focusable="false"
+    >
+      <g fill="currentColor">
         <ellipse cx="50" cy="30" rx="38" ry="22" className="opacity-90" />
         <ellipse cx="50" cy="30" rx="26" ry="14" fill={TOYOTA_BG} />
         <ellipse cx="50" cy="30" rx="10" ry="22" fill={TOYOTA_BG} />
@@ -61,7 +67,7 @@ const STR = {
   en: {
     title: "TOYOTA LAND CRUISER",
     subtitle: "Conquer Every Land. Crafted for the impossible.",
-    hint: "Swipe, drag, or use arrows · tap a scene",
+    hint: "Swipe, drag, or use arrows · click a scene",
     expand: "Enter Scene",
     collapse: "Close",
     ask: "Ask Toyota",
@@ -80,6 +86,8 @@ const STR = {
     prevScene: "Previous scene",
     nextScene: "Next scene",
     narrationPosition: "Narration position",
+    all: "All",
+    slideOf: (i: number, total: number, name: string) => `Slide ${i} of ${total}: ${name}`,
   },
   ar: {
     title: "تويوتا لاندكروزر",
@@ -103,6 +111,8 @@ const STR = {
     prevScene: "المشهد السابق",
     nextScene: "المشهد التالي",
     narrationPosition: "موضع السرد",
+    all: "الكل",
+    slideOf: (i: number, total: number, name: string) => `الشريحة ${i} من ${total}: ${name}`,
   },
 };
 
@@ -226,12 +236,12 @@ const sceneSpecPriority: Record<SceneCategory, string[]> = {
 function sortSpecs(scene: SceneCategory, specs: Record<string, string>): Array<[string, string]> {
   const entries = Object.entries(specs);
   const pri = sceneSpecPriority[scene] ?? [];
-  return entries.sort((a, b) => pri.indexOf(a[0]) - pri.indexOf(b[0]));
+  return entries.sort((a, b) => (pri.indexOf(a[0]) === -1 ? 999 : pri.indexOf(a[0])) - (pri.indexOf(b[0]) === -1 ? 999 : pri.indexOf(b[0])));
 }
 
 const fmt = (t: number) => {
   if (!isFinite(t)) return "0:00";
-  const m = Math.floor(t / 60).toString().padStart(1, "0");
+  const m = Math.floor(t / 60).toString();
   const s = Math.floor(t % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 };
@@ -239,17 +249,18 @@ const fmt = (t: number) => {
 // Helper: lock body scroll when overlay is open (prevents background scroll on mobile)
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
-    const { overflow, touchAction } = document.body.style as any;
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction as string | undefined;
     if (locked) {
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
     } else {
-      document.body.style.overflow = overflow || "";
-      document.body.style.touchAction = touchAction || "";
+      document.body.style.overflow = prevOverflow || "";
+      document.body.style.touchAction = prevTouchAction || "";
     }
     return () => {
-      document.body.style.overflow = overflow || "";
-      document.body.style.touchAction = touchAction || "";
+      document.body.style.overflow = prevOverflow || "";
+      document.body.style.touchAction = prevTouchAction || "";
     };
   }, [locked]);
 }
@@ -275,19 +286,36 @@ export default function LandCruiserLifestyleGalleryPro({
   const trackRef = useRef<HTMLDivElement>(null);
   const ambientRef = useRef<HTMLAudioElement>(null);
   const narrationRef = useRef<HTMLAudioElement>(null);
-  const liveRef = useRef<HTMLDivElement>(null);
+  const liveAudioRef = useRef<HTMLDivElement>(null);
+  const liveSlideRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => (filter === "All" ? scenes : scenes.filter((s) => s.scene === filter)), [scenes, filter]);
 
-  const centerCard = useCallback((index: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const child = el.children[index] as HTMLElement | undefined;
-    if (!child) return;
-    const left = child.offsetLeft - (el.clientWidth - child.clientWidth) / 2;
-    el.scrollTo({ left, behavior: "smooth" });
-  }, []);
+  // Center active card
+  const centerCard = useCallback(
+    (index: number) => {
+      const el = trackRef.current;
+      if (!el) return;
+      const child = el.children[index] as HTMLElement | undefined;
+      if (!child) return;
+      const left = child.offsetLeft - (el.clientWidth - child.clientWidth) / 2;
+      el.scrollTo({ left, behavior: "smooth" });
+    },
+    []
+  );
 
+  // Focus the newly-active card (roving tabindex)
+  const justChangedByArrow = useRef(false);
+  useEffect(() => {
+    if (!trackRef.current) return;
+    const btn = trackRef.current.children[activeIdx]?.querySelector<HTMLButtonElement>("[data-card-trigger]");
+    if (btn && justChangedByArrow.current) {
+      btn.focus({ preventScroll: true });
+      justChangedByArrow.current = false;
+    }
+  }, [activeIdx]);
+
+  // Ambient audio
   useEffect(() => {
     const a = ambientRef.current;
     if (!a) return;
@@ -300,15 +328,23 @@ export default function LandCruiserLifestyleGalleryPro({
     }
   }, [ambientOn]);
 
+  // Reset on filter change
   useEffect(() => {
     setActiveIdx(0);
     trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
   }, [filter]);
 
+  // Center on active change
   useEffect(() => {
     centerCard(activeIdx);
-  }, [activeIdx, centerCard]);
+    // announce slide change
+    if (filtered[activeIdx]) {
+      const name = `${filtered[activeIdx].scene}`;
+      liveSlideRef.current && (liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name));
+    }
+  }, [activeIdx, centerCard, filtered, T]);
 
+  // Narration player state
   const [narrTime, setNarrTime] = useState(0);
   const [narrDur, setNarrDur] = useState(0);
   const [isNarrPlaying, setNarrPlaying] = useState(false);
@@ -316,8 +352,8 @@ export default function LandCruiserLifestyleGalleryPro({
   useEffect(() => {
     const n = narrationRef.current;
     if (!n) return;
-    const onTime = () => setNarrTime(n.currentTime);
-    const onMeta = () => setNarrDur(n.duration || 0);
+    const onTime = () => setNarrTime(n.currentTime || 0);
+    const onMeta = () => setNarrDur(isFinite(n.duration) ? n.duration : 0);
     const onPlay = () => setNarrPlaying(true);
     const onPause = () => setNarrPlaying(false);
     n.addEventListener("timeupdate", onTime);
@@ -340,14 +376,14 @@ export default function LandCruiserLifestyleGalleryPro({
     if (selected?.narration && narrOn) {
       n.src = selected.narration;
       n.play().catch(() => {});
-      liveRef.current && (liveRef.current.textContent = T.playing);
+      liveAudioRef.current && (liveAudioRef.current.textContent = T.playing);
     } else {
       n.removeAttribute("src");
       setNarrTime(0);
       setNarrDur(0);
-      liveRef.current && (liveRef.current.textContent = T.paused);
+      liveAudioRef.current && (liveAudioRef.current.textContent = T.paused);
     }
-  }, [selected, narrOn, T.playing, T.paused]);
+  }, [selected, narrOn, T]);
 
   const currentBG = filtered[activeIdx]?.image;
 
@@ -367,37 +403,41 @@ export default function LandCruiserLifestyleGalleryPro({
     setActiveIdx((p) => (p - 1 + filtered.length) % filtered.length);
   }, [selected, filtered]);
 
-  // Keyboard shortcuts on root: arrow navigation; Enter opens selected; Esc closes overlay.
+  // Keyboard: arrow navigation; Enter/Space opens; Esc closes overlay
   const onRootKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (selected) {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          setSelected(null);
-        }
-        if (e.key === "ArrowRight") {
-          e.preventDefault();
-          openNext();
-        }
-        if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          openPrev();
-        }
-      } else {
-        if (e.key === "ArrowRight") setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
-        if (e.key === "ArrowLeft") setActiveIdx((i) => Math.max(i - 1, 0));
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          const item = filtered[activeIdx];
-          if (item) setSelected(item);
-        }
+      const isOverlayOpen = !!selected;
+      if (isOverlayOpen) return; // overlay handles its own keys
+
+      const goNext = () => {
+        justChangedByArrow.current = true;
+        setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
+      };
+      const goPrev = () => {
+        justChangedByArrow.current = true;
+        setActiveIdx((i) => Math.max(i - 1, 0));
+      };
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        rtl ? goPrev() : goNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        rtl ? goNext() : goPrev();
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const item = filtered[activeIdx];
+        if (item) setSelected(item);
       }
     },
-    [selected, filtered, activeIdx, openNext, openPrev]
+    [selected, filtered, activeIdx, rtl]
   );
 
   // Body scroll lock when overlay is open.
   useBodyScrollLock(!!selected);
+
+  const carouselId = "lc-carousel";
+  const hintId = "lc-hint";
 
   return (
     <section
@@ -408,12 +448,16 @@ export default function LandCruiserLifestyleGalleryPro({
       aria-label={T.title}
       onKeyDown={onRootKeyDown}
     >
-      <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded-md">
+      <a
+        href="#content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded-md"
+      >
         {T.skipToContent}
       </a>
 
-      {/* Live region for playback status */}
-      <div ref={liveRef} className="sr-only" aria-live="polite" aria-atomic="true" />
+      {/* Live regions */}
+      <div ref={liveAudioRef} className="sr-only" aria-live="polite" aria-atomic="true" />
+      <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
 
       {/* Audio */}
       <audio ref={ambientRef} src="/audio/toyota-ambient.mp3" className="hidden" />
@@ -440,7 +484,7 @@ export default function LandCruiserLifestyleGalleryPro({
         </div>
         <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight">{T.title}</h1>
         <p className="mt-1 text-sm sm:text-base md:text-lg text-white/80">{T.subtitle}</p>
-        <p className="mt-1 text-[11px] sm:text-xs flex items-center gap-1" style={{ color: TOYOTA_RED }}>
+        <p id={hintId} className="mt-1 text-[11px] sm:text-xs flex items-center gap-1" style={{ color: TOYOTA_RED }}>
           <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> {T.hint}
         </p>
 
@@ -451,6 +495,7 @@ export default function LandCruiserLifestyleGalleryPro({
             onClick={() => setAmbientOn((v) => !v)}
             className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             aria-pressed={ambientOn}
+            title={ambientOn ? T.ambientOn : T.ambientOff}
           >
             {ambientOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {ambientOn ? T.ambientOn : T.ambientOff}
           </button>
@@ -459,6 +504,7 @@ export default function LandCruiserLifestyleGalleryPro({
             onClick={() => setNarrOn((v) => !v)}
             className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             aria-pressed={narrOn}
+            title={narrOn ? T.narrationOn : T.narrationOff}
           >
             {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {narrOn ? T.narrationOn : T.narrationOff}
           </button>
@@ -479,20 +525,44 @@ export default function LandCruiserLifestyleGalleryPro({
               }}
               aria-pressed={filter === (c as any)}
             >
-              {c}
+              {c === "All" ? T.all : c}
             </button>
           ))}
         </nav>
+
+        {/* Lifestyle Filter (mobile chips) */}
+        <nav className="mt-3 md:hidden w-full overflow-x-auto px-4" aria-label={T.filters}>
+          <div className="flex gap-2 w-max">
+            {["All", ...T.scenes].map((c) => (
+              <button
+                key={`m-${c}`}
+                type="button"
+                onClick={() => setFilter(c as any)}
+                className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
+                style={{
+                  borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
+                  background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
+                  color: filter === (c as any) ? TOYOTA_RED : "#fff",
+                }}
+                aria-pressed={filter === (c as any)}
+              >
+                {c === "All" ? T.all : c}
+              </button>
+            ))}
+          </div>
+        </nav>
       </header>
 
-      {/* Carousel Track (wider, no page scrollbar) */}
+      {/* Carousel Track */}
       <div
         id="content"
         ref={trackRef}
         className="relative z-10 mt-4 md:mt-8 flex gap-3 sm:gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth touch-pan-x overscroll-x-contain items-stretch justify-start mx-auto w-full max-w-[min(96vw,1800px)] pl-[max(env(safe-area-inset-left),16px)] pr-[max(env(safe-area-inset-right),16px)]"
-        role="listbox"
+        role="region"
+        aria-roledescription="carousel"
         aria-label={T.sceneList}
-        aria-orientation={rtl ? "horizontal" : "horizontal"}
+        aria-describedby={hintId}
+        aria-live="off"
       >
         {filtered.length === 0 && <div className="text-white/70 text-sm py-10">{T.empty}</div>}
         {filtered.map((sc, idx) => (
@@ -500,18 +570,17 @@ export default function LandCruiserLifestyleGalleryPro({
             key={sc.id}
             data={sc}
             active={idx === activeIdx}
+            tabIndex={idx === activeIdx ? 0 : -1}
             onEnter={() => {
               setSelected(sc);
               setActiveIdx(idx);
             }}
             onFocus={() => setActiveIdx(idx)}
             prefersReduced={prefersReduced}
-            aria-label={T.openScene(sc.scene)}
+            ariaLabel={T.openScene(sc.scene)}
           />
         ))}
       </div>
-
-
 
       {/* Overlay / Expanded Scene */}
       <AnimatePresence>
@@ -559,24 +628,26 @@ function SceneCardPro({
   onEnter,
   onFocus,
   prefersReduced,
+  tabIndex,
+  ariaLabel,
 }: {
   data: SceneData;
   active: boolean;
   onEnter: () => void;
   onFocus: () => void;
   prefersReduced: boolean;
+  tabIndex: number;
+  ariaLabel: string;
 }) {
   const cardCls = `snap-center shrink-0 min-w-[88vw] sm:min-w-[420px] md:min-w-[600px] lg:min-w-[700px] xl:min-w-[760px] max-w-[820px]
     rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
 
+  const titleId = `${data.id}-title`;
+
   return (
     <motion.article
-      role="option"
-      aria-selected={active}
-      tabIndex={0}
       className={cardCls}
       layoutId={data.id}
-      onFocus={onFocus}
       initial={false}
       animate={{
         boxShadow: active
@@ -584,13 +655,17 @@ function SceneCardPro({
           : "0 10px 25px rgba(0,0,0,0.35)",
         y: active && !prefersReduced ? -2 : 0,
       }}
-      transition={{ type: "spring", stiffness: 350, damping: 26 }}
+      transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 26 }}
     >
       <button
         type="button"
         onClick={onEnter}
+        onFocus={onFocus}
+        data-card-trigger
         className="relative w-full text-left select-none focus-visible:outline-none"
-        aria-label={`Open ${data.scene} scene`}
+        aria-label={ariaLabel}
+        aria-haspopup="dialog"
+        tabIndex={tabIndex}
       >
         <img
           src={data.image}
@@ -603,37 +678,45 @@ function SceneCardPro({
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />
         <div className="absolute left-0 right-0 bottom-0 p-3 sm:p-4 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">{data.title}</h3>
+            <h3 id={titleId} className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">
+              {data.title}
+            </h3>
             <p className="text-xs sm:text-sm" style={{ color: TOYOTA_RED }}>
               {data.scene}
             </p>
           </div>
           <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/10 text-xs sm:text-sm">
-            {STR.en.expand}
+            {STR.en.expand /* display label; not announced */}
           </span>
         </div>
       </button>
 
       <div className="p-4 sm:p-5 md:p-6">
         <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
-          {sortSpecs(data.scene, data.specs).slice(0, 4).map(([key, val], i) => (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, y: 6 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.3, delay: i * 0.04 }}
-              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
-            >
-              <span style={{ color: TOYOTA_RED }}>{specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}</span>
-              <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                <div className="font-semibold text-white">{val}</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Specs as list for semantics */}
+        <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
+          {sortSpecs(data.scene, data.specs)
+            .slice(0, 4)
+            .map(([key, val], i) => (
+              <li key={key}>
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
+                  className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+                >
+                  <span style={{ color: TOYOTA_RED }}>
+                    {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
+                  </span>
+                  <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
+                    <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
+                    <div className="font-semibold text-white">{val}</div>
+                  </div>
+                </motion.div>
+              </li>
+            ))}
+        </ul>
       </div>
     </motion.article>
   );
@@ -678,6 +761,8 @@ function ExpandedSceneOverlay({
   rtl: boolean;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const T = localeStrings;
+  const headingId = `scene-title-${scene.id}`;
 
   // Focus trap & Esc close
   useEffect(() => {
@@ -685,7 +770,6 @@ function ExpandedSceneOverlay({
     if (!root) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    // Move focus to close button on open
     const closeBtn = root.querySelector<HTMLButtonElement>("[data-close]");
     closeBtn?.focus();
 
@@ -693,20 +777,19 @@ function ExpandedSceneOverlay({
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
-      }
-      if (e.key === "ArrowRight") onNext();
-      if (e.key === "ArrowLeft") onPrev();
-      if (e.key === " ") {
-        // Space toggles play/pause when slider isn't focused
+      } else if (e.key === "ArrowRight") {
+        rtl ? onPrev() : onNext();
+      } else if (e.key === "ArrowLeft") {
+        rtl ? onNext() : onPrev();
+      } else if (e.key === " ") {
         const target = e.target as HTMLElement;
-        if (target?.getAttribute("role") !== "slider" && target?.tagName !== "INPUT") {
+        if (target?.getAttribute("role") !== "slider" && (target as any)?.tagName !== "INPUT") {
           e.preventDefault();
           setIsNarrPlaying(!isNarrPlaying);
         }
       }
     };
 
-    // Basic focus trap
     const handleTab = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const focusables = root.querySelectorAll<HTMLElement>(
@@ -732,7 +815,7 @@ function ExpandedSceneOverlay({
       document.removeEventListener("keydown", handleTab);
       previouslyFocused?.focus();
     };
-  }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying]);
+  }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying, rtl]);
 
   // Simple swipe on hero area: left/right to navigate
   const startX = useRef<number | null>(null);
@@ -749,8 +832,6 @@ function ExpandedSceneOverlay({
     startX.current = null;
   };
 
-  const T = localeStrings;
-
   return (
     <motion.div
       ref={overlayRef}
@@ -760,7 +841,7 @@ function ExpandedSceneOverlay({
       exit={{ opacity: 0 }}
       aria-modal="true"
       role="dialog"
-      aria-label={`${scene.title} ${scene.scene}`}
+      aria-labelledby={headingId}
     >
       {/* Backdrop */}
       <motion.div
@@ -777,15 +858,21 @@ function ExpandedSceneOverlay({
         layoutId={scene.id}
         className="relative z-10 mx-auto h-full w-full md:w-[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
         style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
-        transition={{ type: "spring", stiffness: 260, damping: 28 }}
+        transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28 }}
       >
         {/* Hero */}
         <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <img src={scene.image} alt={`${scene.title} • ${scene.scene}`} className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={scene.image}
+            alt={`${scene.title} • ${scene.scene}`}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/0" aria-hidden="true" />
 
           {/* Top Bar */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pt-[env(safe-area-inset-top)]">
             <button
               type="button"
               onClick={onPrev}
@@ -816,8 +903,12 @@ function ExpandedSceneOverlay({
           {/* Title */}
           <div className="absolute left-0 right-0 bottom-3 px-4 sm:px-6 flex items-end justify-between gap-3">
             <div>
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">{scene.title}</h3>
-              <p className="text-sm sm:text-base" style={{ color: TOYOTA_RED }}>{scene.scene}</p>
+              <h3 id={headingId} className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
+                {scene.title}
+              </h3>
+              <p className="text-sm sm:text-base" style={{ color: TOYOTA_RED }}>
+                {scene.scene}
+              </p>
             </div>
             <button
               type="button"
@@ -835,23 +926,26 @@ function ExpandedSceneOverlay({
           <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 pt-4 pb-24">
             <p className="text-white/85 text-sm sm:text-base md:text-lg">{scene.description}</p>
 
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
+            <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3" aria-label="Specifications">
               {Object.entries(scene.specs).map(([key, val], i) => (
-                <motion.div
-                  key={key}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
-                >
-                  <span style={{ color: TOYOTA_RED }}>{specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}</span>
-                  <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
-                    <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
-                    <div className="font-semibold text-white">{val}</div>
-                  </div>
-                </motion.div>
+                <li key={key}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
+                    className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur px-3 py-2"
+                  >
+                    <span style={{ color: TOYOTA_RED }}>
+                      {specIcons[key] ?? <Gauge className="w-5 h-5" aria-hidden="true" />}
+                    </span>
+                    <div className="text-[12px] sm:text-[13px] md:text-sm leading-snug">
+                      <div className="uppercase tracking-wider text-white/60 text-[10px]">{key}</div>
+                      <div className="font-semibold text-white">{val}</div>
+                    </div>
+                  </motion.div>
+                </li>
               ))}
-            </div>
+            </ul>
 
             <div className="sm:hidden mt-4">
               <button
@@ -874,6 +968,7 @@ function ExpandedSceneOverlay({
                   onClick={() => setNarrOn(!narrOn)}
                   className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[44px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm"
                   aria-pressed={narrOn}
+                  title={narrOn ? STR.en.narrationOn : STR.en.narrationOff}
                 >
                   {narrOn ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />} {narrOn ? STR.en.narrationOn : STR.en.narrationOff}
                 </button>
@@ -903,7 +998,6 @@ function ExpandedSceneOverlay({
                     onChange={(e) => setNarrTime(parseFloat(e.currentTarget.value))}
                     className="w-full"
                     style={{ accentColor: TOYOTA_RED }}
-                    role="slider"
                     aria-valuemin={0}
                     aria-valuemax={Math.floor(narrDur || 0)}
                     aria-valuenow={Math.floor(Math.min(narrTime, narrDur || 0))}
