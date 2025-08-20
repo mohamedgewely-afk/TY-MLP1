@@ -93,14 +93,20 @@ const VehicleDetails = () => {
 
   const [isFavorite, setIsFavorite] = useState(false);
 
+  // hero image swipe (kept)
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
+  // OLD per-card carousel state kept but unused (safe to keep to avoid refactors)
   const [activeSlide, setActiveSlide] = useState(0);
   const [cardWidth, setCardWidth] = useState(360);
-  const railRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLDivElement>(null);
+
+  // NEW page-based carousel state
+  const railRef = useRef<HTMLDivElement>(null);
+  const [cardsPerView, setCardsPerView] = useState(1);
+  const [activePage, setActivePage] = useState(0);
 
   const { toast } = useToast();
   const { personaData } = usePersona();
@@ -133,6 +139,7 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   };
 
+  // hero swipe (kept)
   const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
@@ -218,6 +225,7 @@ const VehicleDetails = () => {
     },
   ];
 
+  // Vehicle + favorites (kept)
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
@@ -236,6 +244,7 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
+  // Keep your hero auto-advance (kept)
   useEffect(() => {
     const id = setInterval(() => {
       setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
@@ -243,49 +252,63 @@ const VehicleDetails = () => {
     return () => clearInterval(id);
   }, [galleryImages.length]);
 
+  // REMOVE old per-card measurement listeners (no longer needed)
+  // We leave firstCardRef/cardWidth state in place to avoid wider refactors.
+
+  // NEW: decide cardsPerView by rail width (1/2/3/4-up) and keep page in range
   useEffect(() => {
-    const el = firstCardRef.current;
-    if (!el) return;
+    const rail = railRef.current;
+    if (!rail) return;
     const measure = () => {
-      const rect = el.getBoundingClientRect();
-      setCardWidth(Math.round(rect.width));
+      const w = rail.clientWidth;
+      let per = 1;
+      if (w >= 1280) per = 4;
+      else if (w >= 1024) per = 3;
+      else if (w >= 640) per = 2;
+      else per = 1;
+      setCardsPerView(per);
+      setActivePage((p) => Math.min(p, Math.ceil(slides.length / per) - 1));
     };
-    measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const container = railRef.current;
-    if (!container) return;
-    const onScroll = () => {
-      const idx = Math.round(container.scrollLeft / (cardWidth + GAP_PX));
-      const clamped = Math.max(0, Math.min(idx, slides.length - 1));
-      setActiveSlide((prev) => (prev === clamped ? prev : clamped));
+    ro.observe(rail);
+    window.addEventListener("resize", measure);
+    requestAnimationFrame(measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
     };
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => container.removeEventListener("scroll", onScroll);
-  }, [cardWidth, slides.length]);
+  }, [slides.length]);
 
+  const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
+
+  // Page-based scroll helpers (robust)
+  const scrollToPage = (page: number) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const clamped = Math.max(0, Math.min(page, pageCount - 1));
+    rail.scrollTo({ left: clamped * rail.clientWidth, behavior: "smooth" });
+  };
+  const handlePrev = () => scrollToPage(activePage - 1);
+  const handleNext = () => scrollToPage(activePage + 1);
+
+  // Track activePage on scroll (for dots/disabled arrows)
   useEffect(() => {
-    const handleOpenCarBuilder = (event: CustomEvent) => {
-      const { step, config } = event.detail;
-      setIsCarBuilderOpen(true);
-      // optional: use step/config
-    };
-    window.addEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
-    return () => window.removeEventListener("openCarBuilder", handleOpenCarBuilder as EventListener);
-  }, []);
-
-  const scrollToIndex = (idx: number) => {
     const el = railRef.current;
     if (!el) return;
-    const clamped = Math.max(0, Math.min(idx, slides.length - 1));
-    el.scrollTo({ left: clamped * (cardWidth + GAP_PX), behavior: "smooth" });
+    const onScroll = () => {
+      const idx = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+      setActivePage(idx);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Legacy scrollToIndex for dots (now maps to pages instead of single cards)
+  const scrollToIndex = (idx: number) => {
+    // Map card index -> page index
+    const page = Math.floor(idx / Math.max(1, cardsPerView));
+    scrollToPage(page);
   };
-  const handlePrev = () => scrollToIndex(activeSlide - 1);
-  const handleNext = () => scrollToIndex(activeSlide + 1);
 
   if (!vehicle) {
     return (
@@ -338,7 +361,7 @@ const VehicleDetails = () => {
 
           {/* EXPERIENCE RAIL */}
           <section className="py-12 lg:py-20 relative bg-gradient-to-b from-background via-muted/30 to-background">
-            <div className="toyota-container">
+            <div className="toyota-container max-w-none">
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -356,102 +379,101 @@ const VehicleDetails = () => {
               </motion.div>
 
               <div className="relative">
-                {/* Desktop arrows */}
+                {/* Desktop arrows (page-based) */}
                 <button
                   aria-label="Previous"
                   onClick={handlePrev}
-                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  disabled={activePage === 0}
+                  className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent disabled:opacity-40"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   aria-label="Next"
                   onClick={handleNext}
-                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent"
+                  disabled={activePage >= pageCount - 1}
+                  className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 items-center justify-center rounded-full bg-background/90 shadow ring-1 ring-black/10 hover:bg-accent disabled:opacity-40"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
 
+                {/* Rail: 1/2/3/4 cards per view, swipeable like mobile */}
                 <div
                   ref={railRef}
-                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1"
-                  style={{ scrollbarWidth: "none" as any }}
+                  className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 touch-pan-x overscroll-x-contain"
+                  style={{ scrollbarWidth: "none" as any, WebkitOverflowScrolling: "touch" }}
                 >
                   {slides.map((s, i) => (
-                    <div key={s.key} ref={i === 0 ? firstCardRef : undefined} className="snap-center shrink-0 w-[90vw] sm:w-[520px] lg:w-[640px]">
-                      <Card className="relative overflow-hidden h-full rounded-2xl shadow-xl border-0 bg-transparent group">
-                        {/* Media */}
-                        <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
-                          <img
-                            src={s.image}
-                            alt=""
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                          {/* Gentle edge shading only — no full overlay */}
-                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                    <div
+                      key={s.key}
+                      ref={i === 0 ? firstCardRef : undefined}
+                      className="snap-start shrink-0 rounded-2xl shadow-lg ring-1 ring-border bg-card overflow-hidden"
+                      style={{
+                        flex: `0 0 calc((100% - ${(cardsPerView - 1) * GAP_PX}px) / ${cardsPerView})`,
+                      }}
+                    >
+                      <div className="relative aspect-[4/3]">
+                        <img
+                          src={s.image}
+                          alt={s.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Content (removed glass effect as requested earlier) */}
+                      <CardContent className="p-4">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                          {s.icon}
+                          {s.title}
                         </div>
 
-                        {/* Compact glass panel (bottom-left) */}
-                        <CardContent className="absolute left-4 bottom-4 right-auto z-10 max-w-[86%] sm:max-w-[460px]">
-                          <div className="rounded-xl bg-black/40 backdrop-blur-md text-white p-4 md:p-5 ring-1 ring-white/10 shadow-2xl">
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1">
-                              {s.icon}
-                              <span className="text-xs font-semibold">{s.title}</span>
-                            </div>
+                        <h3 className="mt-2 text-base md:text-lg font-extrabold leading-snug">
+                          {s.subtitle}
+                        </h3>
 
-                            <h3 className="mt-2 text-base md:text-lg font-extrabold leading-snug">
-                              {s.subtitle}
-                            </h3>
+                        {s.meta && (
+                          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            {s.meta.map((m) => (
+                              <li key={m} className="flex items-center gap-2">
+                                <Check className="h-4 w-4 text-primary" />
+                                {m}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
 
-                            {s.meta && (
-                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-white/90 text-[12px] md:text-sm">
-                                {s.meta.map((m) => (
-                                  <li key={m} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                                    <Check className="h-4 w-4 text-emerald-300 shrink-0" />
-                                    <span className="truncate">{m}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-
-                            <div className="mt-3">
-                              {s.cta ? (
-                                <Button
-                                  size="sm"
-                                  className="bg-white text-black hover:bg-white/90"
-                                  onClick={s.cta.onClick}
-                                >
-                                  {s.cta.label}
-                                  <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="bg-white text-black hover:bg-white/90"
-                                  onClick={() => setIsBookingOpen(true)}
-                                >
-                                  Book a Test Drive
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        <div className="mt-3">
+                          {s.cta ? (
+                            <Button size="sm" className="bg-white text-black hover:bg-white/90" onClick={s.cta.onClick}>
+                              {s.cta.label}
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="bg-white text-black hover:bg-white/90"
+                              onClick={() => setIsBookingOpen(true)}
+                            >
+                              Book a Test Drive
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
                     </div>
                   ))}
                 </div>
 
-                {/* Pagination */}
+                {/* Pagination: by page (not per-card) */}
                 <div className="mt-6 flex items-center justify-center gap-2">
-                  {slides.map((_, i) => (
+                  {Array.from({ length: pageCount }).map((_, i) => (
                     <button
                       key={i}
-                      aria-label={`Go to slide ${i + 1}`}
-                      onClick={() => scrollToIndex(i)}
+                      aria-label={`Go to page ${i + 1}`}
+                      onClick={() => scrollToPage(i)}
                       className={`h-2.5 rounded-full transition-all ${
-                        activeSlide === i
+                        activePage === i
                           ? "w-8 bg-primary"
                           : "w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
                       }`}
@@ -459,23 +481,23 @@ const VehicleDetails = () => {
                   ))}
                 </div>
 
-                {/* Quick actions — not sticky */}
+                {/* Quick actions — ordered: View Offers → Estimate EMI → Book Test Drive → Build */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
-                    <PencilRuler className="mr-2 h-4 w-4" />
-                    Build Your {safeModelEnd}
+                  <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
+                    <Tag className="mr-2 h-4 w-4" />
+                    View Offers
                   </Button>
                   <Button variant="outline" onClick={() => setIsFinanceOpen(true)} className="justify-start">
                     <Gauge className="mr-2 h-4 w-4" />
                     Estimate EMI • {monthlyEMI.toLocaleString()} AED/mo
                   </Button>
-                  <Button variant="outline" onClick={() => setIsOffersModalOpen(true)} className="justify-start">
-                    <Tag className="mr-2 h-4 w-4" />
-                    View Offers
-                  </Button>
                   <Button variant="outline" onClick={() => setIsBookingOpen(true)} className="justify-start">
                     <Calendar className="mr-2 h-4 w-4" />
                     Book Test Drive
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsCarBuilderOpen(true)} className="justify-start">
+                    <PencilRuler className="mr-2 h-4 w-4" />
+                    Build Your {safeModelEnd}
                   </Button>
                 </div>
               </div>
