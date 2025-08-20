@@ -268,7 +268,12 @@ const VehicleDetails = () => {
 
   const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
   return (
-    <ToyotaLayout
+  <ToyotaLayout
+    ...
+  >
+    {/* children here */}
+  </ToyotaLayout>
+);
       activeNavItem="models"
       vehicle={vehicle}
       isFavorite={isFavorite}
