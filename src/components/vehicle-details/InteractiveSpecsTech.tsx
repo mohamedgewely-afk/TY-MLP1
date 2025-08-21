@@ -32,7 +32,7 @@ interface InteractiveSpecsTechProps {
   onBookTestDrive?: (gradeInfo?: { engine: string; grade: string }) => void;
 }
 
-const TOYOTA_RED = "#CC0000";
+const TOYOTA_RED = "#EB0A1E";
 
 // Lighter, motion-safe variants
 const variants = (reduced: boolean) => ({
@@ -232,8 +232,8 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                   onClick={() => handleEngineChange(engine.name)}
                   className={[
                     "relative rounded-xl p-3 sm:p-4 text-left bg-white border transition-all select-none",
-                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] focus-visible:ring-offset-white",
-                    active ? "border-[#CC0000] shadow-md" : "border-gray-200 hover:border-gray-300",
+                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}] focus-visible:ring-offset-white",
+                    active ? "border-[${TOYOTA_RED}] shadow-md" : "border-gray-200 hover:border-gray-300",
                   ].join(" ")}
                 >
                   {active && <span className="absolute inset-x-0 -top-px h-0.5" style={{ background: TOYOTA_RED }} />}
@@ -279,7 +279,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
             <Button
               variant="outline"
               onClick={() => setShowComparisonModal(true)}
-              className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
+              className="border-[${TOYOTA_RED}] text-[${TOYOTA_RED}] hover:bg-[${TOYOTA_RED}] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}]"
             >
               <ArrowUpDown className="h-4 w-4 mr-2" />
               Compare
@@ -299,7 +299,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                 if (e.key === 'ArrowRight') { e.preventDefault(); nextGrade(); }
                 if (e.key === 'ArrowLeft')  { e.preventDefault(); prevGrade(); }
               }}
-              className="relative outline-none focus-visible:ring-2 focus-visible:ring-[#CC0000] rounded-xl"
+              className="relative outline-none focus-visible:ring-2 focus-visible:ring-[${TOYOTA_RED}] rounded-xl"
             >
               {/* Desktop arrows (hidden on mobile) */}
               <button
@@ -389,7 +389,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                         </ul>
                         {isMobile && currentGrade.features.length > 2 && (
                           <button
-                            className="mt-2 text-xs font-semibold text-[#CC0000] focus-visible:underline focus-visible:outline-none"
+                            className="mt-2 text-xs font-semibold text-[${TOYOTA_RED}] focus-visible:underline focus-visible:outline-none"
                             onClick={() => setExpandedMobile((v) => !v)}
                             aria-expanded={expandedMobile}
                             aria-controls="more-features"
@@ -415,7 +415,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                         <Button
                           onClick={() => { setSelectedGrade(currentGrade.name); toast({ title: "Grade Selected", description: `${currentGrade.name} selected` }); }}
-                          className="font-semibold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] focus-visible:ring-offset-white"
+                          className="font-semibold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}] focus-visible:ring-offset-white"
                           style={{ background: `linear-gradient(90deg, #EB0A1E, #CC0000, #8B0000)` }}
                           aria-pressed={selectedGrade === currentGrade.name}
                         >
@@ -423,14 +423,14 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                         </Button>
                         <Button
                           variant="outline"
-                          className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
+                          className="border-[${TOYOTA_RED}] text-[${TOYOTA_RED}] hover:bg-[${TOYOTA_RED}] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}]"
                           onClick={handleTestDriveClick}
                         >
                           <Download className="h-4 w-4 mr-1.5" /> Drive
                         </Button>
                         <Button
                           variant="outline"
-                          className="col-span-2 sm:col-span-1 border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
+                          className="col-span-2 sm:col-span-1 border-[${TOYOTA_RED}] text-[${TOYOTA_RED}] hover:bg-[${TOYOTA_RED}] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}]"
                           onClick={handleConfigureClick}
                         >
                           <Wrench className="h-4 w-4 mr-1.5" /> Configure
@@ -447,7 +447,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                   <button
                     key={idx}
                     onClick={() => setCurrentGradeIndex(idx)}
-                    className={`rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] ${idx === currentGradeIndex ? "w-10 h-2 shadow" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"}`}
+                    className={`rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[${TOYOTA_RED}] ${idx === currentGradeIndex ? "w-10 h-2 shadow" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"}`}
                     style={idx === currentGradeIndex ? { background: `linear-gradient(90deg, #EB0A1E, #CC0000)` } : {}}
                     aria-label={`Go to grade ${idx + 1}`}
                   />
