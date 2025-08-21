@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -108,7 +107,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "interior",
       type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true,
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
       title: "Luxury Interior",
       description: "Premium materials and cutting-edge technology create an unparalleled driving experience",
       category: "Interior",
@@ -135,7 +134,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           description: "Ergonomic center console with premium materials and convenient storage solutions"
         },
         {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/724e565c-9702-4e50-a1e5-b18351a75a82/renditions/37e39a52-c8d8-4d23-89c9-041b369d9429?binary=true&mformat=true,
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/724e565c-9702-4e50-a1e5-b18351a75a82/renditions/37e39a52-c8d8-4d23-89c9-041b369d9429?binary=true&mformat=true",
           title: "Rear Seating",
           description: "Spacious rear passenger compartment with individual climate controls and premium amenities"
         }
@@ -144,7 +143,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "safety",
       type: "video",
-      url: "https://www.youtube.com/watch?v=xEkrrzLvya8",
+      url: "https://www.youtube.com/watch?v=xEKrrzLvya8",
       thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
       title: "Toyota Safety Sense",
       description: "Advanced safety systems that protect what matters most",
@@ -267,7 +266,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
 
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
-    setModalImageIndex(0); // Reset to first image when opening modal
+    setModalImageIndex(0);
   };
 
   const closeModal = () => {
@@ -305,7 +304,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     }
   };
 
-  // Get current image data for display
   const getCurrentImageData = () => {
     if (selectedMedia?.galleryImages && selectedMedia.galleryImages[modalImageIndex]) {
       return selectedMedia.galleryImages[modalImageIndex];
