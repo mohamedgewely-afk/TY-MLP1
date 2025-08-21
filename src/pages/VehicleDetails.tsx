@@ -43,27 +43,35 @@ import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
+// Full-bleed wrapper for desktop (keeps mobile as-is)
+const Bleed: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
+  <div className={`lg:ml-[calc(50%-50vw)] lg:mr-[calc(50%-50vw)] lg:w-screen ${className}`}>
+    {children}
+  </div>
+);
+
+// Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 // Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 const ParallaxImg: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => {
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
-  // Track this block relative to viewport
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
-    offset: ["start end", "end start"], // when top hits bottom of viewport -> when bottom hits top
+    offset: ["start end", "end start"],
   });
 
-  // Subtle vertical drift
-  const y = useTransform(scrollYProgress, [0, 1], ["-2vh", "2vh"]);
+  // Stronger drift + subtle fade
+  const y = useTransform(scrollYProgress, [0, 1], ["-4vh", "4vh"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.85, 1, 1, 0.9]);
 
   return (
-    <div ref={wrapperRef} className={`relative ${className} overflow-hidden`}>
+    <div ref={wrapperRef} className={`relative overflow-hidden ${className}`}>
       <motion.img
         src={src}
         alt={alt}
         className="absolute inset-0 w-full h-full object-cover will-change-transform"
-        style={reduce ? {} : { y }}
+        style={reduce ? {} : { y, opacity }}
         loading="lazy"
         decoding="async"
       />
@@ -328,7 +336,7 @@ const VehicleDetails = () => {
           <VehicleMediaShowcase vehicle={vehicle} />
           <RefinedTechExperience vehicle={vehicle} />
 <section className="py-16 lg:py-28 bg-muted/30">
-  <div className="toyota-container max-w-[1400px] space-y-24 lg:space-y-32">
+  <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-24 lg:space-y-32">
     {/* Section 1 – Performance */}
     <div className="grid lg:grid-cols-12 gap-10 items-center">
       <motion.div
@@ -354,14 +362,15 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[2]}
-            alt="Performance"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
+        <Bleed>
+  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+    <ParallaxImg
+      src={galleryImages[2]}
+      alt="Performance"
+      className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
+    />
+  </div>
+</Bleed>
       </motion.div>
     </div>
 
@@ -374,14 +383,15 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[1]}
-            alt="Safety Sense"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
+        <Bleed>
+  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+    <ParallaxImg
+      src={galleryImages[1]}
+      alt="Safety Sense"
+      className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
+    />
+  </div>
+</Bleed>
       </motion.div>
 
       <motion.div
@@ -430,14 +440,15 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[0]}
-            alt="Connected Tech"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
+        <Bleed>
+  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+    <ParallaxImg
+      src={galleryImages[0]}
+      alt="Connected Tech"
+      className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
+    />
+  </div>
+</Bleed>
       </motion.div>
     </div>
 
@@ -450,14 +461,15 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[1]}
-            alt="Ownership"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
+        <Bleed>
+  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+    <ParallaxImg
+      src={galleryImages[1]}
+      alt="Ownership"
+      className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
+    />
+  </div>
+</Bleed>
       </motion.div>
 
       <motion.div
