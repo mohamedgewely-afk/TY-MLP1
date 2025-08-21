@@ -43,6 +43,13 @@ import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 
+// Full-bleed wrapper for desktop: stretches child to viewport width while inside a centered container
+const Bleed: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
+  <div className={`lg:ml-[calc(50%-50vw)] lg:mr-[calc(50%-50vw)] lg:w-screen ${className}`}>
+    {children}
+  </div>
+);
+
 const GAP_PX = 24;
 
 const VehicleDetails = () => {
@@ -300,7 +307,7 @@ const VehicleDetails = () => {
           <VehicleMediaShowcase vehicle={vehicle} />
           <RefinedTechExperience vehicle={vehicle} />
 <section className="py-16 lg:py-28 bg-muted/30">
-  <div className="toyota-container max-w-[1400px] space-y-24 lg:space-y-32">
+  <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-24 lg:space-y-32">
     {/* Section 1 – Performance */}
     <div className="grid lg:grid-cols-12 gap-10 items-center">
       <motion.div
@@ -320,41 +327,47 @@ const VehicleDetails = () => {
       </motion.div>
 
       <motion.div
-        className="lg:col-span-7"
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[2]}
-            alt="Performance"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
-      </motion.div>
+  className="lg:col-span-7"
+  initial={{ opacity: 0, scale: 0.95 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  <Bleed>
+    <div className="rounded-3xl lg:rounded-none overflow-hidden ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+      <img
+        src={galleryImages[2]}
+        alt="Performance"
+        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] object-cover"
+        sizes="(min-width:1024px) 100vw, (min-width:640px) 52vw, 100vw"
+        loading="lazy"
+      />
+    </div>
+  </Bleed>
+</motion.div>
     </div>
 
     {/* Section 2 – Safety */}
     <div className="grid lg:grid-cols-12 gap-10 items-center">
       <motion.div
-        className="lg:col-span-7 order-2 lg:order-1"
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[1]}
-            alt="Safety Sense"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
-      </motion.div>
+  className="lg:col-span-7 order-2 lg:order-1"
+  initial={{ opacity: 0, scale: 0.95 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  <Bleed>
+    <div className="rounded-3xl lg:rounded-none overflow-hidden ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+      <img
+        src={galleryImages[1]}
+        alt="Safety Sense"
+        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] object-cover"
+        sizes="(min-width:1024px) 100vw, (min-width:640px) 52vw, 100vw"
+        loading="lazy"
+      />
+    </div>
+  </Bleed>
+</motion.div>
 
       <motion.div
         className="lg:col-span-5 order-1 lg:order-2"
@@ -396,41 +409,47 @@ const VehicleDetails = () => {
       </motion.div>
 
       <motion.div
-        className="lg:col-span-7"
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[0]}
-            alt="Connected Tech"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
-      </motion.div>
+  className="lg:col-span-7"
+  initial={{ opacity: 0, scale: 0.95 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  <Bleed>
+    <div className="rounded-3xl lg:rounded-none overflow-hidden ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+      <img
+        src={galleryImages[0]}
+        alt="Connected Tech"
+        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] object-cover"
+        sizes="(min-width:1024px) 100vw, (min-width:640px) 52vw, 100vw"
+        loading="lazy"
+      />
+    </div>
+  </Bleed>
+</motion.div>
     </div>
 
     {/* Section 4 – Ownership */}
     <div className="grid lg:grid-cols-12 gap-10 items-center">
       <motion.div
-        className="lg:col-span-7 order-2 lg:order-1"
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="rounded-3xl overflow-hidden ring-1 ring-border shadow-xl">
-          <img
-            src={galleryImages[1]}
-            alt="Ownership"
-            className="w-full h-[52vw] max-h-[560px] lg:h-[520px] object-cover"
-            loading="lazy"
-          />
-        </div>
-      </motion.div>
+  className="lg:col-span-7 order-2 lg:order-1"
+  initial={{ opacity: 0, scale: 0.95 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  <Bleed>
+    <div className="rounded-3xl lg:rounded-none overflow-hidden ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+      <img
+        src={galleryImages[1]}
+        alt="Ownership"
+        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] object-cover"
+        sizes="(min-width:1024px) 100vw, (min-width:640px) 52vw, 100vw"
+        loading="lazy"
+      />
+    </div>
+  </Bleed>
+</motion.div>
 
       <motion.div
         className="lg:col-span-5 order-1 lg:order-2"
