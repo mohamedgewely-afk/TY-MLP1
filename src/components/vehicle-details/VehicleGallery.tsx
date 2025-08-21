@@ -51,33 +51,6 @@ interface LandCruiserLifestyleGalleryProProps {
   rtl?: boolean;
   onAskToyota?: (scene: SceneData) => void;
 }
-type LocaleStrings = {
-  title: string;
-  subtitle: string;
-  hint: string;
-  expand: string;
-  collapse: string;
-  ask: string;
-  ambientOn: string;
-  ambientOff: string;
-  narrationOn: string;
-  narrationOff: string;
-  scenes: SceneCategory[];
-  empty: string;
-  playing: string;
-  paused: string;
-  skipToContent: string;
-  filters: string;
-  sceneList: string;
-  openScene: (scene: string) => string;
-  prevScene: string;
-  nextScene: string;
-  narrationPosition: string;
-  all: string;
-  thumbnails: string;
-  slideOf: (i: number, total: number, name: string) => string;
-  goToSlide: (i: number) => string;
-};
 
 // —————————————————————————————————
 // STRINGS
@@ -137,7 +110,7 @@ const STR = {
     slideOf: (i: number, total: number, name: string) => `الشريحة ${i} من ${total}: ${name}`,
     goToSlide: (i: number) => `اذهب إلى الشريحة ${i}`,
   },
-} satisfies Record<"en" | "ar", LocaleStrings>;
+} as const;
 
 // —————————————————————————————————
 // ICONS (normalize keys → lowercase)
@@ -300,7 +273,7 @@ export default function LandCruiserLifestyleGalleryPro({
   rtl = false,
   onAskToyota,
 }: LandCruiserLifestyleGalleryProProps) {
-  const T: LocaleStrings = STR[locale] ?? STR.en;
+  const T = STR[locale] ?? STR.en;
   const prefersReduced = useReducedMotion();
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -725,8 +698,8 @@ function SceneCardPro({
 }) {
   // Bigger desktop widths + subtle elevation for active card
   const cardCls = `snap-center shrink-0
-  min-w-[260px] max-w-[260px]
-  sm:min-w-[300px] sm:max-w-[300px]
+  min-w-[300px] max-w-[300px]
+  sm:min-w-[340px] sm:max-w-[340px]
   md:min-w-[880px] md:max-w-[880px]
   lg:min-w-[1040px] lg:max-w-[1040px]
   xl:min-w-[1200px] xl:max-w-[1200px]
@@ -842,7 +815,7 @@ function ExpandedSceneOverlay({
   setIsNarrPlaying: (p: boolean) => void;
   onAskToyota?: (s: SceneData) => void;
   prefersReduced: boolean;
-  localeStrings: LocaleStrings;
+  localeStrings: typeof STR["en"];
   rtl: boolean;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
