@@ -83,7 +83,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,75,75,0.2),transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 md:px-6">
+      <div className="relative z-10 mx-auto w-full px-4 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -148,9 +148,9 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
                 - Allow the iframe to stretch fully
               */}
               <div
-                ref={containerRef}
-                className={`relative w-full h-[60vh] md:aspect-[16/9] lg:aspect-[21/9]`}
-              >
+  ref={containerRef}
+  className="relative w-full h-[60vh] md:h-[70vh] lg:h-[80vh] lg:aspect-[18/9]"
+>
                 <iframe
                   ref={iframeRef}
                   src={showroomUrl}
