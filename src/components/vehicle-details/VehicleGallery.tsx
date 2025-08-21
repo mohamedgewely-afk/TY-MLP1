@@ -51,6 +51,33 @@ interface LandCruiserLifestyleGalleryProProps {
   rtl?: boolean;
   onAskToyota?: (scene: SceneData) => void;
 }
+type LocaleStrings = {
+  title: string;
+  subtitle: string;
+  hint: string;
+  expand: string;
+  collapse: string;
+  ask: string;
+  ambientOn: string;
+  ambientOff: string;
+  narrationOn: string;
+  narrationOff: string;
+  scenes: SceneCategory[];
+  empty: string;
+  playing: string;
+  paused: string;
+  skipToContent: string;
+  filters: string;
+  sceneList: string;
+  openScene: (scene: string) => string;
+  prevScene: string;
+  nextScene: string;
+  narrationPosition: string;
+  all: string;
+  thumbnails: string;
+  slideOf: (i: number, total: number, name: string) => string;
+  goToSlide: (i: number) => string;
+};
 
 // —————————————————————————————————
 // STRINGS
@@ -110,7 +137,7 @@ const STR = {
     slideOf: (i: number, total: number, name: string) => `الشريحة ${i} من ${total}: ${name}`,
     goToSlide: (i: number) => `اذهب إلى الشريحة ${i}`,
   },
-} as const;
+} satisfies Record<"en" | "ar", LocaleStrings>;
 
 // —————————————————————————————————
 // ICONS (normalize keys → lowercase)
@@ -273,7 +300,7 @@ export default function LandCruiserLifestyleGalleryPro({
   rtl = false,
   onAskToyota,
 }: LandCruiserLifestyleGalleryProProps) {
-  const T = STR[locale] ?? STR.en;
+  const T: LocaleStrings = STR[locale] ?? STR.en;
   const prefersReduced = useReducedMotion();
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -815,7 +842,7 @@ function ExpandedSceneOverlay({
   setIsNarrPlaying: (p: boolean) => void;
   onAskToyota?: (s: SceneData) => void;
   prefersReduced: boolean;
-  localeStrings: typeof STR["en"];
+  localeStrings: LocaleStrings;
   rtl: boolean;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
