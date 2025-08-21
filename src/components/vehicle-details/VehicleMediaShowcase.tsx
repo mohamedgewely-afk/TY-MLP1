@@ -71,7 +71,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "performance",
       type: "image",
-      url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/a2c5b39d-f2db-4f00-968c-e78f73a73652/renditions/4a3588b7-55f0-48f5-98dc-a219f5bfbaad?binary=true&mformat=true",
       title: "V6 Twin-Turbo Engine",
       description: "Experience unmatched power and efficiency with our advanced twin-turbo technology",
       category: "Performance",
@@ -84,22 +84,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       isPremium: true,
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
           title: "Engine Bay Overview",
           description: "Complete view of the V6 twin-turbo engine with advanced cooling systems and precision engineering"
         },
         {
-          url: "https://images.unsplash.com/photo-1619976215249-72c1eb36042e?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
           title: "Turbocharger Detail",
           description: "Advanced twin-turbo technology featuring variable geometry turbines for optimal power delivery"
         },
         {
-          url: "https://images.unsplash.com/photo-1486650547751-9f3f9db50009?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Performance Specs",
           description: "Technical specifications showcasing industry-leading performance metrics and efficiency ratings"
         },
         {
-          url: "https://images.unsplash.com/photo-1544829099-b9a0c5303bea?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
           title: "Engine Control Unit",
           description: "State-of-the-art ECU managing engine parameters for optimal performance and fuel economy"
         }
@@ -108,7 +108,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "interior",
       type: "image",
-      url: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true,
       title: "Luxury Interior",
       description: "Premium materials and cutting-edge technology create an unparalleled driving experience",
       category: "Interior",
@@ -120,22 +120,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
           title: "Dashboard Overview",
           description: "Premium dashboard featuring digital instrument cluster and intuitive control layout"
         },
         {
-          url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/84e8c1f6-161b-4fad-a1b2-aa9f00446b1d/renditions/c46fa084-5605-492e-8834-fae4693096f4?binary=true&mformat=true",
           title: "Leather Seats",
           description: "Hand-crafted leather seating with premium stitching and ergonomic support design"
         },
         {
-          url: "https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
           title: "Center Console",
           description: "Ergonomic center console with premium materials and convenient storage solutions"
         },
         {
-          url: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/724e565c-9702-4e50-a1e5-b18351a75a82/renditions/37e39a52-c8d8-4d23-89c9-041b369d9429?binary=true&mformat=true,
           title: "Rear Seating",
           description: "Spacious rear passenger compartment with individual climate controls and premium amenities"
         }
@@ -144,8 +144,8 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "safety",
       type: "video",
-      url: "https://www.w3schools.com/html/mov_bbb.mp4",
-      thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+      url: "https://www.youtube.com/watch?v=xEkrrzLvya8",
+      thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
       title: "Toyota Safety Sense",
       description: "Advanced safety systems that protect what matters most",
       category: "Safety",
@@ -158,7 +158,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       isPremium: true,
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
           title: "Safety Overview",
           description: "Comprehensive safety suite featuring advanced driver assistance systems and protective technologies"
         }
@@ -167,7 +167,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "handling",
       type: "image",
-      url: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0d?binary=true&mformat=true",
       title: "Dynamic Handling",
       description: "Precision engineering delivers exceptional road feel and control",
       category: "Performance",
@@ -179,17 +179,17 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/b597478a-f34f-439d-a904-61fc6d458a66/renditions/a44596eb-4eff-4aba-bb21-ef59b730358f?binary=true&mformat=true",
           title: "Suspension System",
           description: "Advanced adaptive suspension technology providing optimal balance between comfort and performance"
         },
         {
-          url: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/4d591b47-2866-457a-816a-a808ca9a364e/renditions/d8f9f2ed-a09d-4ecf-9586-02af429a86c2?binary=true&mformat=true",
           title: "Wheel Design",
           description: "Performance-oriented wheel design with advanced brake cooling and aerodynamic efficiency"
         },
         {
-          url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
           title: "Drive Modes",
           description: "Multiple drive modes allowing customization of vehicle dynamics for any driving situation"
         }
@@ -198,7 +198,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "tech",
       type: "360",
-      url: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=1200&q=80",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
       title: "Connected Technology",
       description: "Stay connected with intelligent features that enhance every journey",
       category: "Technology",
@@ -210,17 +210,17 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
           title: "Infotainment System",
           description: "Advanced infotainment system with intuitive interface and seamless smartphone integration"
         },
         {
-          url: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
           title: "Digital Cockpit",
           description: "Fully digital instrument cluster providing real-time vehicle information and customizable displays"
         },
         {
-          url: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
           title: "Connected Services",
           description: "Cloud-based services providing remote vehicle monitoring, maintenance alerts, and over-the-air updates"
         }
@@ -229,7 +229,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "build-quality",
       type: "image",
-      url: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
       title: "Premium Build Quality",
       description: "Exceptional craftsmanship and attention to detail in every component",
       category: "Quality",
@@ -241,17 +241,17 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Manufacturing Excellence",
           description: "State-of-the-art manufacturing processes ensuring consistent quality and precision in every vehicle"
         },
         {
-          url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Material Quality",
           description: "Premium materials selected for durability, sustainability, and luxurious feel throughout the vehicle"
         },
         {
-          url: "https://images.unsplash.com/photo-1616047006789-b7af710a08da?auto=format&fit=crop&w=1200&q=80",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Finish Details",
           description: "Meticulous attention to finish details including paint quality, panel gaps, and surface textures"
         }
