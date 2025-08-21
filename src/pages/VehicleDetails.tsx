@@ -49,7 +49,13 @@ const Bleed: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ chil
     {children}
   </div>
 );
-
+// Bleed only toward the viewport edge on desktop (prevents covering the text column)
+const BleedRight: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
+  <div className={`lg:mr-[calc(50%-50vw)] ${className}`}>{children}</div>
+);
+const BleedLeft: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
+  <div className={`lg:ml-[calc(50%-50vw)] ${className}`}>{children}</div>
+);
 // Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 // Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 const ParallaxImg: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => {
@@ -66,7 +72,7 @@ const ParallaxImg: React.FC<{ src: string; alt: string; className?: string }> = 
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.85, 1, 1, 0.9]);
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden ${className}`}>
+    <div ref={wrapperRef} className={`relative overflow-hidden pointer-events-none ${className}`}>
       <motion.img
         src={src}
         alt={alt}
@@ -338,9 +344,9 @@ const VehicleDetails = () => {
 <section className="py-16 lg:py-28 bg-muted/30">
   <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-24 lg:space-y-32">
     {/* Section 1 – Performance */}
-    <div className="grid lg:grid-cols-12 gap-10 items-center">
+    <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
       <motion.div
-        className="lg:col-span-5"
+        className="lg:col-span-5 relative z-10"
         initial={{ opacity: 0, x: -50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
@@ -362,20 +368,21 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <Bleed>
-  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+        <BleedRight>
+  <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
     <ParallaxImg
       src={galleryImages[2]}
       alt="Performance"
       className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
     />
   </div>
-</Bleed>
+</BleedRight>
+        
       </motion.div>
     </div>
 
     {/* Section 2 – Safety */}
-    <div className="grid lg:grid-cols-12 gap-10 items-center">
+    <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
       <motion.div
         className="lg:col-span-7 order-2 lg:order-1"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -383,19 +390,19 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <Bleed>
-  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+        <BleedLeft>
+  <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
     <ParallaxImg
       src={galleryImages[1]}
       alt="Safety Sense"
       className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
     />
   </div>
-</Bleed>
+</BleedLeft>
       </motion.div>
 
       <motion.div
-        className="lg:col-span-5 order-1 lg:order-2"
+        className="lg:col-span-5 order-1 lg:order-2 relative z-10"
         initial={{ opacity: 0, x: 50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
@@ -414,9 +421,9 @@ const VehicleDetails = () => {
     </div>
 
     {/* Section 3 – Connected Life */}
-    <div className="grid lg:grid-cols-12 gap-10 items-center">
+    <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
       <motion.div
-        className="lg:col-span-5"
+        className="lg:col-span-5 relative z-10"
         initial={{ opacity: 0, x: -50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
@@ -440,20 +447,20 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <Bleed>
-  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+        <BleedRight>
+  <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
     <ParallaxImg
       src={galleryImages[0]}
       alt="Connected Tech"
       className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
     />
   </div>
-</Bleed>
+</BleedRight>
       </motion.div>
     </div>
 
     {/* Section 4 – Ownership */}
-    <div className="grid lg:grid-cols-12 gap-10 items-center">
+    <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
       <motion.div
         className="lg:col-span-7 order-2 lg:order-1"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -461,19 +468,19 @@ const VehicleDetails = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <Bleed>
-  <div className="rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
+        <BleedLeft>
+  <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
     <ParallaxImg
       src={galleryImages[1]}
       alt="Ownership"
       className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
     />
   </div>
-</Bleed>
+</BleedLeft>
       </motion.div>
 
       <motion.div
-        className="lg:col-span-5 order-1 lg:order-2"
+        className="lg:col-span-5 order-1 lg:order-2 relative z-10"
         initial={{ opacity: 0, x: 50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
