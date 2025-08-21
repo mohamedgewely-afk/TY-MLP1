@@ -32,7 +32,7 @@ interface InteractiveSpecsTechProps {
   onBookTestDrive?: (gradeInfo?: { engine: string; grade: string }) => void;
 }
 
-const TOYOTA_RED = "#EB0A1E";
+const TOYOTA_RED = "#CC0000";
 
 // Lighter, motion-safe variants
 const variants = (reduced: boolean) => ({
@@ -199,7 +199,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
       <div className="toyota-container">
         {/* Header */}
         <motion.div initial={reduceMotion?{opacity:1}:{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8 lg:mb-12">
-          <Badge className="mb-3 border-0 text-white shadow-lg" style={{ background: `linear-gradient(90deg, #EB0A1E, #EB0A1E, #8B0000)` }}>
+          <Badge className="mb-3 border-0 text-white shadow-lg" style={{ background: `linear-gradient(90deg, ${TOYOTA_RED}, ${TOYOTA_RED})` }}>
             <Sparkles className="h-4 w-4 mr-2" /> Interactive Experience
           </Badge>
           <h2 className="text-[28px] sm:text-[32px] lg:text-6xl font-black text-gray-900 mb-2 lg:mb-4">Choose Your Configuration</h2>
@@ -232,14 +232,14 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                   onClick={() => handleEngineChange(engine.name)}
                   className={[
                     "relative rounded-xl p-3 sm:p-4 text-left bg-white border transition-all select-none",
-                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E] focus-visible:ring-offset-white",
-                    active ? "border-[#EB0A1E] shadow-md" : "border-gray-200 hover:border-gray-300",
+                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] focus-visible:ring-offset-white",
+                    active ? "border-[#CC0000] shadow-md" : "border-gray-200 hover:border-gray-300",
                   ].join(" ")}
                 >
                   {active && <span className="absolute inset-x-0 -top-px h-0.5" style={{ background: TOYOTA_RED }} />}
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg grid place-items-center text-white shadow-md"
-                         style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}>
+                         style={{ background: `linear-gradient(135deg, ${TOYOTA_RED}, ${TOYOTA_RED})` }}>
                       {engine.icon}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -247,7 +247,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                       <div className="text-[11px] sm:text-xs text-gray-500 truncate">{engine.description}</div>
                     </div>
                     {active && (
-                      <div className="w-6 h-6 rounded-full grid place-items-center text-white shadow" style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}>
+                      <div className="w-6 h-6 rounded-full grid place-items-center text-white shadow" style={{ background: `linear-gradient(135deg, #EB0A1E, #CC0000)` }}>
                         <Check className="w-3.5 h-3.5" />
                       </div>
                     )}
@@ -274,12 +274,12 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
             <div className="text-center sm:text-left">
               <h3 id="grade-step" className="text-xl sm:text-2xl lg:text-4xl font-black text-gray-900">Step 2: Choose Your Grade</h3>
               <div className="w-20 sm:w-24 lg:w-32 h-1 rounded-full mt-2"
-                   style={{ background: `linear-gradient(90deg, #EB0A1E, #EB0A1E, #8B0000)` }} />
+                   style={{ background: `linear-gradient(90deg, #EB0A1E, #CC0000, #8B0000)` }} />
             </div>
             <Button
               variant="outline"
               onClick={() => setShowComparisonModal(true)}
-              className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E]"
+              className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
             >
               <ArrowUpDown className="h-4 w-4 mr-2" />
               Compare
@@ -299,13 +299,13 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                 if (e.key === 'ArrowRight') { e.preventDefault(); nextGrade(); }
                 if (e.key === 'ArrowLeft')  { e.preventDefault(); prevGrade(); }
               }}
-              className="relative outline-none focus-visible:ring-2 focus-visible:ring-[#EB0A1E] rounded-xl"
+              className="relative outline-none focus-visible:ring-2 focus-visible:ring-[#CC0000] rounded-xl"
             >
               {/* Desktop arrows (hidden on mobile) */}
               <button
                 onClick={prevGrade}
                 className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full text-white shadow-xl -translate-x-4"
-                style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}
+                style={{ background: `linear-gradient(135deg, #EB0A1E, #CC0000)` }}
                 aria-label="Previous grade"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -313,7 +313,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
               <button
                 onClick={nextGrade}
                 className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full text-white shadow-xl translate-x-4"
-                style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}
+                style={{ background: `linear-gradient(135deg, #EB0A1E, #CC0000)` }}
                 aria-label="Next grade"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -380,7 +380,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                           {(isMobile && !expandedMobile ? currentGrade.features.slice(0, 2) : currentGrade.features).map((feature: string, idx: number) => (
                             <li key={idx} className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-white/70 backdrop-blur border border-gray-100">
                               <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full grid place-items-center text-white"
-                                    style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}>
+                                    style={{ background: `linear-gradient(135deg, #EB0A1E, #CC0000)` }}>
                                 <Check className="h-3 w-3" aria-hidden />
                               </span>
                               <span className="text-gray-800 text-sm sm:text-base font-medium">{feature}</span>
@@ -389,7 +389,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                         </ul>
                         {isMobile && currentGrade.features.length > 2 && (
                           <button
-                            className="mt-2 text-xs font-semibold text-[#EB0A1E] focus-visible:underline focus-visible:outline-none"
+                            className="mt-2 text-xs font-semibold text-[#CC0000] focus-visible:underline focus-visible:outline-none"
                             onClick={() => setExpandedMobile((v) => !v)}
                             aria-expanded={expandedMobile}
                             aria-controls="more-features"
@@ -401,7 +401,7 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                           <div id="more-features" className="mt-2 grid grid-cols-1 gap-2">
                             {currentGrade.features.slice(2).map((feature, i) => (
                               <div key={i} className="flex items-center gap-2 p-2.5 rounded-lg bg-white/70 backdrop-blur border border-gray-100">
-                                <span className="w-5 h-5 rounded-full grid place-items-center text-white" style={{ background: `linear-gradient(135deg, #EB0A1E, #EB0A1E)` }}>
+                                <span className="w-5 h-5 rounded-full grid place-items-center text-white" style={{ background: `linear-gradient(135deg, #EB0A1E, #CC0000)` }}>
                                   <Check className="h-3 w-3" aria-hidden />
                                 </span>
                                 <span className="text-gray-800 text-sm font-medium">{feature}</span>
@@ -415,22 +415,22 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                         <Button
                           onClick={() => { setSelectedGrade(currentGrade.name); toast({ title: "Grade Selected", description: `${currentGrade.name} selected` }); }}
-                          className="font-semibold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E] focus-visible:ring-offset-white"
-                          style={{ background: `linear-gradient(90deg, #EB0A1E, #EB0A1E, #8B0000)` }}
+                          className="font-semibold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] focus-visible:ring-offset-white"
+                          style={{ background: `linear-gradient(90deg, #EB0A1E, #CC0000, #8B0000)` }}
                           aria-pressed={selectedGrade === currentGrade.name}
                         >
                           {selectedGrade === currentGrade.name ? (<><Check className="h-4 w-4 mr-1.5" /> Selected</>) : ("Select")}
                         </Button>
                         <Button
                           variant="outline"
-                          className="border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E]"
+                          className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
                           onClick={handleTestDriveClick}
                         >
                           <Download className="h-4 w-4 mr-1.5" /> Drive
                         </Button>
                         <Button
                           variant="outline"
-                          className="col-span-2 sm:col-span-1 border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E]"
+                          className="col-span-2 sm:col-span-1 border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]"
                           onClick={handleConfigureClick}
                         >
                           <Wrench className="h-4 w-4 mr-1.5" /> Configure
@@ -447,8 +447,8 @@ const InteractiveSpecsTechFutura: React.FC<InteractiveSpecsTechProps> = ({
                   <button
                     key={idx}
                     onClick={() => setCurrentGradeIndex(idx)}
-                    className={`rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#EB0A1E] ${idx === currentGradeIndex ? "w-10 h-2 shadow" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"}`}
-                    style={idx === currentGradeIndex ? { background: `linear-gradient(90deg, #EB0A1E, #EB0A1E)` } : {}}
+                    className={`rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000] ${idx === currentGradeIndex ? "w-10 h-2 shadow" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"}`}
+                    style={idx === currentGradeIndex ? { background: `linear-gradient(90deg, ${TOYOTA_RED}, ${TOYOTA_RED})` } : {}}
                     aria-label={`Go to grade ${idx + 1}`}
                   />
                 ))}
