@@ -1,8 +1,8 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Car, Palette, Package, CreditCard, Calendar, Zap } from "lucide-react";
+import { VehicleModel } from "@/types/vehicle";
 
 interface ReviewStepProps {
   config: {
@@ -13,11 +13,13 @@ interface ReviewStepProps {
     interiorColor: string;
     accessories: string[];
   };
+  vehicle: VehicleModel;
   calculateTotalPrice: () => number;
   handlePayment: () => void;
+  onReset?: () => void;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ config, calculateTotalPrice, handlePayment }) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ config, vehicle, calculateTotalPrice, handlePayment, onReset }) => {
   const accessories = [
     { name: "Premium Sound System", price: 1200 },
     { name: "Sunroof", price: 800 },

@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Star, Zap, Shield, Crown, AlertTriangle } from "lucide-react";
 import { useSwipeable } from "@/hooks/use-swipeable";
+import { VehicleModel } from "@/types/vehicle";
 
 interface GradeCarouselStepProps {
   config: { grade: string };
   setConfig: React.Dispatch<React.SetStateAction<any>>;
+  vehicle: VehicleModel;
 }
 
 const grades = [
@@ -58,7 +59,7 @@ const grades = [
   }
 ];
 
-const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig }) => {
+const GradeCarouselStep: React.FC<GradeCarouselStepProps> = ({ config, setConfig, vehicle }) => {
   const [currentGradeIndex, setCurrentGradeIndex] = useState(() => {
     const selectedIndex = grades.findIndex(grade => grade.name === config.grade);
     return selectedIndex >= 0 ? selectedIndex : 0;
