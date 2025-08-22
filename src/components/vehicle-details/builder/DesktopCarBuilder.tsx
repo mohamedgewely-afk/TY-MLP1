@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
@@ -167,7 +168,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     }
   }, []);
   
-  const getCurrentVehicleImage = () => {
+  const getCurrentVehicleImage = React.useCallback(() => {
     const exteriorColors = [
       { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
       { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
@@ -176,25 +177,25 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     
     const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
     return colorData?.image || exteriorColors[0].image;
-  };
+  }, [config.exteriorColor]);
 
-  const showSpecs = step > 3 && (config.modelYear && config.grade);
+  const showSpecs = React.useMemo(() => step > 3 && (config.modelYear && config.grade), [step, config.modelYear, config.grade]);
   const reserveAmount = 5000;
 
   // Premium button click handlers
-  const handleBackClick = () => {
+  const handleBackClick = React.useCallback(() => {
     contextualHaptic.stepProgress();
     if (step > 1) {
       goBack();
     } else {
       onClose();
     }
-  };
+  }, [step, goBack, onClose]);
 
-  const handleResetClick = () => {
+  const handleResetClick = React.useCallback(() => {
     contextualHaptic.resetAction();
     onReset();
-  };
+  }, [onReset]);
 
   return (
     <motion.div
@@ -222,7 +223,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <motion.button
               ref={step > 1 ? backButtonRef : closeButtonRef}
               onClick={handleBackClick}
-              className="group p-4 rounded-2xl bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="group p-4 rounded-2xl bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background transition-all duration-300 shadow-lg hover:shadow-xl min-h-[48px] min-w-[48px]"
               whileHover={{ 
                 scale: 1.05, 
                 y: -3
@@ -242,7 +243,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <motion.button
               ref={resetButtonRef}
               onClick={handleResetClick}
-              className="group p-4 rounded-2xl bg-background/90 backdrop-blur-sm border border-border/50 hover:border-destructive/30 hover:bg-background transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="group p-4 rounded-2xl bg-background/90 backdrop-blur-sm border border-border/50 hover:border-destructive/30 hover:bg-background transition-all duration-300 shadow-lg hover:shadow-xl min-h-[48px] min-w-[48px]"
               whileHover={{ 
                 scale: 1.05, 
                 y: -3
@@ -306,6 +307,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               scale: 1.15,
               transition: { duration: 0.8 }
             }}
+            loading="lazy"
           />
           
           {/* Premium Vehicle Info Overlay - Automotive Style */}

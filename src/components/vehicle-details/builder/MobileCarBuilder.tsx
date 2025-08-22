@@ -120,7 +120,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   onReset,
   deviceCategory
 }) => {
-  const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding } = useResponsiveSize();
+  const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding, touchTarget } = useResponsiveSize();
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
@@ -157,7 +157,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     }
   }, []);
 
-  const getCurrentVehicleImage = () => {
+  const getCurrentVehicleImage = React.useCallback(() => {
     const exteriorColors = [
       { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
       { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
@@ -168,9 +168,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     
     const colorData = exteriorColors.find(c => c.name === config.exteriorColor);
     return colorData?.image || exteriorColors[0].image;
-  };
+  }, [config.exteriorColor]);
 
-  const getImageHeight = () => {
+  const getImageHeight = React.useCallback(() => {
     switch (deviceCategory) {
       case 'smallMobile': return 'h-28';
       case 'standardMobile': return 'h-32';
@@ -179,13 +179,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       case 'tablet': return 'h-44';
       default: return 'h-32';
     }
-  };
+  }, [deviceCategory]);
 
-  const getTouchButtonClass = () => {
-    const baseClass = 'touch-target rounded-lg bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background/95 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md';
-    const sizeClass = deviceCategory === 'smallMobile' ? 'p-2 min-h-[40px] min-w-[40px]' : 'p-2.5 min-h-[44px] min-w-[44px]';
+  const getTouchButtonClass = React.useCallback(() => {
+    const baseClass = `${touchTarget} rounded-lg bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background/95 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md`;
+    const sizeClass = deviceCategory === 'smallMobile' ? 'p-2' : 'p-2.5';
     return `${baseClass} ${sizeClass}`;
-  };
+  }, [deviceCategory, touchTarget]);
 
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
@@ -207,26 +207,26 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     preventDefaultTouchmoveEvent: false
   });
 
-  const handleBackClick = () => {
+  const handleBackClick = React.useCallback(() => {
     contextualHaptic.stepProgress();
     if (step > 1) {
       goBack();
     } else {
       onClose();
     }
-  };
+  }, [step, goBack, onClose]);
 
-  const handleResetClick = () => {
+  const handleResetClick = React.useCallback(() => {
     contextualHaptic.resetAction();
     if (onReset) {
       onReset();
     }
-  };
+  }, [onReset]);
 
-  const handleExitClick = () => {
+  const handleExitClick = React.useCallback(() => {
     contextualHaptic.exitAction();
     onClose();
-  };
+  }, [onClose]);
 
   return (
     <motion.div

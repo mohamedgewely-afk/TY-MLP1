@@ -42,37 +42,33 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
 
-  console.log('🚗 CarBuilder Render:', { isMobile, deviceCategory, isInitialized, isOpen });
-
-  // Fixed reset handler to prevent freezing
+  // Optimized reset handler - prevent freezing with immediate state updates
   const handleReset = useCallback(async () => {
+    if (isResetting) return; // Prevent multiple resets
+    
     try {
       setIsResetting(true);
       
-      // Use setTimeout to ensure smooth UI updates without blocking
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          setConfig({
-            modelYear: "2025",
-            engine: "3.5L V6",
-            grade: "",
-            exteriorColor: "Pearl White",
-            interiorColor: "",
-            accessories: []
-          });
-          setStep(1);
-          setShowConfirmation(false);
-          setShowResetDialog(false);
-          resolve();
-        }, 100); // Small delay to prevent UI blocking
-      });
+      // Immediate state updates to prevent UI freezing
+      const defaultConfig = {
+        modelYear: "2025",
+        engine: "3.5L V6",
+        grade: "",
+        exteriorColor: "Pearl White",
+        interiorColor: "",
+        accessories: []
+      };
+      
+      setConfig(defaultConfig);
+      setStep(1);
+      setShowConfirmation(false);
+      setShowResetDialog(false);
       
       toast({
         title: "Configuration Reset",
         description: "Your vehicle configuration has been reset to default values.",
       });
     } catch (error) {
-      console.error('Reset error:', error);
       toast({
         title: "Reset Error",
         description: "There was an issue resetting the configuration.",
@@ -81,7 +77,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     } finally {
       setIsResetting(false);
     }
-  }, [toast]);
+  }, [toast, isResetting]);
 
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
@@ -125,7 +121,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     return basePrice + exteriorColorPrice + interiorColorPrice + accessoriesPrice;
   }, [config, vehicle.price]);
 
-  const handlePayment = () => {
+  const handlePayment = useCallback(() => {
     toast({
       title: "Processing Payment...",
       description: "Please wait while we process your order.",
@@ -138,15 +134,15 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         description: "Your vehicle configuration has been saved and order placed.",
       });
     }, 2000);
-  };
+  }, [toast]);
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (step > 1) setStep(step - 1);
-  };
+  }, [step]);
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (step < 4) setStep(step + 1);
-  };
+  }, [step]);
 
   const updateConfig = useCallback((value: React.SetStateAction<BuilderConfig>) => {
     setConfig(value);
@@ -188,7 +184,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             <AlertDialogAction 
               onClick={handleReset}
               disabled={isResetting}
-              className="relative"
+              className="relative min-h-[44px] min-w-[44px]"
             >
               {isResetting ? (
                 <>

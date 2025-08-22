@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
@@ -114,22 +114,24 @@ const VehicleDetails = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const galleryImages = [
+  // Optimized gallery images with proper loading
+  const galleryImages = React.useMemo(() => [
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
-  ];
+  ], []);
 
-  const calculateEMI = (price: number) => {
+  const calculateEMI = React.useCallback((price: number) => {
     const principal = price * 0.8;
     const rate = 0.035 / 12;
     const tenure = 60;
     const emi = (principal * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1);
     return Math.round(emi);
-  };
+  }, []);
 
-  const monthlyEMI = vehicle ? calculateEMI(vehicle.price) : 0;
-  const toggleFavorite = () => {
+  const monthlyEMI = React.useMemo(() => vehicle ? calculateEMI(vehicle.price) : 0, [vehicle, calculateEMI]);
+
+  const toggleFavorite = useCallback(() => {
     if (!vehicle) return;
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     if (isFavorite) {
@@ -144,7 +146,7 @@ const VehicleDetails = () => {
       toast({ title: "Added to favorites", description: `${vehicle.name} has been added to your favorites.` });
     }
     window.dispatchEvent(new Event("favorites-updated"));
-  };
+  }, [vehicle, isFavorite, toast]);
 
   const slides = [
     {
@@ -203,19 +205,19 @@ const VehicleDetails = () => {
     },
   ];
 
-  const handleOfferClick = (offer: any) => {
+  const handleOfferClick = useCallback((offer: any) => {
     setSelectedOffer(offer);
     setIsOffersModalOpen(true);
-  };
+  }, []);
 
-  const onTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
-  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const onTouchEnd = () => {
+  const onTouchStart = useCallback((e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX), []);
+  const onTouchMove = useCallback((e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX), []);
+  const onTouchEnd = useCallback(() => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (distance > 50) setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
     if (distance < -50) setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  };
+  }, [touchStart, touchEnd, galleryImages.length]);
 
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
@@ -235,15 +237,22 @@ const VehicleDetails = () => {
     window.scrollTo(0, 0);
   }, [vehicleName]);
 
+  // Optimized image carousel timer - single interval with proper cleanup
   useEffect(() => {
-    const id = setInterval(() => {
-      setCurrentImageIndex((p) => (p + 1) % galleryImages.length);
+    if (galleryImages.length <= 1) return;
+    
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
     }, 5000);
-    return () => clearInterval(id);
+    
+    return () => clearInterval(intervalId);
   }, [galleryImages.length]);
+
+  // Optimized resize observer for cards
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
+
     const measure = () => {
       const w = rail.clientWidth;
       let per = 1;
@@ -254,42 +263,55 @@ const VehicleDetails = () => {
       setCardsPerView(per);
       setActivePage((p) => Math.min(p, Math.ceil(slides.length / per) - 1));
     };
-    const ro = new ResizeObserver(measure);
-    ro.observe(rail);
-    window.addEventListener("resize", measure);
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(rail);
+    
+    // Initial measurement
     requestAnimationFrame(measure);
+    
     return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
+      resizeObserver.disconnect();
     };
   }, [slides.length]);
 
   const pageCount = Math.max(1, Math.ceil(slides.length / cardsPerView));
 
-  const scrollToPage = (page: number) => {
+  const scrollToPage = useCallback((page: number) => {
     const rail = railRef.current;
     if (!rail) return;
     const clamped = Math.max(0, Math.min(page, pageCount - 1));
     rail.scrollTo({ left: clamped * rail.clientWidth, behavior: "smooth" });
-  };
-  const handlePrev = () => scrollToPage(activePage - 1);
-  const handleNext = () => scrollToPage(activePage + 1);
+  }, [pageCount]);
 
+  const handlePrev = useCallback(() => scrollToPage(activePage - 1), [scrollToPage, activePage]);
+  const handleNext = useCallback(() => scrollToPage(activePage + 1), [scrollToPage, activePage]);
+
+  // Optimized scroll handler
   useEffect(() => {
     const el = railRef.current;
     if (!el) return;
+    
+    let ticking = false;
     const onScroll = () => {
-      const idx = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
-      setActivePage(idx);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const idx = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+          setActivePage(idx);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+    
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToIndex = (idx: number) => {
+  const scrollToIndex = useCallback((idx: number) => {
     const page = Math.floor(idx / Math.max(1, cardsPerView));
     scrollToPage(page);
-  };
+  }, [cardsPerView, scrollToPage]);
 
   if (!vehicle) {
     return (
@@ -307,7 +329,8 @@ const VehicleDetails = () => {
     );
   }
 
-  const safeModelEnd = vehicle.name.split(" ").pop() || "Toyota";
+  const safeModelEnd = vehicle?.name.split(" ").pop() || "Toyota";
+  
   return (
     <ToyotaLayout
       activeNavItem="models"

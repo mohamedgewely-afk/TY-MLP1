@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 // Device category types - expanded for better large phone support
@@ -94,30 +95,6 @@ const detectDevice = (): DeviceInfo => {
   const isTablet = deviceCategory === 'tablet';
   const isDesktop = deviceCategory === 'desktop';
 
-  // Enhanced debugging for real device testing
-  console.log('📱 Enhanced Device Detection:', {
-    width,
-    height,
-    deviceCategory,
-    isMobile,
-    isTablet,
-    isDesktop,
-    touchDevice,
-    hasNotch,
-    isIPhone,
-    deviceModel,
-    userAgent: navigator.userAgent.substring(0, 60),
-    viewport: `${width}x${height}`,
-    screen: `${window.screen.width}x${window.screen.height}`,
-    pixelRatio: window.devicePixelRatio,
-    breakpointUsed: width < 360 ? 'smallMobile' : 
-                   width < 390 ? 'standardMobile' : 
-                   width < 430 ? 'largeMobile' : 
-                   width < 600 ? 'extraLargeMobile' :
-                   width < 1024 ? 'tablet' : 'desktop',
-    shouldShowMobileNav: isMobile ? '✅' : '❌'
-  });
-
   return {
     isMobile,
     isTablet,
@@ -136,24 +113,9 @@ export function useDeviceInfo(): DeviceInfo {
   const [deviceInfo, setDeviceInfo] = React.useState<DeviceInfo>(() => detectDevice());
 
   React.useEffect(() => {
-    // Immediate detection on mount with enhanced mobile debugging
+    // Immediate detection on mount
     const initialDetection = detectDevice();
     setDeviceInfo(initialDetection);
-
-    // Add mobile-specific debugging for sticky nav issues
-    if (initialDetection.isMobile) {
-      console.log('📱 Mobile Device Confirmed - Sticky Nav Should Show:', {
-        ...initialDetection,
-        stickyNavShouldShow: true,
-        timestamp: new Date().toISOString()
-      });
-    } else {
-      console.warn('⚠️ Device NOT detected as mobile:', {
-        ...initialDetection,
-        possibleIssue: 'Large phone might be categorized as tablet',
-        timestamp: new Date().toISOString()
-      });
-    }
 
     const updateDeviceInfo = () => {
       const newInfo = detectDevice();
@@ -162,7 +124,6 @@ export function useDeviceInfo(): DeviceInfo {
         if (prev.deviceCategory !== newInfo.deviceCategory || 
             prev.screenSize.width !== newInfo.screenSize.width ||
             prev.isInitialized !== newInfo.isInitialized) {
-          console.log('🔄 Device Info Updated:', newInfo);
           return newInfo;
         }
         return prev;
@@ -187,7 +148,6 @@ export function useDeviceInfo(): DeviceInfo {
     const handleOrientationChange = () => {
       setTimeout(() => {
         const newInfo = detectDevice();
-        console.log('🔄 Orientation Changed:', newInfo);
         setDeviceInfo(newInfo);
       }, 300);
     };
@@ -223,10 +183,10 @@ export function useResponsiveSize() {
                      ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'px-4 safe-area-inset' : 
                      deviceCategory === 'tablet' ? 'px-6 safe-area-inset' : 'px-6',
     
-    buttonSize: deviceCategory === 'smallMobile' ? 'text-sm py-2.5 px-3 touch-target' :
-                deviceCategory === 'standardMobile' ? 'text-sm py-3 px-4 touch-target' :
-                ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 touch-target' :
-                deviceCategory === 'tablet' ? 'text-base py-4 px-6' : 'text-base py-4 px-6',
+    buttonSize: deviceCategory === 'smallMobile' ? 'text-sm py-2.5 px-3 min-h-[44px] min-w-[44px]' :
+                deviceCategory === 'standardMobile' ? 'text-sm py-3 px-4 min-h-[44px] min-w-[44px]' :
+                ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'text-sm py-3.5 px-4 min-h-[48px] min-w-[48px]' :
+                deviceCategory === 'tablet' ? 'text-base py-4 px-6 min-h-[48px] min-w-[48px]' : 'text-base py-4 px-6 min-h-[48px] min-w-[48px]',
     
     cardSpacing: ['smallMobile', 'standardMobile'].includes(deviceCategory) ? 'gap-3' :
                  ['largeMobile', 'extraLargeMobile'].includes(deviceCategory) ? 'gap-4' : 
