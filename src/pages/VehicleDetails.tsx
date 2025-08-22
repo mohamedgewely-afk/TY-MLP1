@@ -146,7 +146,6 @@ const VehicleDetails = () => {
     window.dispatchEvent(new Event("favorites-updated"));
   };
 
-
   const slides = [
     {
       key: "performance",
@@ -337,7 +336,6 @@ const VehicleDetails = () => {
 
         <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
           <VirtualShowroom vehicle={vehicle} />
-          <InteractiveSpecsTech vehicle={vehicle} />
           
           <section className="py-8 lg:py-16 bg-muted/30">
             <VehicleGallery />
@@ -505,6 +503,10 @@ const VehicleDetails = () => {
           <OffersSection onOfferClick={handleOfferClick} />
           <VehicleMediaShowcase vehicle={vehicle} />
           <RefinedTechExperience vehicle={vehicle} />
+          
+          <section className="py-8 lg:py-16 bg-muted/30">
+            <InteractiveSpecsTech vehicle={vehicle} />
+          </section>
 
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
