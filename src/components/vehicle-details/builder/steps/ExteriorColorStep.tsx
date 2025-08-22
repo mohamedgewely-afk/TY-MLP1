@@ -15,9 +15,9 @@ const exteriorColors = [
 
 const ExteriorColorStep: React.FC<ExteriorColorStepProps> = ({ config, setConfig }) => {
   return (
-    <div className="p-6 pb-32">
+    <div className="p-4 sm:p-6 pb-20 sm:pb-32">
       <motion.h2 
-        className="text-2xl font-bold text-center mb-8 text-foreground"
+        className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-6 sm:mb-8 text-foreground"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -25,32 +25,33 @@ const ExteriorColorStep: React.FC<ExteriorColorStepProps> = ({ config, setConfig
         Choose Exterior Color
       </motion.h2>
       
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:max-w-4xl lg:mx-auto">
         {exteriorColors.map((color, index) => (
           <motion.div
             key={color.name}
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3 }}
-            className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
-  config.exteriorColor === color.name 
-    ? 'bg-primary/10 border-primary shadow-lg' 
-    : 'bg-card border-border hover:border-primary/50'
-} w-full sm:w-[480px] mx-auto`}
+            className={`p-3 sm:p-4 lg:p-5 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
+              config.exteriorColor === color.name 
+                ? 'bg-primary/10 border-primary shadow-lg' 
+                : 'bg-card border-border hover:border-primary/50'
+            } w-full sm:w-[480px] lg:w-full mx-auto`}
             onClick={() => setConfig(prev => ({ ...prev, exteriorColor: color.name }))}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="flex items-center space-x-4">
-              <img 
-  src={color.image} 
-  alt={color.name} 
-  className="w-20 h-12 sm:w-32 sm:h-20 object-cover rounded-lg"
-/>
+            <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-5">
+              <motion.img 
+                src={color.image} 
+                alt={color.name} 
+                className="w-20 h-12 sm:w-32 sm:h-20 lg:w-48 lg:h-32 xl:w-56 xl:h-36 object-cover rounded-lg transition-transform duration-200"
+                whileHover={{ scale: 1.05 }}
+              />
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-foreground">{color.name}</h3>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-foreground">{color.name}</h3>
                 {color.price > 0 && (
-                  <p className="text-primary font-medium">+AED {color.price}</p>
+                  <p className="text-sm sm:text-base lg:text-lg text-primary font-medium">+AED {color.price}</p>
                 )}
               </div>
             </div>
