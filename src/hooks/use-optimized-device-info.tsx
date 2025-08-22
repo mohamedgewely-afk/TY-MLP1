@@ -1,6 +1,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { DeviceCategory, DeviceModel } from './use-device-info';
+
+// Define types locally since we can't import from use-device-info
+export type DeviceCategory = 'smallMobile' | 'standardMobile' | 'largeMobile' | 'extraLargeMobile' | 'tablet' | 'laptop' | 'largeDesktop';
+export type DeviceModel = 'iPhoneMini' | 'iPhoneStandard' | 'iPhonePro' | 'iPhoneProMax' | 'iPad' | 'iPadPro' | 'android' | 'macbook' | 'windows' | 'unknown';
 
 // Throttle function for performance
 const throttle = <T extends (...args: any[]) => any>(

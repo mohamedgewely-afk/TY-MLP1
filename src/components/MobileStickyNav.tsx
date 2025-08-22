@@ -256,7 +256,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   };
 
   const handleCategoryClick = (id: string) => {
-    contextualHaptic.lightImpact();
+    contextualHaptic.buttonPress();
     setSelectedCategory(id);
     setUserTouchedCategory(true);
   };
@@ -291,7 +291,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   const handleShare = async () => {
     if (!vehicle) return;
-    contextualHaptic.lightImpact();
+    contextualHaptic.buttonPress();
     
     if (navigator.share) {
       try {
@@ -312,7 +312,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   const handleBrochureDownload = () => {
     if (!vehicle) return;
-    contextualHaptic.lightImpact();
+    contextualHaptic.buttonPress();
     toast({
       title: "Brochure Download",
       description: "Your brochure is being prepared and will be downloaded shortly.",
