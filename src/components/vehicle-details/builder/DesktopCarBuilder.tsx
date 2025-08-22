@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
@@ -182,6 +181,57 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const showSpecs = React.useMemo(() => step > 3 && (config.modelYear && config.grade), [step, config.modelYear, config.grade]);
   const reserveAmount = 5000;
 
+  // Get responsive panel widths based on device category
+  const getPanelWidths = () => {
+    switch (deviceCategory) {
+      case 'laptop': return { left: 'w-[65%]', right: 'w-[35%]' };
+      case 'largeDesktop': return { left: 'w-[60%]', right: 'w-[40%]' };
+      default: return { left: 'w-[70%]', right: 'w-[30%]' };
+    }
+  };
+
+  const getHeaderPadding = () => {
+    switch (deviceCategory) {
+      case 'laptop': return 'p-8';
+      case 'largeDesktop': return 'p-12';
+      default: return 'p-10';
+    }
+  };
+
+  const getHeaderTextSize = () => {
+    switch (deviceCategory) {
+      case 'laptop': return 'text-3xl';
+      case 'largeDesktop': return 'text-5xl';
+      default: return 'text-4xl';
+    }
+  };
+
+  const getVehicleInfoPadding = () => {
+    switch (deviceCategory) {
+      case 'laptop': return 'p-6';
+      case 'largeDesktop': return 'p-10';
+      default: return 'p-8';
+    }
+  };
+
+  const getVehicleInfoPosition = () => {
+    switch (deviceCategory) {
+      case 'laptop': return 'bottom-8 left-8 right-8';
+      case 'largeDesktop': return 'bottom-16 left-16 right-16';
+      default: return 'bottom-12 left-12 right-12';
+    }
+  };
+
+  const getRightPanelPadding = () => {
+    switch (deviceCategory) {
+      case 'laptop': return 'px-6 py-6';
+      case 'largeDesktop': return 'px-12 py-10';
+      default: return 'px-10 py-8';
+    }
+  };
+
+  const panelWidths = getPanelWidths();
+
   // Premium button click handlers
   const handleBackClick = React.useCallback(() => {
     contextualHaptic.stepProgress();
@@ -206,18 +256,18 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       exit="exit"
       className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/10 overflow-hidden flex"
     >
-      {/* Cinematic Left Side - Full Vehicle Showcase */}
+      {/* Enhanced Left Side - Responsive Vehicle Showcase */}
       <motion.div 
         variants={leftPanelVariants}
-        className="w-[70%] h-full relative overflow-hidden"
+        className={`${panelWidths.left} h-full relative overflow-hidden`}
         style={{
           background: 'linear-gradient(135deg, hsl(var(--muted)/0.02) 0%, hsl(var(--muted)/0.05) 50%, hsl(var(--muted)/0.08) 100%)'
         }}
       >
-        {/* Luxury Header with Premium Automotive Styling */}
+        {/* Enhanced Header with Responsive Typography */}
         <motion.div 
           variants={headerVariants}
-          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-10 bg-gradient-to-b from-background/98 via-background/95 to-transparent backdrop-blur-xl border-b border-border/20"
+          className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between ${getHeaderPadding()} bg-gradient-to-b from-background/98 via-background/95 to-transparent backdrop-blur-xl border-b border-border/20`}
         >
           <div className="flex items-center gap-6">
             <motion.button
@@ -263,7 +313,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
           >
-            <h1 className="text-4xl font-bold text-foreground tracking-tight">
+            <h1 className={`${getHeaderTextSize()} font-bold text-foreground tracking-tight`}>
               Build Your <span className="text-primary">{vehicle.name}</span>
             </h1>
             <div className="flex items-center justify-center gap-3 mt-2">
@@ -278,7 +328,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           <div className="w-32" />
         </motion.div>
 
-        {/* Cinematic Full Height Interactive Car Showcase */}
+        {/* Enhanced Vehicle Showcase */}
         <motion.div 
           variants={imageVariants}
           className="relative w-full h-full overflow-hidden"
@@ -310,15 +360,15 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             loading="lazy"
           />
           
-          {/* Premium Vehicle Info Overlay - Automotive Style */}
+          {/* Enhanced Vehicle Info Overlay with Responsive Sizing */}
           <motion.div 
-            className="absolute bottom-12 left-12 right-12 z-20"
+            className={`absolute ${getVehicleInfoPosition()} z-20`}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 0.8 }}
           >
             <motion.div 
-              className="bg-background/95 backdrop-blur-xl rounded-3xl p-8 border border-border/20 max-w-lg shadow-2xl"
+              className={`bg-background/95 backdrop-blur-xl rounded-3xl ${getVehicleInfoPadding()} border border-border/20 max-w-lg shadow-2xl`}
               style={{
                 background: 'linear-gradient(135deg, hsl(var(--background)/0.95) 0%, hsl(var(--background)/0.90) 100%)',
                 backdropFilter: 'blur(24px)'
@@ -331,10 +381,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-3xl font-bold text-foreground mb-1">
+                  <h3 className={`${deviceCategory === 'largeDesktop' ? 'text-4xl' : deviceCategory === 'laptop' ? 'text-2xl' : 'text-3xl'} font-bold text-foreground mb-1`}>
                     {config.modelYear} {vehicle.name}
                   </h3>
-                  <div className="flex items-center gap-3 text-lg text-muted-foreground mb-1">
+                  <div className={`flex items-center gap-3 ${deviceCategory === 'largeDesktop' ? 'text-xl' : deviceCategory === 'laptop' ? 'text-base' : 'text-lg'} text-muted-foreground mb-1`}>
                     <span className="font-medium">{config.grade}</span>
                     <div className="w-1 h-1 bg-muted-foreground rounded-full"></div>
                     <span>{config.engine}</span>
@@ -344,12 +394,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               </div>
               
               <div className="flex items-center justify-between">
-                <div className="text-4xl font-bold text-primary">
+                <div className={`${deviceCategory === 'largeDesktop' ? 'text-5xl' : deviceCategory === 'laptop' ? 'text-3xl' : 'text-4xl'} font-bold text-primary`}>
                   AED {calculateTotalPrice().toLocaleString()}
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-muted-foreground">From</div>
-                  <div className="text-lg font-semibold text-foreground">AED 2,850/mo</div>
+                  <div className={`${deviceCategory === 'largeDesktop' ? 'text-base' : 'text-sm'} text-muted-foreground`}>From</div>
+                  <div className={`${deviceCategory === 'largeDesktop' ? 'text-xl' : deviceCategory === 'laptop' ? 'text-lg' : 'text-lg'} font-semibold text-foreground`}>AED 2,850/mo</div>
                 </div>
               </div>
               
@@ -360,14 +410,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         </motion.div>
       </motion.div>
 
-      {/* Enhanced Right Side - Premium Configuration Panel */}
+      {/* Enhanced Right Side - Responsive Configuration Panel */}
       <motion.div 
         variants={rightPanelVariants}
-        className="w-[30%] h-full flex flex-col bg-gradient-to-b from-background/98 to-background/95 backdrop-blur-xl border-l border-border/20"
+        className={`${panelWidths.right} h-full flex flex-col bg-gradient-to-b from-background/98 to-background/95 backdrop-blur-xl border-l border-border/20`}
       >
-        {/* Progress with Premium Styling */}
+        {/* Progress with Enhanced Styling */}
         <motion.div 
-          className="px-10 py-8 bg-gradient-to-b from-background/98 to-background/95 border-b border-border/20"
+          className={`${getRightPanelPadding()} bg-gradient-to-b from-background/98 to-background/95 border-b border-border/20`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5 }}
@@ -375,11 +425,11 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           <MobileProgress currentStep={step} totalSteps={4} />
         </motion.div>
 
-        {/* Content Area with Premium Spacing */}
+        {/* Content Area with Enhanced Spacing */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Choice Collector & Specs with Luxury Styling */}
+          {/* Choice Collector & Specs with Enhanced Styling */}
           <motion.div 
-            className="px-10 py-8 bg-gradient-to-b from-background/98 to-background/95 border-b border-border/10"
+            className={`${getRightPanelPadding()} bg-gradient-to-b from-background/98 to-background/95 border-b border-border/10`}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.9, duration: 0.5 }}
@@ -397,7 +447,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             )}
           </motion.div>
 
-          {/* Step Content with Premium Styling */}
+          {/* Step Content with Enhanced Styling */}
           <motion.div 
             className="flex-1 overflow-hidden bg-gradient-to-b from-background/95 to-background/90"
             initial={{ opacity: 0, scale: 0.98 }}
@@ -419,7 +469,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </AnimatePresence>
           </motion.div>
 
-          {/* Premium Summary */}
+          {/* Enhanced Summary */}
           <motion.div 
             className="bg-gradient-to-t from-background/98 to-background/95 border-t border-border/20 backdrop-blur-xl"
             initial={{ opacity: 0, y: 30 }}
