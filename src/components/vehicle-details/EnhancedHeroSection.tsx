@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -179,12 +180,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
       </motion.div>
 
       {/* Pause Button - Bottom Right Corner */}
-      <motion.div 
-        className="absolute bottom-4 right-4 z-20"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-      >
+      <div className="absolute bottom-4 right-4 z-20">
         <button
           onClick={toggleAutoPlay}
           className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 shadow-lg"
@@ -195,19 +191,14 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             <Play className="h-4 w-4 text-white" />
           )}
         </button>
-      </motion.div>
+      </div>
 
       {/* Compact Content Overlay - Much smaller area */}
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="toyota-container pb-4">
           {/* Image Indicators */}
           {!showVideo && (
-            <motion.div 
-              className="flex justify-center space-x-1 mb-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-            >
+            <div className="flex justify-center space-x-1 mb-2">
               {galleryImages.map((_, index) => (
                 <button
                   key={index}
@@ -219,16 +210,11 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                   }`}
                 />
               ))}
-            </motion.div>
+            </div>
           )}
 
           {/* Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="flex flex-wrap gap-1 justify-center mb-2"
-          >
+          <div className="flex flex-wrap gap-1 justify-center mb-2">
             {isBestSeller && (
               <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-1.5 py-0.5 text-xs">
                 <Award className="h-2.5 w-2.5 mr-1" />
@@ -239,27 +225,17 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               <Shield className="h-2.5 w-2.5 mr-1" />
               5-Star Safety
             </Badge>
-          </motion.div>
+          </div>
 
           {/* Vehicle Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-center mb-2"
-          >
+          <div className="text-center mb-2">
             <h1 className="text-xl md:text-2xl font-black text-white leading-tight">
               {vehicle.name}
             </h1>
-          </motion.div>
+          </div>
 
           {/* Very Compact Price Box */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="bg-black/60 backdrop-blur-md rounded-lg p-3 mb-3 border border-white/20 max-w-xs mx-auto"
-          >
+          <div className="bg-black/60 backdrop-blur-md rounded-lg p-3 mb-3 border border-white/20 max-w-xs mx-auto">
             {/* Main Pricing - Horizontal Layout */}
             <div className="flex justify-between items-center mb-2">
               <div className="text-center flex-1">
@@ -311,15 +287,10 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 <div className="text-xs text-white/70">Total Power</div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Action Buttons - Compact */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="flex flex-col gap-2"
-          >
+          <div className="flex flex-col gap-2">
             <Button 
               onClick={handleTestDrive}
               size="sm"
@@ -327,13 +298,9 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             >
               <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
               Book Test Drive
-              <motion.div
-                className="ml-2"
-                animate={{ x: [0, 3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
+              <div className="ml-2">
                 <ArrowRight className="h-3.5 w-3.5" />
-              </motion.div>
+              </div>
             </Button>
             
             <Button 
@@ -345,7 +312,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               <Settings className="h-3.5 w-3.5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
               Configure Your Car
             </Button>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
