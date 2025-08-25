@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
 
 interface AnimatedCounterProps {
   value: number;
@@ -19,10 +20,11 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   decimals = 0
 }) => {
   const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = React.useRef(null);
+  const isInView = useInView(ref, { once: true });
 
   useEffect(() => {
-    if (hasAnimated) return;
+    if (!isInView) return;
 
     let startTime: number;
     let animationId: number;
@@ -38,19 +40,23 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 
       if (progress < 1) {
         animationId = requestAnimationFrame(animate);
-      } else {
-        setHasAnimated(true);
       }
     };
 
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
-  }, [value, duration, hasAnimated]);
+  }, [isInView, value, duration]);
 
   return (
-    <span className={`transition-opacity duration-500 ${className}`}>
+    <motion.span
+      ref={ref}
+      className={className}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {prefix}{count.toFixed(decimals)}{suffix}
-    </span>
+    </motion.span>
   );
 };
 

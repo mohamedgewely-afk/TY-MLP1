@@ -35,16 +35,75 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-// Simplified animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
-  exit: { opacity: 0, transition: { duration: 0.2 } }
+const getContainerVariants = (deviceCategory: DeviceCategory) => ({
+  hidden: { 
+    opacity: 0,
+    scale: 0.98,
+    y: 10
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      staggerChildren: 0.1
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.98,
+    y: -10,
+    transition: { duration: 0.3 }
+  }
+});
+
+const headerVariants = {
+  hidden: { 
+    y: -20, 
+    opacity: 0
+  },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.3, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.1
+    }
+  }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+const imageVariants = {
+  hidden: { 
+    scale: 1.05, 
+    opacity: 0
+  },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    transition: { 
+      duration: 0.5, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+      delay: 0.2
+    }
+  }
+};
+
+const contentVariants = {
+  hidden: { 
+    y: 15, 
+    opacity: 0
+  },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4, 
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }
+  }
 };
 
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
@@ -130,6 +189,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => {
+      // Only allow step navigation on specific steps that don't have internal swipe content
       if (step === 1 && step < 4) {
         contextualHaptic.swipeNavigation();
         goNext();
@@ -170,7 +230,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   return (
     <motion.div
-      variants={containerVariants}
+      variants={getContainerVariants(deviceCategory)}
       initial="hidden"
       animate="visible"
       exit="exit"
@@ -179,66 +239,88 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     >
       {/* Header - Compact */}
       <motion.div 
-        variants={itemVariants}
+        variants={headerVariants}
         className="relative z-30 flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border/20 flex-shrink-0 px-2 py-1"
       >
         <div className="flex items-center gap-1.5">
-          <button
+          <motion.button
             ref={step > 1 ? backButtonRef : closeButtonRef}
             onClick={handleBackClick}
             className={getTouchButtonClass()}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {step > 1 ? (
               <ArrowLeft className="h-4 w-4 text-foreground" />
             ) : (
               <X className="h-4 w-4 text-foreground" />
             )}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             ref={resetButtonRef}
             onClick={handleResetClick}
             className={getTouchButtonClass()}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <RotateCcw className="h-4 w-4 text-foreground" />
-          </button>
+          </motion.button>
         </div>
 
-        <div className="text-center flex-1 mx-2">
+        <motion.div className="text-center flex-1 mx-2">
           <h1 className="text-[10px] font-semibold text-foreground truncate leading-none">
             Build Your <span className="text-primary">{vehicle.name}</span>
           </h1>
           <p className="text-[8px] text-muted-foreground font-medium leading-none">
             Step {step} of 4
           </p>
-        </div>
+        </motion.div>
 
-        <button
+        <motion.button
           ref={exitButtonRef}
           onClick={handleExitClick}
           className={getTouchButtonClass()}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <LogOut className="h-4 w-4 text-foreground" />
-        </button>
+        </motion.button>
       </motion.div>
 
       {/* Vehicle Image - Fixed and Properly Visible */}
       <motion.div 
-        variants={itemVariants}
+        variants={imageVariants}
         className={`relative w-full ${getImageHeight()} overflow-hidden border-b border-border/10 flex-shrink-0 bg-muted/20`}
         key={config.exteriorColor + config.grade}
       >
+        {/* Minimal gradient for text readability only */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent z-10" />
         
-        <img 
+        <motion.img 
           src={getCurrentVehicleImage()}
           alt="Vehicle Preview"
-          className="w-full h-full object-contain object-center scale-95 transition-opacity duration-300"
+          className="w-full h-full object-contain object-center scale-95"
+          initial={{ scale: 1.02, opacity: 0 }}
+          animate={{ 
+            scale: 0.95, 
+            opacity: 1
+          }}
+          transition={{ 
+            duration: 0.5, 
+            ease: [0.25, 0.46, 0.45, 0.94],
+            delay: 0.2
+          }}
           loading="lazy"
         />
         
         {/* Compact Vehicle Info Overlay */}
-        <div className="absolute bottom-2 left-2 right-2 z-20">
+        <motion.div 
+          className="absolute bottom-2 left-2 right-2 z-20"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+        >
           <div className="p-1.5">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -268,21 +350,30 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* Progress Bar */}
-      <div className="flex-shrink-0 bg-background/95 border-b border-border/10">
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 bg-background/95 border-b border-border/10"
+      >
         <MobileProgress currentStep={step} totalSteps={4} />
-      </div>
+      </motion.div>
 
       {/* Choice Collector - Compact */}
-      <div className="px-2 py-1 flex-shrink-0 bg-background/95 border-b border-border/10">
+      <motion.div 
+        variants={contentVariants}
+        className="px-2 py-1 flex-shrink-0 bg-background/95 border-b border-border/10"
+      >
         <ChoiceCollector config={config} step={step} />
-      </div>
+      </motion.div>
 
       {/* Step Content - Fixed scrolling */}
-      <div className="flex-1 overflow-hidden bg-background/95 px-2 py-2">
+      <motion.div 
+        variants={contentVariants}
+        className="flex-1 overflow-hidden bg-background/95 px-2 py-2"
+      >
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
@@ -297,10 +388,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             onReset={onReset}
           />
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* Summary - Always Visible */}
-      <div className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl px-2 py-1">
+      <motion.div 
+        variants={contentVariants}
+        className="flex-shrink-0 relative z-30 bg-background/98 border-t border-border/20 backdrop-blur-xl px-2 py-1"
+      >
         <MobileSummary 
           config={config}
           totalPrice={calculateTotalPrice()}
@@ -309,7 +403,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           deviceCategory={deviceCategory}
           showPaymentButton={step !== 4}
         />
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
