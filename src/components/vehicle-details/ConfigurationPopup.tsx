@@ -106,7 +106,7 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
           <div className="p-6 pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-toyota-red/10 rounded-lg">
+                <div className="p-2 bg-primary/10 rounded-lg">
                   {context.icon}
                 </div>
                 <div>
@@ -137,15 +137,14 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
                   const isSelected = selectedOptions.find(opt => opt.id === option.id);
                   
                   return (
-                    <motion.div
+                    <div
                       key={option.id}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
+                      className="transition-all duration-200"
                     >
                       <Card 
                         className={`cursor-pointer transition-all duration-200 ${
                           isSelected 
-                            ? 'ring-2 ring-toyota-red bg-toyota-red/5' 
+                            ? 'ring-2 ring-primary bg-primary/5' 
                             : 'hover:bg-muted/50'
                         }`}
                         onClick={() => toggleOption(option)}
@@ -161,7 +160,7 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
                                   </Badge>
                                 )}
                                 {isSelected && (
-                                  <Badge className="bg-toyota-red">
+                                  <Badge className="bg-primary">
                                     <Check className="h-3 w-3" />
                                   </Badge>
                                 )}
@@ -173,7 +172,7 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
@@ -236,7 +235,7 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
                 </Button>
                 <Button
                   onClick={handleContinueToBuilder}
-                  className="flex-1 bg-toyota-red hover:bg-toyota-darkred"
+                  className="flex-1 bg-primary hover:bg-primary/90"
                 >
                   Continue Building
                   <ArrowRight className="h-4 w-4 ml-2" />
