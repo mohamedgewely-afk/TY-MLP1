@@ -4,6 +4,12 @@ import {
   Volume2, VolumeX, X, Play, Pause, ChevronLeft, ChevronRight,
   GaugeCircle, Zap, TimerReset, Navigation, Gauge, BatteryCharging, Sparkles,
 } from "lucide-react";
+import { OptimizedImage } from "@/components/ui/optimized-image";
+import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { useGalleryNavigation } from "@/hooks/use-gallery-navigation";
+import { useGestureHandling } from "@/hooks/use-gesture-handling";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { GalleryProvider, useGalleryContext } from "@/contexts/GalleryContext";
 
 // —————————————————————————————————
 // THEME
@@ -40,6 +46,9 @@ export interface SceneData {
   title: string;
   scene: SceneCategory;
   image: string;
+  webpImage?: string;
+  avifImage?: string;
+  blurDataURL?: string;
   description: string;
   narration?: string;
   specs: Record<string, string>;
@@ -51,6 +60,7 @@ interface LandCruiserLifestyleGalleryProProps {
   rtl?: boolean;
   onAskToyota?: (scene: SceneData) => void;
 }
+
 // ---- i18n types ----
 type LocaleStrings = {
   title: string;
@@ -63,7 +73,7 @@ type LocaleStrings = {
   ambientOff: string;
   narrationOn: string;
   narrationOff: string;
-  scenes: SceneCategory[]; // keep your SceneCategory type
+  scenes: SceneCategory[];
   empty: string;
   playing: string;
   paused: string;
@@ -79,6 +89,7 @@ type LocaleStrings = {
   slideOf: (i: number, total: number, name: string) => string;
   goToSlide: (i: number) => string;
 };
+
 // —————————————————————————————————
 // STRINGS
 // —————————————————————————————————
@@ -138,6 +149,7 @@ const STR: Record<"en" | "ar", LocaleStrings> = {
     goToSlide: (i: number) => `اذهب إلى الشريحة ${i}`,
   },
 };
+
 // —————————————————————————————————
 // ICONS (normalize keys → lowercase)
 // —————————————————————————————————
@@ -293,179 +305,78 @@ function useBodyScrollLock(locked: boolean) {
     };
   }, [locked]);
 }
-export default function LandCruiserLifestyleGalleryPro({
+
+// —————————————————————————————————
+// MAIN COMPONENT
+// —————————————————————————————————
+const VehicleGalleryContent: React.FC<LandCruiserLifestyleGalleryProProps> = ({
   scenes = DEFAULT_SCENES,
   locale = "en",
   rtl = false,
   onAskToyota,
-}: LandCruiserLifestyleGalleryProProps) {
+}) => {
   const T: LocaleStrings = STR[locale] ?? STR.en;
   const prefersReduced = useReducedMotion();
+  const { state, actions } = useGalleryContext();
 
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [selected, setSelected] = useState<SceneData | null>(null);
-  const [filter, setFilter] = useState<SceneCategory | "All">("All");
-  const [ambientOn, setAmbientOn] = useState(false);
-  const [narrOn, setNarrOn] = useState(false);
-
-  const trackRef = useRef<HTMLDivElement>(null);
-  const ambientRef = useRef<HTMLAudioElement>(null);
-  const narrationRef = useRef<HTMLAudioElement>(null);
-  const liveAudioRef = useRef<HTMLDivElement>(null);
-  const liveSlideRef = useRef<HTMLDivElement>(null);
+  // Initialize scenes
+  useEffect(() => {
+    actions.setScenes(scenes);
+  }, [scenes, actions]);
 
   const filtered = useMemo(
-    () => (filter === "All" ? scenes : scenes.filter((s) => s.scene === filter)),
-    [scenes, filter]
+    () => (state.filter === "All" ? state.scenes : state.scenes.filter((s) => s.scene === state.filter)),
+    [state.scenes, state.filter]
   );
 
-  const centerCard = useCallback((index: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const child = el.children[index] as HTMLElement | undefined;
-    if (!child) return;
-    const left = child.offsetLeft - (el.clientWidth - child.clientWidth) / 2;
-    el.scrollTo({ left, behavior: "smooth" });
-  }, []);
+  // Audio players
+  const ambientPlayer = useAudioPlayer({
+    src: "/audio/toyota-ambient.mp3",
+    loop: true,
+    volume: state.userPreferences.ambientVolume,
+    autoPlay: state.ambientEnabled
+  });
 
-  // roving focus for keyboard navigation
-  const justChangedByArrow = useRef(false);
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const btn = trackRef.current.children[activeIdx]?.querySelector<HTMLButtonElement>("[data-card-trigger]");
-    if (btn && justChangedByArrow.current) {
-      btn.focus({ preventScroll: true });
-      justChangedByArrow.current = false;
+  const narrationPlayer = useAudioPlayer({
+    src: state.selectedScene?.narration,
+    volume: state.userPreferences.narrationVolume,
+    autoPlay: state.narrationEnabled && !!state.selectedScene?.narration,
+    onPlay: () => {
+      // Duck ambient audio when narration plays
+      if (ambientPlayer.audioRef.current) {
+        ambientPlayer.audioRef.current.volume = 0.15;
+      }
+    },
+    onPause: () => {
+      // Restore ambient audio volume
+      if (ambientPlayer.audioRef.current) {
+        ambientPlayer.audioRef.current.volume = state.userPreferences.ambientVolume;
+      }
     }
-  }, [activeIdx]);
+  });
 
-  // Ambient audio
-  useEffect(() => {
-    const a = ambientRef.current;
-    if (!a) return;
-    if (ambientOn) {
-      a.loop = true;
-      a.volume = 0.35;
-      a.play().catch(() => {});
-    } else {
-      a.pause();
-    }
-  }, [ambientOn]);
+  // Gallery navigation
+  const navigation = useGalleryNavigation({
+    items: filtered,
+    activeIndex: state.activeIndex,
+    onIndexChange: actions.setActiveIndex,
+    onItemSelect: (scene) => actions.selectScene(scene),
+    rtl,
+    enableKeyboard: !state.selectedScene
+  });
 
-  // Duck ambient when narration plays
-  const [isNarrPlaying, setNarrPlaying] = useState(false);
-  useEffect(() => {
-    const a = ambientRef.current;
-    if (!a) return;
-    a.volume = isNarrPlaying ? 0.12 : 0.35;
-  }, [isNarrPlaying]);
+  // Gesture handling for carousel
+  const carouselGestures = useGestureHandling({
+    onSwipeLeft: rtl ? navigation.goPrevious : navigation.goNext,
+    onSwipeRight: rtl ? navigation.goNext : navigation.goPrevious,
+    enableHaptic: true,
+    preventScroll: true
+  });
 
-  // Reset on filter
-  useEffect(() => {
-    setActiveIdx(0);
-    trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-  }, [filter]);
-
-  // Center & announce
-  useEffect(() => {
-    centerCard(activeIdx);
-    if (filtered[activeIdx] && liveSlideRef.current) {
-      const name = `${filtered[activeIdx].scene}`;
-      liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name);
-    }
-  }, [activeIdx, centerCard, filtered, T]);
-
-  // Narration state
-  const [narrTime, setNarrTime] = useState(0);
-  const [narrDur, setNarrDur] = useState(0);
-
-  useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    const onTime = () => setNarrTime(n.currentTime || 0);
-    const onMeta = () => setNarrDur(isFinite(n.duration) ? n.duration : 0);
-    const onPlay = () => setNarrPlaying(true);
-    const onPause = () => setNarrPlaying(false);
-    n.addEventListener("timeupdate", onTime);
-    n.addEventListener("loadedmetadata", onMeta);
-    n.addEventListener("play", onPlay);
-    n.addEventListener("pause", onPause);
-    return () => {
-      n.removeEventListener("timeupdate", onTime);
-      n.removeEventListener("loadedmetadata", onMeta);
-      n.removeEventListener("play", onPlay);
-      n.removeEventListener("pause", onPause);
-    };
-  }, []);
-
-  useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    n.pause();
-    n.currentTime = 0;
-    if (selected?.narration && narrOn) {
-      n.src = selected.narration;
-      n.play().catch(() => {});
-      if (liveAudioRef.current) liveAudioRef.current.textContent = T.playing;
-    } else {
-      n.removeAttribute("src");
-      setNarrTime(0);
-      setNarrDur(0);
-      if (liveAudioRef.current) liveAudioRef.current.textContent = T.paused;
-    }
-  }, [selected, narrOn, T]);
-
-  // Next/Prev inside overlay
-  const openNext = useCallback(() => {
-    if (!selected) return;
-    const idx = filtered.findIndex((s) => s.id === selected.id);
-    const next = filtered[(idx + 1) % filtered.length];
-    setSelected(next);
-    setActiveIdx((p) => (p + 1) % filtered.length);
-  }, [selected, filtered]);
-
-  const openPrev = useCallback(() => {
-    if (!selected) return;
-    const idx = filtered.findIndex((s) => s.id === selected.id);
-    const prev = filtered[(idx - 1 + filtered.length) % filtered.length];
-    setSelected(prev);
-    setActiveIdx((p) => (p - 1 + filtered.length) % filtered.length);
-  }, [selected, filtered]);
-
-  // Root keyboard (overlay handles its own keys)
-  const onRootKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (selected) return;
-    const goNext = () => { justChangedByArrow.current = true; setActiveIdx((i) => Math.min(i + 1, filtered.length - 1)); };
-    const goPrev = () => { justChangedByArrow.current = true; setActiveIdx((i) => Math.max(i - 1, 0)); };
-    if (e.key === "ArrowRight") { e.preventDefault(); rtl ? goPrev() : goNext(); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); rtl ? goNext() : goPrev(); }
-    else if (e.key === "Home") { e.preventDefault(); justChangedByArrow.current = true; setActiveIdx(0); }
-    else if (e.key === "End") { e.preventDefault(); justChangedByArrow.current = true; setActiveIdx(filtered.length - 1); }
-    else if (e.key === "PageDown") { e.preventDefault(); rtl ? goPrev() : goNext(); }
-    else if (e.key === "PageUp") { e.preventDefault(); rtl ? goNext() : goPrev(); }
-    else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const item = filtered[activeIdx]; if (item) setSelected(item); }
-  }, [selected, filtered, activeIdx, rtl]);
-
-  useBodyScrollLock(!!selected);
-
-  // —— MOBILE GESTURE LOCK (prevent page scroll while swiping horizontally)
-  const start = useRef<{x: number; y: number} | null>(null);
-  const onTouchStartTrack = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    start.current = { x: t.clientX, y: t.clientY };
-  };
-  const onTouchMoveTrack = (e: React.TouchEvent) => {
-    if (!start.current) return;
-    const t = e.touches[0];
-    const dx = Math.abs(t.clientX - start.current.x);
-    const dy = Math.abs(t.clientY - start.current.y);
-    // If clearly horizontal gesture, prevent vertical page scroll.
-    if (dx > dy * 1.2) e.preventDefault();
-  };
-  const onTouchEndTrack = () => { start.current = null; };
+  useBodyScrollLock(!!state.selectedScene);
 
   const hintId = "lc-hint";
-  const currentBG = filtered[activeIdx]?.image;
+  const currentBG = filtered[state.activeIndex]?.image;
 
   return (
     <section
@@ -474,28 +385,23 @@ export default function LandCruiserLifestyleGalleryPro({
       dir={rtl ? "rtl" : "ltr"}
       lang={locale}
       aria-label={T.title}
-      onKeyDown={onRootKeyDown}
     >
       <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded-md">
         {T.skipToContent}
       </a>
 
-      {/* Live regions */}
-      <div ref={liveAudioRef} className="sr-only" aria-live="polite" aria-atomic="true" />
-      <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
-
-      {/* Audio */}
-      <audio ref={ambientRef} src="/audio/toyota-ambient.mp3" className="hidden" />
-      <audio ref={narrationRef} className="hidden" />
+      {/* Audio elements */}
+      <audio ref={ambientPlayer.audioRef} className="hidden" />
+      <audio ref={narrationPlayer.audioRef} className="hidden" />
 
       {/* Brand-immersive blurred background from active slide */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         {currentBG && (
-          <img
+          <OptimizedImage
             src={currentBG}
             alt=""
-            aria-hidden
             className="absolute inset-0 w-full h-full object-cover scale-110 blur-3xl opacity-40"
+            showSkeleton={false}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-black/90 md:from-black/80 md:via-black/40 md:to-black/80" aria-hidden />
@@ -517,71 +423,34 @@ export default function LandCruiserLifestyleGalleryPro({
         <div className="mt-3 flex items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => setAmbientOn((v) => !v)}
+            onClick={actions.toggleAmbient}
             className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={ambientOn}
-            title={ambientOn ? T.ambientOn : T.ambientOff}
+            aria-pressed={state.ambientEnabled}
+            title={state.ambientEnabled ? T.ambientOn : T.ambientOff}
           >
-            {ambientOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {ambientOn ? T.ambientOn : T.ambientOff}
+            {state.ambientEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} 
+            {state.ambientEnabled ? T.ambientOn : T.ambientOff}
           </button>
           <button
             type="button"
-            onClick={() => setNarrOn((v) => !v)}
+            onClick={actions.toggleNarration}
             className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={narrOn}
-            title={narrOn ? T.narrationOn : T.narrationOff}
+            aria-pressed={state.narrationEnabled}
+            title={state.narrationEnabled ? T.narrationOn : T.narrationOff}
           >
-            {narrOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {narrOn ? T.narrationOn : T.narrationOff}
+            {state.narrationEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} 
+            {state.narrationEnabled ? T.narrationOn : T.narrationOff}
           </button>
         </div>
 
-        {/* Filters (desktop) */}
-        <nav className="mt-4 hidden md:flex flex-wrap items-center justify-center gap-2 px-2" aria-label={T.filters}>
-          {["All", ...T.scenes].map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setFilter(c as any)}
-              className="rounded-full px-3 py-2 min-h-[40px] text-xs sm:text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-              style={{
-                borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-                background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-                color: filter === (c as any) ? TOYOTA_RED : "#fff",
-              }}
-              aria-pressed={filter === (c as any)}
-            >
-              {c === "All" ? T.all : c}
-            </button>
-          ))}
-        </nav>
-
-        {/* Filters (mobile) */}
-        <nav className="mt-3 md:hidden w-full overflow-x-auto px-4" aria-label={T.filters}>
-          <div className="flex gap-2 w-max">
-            {["All", ...T.scenes].map((c) => (
-              <button
-                key={`m-${c}`}
-                type="button"
-                onClick={() => setFilter(c as any)}
-                className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
-                style={{
-                  borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
-                  background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
-                  color: filter === (c as any) ? TOYOTA_RED : "#fff",
-                }}
-                aria-pressed={filter === (c as any)}
-              >
-                {c === "All" ? T.all : c}
-              </button>
-            ))}
-          </div>
-        </nav>
+        {/* Filters */}
+        <FilterNavigation T={T} />
       </header>
 
       {/* Carousel Track */}
       <div
         id="content"
-        ref={trackRef}
+        ref={navigation.trackRef}
         className="
           relative z-10 mt-4 md:mt-8 flex gap-2 sm:gap-2.5 md:gap-4
           overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth items-stretch justify-start
@@ -596,19 +465,17 @@ export default function LandCruiserLifestyleGalleryPro({
         aria-label={T.sceneList}
         aria-describedby={hintId}
         aria-live="off"
-        onTouchStart={onTouchStartTrack}
-        onTouchMove={onTouchMoveTrack}
-        onTouchEnd={onTouchEndTrack}
+        {...carouselGestures.touchHandlers}
       >
         {filtered.length === 0 && <div className="text-white/70 text-sm py-10">{T.empty}</div>}
         {filtered.map((sc, idx) => (
-          <SceneCardPro
+          <SceneCard
             key={sc.id}
             data={sc}
-            active={idx === activeIdx}
-            tabIndex={idx === activeIdx ? 0 : -1}
-            onEnter={() => { setSelected(sc); setActiveIdx(idx); }}
-            onFocus={() => setActiveIdx(idx)}
+            active={idx === state.activeIndex}
+            tabIndex={idx === state.activeIndex ? 0 : -1}
+            onEnter={() => { actions.selectScene(sc); actions.setActiveIndex(idx); }}
+            onFocus={() => actions.setActiveIndex(idx)}
             prefersReduced={prefersReduced}
             ariaLabel={T.openScene(sc.scene)}
             expandLabel={T.expand}
@@ -616,83 +483,19 @@ export default function LandCruiserLifestyleGalleryPro({
         ))}
       </div>
 
-      {/* Desktop arrows outside overlay */}
-      {filtered.length > 0 && (
-        <div className="relative hidden md:block z-10">
-          <div className="pointer-events-none absolute top-1/2 left-0 right-0 mx-auto max-w-[min(98vw,2000px)] px-2 md:px-6 -translate-y-1/2">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-                aria-label={T.prevScene}
-                onClick={() => setActiveIdx((i) => Math.max(i - 1, 0))}
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                type="button"
-                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
-                aria-label={T.nextScene}
-                onClick={() => setActiveIdx((i) => Math.min(i + 1, filtered.length - 1))}
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Navigation Controls */}
+      <NavigationControls T={T} navigation={navigation} filtered={filtered} />
 
-      {/* Navigation indicators — progress bar hidden on desktop */}
-      <div className="relative z-10 mx-auto max-w-[min(98vw,2000px)] px-4 md:px-6">
-        {/* MOBILE progress bar */}
-        <div className="mt-1.5 h-1 w-full bg-white/10 rounded md:hidden" aria-hidden="true">
-          <div
-            className="h-1 rounded"
-            style={{ width: `${filtered.length ? ((activeIdx + 1) / filtered.length) * 100 : 0}%`, backgroundColor: TOYOTA_RED }}
-          />
-        </div>
-
-        <div className="mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
-          {filtered.map((s, i) => {
-            const selectedDot = i === activeIdx;
-            return (
-              <button
-                key={`dot-${s.id}`}
-                type="button"
-                role="tab"
-                aria-selected={selectedDot}
-                aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
-                className={`h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
-                onClick={() => setActiveIdx(i)}
-                style={{ background: selectedDot ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
-              />
-            );
-          })}
-        </div>
-        <div className="hidden md:flex items-center justify-center gap-3 mt-2">
-          <span className="text-xs text-white/70" aria-live="polite">
-            {Math.min(activeIdx + 1, filtered.length)} / {filtered.length}
-          </span>
-        </div>
-      </div>
+      {/* Navigation Indicators */}
+      <NavigationIndicators T={T} filtered={filtered} />
 
       {/* Overlay */}
       <AnimatePresence>
-        {selected && (
+        {state.selectedScene && (
           <ExpandedSceneOverlay
-            key={selected.id}
-            scene={selected}
-            onClose={() => setSelected(null)}
-            onNext={openNext}
-            onPrev={openPrev}
-            narrationRef={narrationRef}
-            narrOn={narrOn}
-            setNarrOn={setNarrOn}
-            narrTime={narrTime}
-            narrDur={narrDur}
-            setNarrTime={(t) => { const n = narrationRef.current; if (!n) return; n.currentTime = t; setNarrTime(t); }}
-            isNarrPlaying={isNarrPlaying}
-            setIsNarrPlaying={(p) => { const n = narrationRef.current; if (!n) return; p ? n.play().catch(() => {}) : n.pause(); }}
+            scene={state.selectedScene}
+            onClose={() => actions.selectScene(null)}
+            narrationPlayer={narrationPlayer}
             onAskToyota={onAskToyota}
             prefersReduced={prefersReduced}
             localeStrings={T}
@@ -702,8 +505,139 @@ export default function LandCruiserLifestyleGalleryPro({
       </AnimatePresence>
     </section>
   );
-}
-function SceneCardPro({
+};
+
+// —————————————————————————————————
+// SUB-COMPONENTS
+// —————————————————————————————————
+const FilterNavigation: React.FC<{ T: LocaleStrings }> = ({ T }) => {
+  const { state, actions } = useGalleryContext();
+  
+  return (
+    <>
+      {/* Filters (desktop) */}
+      <nav className="mt-4 hidden md:flex flex-wrap items-center justify-center gap-2 px-2" aria-label={T.filters}>
+        {["All", ...T.scenes].map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => actions.setFilter(c as any)}
+            className="rounded-full px-3 py-2 min-h-[40px] text-xs sm:text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            style={{
+              borderColor: state.filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
+              background: state.filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
+              color: state.filter === (c as any) ? TOYOTA_RED : "#fff",
+            }}
+            aria-pressed={state.filter === (c as any)}
+          >
+            {c === "All" ? T.all : c}
+          </button>
+        ))}
+      </nav>
+
+      {/* Filters (mobile) */}
+      <nav className="mt-3 md:hidden w-full overflow-x-auto px-4" aria-label={T.filters}>
+        <div className="flex gap-2 w-max">
+          {["All", ...T.scenes].map((c) => (
+            <button
+              key={`m-${c}`}
+              type="button"
+              onClick={() => actions.setFilter(c as any)}
+              className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
+              style={{
+                borderColor: state.filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
+                background: state.filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
+                color: state.filter === (c as any) ? TOYOTA_RED : "#fff",
+              }}
+              aria-pressed={state.filter === (c as any)}
+            >
+              {c === "All" ? T.all : c}
+            </button>
+          ))}
+        </div>
+      </nav>
+    </>
+  );
+};
+
+const NavigationControls: React.FC<{ 
+  T: LocaleStrings; 
+  navigation: any; 
+  filtered: SceneData[] 
+}> = ({ T, navigation, filtered }) => {
+  const { state } = useGalleryContext();
+  
+  if (filtered.length === 0) return null;
+
+  return (
+    <div className="relative hidden md:block z-10">
+      <div className="pointer-events-none absolute top-1/2 left-0 right-0 mx-auto max-w-[min(98vw,2000px)] px-2 md:px-6 -translate-y-1/2">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+            aria-label={T.prevScene}
+            onClick={() => navigation.goPrevious()}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            type="button"
+            className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+            aria-label={T.nextScene}
+            onClick={() => navigation.goNext()}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const NavigationIndicators: React.FC<{ 
+  T: LocaleStrings; 
+  filtered: SceneData[] 
+}> = ({ T, filtered }) => {
+  const { state, actions } = useGalleryContext();
+  
+  return (
+    <div className="relative z-10 mx-auto max-w-[min(98vw,2000px)] px-4 md:px-6">
+      {/* MOBILE progress bar */}
+      <div className="mt-1.5 h-1 w-full bg-white/10 rounded md:hidden" aria-hidden="true">
+        <div
+          className="h-1 rounded"
+          style={{ width: `${filtered.length ? ((state.activeIndex + 1) / filtered.length) * 100 : 0}%`, backgroundColor: TOYOTA_RED }}
+        />
+      </div>
+
+      <div className="mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
+        {filtered.map((s, i) => {
+          const selectedDot = i === state.activeIndex;
+          return (
+            <button
+              key={`dot-${s.id}`}
+              type="button"
+              role="tab"
+              aria-selected={selectedDot}
+              aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
+              className={`h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
+              onClick={() => actions.setActiveIndex(i)}
+              style={{ background: selectedDot ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
+            />
+          );
+        })}
+      </div>
+      <div className="hidden md:flex items-center justify-center gap-3 mt-2">
+        <span className="text-xs text-white/70" aria-live="polite">
+          {Math.min(state.activeIndex + 1, filtered.length)} / {filtered.length}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+function SceneCard({
   data,
   active,
   onEnter,
@@ -759,12 +693,12 @@ function SceneCardPro({
         aria-haspopup="dialog"
         tabIndex={tabIndex}
       >
-        <img
+        <OptimizedImage
           src={data.image}
+          webpSrc={data.webpImage}
+          avifSrc={data.avifImage}
+          blurDataURL={data.blurDataURL}
           alt={`${data.title} • ${data.scene}`}
-          loading="lazy"
-          decoding="async"
-          sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, (max-width: 1024px) 880px, (max-width: 1280px) 1040px, (max-width: 1536px) 1200px, 1320px"
           className={`w-full ${imgHeights} object-cover object-center transition-all duration-300 ${imgDeemph}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden />
@@ -779,7 +713,7 @@ function SceneCardPro({
         </div>
       </button>
 
-      {/* Premium “badge” specs */}
+      {/* Premium "badge" specs */}
       <div className="p-4 sm:p-5 md:p-6">
         <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
@@ -809,19 +743,11 @@ function SceneCardPro({
     </motion.article>
   );
 }
+
 function ExpandedSceneOverlay({
   scene,
   onClose,
-  onNext,
-  onPrev,
-  narrationRef,
-  narrOn,
-  setNarrOn,
-  narrTime,
-  narrDur,
-  setNarrTime,
-  isNarrPlaying,
-  setIsNarrPlaying,
+  narrationPlayer,
   onAskToyota,
   prefersReduced,
   localeStrings,
@@ -829,16 +755,7 @@ function ExpandedSceneOverlay({
 }: {
   scene: SceneData;
   onClose: () => void;
-  onNext: () => void;
-  onPrev: () => void;
-  narrationRef: React.RefObject<HTMLAudioElement>;
-  narrOn: boolean;
-  setNarrOn: (v: boolean) => void;
-  narrTime: number;
-  narrDur: number;
-  setNarrTime: (t: number) => void;
-  isNarrPlaying: boolean;
-  setIsNarrPlaying: (p: boolean) => void;
+  narrationPlayer: any;
   onAskToyota?: (s: SceneData) => void;
   prefersReduced: boolean;
   localeStrings: LocaleStrings;
@@ -847,6 +764,29 @@ function ExpandedSceneOverlay({
   const overlayRef = useRef<HTMLDivElement>(null);
   const T = localeStrings;
   const headingId = `scene-title-${scene.id}`;
+  const { state, actions } = useGalleryContext();
+
+  const filtered = useMemo(
+    () => (state.filter === "All" ? state.scenes : state.scenes.filter((s) => s.scene === state.filter)),
+    [state.scenes, state.filter]
+  );
+
+  // Next/Prev inside overlay
+  const openNext = useCallback(() => {
+    if (!scene) return;
+    const idx = filtered.findIndex((s) => s.id === scene.id);
+    const next = filtered[(idx + 1) % filtered.length];
+    actions.selectScene(next);
+    actions.setActiveIndex((idx + 1) % filtered.length);
+  }, [scene, filtered, actions]);
+
+  const openPrev = useCallback(() => {
+    if (!scene) return;
+    const idx = filtered.findIndex((s) => s.id === scene.id);
+    const prev = filtered[(idx - 1 + filtered.length) % filtered.length];
+    actions.selectScene(prev);
+    actions.setActiveIndex((idx - 1 + filtered.length) % filtered.length);
+  }, [scene, filtered, actions]);
 
   // Focus trap & keys
   useEffect(() => {
@@ -857,12 +797,12 @@ function ExpandedSceneOverlay({
 
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
-      if (e.key === "ArrowRight") { rtl ? onPrev() : onNext(); return; }
-      if (e.key === "ArrowLeft") { rtl ? onNext() : onPrev(); return; }
+      if (e.key === "ArrowRight") { rtl ? openPrev() : openNext(); return; }
+      if (e.key === "ArrowLeft") { rtl ? openNext() : openPrev(); return; }
       if (e.key === " ") {
         const target = e.target as HTMLElement;
         if (target?.getAttribute("role") !== "slider" && (target as any)?.tagName !== "INPUT") {
-          e.preventDefault(); setIsNarrPlaying(!isNarrPlaying);
+          e.preventDefault(); narrationPlayer.toggle();
         }
       }
       if (e.key === "Tab") {
@@ -879,7 +819,7 @@ function ExpandedSceneOverlay({
 
     document.addEventListener("keydown", handleKey);
     return () => { document.removeEventListener("keydown", handleKey); previouslyFocused?.focus(); };
-  }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying, rtl]);
+  }, [onClose, openNext, openPrev, narrationPlayer, rtl]);
 
   // Touch swipe on hero
   const startX = useRef<number | null>(null);
@@ -888,7 +828,7 @@ function ExpandedSceneOverlay({
     if (startX.current == null) return;
     const dx = (e.changedTouches[0]?.clientX ?? startX.current) - startX.current;
     const threshold = 40;
-    if (Math.abs(dx) > threshold) { rtl ? (dx > 0 ? onNext() : onPrev()) : (dx > 0 ? onPrev() : onNext()); }
+    if (Math.abs(dx) > threshold) { rtl ? (dx > 0 ? openNext() : openPrev()) : (dx > 0 ? openPrev() : openNext()); }
     startX.current = null;
   };
 
@@ -916,11 +856,13 @@ function ExpandedSceneOverlay({
       >
         {/* Hero */}
         <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <img
+          <OptimizedImage
             src={scene.image}
+            webpSrc={scene.webpImage}
+            avifSrc={scene.avifImage}
+            blurDataURL={scene.blurDataURL}
             alt={`${scene.title} • ${scene.scene}`}
             className="absolute inset-0 w-full h-full object-cover"
-            loading="eager" decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/0" aria-hidden />
 
@@ -928,7 +870,7 @@ function ExpandedSceneOverlay({
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between pt-[env(safe-area-inset-top)]">
             <button
               type="button"
-              onClick={onPrev}
+              onClick={openPrev}
               className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
               aria-label={T.prevScene}
             >
@@ -945,7 +887,7 @@ function ExpandedSceneOverlay({
             </button>
             <button
               type="button"
-              onClick={onNext}
+              onClick={openNext}
               className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
               aria-label={T.nextScene}
             >
@@ -1018,45 +960,46 @@ function ExpandedSceneOverlay({
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
-                  onClick={() => setNarrOn(!narrOn)}
+                  onClick={actions.toggleNarration}
                   className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[44px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm"
-                  aria-pressed={narrOn}
-                  title={narrOn ? T.narrationOn : T.narrationOff}
+                  aria-pressed={state.narrationEnabled}
+                  title={state.narrationEnabled ? T.narrationOn : T.narrationOff}
                 >
-                  {narrOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {narrOn ? T.narrationOn : T.narrationOff}
+                  {state.narrationEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} 
+                  {state.narrationEnabled ? T.narrationOn : T.narrationOff}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsNarrPlaying(!isNarrPlaying)}
+                  onClick={narrationPlayer.toggle}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={isNarrPlaying ? T.paused : T.playing}
-                  aria-pressed={isNarrPlaying}
+                  aria-label={narrationPlayer.isPlaying ? T.paused : T.playing}
+                  aria-pressed={narrationPlayer.isPlaying}
                 >
-                  {isNarrPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  {narrationPlayer.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </button>
                 <div className="flex items-center gap-2 w-full sm:w-[420px]">
                   <label htmlFor="narrationRange" className="sr-only">{T.narrationPosition}</label>
-                  <span className="text-[10px] text-white/70 w-10 text-right" aria-hidden>{fmt(narrTime)}</span>
+                  <span className="text-[10px] text-white/70 w-10 text-right" aria-hidden>{fmt(narrationPlayer.currentTime)}</span>
                   <input
                     id="narrationRange"
                     type="range"
-                    min={0} max={narrDur || 0} step={0.1}
-                    value={Math.min(narrTime, narrDur || 0)}
-                    onChange={(e) => setNarrTime(parseFloat(e.currentTarget.value))}
+                    min={0} max={narrationPlayer.duration || 0} step={0.1}
+                    value={Math.min(narrationPlayer.currentTime, narrationPlayer.duration || 0)}
+                    onChange={(e) => narrationPlayer.seek(parseFloat(e.currentTarget.value))}
                     className="w-full"
                     style={{ accentColor: TOYOTA_RED }}
                     aria-valuemin={0}
-                    aria-valuemax={Math.floor(narrDur || 0)}
-                    aria-valuenow={Math.floor(Math.min(narrTime, narrDur || 0))}
-                    aria-valuetext={`${fmt(narrTime)} of ${fmt(narrDur)}`}
+                    aria-valuemax={Math.floor(narrationPlayer.duration || 0)}
+                    aria-valuenow={Math.floor(Math.min(narrationPlayer.currentTime, narrationPlayer.duration || 0))}
+                    aria-valuetext={`${fmt(narrationPlayer.currentTime)} of ${fmt(narrationPlayer.duration)}`}
                   />
-                  <span className="text-[10px] text-white/70 w-10" aria-hidden>{fmt(narrDur)}</span>
+                  <span className="text-[10px] text-white/70 w-10" aria-hidden>{fmt(narrationPlayer.duration)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:ml-auto">
                 <button
                   type="button"
-                  onClick={onPrev}
+                  onClick={openPrev}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
                   aria-label={T.prevScene}
                 >
@@ -1064,7 +1007,7 @@ function ExpandedSceneOverlay({
                 </button>
                 <button
                   type="button"
-                  onClick={onNext}
+                  onClick={openNext}
                   className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
                   aria-label={T.nextScene}
                 >
@@ -1076,5 +1019,14 @@ function ExpandedSceneOverlay({
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// Main export with provider wrapper
+export default function LandCruiserLifestyleGalleryPro(props: LandCruiserLifestyleGalleryProProps) {
+  return (
+    <GalleryProvider>
+      <VehicleGalleryContent {...props} />
+    </GalleryProvider>
   );
 }
