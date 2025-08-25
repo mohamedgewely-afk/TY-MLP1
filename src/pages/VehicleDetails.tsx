@@ -531,12 +531,15 @@ const VehicleDetails = () => {
                           {section.stats.map((stat, i) => (
                             <div key={i} className="text-center">
                               <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                <AnimatedCounter 
-                                  value={typeof stat.value === 'number' ? stat.value : 0} 
-                                  duration={2}
-                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                />
-                                {typeof stat.value === 'string' && stat.value}
+                                {typeof stat.value === 'number' ? (
+                                  <AnimatedCounter 
+                                    value={stat.value} 
+                                    duration={2}
+                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                  />
+                                ) : (
+                                  stat.value
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground font-medium">
                                 {stat.unit}
@@ -643,12 +646,15 @@ const VehicleDetails = () => {
                           {section.stats.map((stat, i) => (
                             <div key={i} className="text-center">
                               <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                <AnimatedCounter 
-                                  value={typeof stat.value === 'number' ? stat.value : 0} 
-                                  duration={2}
-                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                />
-                                {typeof stat.value === 'string' && stat.value}
+                                {typeof stat.value === 'number' ? (
+                                  <AnimatedCounter 
+                                    value={stat.value} 
+                                    duration={2}
+                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                  />
+                                ) : (
+                                  stat.value
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground font-medium">
                                 {stat.unit}
