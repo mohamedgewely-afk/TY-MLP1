@@ -42,6 +42,7 @@ import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifes
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
+import AnimatedCounter from "@/components/ui/animated-counter";
 
 // Full-bleed wrapper for desktop (keeps mobile as-is)
 const Bleed: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
@@ -130,6 +131,96 @@ const VehicleDetails = () => {
   }, []);
 
   const monthlyEMI = React.useMemo(() => vehicle ? calculateEMI(vehicle.price) : 0, [vehicle, calculateEMI]);
+
+  // Enhanced storytelling sections with 6 total sections
+  const storySection = useMemo(() => [
+    {
+      id: 'performance',
+      title: 'Immediate response with confident control.',
+      subtitle: 'Performance',
+      description: 'Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.',
+      image: galleryImages[2],
+      stats: [
+        { label: 'Acceleration', value: '0-100', unit: 'km/h in 8.9s' },
+        { label: 'Power Output', value: 196, unit: 'HP' },
+        { label: 'Top Speed', value: 180, unit: 'km/h' }
+      ],
+      cta: { label: 'Feel it – Test Drive', action: () => setIsBookingOpen(true) },
+      layout: 'text-left'
+    },
+    {
+      id: 'safety',
+      title: 'Proactive protection, 360° awareness.',
+      subtitle: 'Safety Sense',
+      description: 'Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.',
+      image: galleryImages[1],
+      stats: [
+        { label: 'Safety Rating', value: 5, unit: 'Stars' },
+        { label: 'Safety Features', value: 10, unit: 'Advanced Systems' },
+        { label: 'Response Time', value: 0.5, unit: 'Seconds' }
+      ],
+      cta: { label: 'See Safety Suite', action: () => navigate('/safety') },
+      layout: 'text-right'
+    },
+    {
+      id: 'connected',
+      title: 'Wireless Apple CarPlay & Android Auto.',
+      subtitle: 'Connected Life',
+      description: 'Stay connected with voice control, OTA updates, and smart integration.',
+      image: galleryImages[0],
+      stats: [
+        { label: 'Screen Size', value: 9, unit: 'Inches' },
+        { label: 'Wireless Charging', value: 15, unit: 'W Fast Charge' },
+        { label: 'Apps', value: 100, unit: 'Compatible' }
+      ],
+      cta: { label: 'Explore Connectivity', action: () => navigate('/connect') },
+      layout: 'text-left'
+    },
+    {
+      id: 'sustainable',
+      title: 'Hybrid efficiency meets real-world performance.',
+      subtitle: 'Sustainable Innovation',
+      description: 'Advanced hybrid technology that reduces emissions while delivering exceptional performance.',
+      image: 'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+      stats: [
+        { label: 'Fuel Economy', value: 4.5, unit: 'L/100km' },
+        { label: 'CO₂ Reduction', value: 40, unit: '% Less Emissions' },
+        { label: 'Electric Range', value: 65, unit: 'km EV Mode' }
+      ],
+      cta: { label: 'Explore Hybrid Tech', action: () => navigate('/hybrid') },
+      layout: 'text-right'
+    },
+    {
+      id: 'comfort',
+      title: 'Crafted for comfort, designed for life.',
+      subtitle: 'Premium Comfort & Design',
+      description: 'Luxurious materials, ergonomic design, and spacious interior create your personal sanctuary.',
+      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+      stats: [
+        { label: 'Premium Materials', value: 12, unit: 'Soft-Touch Surfaces' },
+        { label: 'Seating Space', value: 95, unit: 'cm Legroom' },
+        { label: 'Climate Zones', value: 2, unit: 'Independent Control' }
+      ],
+      cta: { label: 'Experience Interior', action: () => navigate('/interior') },
+      layout: 'text-left'
+    },
+    {
+      id: 'ownership',
+      title: 'Clear pricing, finance made simple.',
+      subtitle: 'Ownership',
+      description: `Get estimated EMI of ${monthlyEMI.toLocaleString()} AED/mo or build your deal online.`,
+      image: galleryImages[1],
+      stats: [
+        { label: 'Monthly EMI', value: monthlyEMI, unit: 'AED/mo' },
+        { label: 'Warranty', value: 5, unit: 'Years Coverage' },
+        { label: 'Service Network', value: 50, unit: 'Centers in UAE' }
+      ],
+      cta: { label: 'Calculate EMI', action: () => setIsFinanceOpen(true) },
+      layout: 'text-right'
+    }
+  ], [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen]);
+
+  const [activeStorySection, setActiveStorySection] = useState(0);
 
   const toggleFavorite = useCallback(() => {
     if (!vehicle) return;
@@ -364,162 +455,234 @@ const VehicleDetails = () => {
             <VehicleGallery />
           </section>
 
-          <section className="py-16 lg:py-28 bg-muted/30">
-            <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-24 lg:space-y-32">
-              {/* Section 1 – Performance */}
-              <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
-                <motion.div
-                  className="lg:col-span-5 relative z-10"
-                  initial={{ opacity: 0, x: -50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                    Immediate response with confident control.
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.
-                  </p>
-                  <Button onClick={() => setIsBookingOpen(true)}>Feel it – Test Drive</Button>
-                </motion.div>
+          {/* Enhanced Storytelling Sections */}
+          <section className="relative py-16 lg:py-28 bg-muted/30">
+            {/* Section Navigation Indicators */}
+            <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-20 hidden lg:flex flex-col space-y-2">
+              {storySection.map((section, index) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveStorySection(index);
+                    document.getElementById(`story-${section.id}`)?.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'center'
+                    });
+                  }}
+                  className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
+                    activeStorySection === index 
+                      ? 'bg-toyota-red border-toyota-red scale-125' 
+                      : 'bg-transparent border-gray-400 hover:border-gray-600'
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                />
+              ))}
+            </div>
 
+            <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-32 lg:space-y-40">
+              {storySection.map((section, index) => (
                 <motion.div
-                  className="lg:col-span-7"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
+                  key={section.id}
+                  id={`story-${section.id}`}
+                  className="grid lg:grid-cols-12 gap-10 items-center isolate"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  onViewportEnter={() => setActiveStorySection(index)}
                 >
-                  <BleedRight>
-                    <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
-                      <ParallaxImg
-                        src={galleryImages[2]}
-                        alt="Performance"
-                        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
-                      />
-                    </div>
-                  </BleedRight>
-                </motion.div>
-              </div>
+                  {section.layout === 'text-left' ? (
+                    <>
+                      {/* Text Content - Left */}
+                      <motion.div
+                        className="lg:col-span-5 relative z-10 space-y-6"
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                      >
+                        <div>
+                          <motion.div 
+                            className="flex items-center space-x-2 mb-3"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            <span className="w-8 h-1 bg-toyota-red"></span>
+                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                              {section.subtitle}
+                            </span>
+                          </motion.div>
+                          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight">
+                            {section.title}
+                          </h2>
+                          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+                            {section.description}
+                          </p>
+                        </div>
 
-              {/* Section 2 – Safety */}
-              <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
-                <motion.div
-                  className="lg:col-span-7 order-2 lg:order-1"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <BleedLeft>
-                    <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
-                      <ParallaxImg
-                        src={galleryImages[1]}
-                        alt="Safety Sense"
-                        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
-                      />
-                    </div>
-                  </BleedLeft>
-                </motion.div>
+                        {/* Animated Stats */}
+                        <motion.div 
+                          className="grid grid-cols-3 gap-4 mb-8"
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.6 }}
+                        >
+                          {section.stats.map((stat, i) => (
+                            <div key={i} className="text-center">
+                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
+                                <AnimatedCounter 
+                                  value={typeof stat.value === 'number' ? stat.value : 0} 
+                                  duration={2}
+                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                />
+                                {typeof stat.value === 'string' && stat.value}
+                              </div>
+                              <div className="text-xs text-muted-foreground font-medium">
+                                {stat.unit}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {stat.label}
+                              </div>
+                            </div>
+                          ))}
+                        </motion.div>
 
-                <motion.div
-                  className="lg:col-span-5 order-1 lg:order-2 relative z-10"
-                  initial={{ opacity: 0, x: 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                    Proactive protection, 360° awareness.
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.
-                  </p>
-                  <Button variant="outline" onClick={() => navigate("/safety")}>
-                    See Safety Suite
-                  </Button>
-                </motion.div>
-              </div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 }}
+                        >
+                          <Button 
+                            onClick={section.cta.action}
+                            size="lg"
+                            className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                          >
+                            {section.cta.label}
+                          </Button>
+                        </motion.div>
+                      </motion.div>
 
-              {/* Section 3 – Connected Life */}
-              <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
-                <motion.div
-                  className="lg:col-span-5 relative z-10"
-                  initial={{ opacity: 0, x: -50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                    Wireless Apple CarPlay & Android Auto.
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Stay connected with voice control, OTA updates, and smart integration.
-                  </p>
-                  <Button variant="outline" onClick={() => navigate("/connect")}>
-                    Explore Connectivity
-                  </Button>
-                </motion.div>
+                      {/* Image - Right */}
+                      <motion.div
+                        className="lg:col-span-7"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <BleedRight>
+                          <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
+                            <ParallaxImg
+                              src={section.image}
+                              alt={section.subtitle}
+                              className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          </div>
+                        </BleedRight>
+                      </motion.div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Image - Left */}
+                      <motion.div
+                        className="lg:col-span-7 order-2 lg:order-1"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <BleedLeft>
+                          <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
+                            <ParallaxImg
+                              src={section.image}
+                              alt={section.subtitle}
+                              className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          </div>
+                        </BleedLeft>
+                      </motion.div>
 
-                <motion.div
-                  className="lg:col-span-7"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <BleedRight>
-                    <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
-                      <ParallaxImg
-                        src={galleryImages[0]}
-                        alt="Connected Tech"
-                        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
-                      />
-                    </div>
-                  </BleedRight>
-                </motion.div>
-              </div>
+                      {/* Text Content - Right */}
+                      <motion.div
+                        className="lg:col-span-5 order-1 lg:order-2 relative z-10 space-y-6"
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                      >
+                        <div>
+                          <motion.div 
+                            className="flex items-center space-x-2 mb-3 justify-start lg:justify-end"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                              {section.subtitle}
+                            </span>
+                            <span className="w-8 h-1 bg-toyota-red"></span>
+                          </motion.div>
+                          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight lg:text-right">
+                            {section.title}
+                          </h2>
+                          <p className="text-muted-foreground text-lg mb-8 leading-relaxed lg:text-right">
+                            {section.description}
+                          </p>
+                        </div>
 
-              {/* Section 4 – Ownership */}
-              <div className="grid lg:grid-cols-12 gap-10 items-center isolate">
-                <motion.div
-                  className="lg:col-span-7 order-2 lg:order-1"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <BleedLeft>
-                    <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none">
-                      <ParallaxImg
-                        src={galleryImages[1]}
-                        alt="Ownership"
-                        className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh]"
-                      />
-                    </div>
-                  </BleedLeft>
-                </motion.div>
+                        {/* Animated Stats */}
+                        <motion.div 
+                          className="grid grid-cols-3 gap-4 mb-8"
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.6 }}
+                        >
+                          {section.stats.map((stat, i) => (
+                            <div key={i} className="text-center">
+                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
+                                <AnimatedCounter 
+                                  value={typeof stat.value === 'number' ? stat.value : 0} 
+                                  duration={2}
+                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                />
+                                {typeof stat.value === 'string' && stat.value}
+                              </div>
+                              <div className="text-xs text-muted-foreground font-medium">
+                                {stat.unit}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {stat.label}
+                              </div>
+                            </div>
+                          ))}
+                        </motion.div>
 
-                <motion.div
-                  className="lg:col-span-5 order-1 lg:order-2 relative z-10"
-                  initial={{ opacity: 0, x: 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                    Clear pricing, finance made simple.
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Get estimated EMI of <strong>{monthlyEMI.toLocaleString()} AED/mo</strong> or build your deal online.
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    <Button variant="outline" onClick={() => setIsFinanceOpen(true)}>Estimate EMI</Button>
-                    <Button onClick={() => setIsCarBuilderOpen(true)}>Build Your {safeModelEnd}</Button>
-                  </div>
+                        <motion.div
+                          className="flex lg:justify-end"
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 }}
+                        >
+                          <Button 
+                            onClick={section.cta.action}
+                            size="lg"
+                            variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
+                            className={section.id === 'safety' || section.id === 'connected' 
+                              ? "border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4" 
+                              : "bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                            }
+                          >
+                            {section.cta.label}
+                          </Button>
+                        </motion.div>
+                      </motion.div>
+                    </>
+                  )}
                 </motion.div>
-              </div>
+              ))}
             </div>
           </section>
 
