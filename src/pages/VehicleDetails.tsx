@@ -58,7 +58,6 @@ const BleedLeft: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ 
   <div className={`lg:ml-[calc(50%-50vw)] ${className}`}>{children}</div>
 );
 // Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
-// Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 const ParallaxImg: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => {
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -313,7 +312,7 @@ const VehicleDetails = () => {
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
-      const slug = v.name.toLowerCase().replace(/^toyota\\s+/, "").replace(/\\s+/g, "-");
+      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
       return slug === vehicleName;
     });
 
@@ -471,7 +470,7 @@ const VehicleDetails = () => {
                   }}
                   className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
                     activeStorySection === index 
-                      ? 'bg-toyota-red border-toyota-red scale-125' 
+                      ? 'bg-primary border-primary scale-125' 
                       : 'bg-transparent border-gray-400 hover:border-gray-600'
                   }`}
                   whileHover={{ scale: 1.2 }}
@@ -508,8 +507,8 @@ const VehicleDetails = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
                           >
-                            <span className="w-8 h-1 bg-toyota-red"></span>
-                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                            <span className="w-8 h-1 bg-primary"></span>
+                            <span className="text-sm font-semibold text-primary uppercase tracking-wider">
                               {section.subtitle}
                             </span>
                           </motion.div>
@@ -530,13 +529,16 @@ const VehicleDetails = () => {
                         >
                           {section.stats.map((stat, i) => (
                             <div key={i} className="text-center">
-                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                <AnimatedCounter 
-                                  value={typeof stat.value === 'number' ? stat.value : 0} 
-                                  duration={2}
-                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                />
-                                {typeof stat.value === 'string' && stat.value}
+                              <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">
+                                {typeof stat.value === 'number' ? (
+                                  <AnimatedCounter 
+                                    value={stat.value} 
+                                    duration={2}
+                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                  />
+                                ) : (
+                                  stat.value
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground font-medium">
                                 {stat.unit}
@@ -556,7 +558,7 @@ const VehicleDetails = () => {
                           <Button 
                             onClick={section.cta.action}
                             size="lg"
-                            className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4"
                           >
                             {section.cta.label}
                           </Button>
@@ -620,10 +622,10 @@ const VehicleDetails = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
                           >
-                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                            <span className="text-sm font-semibold text-primary uppercase tracking-wider">
                               {section.subtitle}
                             </span>
-                            <span className="w-8 h-1 bg-toyota-red"></span>
+                            <span className="w-8 h-1 bg-primary"></span>
                           </motion.div>
                           <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight lg:text-right">
                             {section.title}
@@ -642,13 +644,16 @@ const VehicleDetails = () => {
                         >
                           {section.stats.map((stat, i) => (
                             <div key={i} className="text-center">
-                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                <AnimatedCounter 
-                                  value={typeof stat.value === 'number' ? stat.value : 0} 
-                                  duration={2}
-                                  decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                />
-                                {typeof stat.value === 'string' && stat.value}
+                              <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">
+                                {typeof stat.value === 'number' ? (
+                                  <AnimatedCounter 
+                                    value={stat.value} 
+                                    duration={2}
+                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                  />
+                                ) : (
+                                  stat.value
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground font-medium">
                                 {stat.unit}
@@ -671,8 +676,8 @@ const VehicleDetails = () => {
                             size="lg"
                             variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
                             className={section.id === 'safety' || section.id === 'connected' 
-                              ? "border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4" 
-                              : "bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                              ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4" 
+                              : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4"
                             }
                           >
                             {section.cta.label}
