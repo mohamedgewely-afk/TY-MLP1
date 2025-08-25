@@ -30,6 +30,7 @@ import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
+import StorytellingMedia from "@/components/vehicle-details/StorytellingMedia";
 
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -132,14 +133,16 @@ const VehicleDetails = () => {
 
   const monthlyEMI = React.useMemo(() => vehicle ? calculateEMI(vehicle.price) : 0, [vehicle, calculateEMI]);
 
-  // Enhanced storytelling sections with 6 total sections
+  // Enhanced storytelling sections with alternating video-image pattern
   const storySection = useMemo(() => [
     {
       id: 'performance',
       title: 'Immediate response with confident control.',
       subtitle: 'Performance',
       description: 'Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.',
-      image: galleryImages[2],
+      mediaType: 'video' as const,
+      videoId: 'dQw4w9WgXcQ', // Toyota performance video
+      image: galleryImages[2], // Fallback image
       stats: [
         { label: 'Acceleration', value: '0-100', unit: 'km/h in 8.9s' },
         { label: 'Power Output', value: 196, unit: 'HP' },
@@ -153,6 +156,7 @@ const VehicleDetails = () => {
       title: 'Proactive protection, 360° awareness.',
       subtitle: 'Safety Sense',
       description: 'Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.',
+      mediaType: 'image' as const,
       image: galleryImages[1],
       stats: [
         { label: 'Safety Rating', value: 5, unit: 'Stars' },
@@ -167,7 +171,9 @@ const VehicleDetails = () => {
       title: 'Wireless Apple CarPlay & Android Auto.',
       subtitle: 'Connected Life',
       description: 'Stay connected with voice control, OTA updates, and smart integration.',
-      image: galleryImages[0],
+      mediaType: 'video' as const,
+      videoId: 'jNQXAC9IVRw', // Toyota connectivity video
+      image: galleryImages[0], // Fallback image
       stats: [
         { label: 'Screen Size', value: 9, unit: 'Inches' },
         { label: 'Wireless Charging', value: 15, unit: 'W Fast Charge' },
@@ -181,6 +187,7 @@ const VehicleDetails = () => {
       title: 'Hybrid efficiency meets real-world performance.',
       subtitle: 'Sustainable Innovation',
       description: 'Advanced hybrid technology that reduces emissions while delivering exceptional performance.',
+      mediaType: 'image' as const,
       image: 'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
       stats: [
         { label: 'Fuel Economy', value: 4.5, unit: 'L/100km' },
@@ -195,7 +202,9 @@ const VehicleDetails = () => {
       title: 'Crafted for comfort, designed for life.',
       subtitle: 'Premium Comfort & Design',
       description: 'Luxurious materials, ergonomic design, and spacious interior create your personal sanctuary.',
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+      mediaType: 'video' as const,
+      videoId: 'M7lc1UVf-VE', // Toyota interior video
+      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80', // Fallback image
       stats: [
         { label: 'Premium Materials', value: 12, unit: 'Soft-Touch Surfaces' },
         { label: 'Seating Space', value: 95, unit: 'cm Legroom' },
@@ -209,6 +218,7 @@ const VehicleDetails = () => {
       title: 'Clear pricing, finance made simple.',
       subtitle: 'Ownership',
       description: `Get estimated EMI of ${monthlyEMI.toLocaleString()} AED/mo or build your deal online.`,
+      mediaType: 'image' as const,
       image: galleryImages[1],
       stats: [
         { label: 'Monthly EMI', value: monthlyEMI, unit: 'AED/mo' },
@@ -566,7 +576,7 @@ const VehicleDetails = () => {
                         </motion.div>
                       </motion.div>
 
-                      {/* Image - Right */}
+                      {/* Image/Video - Right */}
                       <motion.div
                         className="lg:col-span-7"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -575,20 +585,18 @@ const VehicleDetails = () => {
                         viewport={{ once: true }}
                       >
                         <BleedRight>
-                          <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
-                            <ParallaxImg
-                              src={section.image}
-                              alt={section.subtitle}
-                              className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          </div>
+                          <StorytellingMedia
+                            mediaType={section.mediaType}
+                            src={section.image}
+                            videoId={section.videoId}
+                            alt={section.subtitle}
+                          />
                         </BleedRight>
                       </motion.div>
                     </>
                   ) : (
                     <>
-                      {/* Image - Left */}
+                      {/* Image/Video - Left */}
                       <motion.div
                         className="lg:col-span-7 order-2 lg:order-1"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -597,14 +605,12 @@ const VehicleDetails = () => {
                         viewport={{ once: true }}
                       >
                         <BleedLeft>
-                          <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
-                            <ParallaxImg
-                              src={section.image}
-                              alt={section.subtitle}
-                              className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          </div>
+                          <StorytellingMedia
+                            mediaType={section.mediaType}
+                            src={section.image}
+                            videoId={section.videoId}
+                            alt={section.subtitle}
+                          />
                         </BleedLeft>
                       </motion.div>
 
