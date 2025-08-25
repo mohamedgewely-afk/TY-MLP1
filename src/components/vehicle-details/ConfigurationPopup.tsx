@@ -34,7 +34,7 @@ interface ConfigurationPopupProps {
   onClose: () => void;
   onContinueToBuilder: (selectedOptions: ConfigurationOption[]) => void;
   vehicle: VehicleModel;
-  context: ConfigurationContext;
+  context: ConfigurationContext | null;
 }
 
 const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
@@ -44,10 +44,20 @@ const ConfigurationPopup: React.FC<ConfigurationPopupProps> = ({
   vehicle,
   context
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState<ConfigurationOption[]>(
-    context.options.filter(opt => opt.selected) || []
-  );
+  const [selectedOptions, setSelectedOptions] = useState<ConfigurationOption[]>([]);
   const { toast } = useToast();
+
+  // Early return if context is null
+  if (!context) {
+    return null;
+  }
+
+  // Initialize selected options when context changes
+  React.useEffect(() => {
+    if (context?.options) {
+      setSelectedOptions(context.options.filter(opt => opt.selected) || []);
+    }
+  }, [context]);
 
   const toggleOption = useCallback((option: ConfigurationOption) => {
     setSelectedOptions(prev => {
