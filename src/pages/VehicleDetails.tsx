@@ -30,10 +30,11 @@ import CarBuilder from "@/components/vehicle-details/CarBuilder";
 import VehicleMediaShowcase from "@/components/vehicle-details/VehicleMediaShowcase";
 import OffersSection from "@/components/home/OffersSection";
 import OffersModal from "@/components/home/OffersModal";
-import StorytellingMedia from "@/components/vehicle-details/StorytellingMedia";
+import ConfigurationPopup from "@/components/vehicle-details/ConfigurationPopup";
 
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ConfigurationProvider } from "@/hooks/use-configuration-context";
 
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
@@ -58,7 +59,7 @@ const BleedRight: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
 const BleedLeft: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className = "" }) => (
   <div className={`lg:ml-[calc(50%-50vw)] ${className}`}>{children}</div>
 );
-// Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
+
 // Parallax image that drifts slightly on scroll (respects prefers-reduced-motion)
 const ParallaxImg: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => {
   const wrapperRef = React.useRef<HTMLDivElement>(null);
@@ -98,6 +99,10 @@ const VehicleDetails = () => {
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [configurationPopup, setConfigurationPopup] = useState<{
+    isOpen: boolean;
+    context: any;
+  }>({ isOpen: false, context: null });
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -133,22 +138,139 @@ const VehicleDetails = () => {
 
   const monthlyEMI = React.useMemo(() => vehicle ? calculateEMI(vehicle.price) : 0, [vehicle, calculateEMI]);
 
-  // Enhanced storytelling sections with alternating video-image pattern
+  // Configuration contexts for each storytelling section
+  const configurationContexts = useMemo(() => ({
+    performance: {
+      type: 'performance' as const,
+      title: 'Performance Configuration',
+      description: 'Choose your engine and performance features',
+      icon: <Gauge className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'engine-v6', name: '3.5L V6 Engine', price: 0, description: 'Standard powerful engine', category: 'engine' },
+        { id: 'engine-v6-sport', name: '4.0L V6 Sport', price: 5000, description: 'Enhanced performance engine', category: 'engine' },
+        { id: 'sport-suspension', name: 'Sport Suspension', price: 1500, description: 'Adaptive damping system', category: 'suspension' },
+        { id: 'sport-exhaust', name: 'Sport Exhaust', price: 800, description: 'Enhanced sound and performance', category: 'exhaust' }
+      ],
+      benefits: [
+        'Instant throttle response',
+        'Enhanced handling dynamics', 
+        'Sport-tuned suspension',
+        'Performance monitoring system'
+      ]
+    },
+    safety: {
+      type: 'safety' as const,
+      title: 'Safety & Protection',
+      description: 'Advanced safety systems for peace of mind',
+      icon: <Shield className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'safety-sense', name: 'Toyota Safety Sense 2.0', price: 0, description: 'Standard safety package', category: 'safety' },
+        { id: 'blind-spot', name: 'Blind Spot Monitor', price: 600, description: 'Advanced detection system', category: 'safety' },
+        { id: 'parking-assist', name: 'Parking Assist', price: 800, description: 'Automated parking system', category: 'safety' },
+        { id: 'head-up', name: 'Head-Up Display', price: 1200, description: 'Windshield information display', category: 'safety' }
+      ],
+      benefits: [
+        '5-star safety rating',
+        '360° collision protection',
+        'Proactive hazard detection',
+        'Emergency response integration'
+      ]
+    },
+    connectivity: {
+      type: 'connectivity' as const,
+      title: 'Connected Technology',
+      description: 'Stay connected with smart integration',
+      icon: <Smartphone className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'carplay', name: 'Wireless CarPlay/Android Auto', price: 0, description: 'Standard connectivity', category: 'connectivity' },
+        { id: 'premium-audio', name: 'Premium Sound System', price: 1200, description: '12-speaker JBL system', category: 'audio' },
+        { id: 'wireless-charging', name: 'Wireless Charging Pad', price: 400, description: 'Qi-compatible charging', category: 'charging' },
+        { id: 'wifi-hotspot', name: 'In-Car WiFi Hotspot', price: 600, description: '4G LTE connectivity', category: 'connectivity' }
+      ],
+      benefits: [
+        'Seamless device integration',
+        'Voice command control',
+        'Over-the-air updates',
+        'Remote vehicle access'
+      ]
+    },
+    efficiency: {
+      type: 'efficiency' as const,
+      title: 'Hybrid Efficiency',
+      description: 'Maximize fuel economy and reduce emissions',
+      icon: <Leaf className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'hybrid-system', name: 'Hybrid Synergy Drive', price: 0, description: 'Standard hybrid system', category: 'powertrain' },
+        { id: 'eco-mode', name: 'Advanced Eco Mode', price: 300, description: 'Optimized efficiency settings', category: 'efficiency' },
+        { id: 'regenerative', name: 'Enhanced Regenerative Braking', price: 500, description: 'Improved energy recovery', category: 'efficiency' },
+        { id: 'solar-roof', name: 'Solar Roof Panel', price: 2000, description: 'Supplementary solar charging', category: 'efficiency' }
+      ],
+      benefits: [
+        '4.5L/100km fuel economy',
+        '40% lower emissions',
+        'Up to 65km EV range',
+        'Reduced running costs'
+      ]
+    },
+    comfort: {
+      type: 'comfort' as const,
+      title: 'Premium Comfort',
+      description: 'Luxury features for enhanced comfort',
+      icon: <Wind className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'dual-climate', name: 'Dual-Zone Climate Control', price: 0, description: 'Standard climate system', category: 'climate' },
+        { id: 'heated-seats', name: 'Heated & Ventilated Seats', price: 800, description: 'Front seat comfort', category: 'seating' },
+        { id: 'premium-leather', name: 'Premium Leather Interior', price: 1500, description: 'Upgraded interior materials', category: 'interior' },
+        { id: 'moonroof', name: 'Panoramic Moonroof', price: 1200, description: 'Large glass roof panel', category: 'exterior' }
+      ],
+      benefits: [
+        'HEPA air filtration',
+        'Whisper-quiet cabin',
+        'Ergonomic design',
+        'Premium materials throughout'
+      ]
+    },
+    ownership: {
+      type: 'ownership' as const,
+      title: 'Ownership Package',
+      description: 'Comprehensive ownership benefits',
+      icon: <Award className="h-5 w-5 text-toyota-red" />,
+      options: [
+        { id: 'warranty-basic', name: '5-Year Warranty', price: 0, description: 'Standard comprehensive warranty', category: 'warranty' },
+        { id: 'warranty-extended', name: '8-Year Extended Warranty', price: 2500, description: 'Additional coverage period', category: 'warranty' },
+        { id: 'maintenance', name: 'Prepaid Maintenance', price: 1800, description: '3 years of scheduled maintenance', category: 'service' },
+        { id: 'roadside', name: '24/7 Roadside Assistance', price: 400, description: 'Emergency support services', category: 'service' }
+      ],
+      benefits: [
+        'Flexible financing options',
+        'Trade-in value guarantee',
+        'Priority service booking',
+        'Nationwide service network'
+      ]
+    }
+  }), []);
+
+  // Enhanced storytelling sections with configuration contexts (reverted to images)
   const storySection = useMemo(() => [
     {
       id: 'performance',
       title: 'Immediate response with confident control.',
       subtitle: 'Performance',
       description: 'Smooth acceleration, balanced handling, and a whisper-quiet cabin make every drive a pleasure.',
-      mediaType: 'video' as const,
-      videoId: 'dQw4w9WgXcQ', // Toyota performance video
-      image: galleryImages[2], // Fallback image
+      image: galleryImages[2],
       stats: [
         { label: 'Acceleration', value: '0-100', unit: 'km/h in 8.9s' },
         { label: 'Power Output', value: 196, unit: 'HP' },
         { label: 'Top Speed', value: 180, unit: 'km/h' }
       ],
       cta: { label: 'Feel it – Test Drive', action: () => setIsBookingOpen(true) },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.performance 
+        }) 
+      },
       layout: 'text-left'
     },
     {
@@ -156,7 +278,6 @@ const VehicleDetails = () => {
       title: 'Proactive protection, 360° awareness.',
       subtitle: 'Safety Sense',
       description: 'Adaptive cruise, collision assist, and intelligent lane guidance keep you safe.',
-      mediaType: 'image' as const,
       image: galleryImages[1],
       stats: [
         { label: 'Safety Rating', value: 5, unit: 'Stars' },
@@ -164,6 +285,13 @@ const VehicleDetails = () => {
         { label: 'Response Time', value: 0.5, unit: 'Seconds' }
       ],
       cta: { label: 'See Safety Suite', action: () => navigate('/safety') },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.safety 
+        }) 
+      },
       layout: 'text-right'
     },
     {
@@ -171,15 +299,20 @@ const VehicleDetails = () => {
       title: 'Wireless Apple CarPlay & Android Auto.',
       subtitle: 'Connected Life',
       description: 'Stay connected with voice control, OTA updates, and smart integration.',
-      mediaType: 'video' as const,
-      videoId: 'jNQXAC9IVRw', // Toyota connectivity video
-      image: galleryImages[0], // Fallback image
+      image: galleryImages[0],
       stats: [
         { label: 'Screen Size', value: 9, unit: 'Inches' },
         { label: 'Wireless Charging', value: 15, unit: 'W Fast Charge' },
         { label: 'Apps', value: 100, unit: 'Compatible' }
       ],
       cta: { label: 'Explore Connectivity', action: () => navigate('/connect') },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.connectivity 
+        }) 
+      },
       layout: 'text-left'
     },
     {
@@ -187,7 +320,6 @@ const VehicleDetails = () => {
       title: 'Hybrid efficiency meets real-world performance.',
       subtitle: 'Sustainable Innovation',
       description: 'Advanced hybrid technology that reduces emissions while delivering exceptional performance.',
-      mediaType: 'image' as const,
       image: 'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
       stats: [
         { label: 'Fuel Economy', value: 4.5, unit: 'L/100km' },
@@ -195,6 +327,13 @@ const VehicleDetails = () => {
         { label: 'Electric Range', value: 65, unit: 'km EV Mode' }
       ],
       cta: { label: 'Explore Hybrid Tech', action: () => navigate('/hybrid') },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.efficiency 
+        }) 
+      },
       layout: 'text-right'
     },
     {
@@ -202,15 +341,20 @@ const VehicleDetails = () => {
       title: 'Crafted for comfort, designed for life.',
       subtitle: 'Premium Comfort & Design',
       description: 'Luxurious materials, ergonomic design, and spacious interior create your personal sanctuary.',
-      mediaType: 'video' as const,
-      videoId: 'M7lc1UVf-VE', // Toyota interior video
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80', // Fallback image
+      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
       stats: [
         { label: 'Premium Materials', value: 12, unit: 'Soft-Touch Surfaces' },
         { label: 'Seating Space', value: 95, unit: 'cm Legroom' },
         { label: 'Climate Zones', value: 2, unit: 'Independent Control' }
       ],
       cta: { label: 'Experience Interior', action: () => navigate('/interior') },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.comfort 
+        }) 
+      },
       layout: 'text-left'
     },
     {
@@ -218,7 +362,6 @@ const VehicleDetails = () => {
       title: 'Clear pricing, finance made simple.',
       subtitle: 'Ownership',
       description: `Get estimated EMI of ${monthlyEMI.toLocaleString()} AED/mo or build your deal online.`,
-      mediaType: 'image' as const,
       image: galleryImages[1],
       stats: [
         { label: 'Monthly EMI', value: monthlyEMI, unit: 'AED/mo' },
@@ -226,9 +369,16 @@ const VehicleDetails = () => {
         { label: 'Service Network', value: 50, unit: 'Centers in UAE' }
       ],
       cta: { label: 'Calculate EMI', action: () => setIsFinanceOpen(true) },
+      configCta: { 
+        label: 'Try This Configuration', 
+        action: () => setConfigurationPopup({ 
+          isOpen: true, 
+          context: configurationContexts.ownership 
+        }) 
+      },
       layout: 'text-right'
     }
-  ], [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen]);
+  ], [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen, configurationContexts]);
 
   const [activeStorySection, setActiveStorySection] = useState(0);
 
@@ -323,7 +473,7 @@ const VehicleDetails = () => {
   useEffect(() => {
     const foundVehicle = vehicles.find((v) => {
       if (v.id === vehicleName) return true;
-      const slug = v.name.toLowerCase().replace(/^toyota\\s+/, "").replace(/\\s+/g, "-");
+      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
       return slug === vehicleName;
     });
 
@@ -414,6 +564,12 @@ const VehicleDetails = () => {
     scrollToPage(page);
   }, [cardsPerView, scrollToPage]);
 
+  const handleContinueToBuilder = useCallback((selectedOptions: any[]) => {
+    // Pre-populate CarBuilder with selected configuration
+    console.log('Pre-populating CarBuilder with:', selectedOptions);
+    setIsCarBuilderOpen(true);
+  }, []);
+
   if (!vehicle) {
     return (
       <ToyotaLayout>
@@ -433,324 +589,356 @@ const VehicleDetails = () => {
   const safeModelEnd = vehicle?.name.split(" ").pop() || "Toyota";
   
   return (
-    <ToyotaLayout
-      activeNavItem="models"
-      vehicle={vehicle}
-      isFavorite={isFavorite}
-      onToggleFavorite={toggleFavorite}
-      onBookTestDrive={() => setIsBookingOpen(true)}
-      onCarBuilder={() => setIsCarBuilderOpen(true)}
-      onFinanceCalculator={() => setIsFinanceOpen(true)}
-    >
-      <div
-        className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+    <ConfigurationProvider>
+      <ToyotaLayout
+        activeNavItem="models"
+        vehicle={vehicle}
+        isFavorite={isFavorite}
+        onToggleFavorite={toggleFavorite}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onCarBuilder={() => setIsCarBuilderOpen(true)}
+        onFinanceCalculator={() => setIsFinanceOpen(true)}
       >
-        <EnhancedHeroSection
-          vehicle={vehicle}
-          galleryImages={galleryImages}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onBookTestDrive={() => setIsBookingOpen(true)}
-          onCarBuilder={() => setIsCarBuilderOpen(true)}
-          monthlyEMI={monthlyEMI}
-        />
+        <div
+          className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <EnhancedHeroSection
+            vehicle={vehicle}
+            galleryImages={galleryImages}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            onBookTestDrive={() => setIsBookingOpen(true)}
+            onCarBuilder={() => setIsCarBuilderOpen(true)}
+            monthlyEMI={monthlyEMI}
+          />
 
-        <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
-          <VirtualShowroom vehicle={vehicle} />
-          
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <VehicleGallery />
-          </section>
+          <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
+            <VirtualShowroom vehicle={vehicle} />
+            
+            <section className="py-8 lg:py-16 bg-muted/30">
+              <VehicleGallery />
+            </section>
 
-          {/* Enhanced Storytelling Sections */}
-          <section className="relative py-16 lg:py-28 bg-muted/30">
-            {/* Section Navigation Indicators */}
-            <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-20 hidden lg:flex flex-col space-y-2">
-              {storySection.map((section, index) => (
-                <motion.button
-                  key={section.id}
-                  onClick={() => {
-                    setActiveStorySection(index);
-                    document.getElementById(`story-${section.id}`)?.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'center'
-                    });
-                  }}
-                  className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
-                    activeStorySection === index 
-                      ? 'bg-toyota-red border-toyota-red scale-125' 
-                      : 'bg-transparent border-gray-400 hover:border-gray-600'
-                  }`}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                />
-              ))}
-            </div>
+            {/* Enhanced Storytelling Sections with Configuration Popups */}
+            <section className="relative py-16 lg:py-28 bg-muted/30">
+              {/* Section Navigation Indicators */}
+              <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-20 hidden lg:flex flex-col space-y-2">
+                {storySection.map((section, index) => (
+                  <motion.button
+                    key={section.id}
+                    onClick={() => {
+                      setActiveStorySection(index);
+                      document.getElementById(`story-${section.id}`)?.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                    }}
+                    className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
+                      activeStorySection === index 
+                        ? 'bg-toyota-red border-toyota-red scale-125' 
+                        : 'bg-transparent border-gray-400 hover:border-gray-600'
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  />
+                ))}
+              </div>
 
-            <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-32 lg:space-y-40">
-              {storySection.map((section, index) => (
-                <motion.div
-                  key={section.id}
-                  id={`story-${section.id}`}
-                  className="grid lg:grid-cols-12 gap-10 items-center isolate"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  onViewportEnter={() => setActiveStorySection(index)}
-                >
-                  {section.layout === 'text-left' ? (
-                    <>
-                      {/* Text Content - Left */}
-                      <motion.div
-                        className="lg:col-span-5 relative z-10 space-y-6"
-                        initial={{ opacity: 0, x: -50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                      >
-                        <div>
+              <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-32 lg:space-y-40">
+                {storySection.map((section, index) => (
+                  <motion.div
+                    key={section.id}
+                    id={`story-${section.id}`}
+                    className="grid lg:grid-cols-12 gap-10 items-center isolate"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    onViewportEnter={() => setActiveStorySection(index)}
+                  >
+                    {section.layout === 'text-left' ? (
+                      <>
+                        {/* Text Content - Left */}
+                        <motion.div
+                          className="lg:col-span-5 relative z-10 space-y-6"
+                          initial={{ opacity: 0, x: -50 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                        >
+                          <div>
+                            <motion.div 
+                              className="flex items-center space-x-2 mb-3"
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <span className="w-8 h-1 bg-toyota-red"></span>
+                              <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                                {section.subtitle}
+                              </span>
+                            </motion.div>
+                            <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight">
+                              {section.title}
+                            </h2>
+                            <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+                              {section.description}
+                            </p>
+                          </div>
+
+                          {/* Animated Stats */}
                           <motion.div 
-                            className="flex items-center space-x-2 mb-3"
+                            className="grid grid-cols-3 gap-4 mb-8"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.6 }}
+                          >
+                            {section.stats.map((stat, i) => (
+                              <div key={i} className="text-center">
+                                <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
+                                  {typeof stat.value === 'number' ? (
+                                    <AnimatedCounter 
+                                      value={stat.value} 
+                                      duration={2}
+                                      decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                    />
+                                  ) : (
+                                    stat.value
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground font-medium">
+                                  {stat.unit}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {stat.label}
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+
+                          {/* Dual Button Layout */}
+                          <motion.div
+                            className="flex flex-col sm:flex-row gap-3"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
+                            transition={{ delay: 0.7 }}
                           >
-                            <span className="w-8 h-1 bg-toyota-red"></span>
-                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
-                              {section.subtitle}
-                            </span>
+                            <Button 
+                              onClick={section.configCta.action}
+                              size="lg"
+                              className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              {section.configCta.label}
+                            </Button>
+                            <Button 
+                              onClick={section.cta.action}
+                              size="lg"
+                              variant="outline"
+                              className="border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4"
+                            >
+                              {section.cta.label}
+                            </Button>
                           </motion.div>
-                          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight">
-                            {section.title}
-                          </h2>
-                          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                            {section.description}
-                          </p>
-                        </div>
-
-                        {/* Animated Stats */}
-                        <motion.div 
-                          className="grid grid-cols-3 gap-4 mb-8"
-                          initial={{ opacity: 0, y: 30 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5, duration: 0.6 }}
-                        >
-                          {section.stats.map((stat, i) => (
-                            <div key={i} className="text-center">
-                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                {typeof stat.value === 'number' ? (
-                                  <AnimatedCounter 
-                                    value={stat.value} 
-                                    duration={2}
-                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                  />
-                                ) : (
-                                  stat.value
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground font-medium">
-                                {stat.unit}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {stat.label}
-                              </div>
-                            </div>
-                          ))}
                         </motion.div>
 
+                        {/* Image - Right */}
                         <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.7 }}
+                          className="lg:col-span-7"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.8, delay: 0.1 }}
+                          viewport={{ once: true }}
                         >
-                          <Button 
-                            onClick={section.cta.action}
-                            size="lg"
-                            className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
-                          >
-                            {section.cta.label}
-                          </Button>
+                          <BleedRight>
+                            <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
+                              <ParallaxImg
+                                src={section.image}
+                                alt={section.subtitle}
+                                className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            </div>
+                          </BleedRight>
                         </motion.div>
-                      </motion.div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Image - Left */}
+                        <motion.div
+                          className="lg:col-span-7 order-2 lg:order-1"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.8, delay: 0.1 }}
+                          viewport={{ once: true }}
+                        >
+                          <BleedLeft>
+                            <div className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group">
+                              <ParallaxImg
+                                src={section.image}
+                                alt={section.subtitle}
+                                className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            </div>
+                          </BleedLeft>
+                        </motion.div>
 
-                      {/* Image/Video - Right */}
-                      <motion.div
-                        className="lg:col-span-7"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.1 }}
-                        viewport={{ once: true }}
-                      >
-                        <BleedRight>
-                          <StorytellingMedia
-                            mediaType={section.mediaType}
-                            src={section.image}
-                            videoId={section.videoId}
-                            alt={section.subtitle}
-                          />
-                        </BleedRight>
-                      </motion.div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Image/Video - Left */}
-                      <motion.div
-                        className="lg:col-span-7 order-2 lg:order-1"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.1 }}
-                        viewport={{ once: true }}
-                      >
-                        <BleedLeft>
-                          <StorytellingMedia
-                            mediaType={section.mediaType}
-                            src={section.image}
-                            videoId={section.videoId}
-                            alt={section.subtitle}
-                          />
-                        </BleedLeft>
-                      </motion.div>
+                        {/* Text Content - Right */}
+                        <motion.div
+                          className="lg:col-span-5 order-1 lg:order-2 relative z-10 space-y-6"
+                          initial={{ opacity: 0, x: 50 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                        >
+                          <div>
+                            <motion.div 
+                              className="flex items-center space-x-2 mb-3 justify-start lg:justify-end"
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
+                                {section.subtitle}
+                              </span>
+                              <span className="w-8 h-1 bg-toyota-red"></span>
+                            </motion.div>
+                            <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight lg:text-right">
+                              {section.title}
+                            </h2>
+                            <p className="text-muted-foreground text-lg mb-8 leading-relaxed lg:text-right">
+                              {section.description}
+                            </p>
+                          </div>
 
-                      {/* Text Content - Right */}
-                      <motion.div
-                        className="lg:col-span-5 order-1 lg:order-2 relative z-10 space-y-6"
-                        initial={{ opacity: 0, x: 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                      >
-                        <div>
+                          {/* Animated Stats */}
                           <motion.div 
-                            className="flex items-center space-x-2 mb-3 justify-start lg:justify-end"
+                            className="grid grid-cols-3 gap-4 mb-8"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.6 }}
+                          >
+                            {section.stats.map((stat, i) => (
+                              <div key={i} className="text-center">
+                                <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
+                                  {typeof stat.value === 'number' ? (
+                                    <AnimatedCounter 
+                                      value={stat.value} 
+                                      duration={2}
+                                      decimals={stat.value % 1 !== 0 ? 1 : 0}
+                                    />
+                                  ) : (
+                                    stat.value
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground font-medium">
+                                  {stat.unit}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {stat.label}
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+
+                          {/* Dual Button Layout */}
+                          <motion.div
+                            className="flex flex-col sm:flex-row gap-3 lg:justify-end"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
+                            transition={{ delay: 0.7 }}
                           >
-                            <span className="text-sm font-semibold text-toyota-red uppercase tracking-wider">
-                              {section.subtitle}
-                            </span>
-                            <span className="w-8 h-1 bg-toyota-red"></span>
+                            <Button 
+                              onClick={section.configCta.action}
+                              size="lg"
+                              className="bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              {section.configCta.label}
+                            </Button>
+                            <Button 
+                              onClick={section.cta.action}
+                              size="lg"
+                              variant="outline"
+                              className="border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4"
+                            >
+                              {section.cta.label}
+                            </Button>
                           </motion.div>
-                          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight lg:text-right">
-                            {section.title}
-                          </h2>
-                          <p className="text-muted-foreground text-lg mb-8 leading-relaxed lg:text-right">
-                            {section.description}
-                          </p>
-                        </div>
-
-                        {/* Animated Stats */}
-                        <motion.div 
-                          className="grid grid-cols-3 gap-4 mb-8"
-                          initial={{ opacity: 0, y: 30 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5, duration: 0.6 }}
-                        >
-                          {section.stats.map((stat, i) => (
-                            <div key={i} className="text-center">
-                              <div className="text-2xl lg:text-3xl font-bold text-toyota-red mb-1">
-                                {typeof stat.value === 'number' ? (
-                                  <AnimatedCounter 
-                                    value={stat.value} 
-                                    duration={2}
-                                    decimals={stat.value % 1 !== 0 ? 1 : 0}
-                                  />
-                                ) : (
-                                  stat.value
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground font-medium">
-                                {stat.unit}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {stat.label}
-                              </div>
-                            </div>
-                          ))}
                         </motion.div>
+                      </>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </section>
 
-                        <motion.div
-                          className="flex lg:justify-end"
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.7 }}
-                        >
-                          <Button 
-                            onClick={section.cta.action}
-                            size="lg"
-                            variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
-                            className={section.id === 'safety' || section.id === 'connected' 
-                              ? "border-toyota-red text-toyota-red hover:bg-toyota-red hover:text-white px-8 py-4" 
-                              : "bg-toyota-red hover:bg-toyota-darkred text-white px-8 py-4"
-                            }
-                          >
-                            {section.cta.label}
-                          </Button>
-                        </motion.div>
-                      </motion.div>
-                    </>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </section>
+            <OffersSection onOfferClick={handleOfferClick} />
+            <VehicleMediaShowcase vehicle={vehicle} />
+            <RefinedTechExperience vehicle={vehicle} />
+            
+            <section className="py-8 lg:py-16 bg-muted/30">
+              <InteractiveSpecsTech vehicle={vehicle} />
+            </section>
 
-          <OffersSection onOfferClick={handleOfferClick} />
-          <VehicleMediaShowcase vehicle={vehicle} />
-          <RefinedTechExperience vehicle={vehicle} />
-          
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <InteractiveSpecsTech vehicle={vehicle} />
-          </section>
+            <section className="py-8 lg:py-16 bg-muted/30">
+              <RelatedVehicles currentVehicle={vehicle} />
+            </section>
 
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <RelatedVehicles currentVehicle={vehicle} />
-          </section>
+            <PreOwnedSimilar currentVehicle={vehicle} />
+            <VehicleFAQ vehicle={vehicle} />
+          </React.Suspense>
 
-          <PreOwnedSimilar currentVehicle={vehicle} />
-          <VehicleFAQ vehicle={vehicle} />
-        </React.Suspense>
+          <ActionPanel
+            vehicle={vehicle}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            onBookTestDrive={() => setIsBookingOpen(true)}
+            onCarBuilder={() => setIsCarBuilderOpen(true)}
+            onFinanceCalculator={() => setIsFinanceOpen(true)}
+          />
+        </div>
 
-        <ActionPanel
+        {/* Configuration Popup */}
+        <ConfigurationPopup
+          isOpen={configurationPopup.isOpen}
+          onClose={() => setConfigurationPopup({ isOpen: false, context: null })}
+          onContinueToBuilder={handleContinueToBuilder}
           vehicle={vehicle}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onBookTestDrive={() => setIsBookingOpen(true)}
-          onCarBuilder={() => setIsCarBuilderOpen(true)}
-          onFinanceCalculator={() => setIsFinanceOpen(true)}
+          context={configurationPopup.context}
         />
-      </div>
 
-      <OffersModal
-        isOpen={isOffersModalOpen}
-        onClose={() => {
-          setIsOffersModalOpen(false);
-          setSelectedOffer(null);
-        }}
-        selectedOffer={selectedOffer}
-      />
+        <OffersModal
+          isOpen={isOffersModalOpen}
+          onClose={() => {
+            setIsOffersModalOpen(false);
+            setSelectedOffer(null);
+          }}
+          selectedOffer={selectedOffer}
+        />
 
-      <BookTestDrive
-        isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
-        vehicle={vehicle}
-      />
+        <BookTestDrive
+          isOpen={isBookingOpen}
+          onClose={() => setIsBookingOpen(false)}
+          vehicle={vehicle}
+        />
 
-      <FinanceCalculator
-        isOpen={isFinanceOpen}
-        onClose={() => setIsFinanceOpen(false)}
-        vehicle={vehicle}
-      />
+        <FinanceCalculator
+          isOpen={isFinanceOpen}
+          onClose={() => setIsFinanceOpen(false)}
+          vehicle={vehicle}
+        />
 
-      <CarBuilder
-        isOpen={isCarBuilderOpen}
-        onClose={() => setIsCarBuilderOpen(false)}
-        vehicle={vehicle}
-      />
-    </ToyotaLayout>
+        <CarBuilder
+          isOpen={isCarBuilderOpen}
+          onClose={() => setIsCarBuilderOpen(false)}
+          vehicle={vehicle}
+        />
+      </ToyotaLayout>
+    </ConfigurationProvider>
   );
 };
 

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PersonaProvider } from "@/contexts/PersonaContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ConfigurationProvider } from "@/hooks/use-configuration-context";
 import Index from "./pages/Index";
 import VehicleDetails from "./pages/VehicleDetails";
 import TestDrive from "./pages/TestDrive";
@@ -19,20 +20,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <PersonaProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
-              <Route path="/test-drive" element={<TestDrive />} />
-              <Route path="/enquire" element={<Enquire />} />
-              <Route path="/pre-owned" element={<PreOwned />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <ConfigurationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/vehicle/:vehicleName" element={<VehicleDetails />} />
+                <Route path="/test-drive" element={<TestDrive />} />
+                <Route path="/enquire" element={<Enquire />} />
+                <Route path="/pre-owned" element={<PreOwned />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ConfigurationProvider>
       </PersonaProvider>
     </LanguageProvider>
   </QueryClientProvider>
