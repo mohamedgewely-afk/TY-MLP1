@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -327,13 +328,9 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             >
               <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
               Book Test Drive
-              <motion.div
-                className="ml-2"
-                animate={{ x: [0, 3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
+              <div className="ml-2 animate-pulse">
                 <ArrowRight className="h-3.5 w-3.5" />
-              </motion.div>
+              </div>
             </Button>
             
             <Button 
