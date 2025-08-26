@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -145,7 +144,7 @@ const StorySection: React.FC<{
                 <ParallaxImg
                   src={section.image}
                   alt={section.subtitle}
-                  className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </motion.div>
@@ -172,7 +171,7 @@ const StorySection: React.FC<{
                 <ParallaxImg
                   src={section.image}
                   alt={section.subtitle}
-                  className="w-full h-[52vw] max-h-[560px] lg:h-[72vh] xl:h-[78vh] transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </motion.div>
