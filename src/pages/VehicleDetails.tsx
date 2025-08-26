@@ -24,7 +24,7 @@ import { useImageCarousel } from "@/hooks/use-image-carousel";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import CombinedSpecsAndTech from "@/components/vehicle-details/CombinedSpecsAndTech";
+import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
@@ -186,8 +186,10 @@ const VehicleDetails = () => {
             </Suspense>
           )}
           
-          <CombinedSpecsAndTech 
+          <VehicleConfiguration 
             vehicle={vehicle}
+            onCarBuilder={handleConfigureWithGrade}
+            onTestDrive={() => setIsBookingOpen(true)}
           />
 
           <section className="py-8 lg:py-16 bg-muted/30">
