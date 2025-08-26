@@ -9,7 +9,7 @@ import EnhancedLoading from "@/components/ui/enhanced-loading";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useSectionVisibility } from "@/hooks/use-section-visibility";
 import { useCleanup } from "@/hooks/use-cleanup";
-import { enhancedVariants, springConfigs } from "@/utils/animation-configs";
+import { enhancedVariants, springConfigs, microAnimations } from "@/utils/animation-configs";
 
 interface StorytellingProps {
   galleryImages: string[];
