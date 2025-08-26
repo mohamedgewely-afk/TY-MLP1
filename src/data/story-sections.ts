@@ -1,4 +1,5 @@
 
+
 import { VehicleModel } from "@/types/vehicle";
 
 export interface StorySectionStat {
@@ -26,7 +27,13 @@ export const createStorySections = (
   monthlyEMI: number,
   setIsBookingOpen: (open: boolean) => void,
   navigate: (path: string) => void,
-  setIsFinanceOpen: (open: boolean) => void
+  setIsFinanceOpen: (open: boolean) => void,
+  modalHandlers?: {
+    onSafetyExplore?: () => void;
+    onConnectivityExplore?: () => void;
+    onHybridTechExplore?: () => void;
+    onInteriorExplore?: () => void;
+  }
 ): StorySection[] => [
   {
     id: 'performance',
@@ -53,7 +60,10 @@ export const createStorySections = (
       { label: 'Safety Features', value: 10, unit: 'Advanced Systems' },
       { label: 'Response Time', value: 0.5, unit: 'Seconds' }
     ],
-    cta: { label: 'See Safety Suite', action: () => navigate('/safety') },
+    cta: { 
+      label: 'See Safety Suite', 
+      action: modalHandlers?.onSafetyExplore || (() => navigate('/safety'))
+    },
     layout: 'text-right'
   },
   {
@@ -67,7 +77,10 @@ export const createStorySections = (
       { label: 'Wireless Charging', value: 15, unit: 'W Fast Charge' },
       { label: 'Apps', value: 100, unit: 'Compatible' }
     ],
-    cta: { label: 'Explore Connectivity', action: () => navigate('/connect') },
+    cta: { 
+      label: 'Explore Connectivity', 
+      action: modalHandlers?.onConnectivityExplore || (() => navigate('/connect'))
+    },
     layout: 'text-left'
   },
   {
@@ -81,7 +94,10 @@ export const createStorySections = (
       { label: 'CO₂ Reduction', value: 40, unit: '% Less Emissions' },
       { label: 'Electric Range', value: 65, unit: 'km EV Mode' }
     ],
-    cta: { label: 'Explore Hybrid Tech', action: () => navigate('/hybrid') },
+    cta: { 
+      label: 'Explore Hybrid Tech', 
+      action: modalHandlers?.onHybridTechExplore || (() => navigate('/hybrid'))
+    },
     layout: 'text-right'
   },
   {
@@ -95,7 +111,10 @@ export const createStorySections = (
       { label: 'Seating Space', value: 95, unit: 'cm Legroom' },
       { label: 'Climate Zones', value: 2, unit: 'Independent Control' }
     ],
-    cta: { label: 'Experience Interior', action: () => navigate('/interior') },
+    cta: { 
+      label: 'Experience Interior', 
+      action: modalHandlers?.onInteriorExplore || (() => navigate('/interior'))
+    },
     layout: 'text-left'
   },
   {

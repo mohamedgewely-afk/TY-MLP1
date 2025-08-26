@@ -1,3 +1,4 @@
+
 import React, { useState, Suspense, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -326,14 +327,15 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
     onInteriorExplore
   }), [onSafetyExplore, onConnectivityExplore, onHybridTechExplore, onInteriorExplore]);
 
-  // Memoize story sections to prevent recreation
+  // Memoize story sections to prevent recreation - fix parameter order
   const storySection = useMemo(() => createStorySections(
     galleryImages,
     monthlyEMI,
     setIsBookingOpen,
+    navigate,
     setIsFinanceOpen,
     modalHandlers
-  ), [galleryImages, monthlyEMI, setIsBookingOpen, setIsFinanceOpen, modalHandlers]);
+  ), [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen, modalHandlers]);
 
   // Memoized callback for better performance
   const handleSectionClick = useCallback((index: number) => {
