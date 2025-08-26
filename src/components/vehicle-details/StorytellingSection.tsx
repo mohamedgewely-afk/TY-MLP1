@@ -34,7 +34,7 @@ const StorySection: React.FC<{
       ref={targetRef}
       id={`story-${section.id}`}
       className="grid lg:grid-cols-12 gap-10 items-center isolate"
-      variants={enhancedVariants.staggerContainer}
+      variants={enhancedVariants.cinematicStagger}
       initial="hidden"
       animate={isIntersecting ? "visible" : "hidden"}
     >
@@ -72,7 +72,7 @@ const StorySection: React.FC<{
             {/* Animated Stats */}
             <motion.div 
               className="grid grid-cols-3 gap-4 mb-8"
-              variants={enhancedVariants.staggerContainer}
+              variants={enhancedVariants.cinematicStagger}
             >
               {section.stats.map((stat: any, i: number) => (
                 <motion.div 
@@ -84,7 +84,7 @@ const StorySection: React.FC<{
                     {typeof stat.value === 'number' ? (
                       <AnimatedCounter 
                         value={stat.value} 
-                        duration={2}
+                        duration={2.5}
                         decimals={stat.value % 1 !== 0 ? 1 : 0}
                       />
                     ) : (
@@ -104,21 +104,21 @@ const StorySection: React.FC<{
             <motion.div variants={enhancedVariants.fadeInUp}>
               <motion.div
                 whileHover={{ 
-                  y: -2, 
+                  y: -3, 
                   scale: 1.02,
-                  transition: springConfigs.snappy 
+                  transition: springConfigs.luxurious 
                 }}
                 whileTap={{ 
                   scale: 0.98,
-                  transition: { duration: 0.1 }
+                  transition: { duration: 0.15 }
                 }}
               >
                 <Button 
                   onClick={section.cta.action}
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group transition-all duration-500"
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">
                     {section.cta.label}
                   </span>
                 </Button>
@@ -134,19 +134,14 @@ const StorySection: React.FC<{
             <BleedRight>
               <motion.div 
                 className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group"
-                whileHover={{ 
-                  scale: 1.02,
-                  y: -4,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                  transition: springConfigs.gentle
-                }}
+                whileHover={{ ...microAnimations.luxuryHover }}
               >
                 <ParallaxImg
                   src={section.image}
                   alt={section.subtitle}
-                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-1000 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
               </motion.div>
             </BleedRight>
           </motion.div>
@@ -161,19 +156,14 @@ const StorySection: React.FC<{
             <BleedLeft>
               <motion.div 
                 className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group"
-                whileHover={{ 
-                  scale: 1.02,
-                  y: -4,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                  transition: springConfigs.gentle
-                }}
+                whileHover={{ ...microAnimations.luxuryHover }}
               >
                 <ParallaxImg
                   src={section.image}
                   alt={section.subtitle}
-                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-[60vw] max-h-[680px] lg:h-[80vh] xl:h-[90vh] transition-transform duration-1000 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
               </motion.div>
             </BleedLeft>
           </motion.div>
@@ -210,7 +200,7 @@ const StorySection: React.FC<{
             {/* Animated Stats */}
             <motion.div 
               className="grid grid-cols-3 gap-4 mb-8"
-              variants={enhancedVariants.staggerContainer}
+              variants={enhancedVariants.cinematicStagger}
             >
               {section.stats.map((stat: any, i: number) => (
                 <motion.div 
@@ -222,7 +212,7 @@ const StorySection: React.FC<{
                     {typeof stat.value === 'number' ? (
                       <AnimatedCounter 
                         value={stat.value} 
-                        duration={2}
+                        duration={2.5}
                         decimals={stat.value % 1 !== 0 ? 1 : 0}
                       />
                     ) : (
@@ -245,13 +235,13 @@ const StorySection: React.FC<{
             >
               <motion.div
                 whileHover={{ 
-                  y: -2, 
+                  y: -3, 
                   scale: 1.02,
-                  transition: springConfigs.snappy 
+                  transition: springConfigs.luxurious 
                 }}
                 whileTap={{ 
                   scale: 0.98,
-                  transition: { duration: 0.1 }
+                  transition: { duration: 0.15 }
                 }}
               >
                 <Button 
@@ -259,11 +249,11 @@ const StorySection: React.FC<{
                   size="lg"
                   variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
                   className={section.id === 'safety' || section.id === 'connected' 
-                    ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 group" 
-                    : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
+                    ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 group transition-all duration-500" 
+                    : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group transition-all duration-500"
                   }
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">
                     {section.cta.label}
                   </span>
                 </Button>

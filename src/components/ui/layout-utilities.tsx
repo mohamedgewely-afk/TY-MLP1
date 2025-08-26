@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 
@@ -27,9 +28,10 @@ export const ParallaxImg: React.FC<{ src: string; alt: string; className?: strin
     offset: ["start end", "end start"],
   });
 
-  // Stronger drift + subtle fade
-  const y = useTransform(scrollYProgress, [0, 1], ["-4vh", "4vh"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.85, 1, 1, 0.9]);
+  // Enhanced dramatic drift with subtle scale and opacity
+  const y = useTransform(scrollYProgress, [0, 1], ["-6vh", "8vh"]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.05, 1, 1.05]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.8, 1, 1, 0.85]);
 
   return (
     <div ref={wrapperRef} className={`relative overflow-hidden pointer-events-none ${className}`}>
@@ -37,7 +39,7 @@ export const ParallaxImg: React.FC<{ src: string; alt: string; className?: strin
         src={src}
         alt={alt}
         className="absolute inset-0 w-full h-full object-cover will-change-transform"
-        style={reduce ? {} : { y, opacity }}
+        style={reduce ? {} : { y, scale, opacity }}
         loading="lazy"
         decoding="async"
       />
