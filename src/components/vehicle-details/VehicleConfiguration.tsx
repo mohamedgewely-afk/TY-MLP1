@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   ChevronLeft, ChevronRight, Check, Zap, Fuel, Settings,
-  ArrowUpDown, Star
+  ArrowUpDown, Star, Car, Wrench
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
