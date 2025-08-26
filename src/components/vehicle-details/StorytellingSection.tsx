@@ -24,7 +24,7 @@ const StorySection: React.FC<{
   index: number;
   setActiveStorySection: (index: number) => void;
 }> = ({ section, index, setActiveStorySection }) => {
-  const { targetRef, isIntersecting } = useIntersectionObserver({
+  const { targetRef, isIntersecting } = useIntersectionObserver<HTMLDivElement>({
     threshold: 0.6,
     onIntersect: () => setActiveStorySection(index)
   });
@@ -102,17 +102,27 @@ const StorySection: React.FC<{
             </motion.div>
 
             <motion.div variants={enhancedVariants.fadeInUp}>
-              <Button 
-                onClick={section.cta.action}
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
-                whileHover="buttonHover"
-                whileTap="buttonPress"
+              <motion.div
+                whileHover={{ 
+                  y: -2, 
+                  scale: 1.02,
+                  transition: springConfigs.snappy 
+                }}
+                whileTap={{ 
+                  scale: 0.98,
+                  transition: { duration: 0.1 }
+                }}
               >
-                <span className="group-hover:translate-x-1 transition-transform">
-                  {section.cta.label}
-                </span>
-              </Button>
+                <Button 
+                  onClick={section.cta.action}
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    {section.cta.label}
+                  </span>
+                </Button>
+              </motion.div>
             </motion.div>
           </motion.div>
 
@@ -124,7 +134,12 @@ const StorySection: React.FC<{
             <BleedRight>
               <motion.div 
                 className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group"
-                whileHover="cardHover"
+                whileHover={{ 
+                  scale: 1.02,
+                  y: -4,
+                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                  transition: springConfigs.gentle
+                }}
               >
                 <ParallaxImg
                   src={section.image}
@@ -146,7 +161,12 @@ const StorySection: React.FC<{
             <BleedLeft>
               <motion.div 
                 className="relative z-0 rounded-3xl lg:rounded-none ring-1 ring-border lg:ring-0 shadow-xl lg:shadow-none overflow-hidden group"
-                whileHover="cardHover"
+                whileHover={{ 
+                  scale: 1.02,
+                  y: -4,
+                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                  transition: springConfigs.gentle
+                }}
               >
                 <ParallaxImg
                   src={section.image}
@@ -223,21 +243,31 @@ const StorySection: React.FC<{
               className="flex lg:justify-end"
               variants={enhancedVariants.fadeInUp}
             >
-              <Button 
-                onClick={section.cta.action}
-                size="lg"
-                variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
-                className={section.id === 'safety' || section.id === 'connected' 
-                  ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 group" 
-                  : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
-                }
-                whileHover="buttonHover"
-                whileTap="buttonPress"
+              <motion.div
+                whileHover={{ 
+                  y: -2, 
+                  scale: 1.02,
+                  transition: springConfigs.snappy 
+                }}
+                whileTap={{ 
+                  scale: 0.98,
+                  transition: { duration: 0.1 }
+                }}
               >
-                <span className="group-hover:translate-x-1 transition-transform">
-                  {section.cta.label}
-                </span>
-              </Button>
+                <Button 
+                  onClick={section.cta.action}
+                  size="lg"
+                  variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
+                  className={section.id === 'safety' || section.id === 'connected' 
+                    ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 group" 
+                    : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group"
+                  }
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    {section.cta.label}
+                  </span>
+                </Button>
+              </motion.div>
             </motion.div>
           </motion.div>
         </>

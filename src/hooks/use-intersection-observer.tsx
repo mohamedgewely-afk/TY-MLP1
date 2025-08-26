@@ -8,7 +8,7 @@ interface UseIntersectionObserverOptions {
   onIntersect?: (entry: IntersectionObserverEntry) => void;
 }
 
-export const useIntersectionObserver = ({
+export const useIntersectionObserver = <T extends HTMLElement = HTMLDivElement>({
   threshold = 0.1,
   rootMargin = '0px',
   triggerOnce = true,
@@ -16,7 +16,7 @@ export const useIntersectionObserver = ({
 }: UseIntersectionObserverOptions = {}) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
-  const targetRef = useRef<HTMLElement | null>(null);
+  const targetRef = useRef<T | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {

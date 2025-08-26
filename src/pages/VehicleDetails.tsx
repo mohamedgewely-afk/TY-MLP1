@@ -110,7 +110,7 @@ const VehicleDetails = () => {
       onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
       <div
-        ref={gesturesRef}
+        ref={gesturesRef as React.RefObject<HTMLDivElement>}
         className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
       >
         <EnhancedHeroSection

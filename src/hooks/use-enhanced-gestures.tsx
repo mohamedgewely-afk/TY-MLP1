@@ -1,130 +1,139 @@
 
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { contextualHaptic } from '@/utils/haptic';
 
-interface EnhancedGesturesOptions {
+interface GestureHandlers {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeUp?: () => void;
   onSwipeDown?: () => void;
-  onPinchZoom?: (scale: number) => void;
+  onPinch?: (scale: number) => void;
   onDoubleTap?: () => void;
   onLongPress?: () => void;
-  threshold?: number;
   hapticFeedback?: boolean;
 }
 
-export const useEnhancedGestures = ({
-  onSwipeLeft,
-  onSwipeRight,
-  onSwipeUp,
-  onSwipeDown,
-  onPinchZoom,
-  onDoubleTap,
-  onLongPress,
-  threshold = 50,
-  hapticFeedback = true
-}: EnhancedGesturesOptions) => {
-  const elementRef = useRef<HTMLElement | null>(null);
-  const [touchState, setTouchState] = useState({
-    startX: 0,
-    startY: 0,
-    startTime: 0,
-    lastTapTime: 0,
-    initialDistance: 0,
-    scale: 1
-  });
+interface TouchPoint {
+  x: number;
+  y: number;
+  time: number;
+}
 
-  const calculateDistance = useCallback((touch1: Touch, touch2: Touch) => {
-    return Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
-    );
+export const useEnhancedGestures = (handlers: GestureHandlers) => {
+  const elementRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<TouchPoint | null>(null);
+  const lastTap = useRef<number>(0);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const initialDistance = useRef<number>(0);
+
+  const getDistance = useCallback((touch1: Touch, touch2: Touch) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   }, []);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     const touch = e.touches[0];
-    const currentTime = Date.now();
+    const now = Date.now();
     
-    setTouchState(prev => ({
-      ...prev,
-      startX: touch.clientX,
-      startY: touch.clientY,
-      startTime: currentTime
-    }));
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: now
+    };
 
-    // Handle pinch start
+    // Handle multi-touch for pinch gestures
     if (e.touches.length === 2) {
-      const distance = calculateDistance(e.touches[0], e.touches[1]);
-      setTouchState(prev => ({
-        ...prev,
-        initialDistance: distance
-      }));
+      initialDistance.current = getDistance(e.touches[0], e.touches[1]);
     }
 
-    // Handle long press
-    if (onLongPress) {
-      setTimeout(() => {
-        if (Date.now() - currentTime >= 500) {
-          if (hapticFeedback) contextualHaptic.selectionChange();
-          onLongPress();
+    // Long press detection
+    if (handlers.onLongPress) {
+      longPressTimer.current = setTimeout(() => {
+        if (handlers.hapticFeedback) {
+          contextualHaptic.impactMedium();
         }
+        handlers.onLongPress?.();
       }, 500);
     }
-  }, [calculateDistance, onLongPress, hapticFeedback]);
+
+    // Double tap detection
+    if (handlers.onDoubleTap && now - lastTap.current < 300) {
+      if (handlers.hapticFeedback) {
+        contextualHaptic.selectionChange();
+      }
+      handlers.onDoubleTap();
+      lastTap.current = 0;
+    } else {
+      lastTap.current = now;
+    }
+  }, [handlers, getDistance]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    // Handle pinch zoom
-    if (e.touches.length === 2 && onPinchZoom) {
-      const currentDistance = calculateDistance(e.touches[0], e.touches[1]);
-      const scale = currentDistance / touchState.initialDistance;
-      
-      if (Math.abs(scale - touchState.scale) > 0.1) {
-        setTouchState(prev => ({ ...prev, scale }));
-        onPinchZoom(scale);
-      }
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
-  }, [calculateDistance, onPinchZoom, touchState.initialDistance, touchState.scale]);
+
+    // Handle pinch gestures
+    if (e.touches.length === 2 && handlers.onPinch) {
+      const currentDistance = getDistance(e.touches[0], e.touches[1]);
+      const scale = currentDistance / initialDistance.current;
+      handlers.onPinch(scale);
+    }
+  }, [handlers, getDistance]);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
-    const touch = e.changedTouches[0];
-    const currentTime = Date.now();
-    const deltaX = touch.clientX - touchState.startX;
-    const deltaY = touch.clientY - touchState.startY;
-    const deltaTime = currentTime - touchState.startTime;
-
-    // Handle double tap
-    if (deltaTime < 300 && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
-      if (currentTime - touchState.lastTapTime < 300 && onDoubleTap) {
-        if (hapticFeedback) contextualHaptic.buttonPress();
-        onDoubleTap();
-        return;
-      }
-      setTouchState(prev => ({ ...prev, lastTapTime: currentTime }));
-      return;
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
 
-    // Handle swipe gestures
-    if (deltaTime < 500 && (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold)) {
-      if (hapticFeedback) contextualHaptic.swipeNavigation();
-      
+    if (!touchStart.current || e.touches.length > 0) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
+    const deltaTime = Date.now() - touchStart.current.time;
+
+    // Minimum swipe distance and maximum time
+    const minSwipeDistance = 50;
+    const maxSwipeTime = 300;
+
+    if (Math.abs(deltaX) > minSwipeDistance && deltaTime < maxSwipeTime) {
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         // Horizontal swipe
-        if (deltaX > threshold && onSwipeRight) {
-          onSwipeRight();
-        } else if (deltaX < -threshold && onSwipeLeft) {
-          onSwipeLeft();
+        if (deltaX > 0) {
+          if (handlers.hapticFeedback) {
+            contextualHaptic.impactLight();
+          }
+          handlers.onSwipeRight?.();
+        } else {
+          if (handlers.hapticFeedback) {
+            contextualHaptic.impactLight();
+          }
+          handlers.onSwipeLeft?.();
         }
-      } else {
+      }
+    } else if (Math.abs(deltaY) > minSwipeDistance && deltaTime < maxSwipeTime) {
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
         // Vertical swipe
-        if (deltaY > threshold && onSwipeDown) {
-          onSwipeDown();
-        } else if (deltaY < -threshold && onSwipeUp) {
-          onSwipeUp();
+        if (deltaY > 0) {
+          if (handlers.hapticFeedback) {
+            contextualHaptic.impactLight();
+          }
+          handlers.onSwipeDown?.();
+        } else {
+          if (handlers.hapticFeedback) {
+            contextualHaptic.impactLight();
+          }
+          handlers.onSwipeUp?.();
         }
       }
     }
-  }, [touchState, threshold, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onDoubleTap, hapticFeedback]);
+
+    touchStart.current = null;
+  }, [handlers]);
 
   useEffect(() => {
     const element = elementRef.current;
@@ -132,12 +141,16 @@ export const useEnhancedGestures = ({
 
     element.addEventListener('touchstart', handleTouchStart, { passive: false });
     element.addEventListener('touchmove', handleTouchMove, { passive: false });
-    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+    element.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
+      
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
