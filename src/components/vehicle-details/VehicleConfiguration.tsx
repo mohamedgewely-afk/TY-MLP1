@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,53 +43,111 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     }
   ];
 
-  const grades = [
-    {
-      name: "Hybrid SE",
-      description: "Sport-enhanced hybrid driving experience",
-      price: 94900,
-      monthlyFrom: 945,
-      badge: "Balanced Choice",
-      badgeColor: "bg-yellow-500",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
-      features: [
-        "Hybrid Drive Modes",
-        "Enhanced Audio",
-        "Sport Seats", 
-        "18\" Alloy Wheels"
-      ]
-    },
-    {
-      name: "Hybrid XLE",
-      description: "Premium hybrid with advanced features",
-      price: 105900,
-      monthlyFrom: 1059,
-      badge: "Most Popular",
-      badgeColor: "bg-primary",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-      features: [
-        "Premium Sound System",
-        "Leather-trimmed Interior",
-        "Wireless Charging",
-        "Panoramic Moonroof"
-      ]
-    },
-    {
-      name: "Hybrid Limited",
-      description: "Top-tier luxury hybrid experience",
-      price: 118900,
-      monthlyFrom: 1189,
-      badge: "Premium",
-      badgeColor: "bg-gray-800",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
-      features: [
-        "JBL Premium Audio",
-        "Ventilated Seats",
-        "Head-up Display",
-        "Advanced Safety Suite"
-      ]
+  // Dynamic grades based on selected engine
+  const grades = useMemo(() => {
+    if (selectedEngine === "2.5L Hybrid") {
+      return [
+        {
+          name: "Hybrid SE",
+          description: "Sport-enhanced hybrid driving experience",
+          price: 94900,
+          monthlyFrom: 945,
+          badge: "Balanced Choice",
+          badgeColor: "bg-yellow-500",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
+          features: [
+            "Hybrid Drive Modes",
+            "Enhanced Audio",
+            "Sport Seats", 
+            "18\" Alloy Wheels"
+          ]
+        },
+        {
+          name: "Hybrid XLE",
+          description: "Premium hybrid with advanced features",
+          price: 105900,
+          monthlyFrom: 1059,
+          badge: "Most Popular",
+          badgeColor: "bg-primary",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+          features: [
+            "Premium Sound System",
+            "Leather-trimmed Interior",
+            "Wireless Charging",
+            "Panoramic Moonroof"
+          ]
+        },
+        {
+          name: "Hybrid Limited",
+          description: "Top-tier luxury hybrid experience",
+          price: 118900,
+          monthlyFrom: 1189,
+          badge: "Premium",
+          badgeColor: "bg-gray-800",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
+          features: [
+            "JBL Premium Audio",
+            "Ventilated Seats",
+            "Head-up Display",
+            "Advanced Safety Suite"
+          ]
+        }
+      ];
+    } else {
+      return [
+        {
+          name: "V6 SE",
+          description: "Sport-enhanced V6 performance",
+          price: 99900,
+          monthlyFrom: 999,
+          badge: "Performance",
+          badgeColor: "bg-red-500",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
+          features: [
+            "V6 Power",
+            "Sport Suspension",
+            "Performance Tires", 
+            "19\" Alloy Wheels"
+          ]
+        },
+        {
+          name: "V6 XLE",
+          description: "Premium V6 with luxury features",
+          price: 110900,
+          monthlyFrom: 1109,
+          badge: "Most Popular",
+          badgeColor: "bg-primary",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+          features: [
+            "Premium Sound System",
+            "Leather-trimmed Interior",
+            "Performance Brakes",
+            "Panoramic Moonroof"
+          ]
+        },
+        {
+          name: "V6 Limited",
+          description: "Ultimate V6 luxury experience",
+          price: 123900,
+          monthlyFrom: 1239,
+          badge: "Premium",
+          badgeColor: "bg-gray-800",
+          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
+          features: [
+            "JBL Premium Audio",
+            "Ventilated Seats",
+            "Head-up Display",
+            "Advanced Safety Suite"
+          ]
+        }
+      ];
     }
-  ];
+  }, [selectedEngine]);
+
+  // Reset grade selection when engine changes
+  React.useEffect(() => {
+    setSelectedGrade(0);
+  }, [selectedEngine]);
 
   const nextGrade = () => {
     setSelectedGrade((prev) => (prev + 1) % grades.length);
@@ -100,6 +158,15 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   };
 
   const currentGrade = grades[selectedGrade];
+
+  const handleSelectGrade = () => {
+    onCarBuilder?.(currentGrade.name);
+  };
+
+  const handleCompare = () => {
+    // TODO: Implement compare functionality
+    console.log("Compare grades:", grades.map(g => g.name));
+  };
 
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-muted/20 to-background">
@@ -192,7 +259,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
         >
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-2xl lg:text-3xl font-bold">Step 2: Choose Your Grade</h3>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleCompare}>
               <ArrowUpDown className="h-4 w-4" />
               Compare
             </Button>
@@ -202,7 +269,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
           <div className="relative">
             <AnimatePresence mode="wait">
               <motion.div
-                key={selectedGrade}
+                key={`${selectedEngine}-${selectedGrade}`}
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
@@ -240,7 +307,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                   <div>
                     <h5 className="font-semibold mb-3">Key Features</h5>
                     <div className="grid grid-cols-2 gap-3">
-                      {currentGrade.features.map((feature, idx) => (
+                      {currentGrade.features.map((feature) => (
                         <div key={feature} className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                             <Check className="h-3 w-3 text-primary-foreground" />
@@ -256,7 +323,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                     <Button 
                       size="lg" 
                       className="flex-1 bg-primary hover:bg-primary/90"
-                      onClick={() => {/* Handle select */}}
+                      onClick={handleSelectGrade}
                     >
                       Select
                     </Button>
