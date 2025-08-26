@@ -51,7 +51,7 @@ export const useEnhancedGestures = (handlers: GestureHandlers) => {
     if (handlers.onLongPress) {
       longPressTimer.current = setTimeout(() => {
         if (handlers.hapticFeedback) {
-          contextualHaptic.impactMedium();
+          contextualHaptic.stepProgress();
         }
         handlers.onLongPress?.();
       }, 500);
@@ -105,12 +105,12 @@ export const useEnhancedGestures = (handlers: GestureHandlers) => {
         // Horizontal swipe
         if (deltaX > 0) {
           if (handlers.hapticFeedback) {
-            contextualHaptic.impactLight();
+            contextualHaptic.swipeNavigation();
           }
           handlers.onSwipeRight?.();
         } else {
           if (handlers.hapticFeedback) {
-            contextualHaptic.impactLight();
+            contextualHaptic.swipeNavigation();
           }
           handlers.onSwipeLeft?.();
         }
@@ -120,12 +120,12 @@ export const useEnhancedGestures = (handlers: GestureHandlers) => {
         // Vertical swipe
         if (deltaY > 0) {
           if (handlers.hapticFeedback) {
-            contextualHaptic.impactLight();
+            contextualHaptic.swipeNavigation();
           }
           handlers.onSwipeDown?.();
         } else {
           if (handlers.hapticFeedback) {
-            contextualHaptic.impactLight();
+            contextualHaptic.swipeNavigation();
           }
           handlers.onSwipeUp?.();
         }
