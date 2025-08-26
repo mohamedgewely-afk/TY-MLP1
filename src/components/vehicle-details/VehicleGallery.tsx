@@ -293,7 +293,6 @@ function useBodyScrollLock(locked: boolean) {
     };
   }, [locked]);
 }
-
 export default function LandCruiserLifestyleGalleryPro({
   scenes = DEFAULT_SCENES,
   locale = "en",
@@ -470,7 +469,7 @@ export default function LandCruiserLifestyleGalleryPro({
 
   return (
     <section
-      className="relative w-full min-h-[100svh] text-white overflow-x-clip isolate"
+      className="relative w-full min-h-[100svh] text-white overflow-x-clip"
       style={{ backgroundColor: TOYOTA_BG }}
       dir={rtl ? "rtl" : "ltr"}
       lang={locale}
@@ -643,9 +642,9 @@ export default function LandCruiserLifestyleGalleryPro({
         </div>
       )}
 
-      {/* Navigation indicators — scoped to this gallery only */}
+      {/* Navigation indicators — progress bar hidden on desktop */}
       <div className="relative z-10 mx-auto max-w-[min(98vw,2000px)] px-4 md:px-6">
-        {/* MOBILE progress bar - only for this gallery */}
+        {/* MOBILE progress bar */}
         <div className="mt-1.5 h-1 w-full bg-white/10 rounded md:hidden" aria-hidden="true">
           <div
             className="h-1 rounded"
@@ -653,18 +652,17 @@ export default function LandCruiserLifestyleGalleryPro({
           />
         </div>
 
-        {/* Navigation dots - scoped to this component only */}
-        <div className="gallery-navigation-dots mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
+        <div className="mt-2 flex items-center justify-center gap-1.5" role="tablist" aria-label={T.thumbnails}>
           {filtered.map((s, i) => {
             const selectedDot = i === activeIdx;
             return (
               <button
-                key={`gallery-dot-${s.id}`}
+                key={`dot-${s.id}`}
                 type="button"
                 role="tab"
                 aria-selected={selectedDot}
                 aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
-                className={`gallery-nav-dot h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
+                className={`h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
                 onClick={() => setActiveIdx(i)}
                 style={{ background: selectedDot ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
               />
@@ -705,7 +703,6 @@ export default function LandCruiserLifestyleGalleryPro({
     </section>
   );
 }
-
 function SceneCardPro({
   data,
   active,
@@ -782,7 +779,7 @@ function SceneCardPro({
         </div>
       </button>
 
-      {/* Premium "badge" specs */}
+      {/* Premium “badge” specs */}
       <div className="p-4 sm:p-5 md:p-6">
         <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
@@ -812,7 +809,6 @@ function SceneCardPro({
     </motion.article>
   );
 }
-
 function ExpandedSceneOverlay({
   scene,
   onClose,
