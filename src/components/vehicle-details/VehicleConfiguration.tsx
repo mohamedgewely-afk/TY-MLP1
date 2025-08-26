@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,8 +10,11 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
+import { contextualHaptic } from "@/utils/haptic";
+import { enhancedVariants, springConfigs } from "@/utils/animation-configs";
 import VehicleGradeComparison from "./VehicleGradeComparison";
 import MobileGradeCard from "./MobileGradeCard";
+import SwipeableGradeCarousel from "./SwipeableGradeCarousel";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
@@ -37,6 +39,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     {
       name: "2.5L Hybrid",
       description: "Advanced hybrid powertrain with seamless electric assist",
+      shortDescription: "Hybrid efficiency",
       power: "218 HP",
       efficiency: "25.2 km/L",
       icon: <Zap className="h-6 w-6" />,
@@ -45,6 +48,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     {
       name: "3.5L V6",
       description: "Powerful V6 engine for enhanced performance",
+      shortDescription: "V6 performance", 
       power: "301 HP",
       efficiency: "18.4 km/L",
       icon: <Fuel className="h-6 w-6" />,
@@ -204,12 +208,13 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     setSelectedGrade(0);
   }, [selectedEngine]);
 
-  const nextGrade = () => {
-    setSelectedGrade((prev) => (prev + 1) % grades.length);
+  const handleEngineChange = (engineName: string) => {
+    setSelectedEngine(engineName);
+    contextualHaptic.selectionChange();
   };
 
-  const prevGrade = () => {
-    setSelectedGrade((prev) => (prev - 1 + grades.length) % grades.length);
+  const handleGradeChange = (gradeIndex: number) => {
+    setSelectedGrade(gradeIndex);
   };
 
   const currentGrade = grades[selectedGrade];
@@ -217,20 +222,24 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const handleSelectGrade = (gradeIndex?: number) => {
     const grade = gradeIndex !== undefined ? grades[gradeIndex] : currentGrade;
     onGradeSelect?.(grade.name);
+    contextualHaptic.configComplete();
     console.log("Grade selected:", grade.name);
   };
 
   const handleConfigureGrade = (grade?: any) => {
     const gradeToUse = grade || currentGrade;
     onCarBuilder?.(gradeToUse.name);
+    contextualHaptic.buttonPress();
   };
 
   const handleTestDriveGrade = (grade?: any) => {
     onTestDrive?.();
+    contextualHaptic.buttonPress();
   };
 
   const handleCompareGrades = () => {
     setIsCompareOpen(true);
+    contextualHaptic.buttonPress();
   };
 
   const handleComparisonSelect = (gradeName: string) => {
@@ -254,6 +263,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-8 lg:mb-12"
+            variants={enhancedVariants.fadeInUp}
           >
             <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-2 rounded-full text-sm font-medium mb-4 lg:mb-6">
               <Settings className="h-4 w-4 mr-2" />
@@ -266,36 +276,38 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
               </span>
             </h2>
             <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Select your engine and explore trims in a mobile-perfect layout.
+              Select your engine and explore trims with enhanced mobile experience.
             </p>
           </motion.div>
 
-          {/* Engine Selection - Smaller Mobile Cards */}
+          {/* Enhanced Engine Selection - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mb-8 lg:mb-12"
+            variants={enhancedVariants.fadeInUp}
           >
             <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
-              <h3 className="text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
+              <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
             </div>
             
-            <div className={`${isMobile ? 'grid grid-cols-2 gap-3 px-4' : 'grid md:grid-cols-2 gap-6'} max-w-4xl mx-auto`}>
+            <div className={`${isMobile ? 'grid grid-cols-2 gap-2 px-4' : 'grid md:grid-cols-2 gap-6'} max-w-4xl mx-auto`}>
               {engines.map((engine) => (
                 <motion.div
                   key={engine.name}
                   whileHover={{ scale: isMobile ? 1 : 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  transition={springConfigs.luxurious}
                   className={`relative cursor-pointer transition-all duration-200 ${
                     engine.selected ? 'ring-2 ring-primary' : ''
                   }`}
-                  onClick={() => setSelectedEngine(engine.name)}
+                  onClick={() => handleEngineChange(engine.name)}
                 >
                   <Card className={`h-full ${engine.selected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
-                    <CardContent className={isMobile ? 'p-3' : 'px-6 py-4'}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`${isMobile ? 'w-6 h-6' : 'w-12 h-12'} rounded-full flex items-center justify-center ${
+                    <CardContent className={isMobile ? 'p-2' : 'px-6 py-4'}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className={`${isMobile ? 'w-5 h-5' : 'w-12 h-12'} rounded-full flex items-center justify-center ${
                           engine.selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                         }`}>
                           {React.cloneElement(engine.icon, { 
@@ -303,15 +315,27 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                           })}
                         </div>
                         {engine.selected && (
-                          <div className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}>
+                          <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={springConfigs.bouncy}
+                            className={`${isMobile ? 'w-3 h-3' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}
+                          >
                             <Check className={`${isMobile ? 'h-2 w-2' : 'h-4 w-4'} text-primary-foreground`} />
-                          </div>
+                          </motion.div>
                         )}
                       </div>
                       
-                      <h4 className={`${isMobile ? 'text-xs' : 'text-lg lg:text-xl'} font-bold mb-1`}>{engine.name}</h4>
+                      <h4 className={`${isMobile ? 'text-xs' : 'text-lg lg:text-xl'} font-bold mb-1`}>
+                        {isMobile ? engine.name.replace('L ', '') : engine.name}
+                      </h4>
+                      
                       {!isMobile && (
-                        <p className="text-sm text-muted-foreground mb-4">{engine.description}</p>
+                        <p className="text-sm text-muted-foreground mb-3">{engine.description}</p>
+                      )}
+                      
+                      {isMobile && (
+                        <p className="text-xs text-muted-foreground mb-2">{engine.shortDescription}</p>
                       )}
                       
                       <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -331,15 +355,16 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
           </motion.div>
 
-          {/* Grade Selection - Responsive Carousel */}
+          {/* Enhanced Grade Selection with Swipeable Carousel */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mb-8 lg:mb-12"
+            variants={enhancedVariants.fadeInUp}
           >
             <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
-              <h3 className="text-xl lg:text-3xl font-bold">Step 2: Choose Your Grade</h3>
+              <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 2: Choose Your Grade</h3>
               <Button variant="outline" className="gap-2 min-h-[44px]" onClick={handleCompareGrades}>
                 <ArrowUpDown className="h-4 w-4" />
                 {isMobile ? "Compare" : "Compare Grades"}
@@ -347,67 +372,55 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
 
             {isMobile ? (
-              /* Mobile: Single Wide Card */
-              <div className="space-y-6 px-4">
-                <MobileGradeCard
-                  grade={currentGrade}
-                  isActive={true}
-                  onSelect={() => handleSelectGrade()}
+              /* Mobile: Enhanced Swipeable Single Card */
+              <motion.div
+                variants={enhancedVariants.cinematicStagger}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="px-4"
+              >
+                <SwipeableGradeCarousel
+                  grades={grades}
+                  selectedGrade={selectedGrade}
+                  onGradeChange={handleGradeChange}
+                  onGradeSelect={() => handleSelectGrade()}
                   onTestDrive={handleTestDriveGrade}
                   onConfigure={handleConfigureGrade}
                 />
-                
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={prevGrade}
-                    className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-
-                  <div className="flex gap-2">
-                    {grades.map((_, idx) => (
-                      <motion.button
-                        key={idx}
-                        onClick={() => setSelectedGrade(idx)}
-                        className={`w-3 h-3 rounded-full transition-all ${
-                          idx === selectedGrade ? 'bg-primary w-8' : 'bg-muted-foreground/30'
-                        }`}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={nextGrade}
-                    className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+              </motion.div>
             ) : (
-              /* Desktop: Three Cards Side by Side */
-              <div className="grid lg:grid-cols-3 gap-6 px-4 lg:px-0">
+              /* Desktop: Three Cards Side by Side with Enhanced Animations */
+              <motion.div
+                variants={enhancedVariants.cinematicStagger}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="grid lg:grid-cols-3 gap-6 px-4 lg:px-0"
+              >
                 {grades.map((grade, index) => (
                   <motion.div
                     key={grade.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    variants={enhancedVariants.fadeInScale}
+                    whileHover={{ 
+                      scale: 1.03,
+                      y: -8,
+                      transition: springConfigs.luxurious 
+                    }}
                     className={`cursor-pointer transition-all duration-200 ${
-                      index === selectedGrade ? 'ring-2 ring-primary scale-105' : 'hover:scale-102'
+                      index === selectedGrade ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => setSelectedGrade(index)}
                   >
                     <Card className={`h-full ${index === selectedGrade ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
                       <CardContent className="p-0">
-                        <div className="relative">
+                        <div className="relative overflow-hidden">
                           <Badge className={`absolute top-4 left-4 z-10 ${grade.badgeColor} text-white px-3 py-1 text-sm font-medium`}>
                             {grade.badge}
                           </Badge>
-                          <img
+                          <motion.img
+                            whileHover={{ scale: 1.05 }}
+                            transition={springConfigs.cinematic}
                             src={grade.image}
                             alt={grade.name}
                             className="w-full h-48 object-cover rounded-t-lg"
@@ -432,52 +445,63 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                             <h5 className="font-semibold mb-3 text-sm">Key Features</h5>
                             <div className="space-y-2">
                               {grade.features.slice(0, 3).map((feature) => (
-                                <div key={feature} className="flex items-center gap-2">
+                                <motion.div 
+                                  key={feature} 
+                                  className="flex items-center gap-2"
+                                  whileHover={{ x: 4 }}
+                                  transition={springConfigs.snappy}
+                                >
                                   <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                     <Check className="h-2 w-2 text-primary-foreground" />
                                   </div>
                                   <span className="text-xs">{feature}</span>
-                                </div>
+                                </motion.div>
                               ))}
                             </div>
                           </div>
 
                           <div className="flex flex-col gap-2 pt-2">
-                            <Button 
-                              size="sm" 
-                              className="w-full bg-primary hover:bg-primary/90"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectGrade(index);
-                              }}
-                            >
-                              Select Grade
-                            </Button>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-primary hover:bg-primary/90"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectGrade(index);
+                                }}
+                              >
+                                Select Grade
+                              </Button>
+                            </motion.div>
                             <div className="grid grid-cols-2 gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="gap-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleTestDriveGrade(grade);
-                                }}
-                              >
-                                <Car className="h-3 w-3" />
-                                Drive
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="gap-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleConfigureGrade(grade);
-                                }}
-                              >
-                                <Wrench className="h-3 w-3" />
-                                Build
-                              </Button>
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="gap-1 w-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTestDriveGrade(grade);
+                                  }}
+                                >
+                                  <Car className="h-3 w-3" />
+                                  Drive
+                                </Button>
+                              </motion.div>
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="gap-1 w-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleConfigureGrade(grade);
+                                  }}
+                                >
+                                  <Wrench className="h-3 w-3" />
+                                  Build
+                                </Button>
+                              </motion.div>
                             </div>
                           </div>
                         </div>
@@ -485,7 +509,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                     </Card>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </motion.div>
         </div>
