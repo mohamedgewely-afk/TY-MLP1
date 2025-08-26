@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
@@ -8,24 +8,17 @@ import {
   Calendar, 
   Shield, 
   Award,
+  ChevronLeft,
+  ChevronRight,
   ArrowRight,
   Settings,
   Play,
-  Pause,
-  Maximize,
-  ZoomIn,
-  Info,
-  Battery,
-  Wifi
+  Pause
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import ProgressiveImage from "@/components/ui/progressive-image";
+import YouTubeEmbed from "@/components/ui/youtube-embed";
 import AnimatedCounter from "@/components/ui/animated-counter";
 import { openTestDrivePopup } from "@/utils/testDriveUtils";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { useGestureControls } from "@/hooks/use-gesture-controls";
-import { useDeviceCapabilities } from "@/hooks/use-device-capabilities";
-import { cn } from "@/lib/utils";
 
 interface EnhancedHeroSectionProps {
   vehicle: VehicleModel;
@@ -49,115 +42,76 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showInteractivePoints, setShowInteractivePoints] = useState(false);
-  
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const isMobile = useIsMobile();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-  const { elementRef: heroImageRef, isInView } = useIntersectionObserver({ 
-    threshold: 0.3,
-    triggerOnce: false 
-  });
   
-  const { containerRef, gestureState, resetGesture } = useGestureControls();
-  const deviceCapabilities = useDeviceCapabilities();
+  const y = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.3], [1, 1.05]);
   
-  // Physics-based animations with spring
-  const springConfig = { stiffness: 100, damping: 30, mass: 1 };
-  const y = useSpring(useTransform(scrollYProgress, [0, 0.3], [0, -100]), springConfig);
-  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [1, 0]), springConfig);
-  const scale = useSpring(useTransform(scrollYProgress, [0, 0.3], [1, 1.05]), springConfig);
+  const heroImageRef = useRef<HTMLDivElement>(null);
+  const isHeroInView = useInView(heroImageRef);
 
-  // Adaptive behavior based on device capabilities
-  const shouldReduceAnimations = deviceCapabilities.prefersReducedMotion || 
-                                 deviceCapabilities.isLowPowerMode || 
-                                 deviceCapabilities.isSlowConnection;
-
-  // Haptic feedback function
-  const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
-    if (deviceCapabilities.supportsHaptics && !deviceCapabilities.isLowPowerMode) {
-      const intensity = { light: 50, medium: 100, heavy: 200 }[type];
-      navigator.vibrate?.(intensity);
-    }
-  }, [deviceCapabilities]);
-
-  // Smart preloading for adjacent images
+  // Auto-rotate gallery images
   useEffect(() => {
-    const preloadImages = () => {
-      const nextIndex = (currentImageIndex + 1) % galleryImages.length;
-      const prevIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-      
-      [nextIndex, prevIndex].forEach(index => {
-        const img = new Image();
-        img.src = galleryImages[index];
-      });
-    };
-
-    if (!deviceCapabilities.isSlowConnection) {
-      preloadImages();
-    }
-  }, [currentImageIndex, galleryImages, deviceCapabilities.isSlowConnection]);
-
-  // Optimized auto-rotation with performance considerations
-  useEffect(() => {
-    if (!isInView || !isAutoPlaying || showVideo || gestureState.isZoomed) return;
+    if (!isHeroInView || !isAutoPlaying || showVideo) return;
     
-    const interval = shouldReduceAnimations ? 6000 : 4000;
-    const timer = setInterval(() => {
+    const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-    }, interval);
+    }, 4000);
     
-    return () => clearInterval(timer);
-  }, [isInView, galleryImages.length, isAutoPlaying, showVideo, gestureState.isZoomed, shouldReduceAnimations]);
+    return () => clearInterval(interval);
+  }, [isHeroInView, galleryImages.length, isAutoPlaying, showVideo]);
 
-  // Enhanced touch handlers with requestAnimationFrame optimization
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch) {
-      requestAnimationFrame(() => {
-        // Store touch start position for gesture recognition
-      });
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextImage();
     }
-  }, []);
+    if (isRightSwipe) {
+      prevImage();
+    }
+  };
 
-  const handleTouchEnd = useCallback(() => {
-    triggerHaptic('light');
-  }, [triggerHaptic]);
-
-  const nextImage = useCallback(() => {
-    triggerHaptic('medium');
+  const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
-  }, [galleryImages.length, triggerHaptic]);
+  };
 
-  const prevImage = useCallback(() => {
-    triggerHaptic('medium');
+  const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  }, [galleryImages.length, triggerHaptic]);
+  };
 
-  const toggleAutoPlay = useCallback(() => {
-    triggerHaptic('light');
+  const toggleAutoPlay = () => {
     setIsAutoPlaying(!isAutoPlaying);
-  }, [isAutoPlaying, triggerHaptic]);
+  };
 
-  const toggleFullscreen = useCallback(async () => {
-    triggerHaptic('heavy');
-    
-    if (!document.fullscreenElement) {
-      await heroRef.current?.requestFullscreen?.();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen?.();
-      setIsFullscreen(false);
+  const toggleVideo = () => {
+    setShowVideo(!showVideo);
+    if (!showVideo) {
+      setIsAutoPlaying(false);
     }
-  }, [triggerHaptic]);
+  };
 
-  const handleTestDrive = useCallback(() => {
-    triggerHaptic('medium');
+  const handleTestDrive = () => {
     openTestDrivePopup(vehicle);
-  }, [vehicle, triggerHaptic]);
+  };
 
-  // Dynamic content based on vehicle type and user persona
   const isBestSeller = 
     vehicle.name === "Toyota Camry" || 
     vehicle.name === "Toyota Corolla Hybrid" || 
@@ -167,166 +121,87 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   const isHybrid = vehicle.name.toLowerCase().includes('hybrid');
   const isElectric = vehicle.name.toLowerCase().includes('bz4x') || vehicle.category === 'Electric';
 
-  // Interactive hotspots for vehicle features
-  const interactivePoints = [
-    { x: 25, y: 35, label: "LED Headlights", description: "Advanced LED technology with auto-leveling" },
-    { x: 75, y: 45, label: "Safety Sense 2.0", description: "Pre-collision system with pedestrian detection" },
-    { x: 50, y: 60, label: "Hybrid Powertrain", description: "Efficient hybrid system for optimal fuel economy" },
-    { x: 85, y: 75, label: "Smart Entry", description: "Keyless entry with push-button start" }
-  ];
-
-  // Generate responsive srcSet for images
-  const generateSrcSet = useCallback((imageSrc: string) => {
-    const baseUrl = imageSrc.split('?')[0];
-    return `
-      ${baseUrl}?w=480&q=75 480w,
-      ${baseUrl}?w=768&q=80 768w,
-      ${baseUrl}?w=1024&q=85 1024w,
-      ${baseUrl}?w=1920&q=90 1920w
-    `.trim();
-  }, []);
-
   return (
-    <section ref={heroRef} className={cn(
-      "relative h-screen overflow-hidden",
-      isFullscreen && "z-50"
-    )}>
-      {/* Adaptive Quality Indicator */}
-      {deviceCapabilities.isSlowConnection && (
-        <div className="absolute top-4 left-4 z-30 flex items-center space-x-2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-          <Wifi className="h-4 w-4 text-orange-400" />
-          <span className="text-xs text-white">Optimized for slow connection</span>
-        </div>
-      )}
-
-      {/* Battery Status (when low) */}
-      {deviceCapabilities.isLowPowerMode && (
-        <div className="absolute top-4 right-20 z-30 flex items-center space-x-2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-          <Battery className="h-4 w-4 text-red-400" />
-          <span className="text-xs text-white">Power saving mode</span>
-        </div>
-      )}
-
-      {/* Enhanced Background Media with Gesture Support */}
+    <section ref={heroRef} className="relative h-screen overflow-hidden">
+      {/* Full Background Media */}
       <motion.div
-        ref={containerRef}
-        style={{ y: shouldReduceAnimations ? 0 : y, scale: shouldReduceAnimations ? 1 : scale }}
+        ref={heroImageRef}
+        style={{ y, scale }}
         className="absolute inset-0 w-full h-full"
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Progressive Loading with Blur Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30" />
+        {/* Loading Skeleton */}
+        <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
         
-        {/* Vehicle Images with Enhanced Loading */}
+        {/* Vehicle Images or Video */}
         <AnimatePresence mode="wait">
-          {!showVideo && (
+          {showVideo ? (
             <motion.div
-              key={currentImageIndex}
-              className="relative w-full h-full"
-              style={{
-                transform: `scale(${gestureState.scale}) translate(${gestureState.translateX}px, ${gestureState.translateY}px)`,
-                transformOrigin: 'center center'
-              }}
-              initial={shouldReduceAnimations ? { opacity: 1 } : { opacity: 0, scale: 1.1 }}
+              key="video"
+              initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={shouldReduceAnimations ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
-              transition={{ duration: shouldReduceAnimations ? 0.3 : 0.8, ease: "easeInOut" }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full"
             >
-              <ProgressiveImage
-                src={galleryImages[currentImageIndex]}
-                alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                placeholderSrc={`${galleryImages[currentImageIndex]}?w=50&q=20&blur=10`}
-                srcSet={generateSrcSet(galleryImages[currentImageIndex])}
-                sizes="100vw"
-                priority={currentImageIndex === 0}
+              <YouTubeEmbed
+                videoId="xEkrrzLvya8"
+                className="w-full h-full"
+                autoplay={true}
+                muted={true}
+                controls={false}
               />
-              
-              {/* Interactive Hotspots */}
-              {showInteractivePoints && !isMobile && (
-                <div className="absolute inset-0">
-                  {interactivePoints.map((point, index) => (
-                    <motion.div
-                      key={index}
-                      className="absolute group cursor-pointer"
-                      style={{ left: `${point.x}%`, top: `${point.y}%` }}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: index * 0.2 }}
-                      whileHover={{ scale: 1.1 }}
-                      onClick={() => triggerHaptic('light')}
-                    >
-                      <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-lg animate-pulse">
-                        <div className="absolute inset-0 bg-primary rounded-full animate-ping opacity-75" />
-                      </div>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        <div className="font-semibold text-sm">{point.label}</div>
-                        <div className="text-xs text-gray-300 mt-1">{point.description}</div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
             </motion.div>
+          ) : (
+            <motion.img
+              key={currentImageIndex}
+              src={galleryImages[currentImageIndex]}
+              alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              loading="lazy"
+              onLoad={(e) => {
+                const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                if (skeleton) {
+                  skeleton.style.display = 'none';
+                }
+              }}
+            />
           )}
         </AnimatePresence>
 
-        {/* Enhanced gradient with better performance */}
+        {/* Minimal Gradient - Only at bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
       </motion.div>
 
-      {/* Enhanced Control Panel */}
-      <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2">
-        {/* Fullscreen Toggle */}
-        <motion.button
-          onClick={toggleFullscreen}
-          className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 shadow-lg"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Maximize className="h-4 w-4 text-white" />
-        </motion.button>
-
-        {/* Interactive Points Toggle */}
-        {!isMobile && (
-          <motion.button
-            onClick={() => setShowInteractivePoints(!showInteractivePoints)}
-            className={cn(
-              "p-3 rounded-full backdrop-blur-sm border border-white/30 transition-all duration-200 shadow-lg",
-              showInteractivePoints ? "bg-primary/80 text-white" : "bg-white/20 text-white hover:bg-white/30"
-            )}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Info className="h-4 w-4" />
-          </motion.button>
-        )}
-
-        {/* Auto-play Toggle with Enhanced Feedback */}
-        <motion.button
+      {/* Pause Button - Bottom Right Corner */}
+      <motion.div 
+        className="absolute bottom-4 right-4 z-20"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+      >
+        <button
           onClick={toggleAutoPlay}
-          className={cn(
-            "p-3 rounded-full backdrop-blur-sm border border-white/30 transition-all duration-200 shadow-lg",
-            isAutoPlaying ? "bg-white/20 text-white" : "bg-primary/80 text-white"
-          )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 shadow-lg"
         >
           {isAutoPlaying ? (
-            <Pause className="h-4 w-4" />
+            <Pause className="h-4 w-4 text-white" />
           ) : (
-            <Play className="h-4 w-4" />
+            <Play className="h-4 w-4 text-white" />
           )}
-        </motion.button>
-      </div>
+        </button>
+      </motion.div>
 
-      {/* Enhanced Content Overlay */}
+      {/* Compact Content Overlay - Much smaller area */}
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="toyota-container pb-4">
-          {/* Image Indicators with Enhanced UX */}
+          {/* Image Indicators */}
           {!showVideo && (
             <motion.div 
               className="flex justify-center space-x-1 mb-2"
@@ -335,33 +210,20 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               transition={{ delay: 1, duration: 0.6 }}
             >
               {galleryImages.map((_, index) => (
-                <motion.button
+                <button
                   key={index}
-                  onClick={() => {
-                    triggerHaptic('light');
-                    setCurrentImageIndex(index);
-                  }}
-                  className={cn(
-                    "h-1 rounded-full transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
-                    index === currentImageIndex 
-                      ? 'w-4' 
-                      : 'w-1 hover:w-2'
-                  )}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <div className={cn(
-                    "h-1 rounded-full transition-all duration-300",
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`h-1 rounded-full transition-all duration-300 ${
                     index === currentImageIndex 
                       ? 'bg-white w-4' 
                       : 'bg-white/40 w-1 hover:bg-white/60'
-                  )} />
-                </motion.button>
+                  }`}
+                />
               ))}
             </motion.div>
           )}
 
-          {/* Enhanced Badges with Micro-interactions */}
+          {/* Badges */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -369,22 +231,18 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             className="flex flex-wrap gap-1 justify-center mb-2"
           >
             {isBestSeller && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-1.5 py-0.5 text-xs">
-                  <Award className="h-2.5 w-2.5 mr-1" />
-                  Best Seller
-                </Badge>
-              </motion.div>
-            )}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-1.5 py-0.5 text-xs">
-                <Shield className="h-2.5 w-2.5 mr-1" />
-                5-Star Safety
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-1.5 py-0.5 text-xs">
+                <Award className="h-2.5 w-2.5 mr-1" />
+                Best Seller
               </Badge>
-            </motion.div>
+            )}
+            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-1.5 py-0.5 text-xs">
+              <Shield className="h-2.5 w-2.5 mr-1" />
+              5-Star Safety
+            </Badge>
           </motion.div>
 
-          {/* Enhanced Vehicle Title */}
+          {/* Vehicle Title */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -396,7 +254,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             </h1>
           </motion.div>
 
-          {/* Enhanced Price Box with Progressive Disclosure */}
+          {/* Very Compact Price Box */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -425,6 +283,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               </div>
             </div>
 
+            {/* Performance Stats - Horizontal */}
             <div className="flex justify-between items-center pt-2 border-t border-white/20">
               <div className="text-center">
                 <div className="text-base font-black text-white">
@@ -455,7 +314,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             </div>
           </motion.div>
 
-          {/* Enhanced Action Buttons with Better Accessibility */}
+          {/* Action Buttons - Compact */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -465,7 +324,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             <Button 
               onClick={handleTestDrive}
               size="sm"
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full min-h-[44px]"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
             >
               <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
               Book Test Drive
@@ -478,7 +337,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               onClick={onCarBuilder}
               variant="outline"
               size="sm"
-              className="border border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group bg-white/10 backdrop-blur-sm w-full min-h-[44px]"
+              className="border border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group bg-white/10 backdrop-blur-sm w-full"
             >
               <Settings className="h-3.5 w-3.5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
               Configure Your Car
