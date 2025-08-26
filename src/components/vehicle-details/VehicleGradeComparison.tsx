@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -175,57 +174,55 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
               </Button>
             </div>
             
-            <div className={`${isMobile ? 'space-y-2' : `grid grid-cols-3 gap-3`}`}>
+            <div className={`${isMobile ? 'grid grid-cols-2 gap-2' : `grid grid-cols-3 gap-3`}`}>
               {grades.map((grade, index) => (
                 <Button
                   key={grade.name}
                   variant={selectedGrades.includes(index) ? "default" : "outline"}
                   size="sm"
                   onClick={() => toggleGradeSelection(index)}
-                  className={`${isMobile ? 'w-full justify-start' : ''} h-auto p-3 flex ${isMobile ? 'flex-row' : 'flex-col'} items-start min-h-[48px]`}
+                  className="h-auto p-3 flex flex-col items-start min-h-[48px]"
                   disabled={selectedGrades.length >= maxGrades && !selectedGrades.includes(index)}
                 >
-                  <div className={`flex items-center gap-2 ${isMobile ? 'flex-1' : 'mb-1'}`}>
+                  <div className="flex items-center gap-2 mb-1">
                     {selectedGrades.includes(index) && <Check className="h-3 w-3" />}
                     <span className="font-semibold text-sm">{grade.name}</span>
                     {grade.badge === "Most Popular" && (
-                      <Badge className="bg-orange-100 text-orange-700 text-xs px-1 py-0 ml-auto">
+                      <Badge className="bg-orange-100 text-orange-700 text-xs px-1 py-0">
                         <Star className="h-2 w-2 mr-1" />
                         Popular
                       </Badge>
                     )}
                   </div>
-                  {!isMobile && (
-                    <span className="text-xs opacity-80">AED {grade.price.toLocaleString()}</span>
-                  )}
+                  <span className="text-xs opacity-80">AED {grade.price.toLocaleString()}</span>
                 </Button>
               ))}
             </div>
           </div>
 
-          {/* Grade Images and Info - Mobile Optimized */}
-          <div className={`${isMobile ? 'space-y-4' : `grid grid-cols-${selectedGrades.length} gap-4`}`}>
+          {/* Grade Images and Info - Side by Side on Mobile */}
+          <div className={`${isMobile ? 'grid grid-cols-2 gap-3' : `grid grid-cols-${selectedGrades.length} gap-4`}`}>
             {selectedGradeObjects.map((grade, idx) => (
               <Card key={grade.name} className="overflow-hidden">
                 <CardContent className="p-0">
-                  <div className={`${isMobile ? 'aspect-[16/9]' : 'aspect-video'} overflow-hidden`}>
+                  <div className={`${isMobile ? 'aspect-[4/3]' : 'aspect-video'} overflow-hidden`}>
                     <img
                       src={grade.image}
                       alt={grade.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="p-3 lg:p-4">
+                  <div className={`${isMobile ? 'p-3' : 'p-3 lg:p-4'}`}>
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm lg:text-base">{grade.name}</h4>
+                      <h4 className={`font-semibold ${isMobile ? 'text-sm' : 'text-sm lg:text-base'}`}>{grade.name}</h4>
                       <Badge variant="secondary" className="text-xs">
                         {grade.badge}
                       </Badge>
                     </div>
-                    <p className="text-xs lg:text-sm text-muted-foreground mb-3">{grade.description}</p>
-                    <div className="mb-3 lg:mb-4">
-                      <div className="font-bold text-base lg:text-lg">AED {grade.price.toLocaleString()}</div>
-                      <div className="text-xs lg:text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
+                    <p className={`text-xs ${isMobile ? 'mb-2' : 'lg:text-sm text-muted-foreground mb-3'}`}>{grade.description}</p>
+                    <div className={`${isMobile ? 'mb-3' : 'mb-3 lg:mb-4'}`}>
+                      <div className={`font-bold ${isMobile ? 'text-sm' : 'text-base lg:text-lg'}`}>AED {grade.price.toLocaleString()}</div>
+                      <div className={`text-xs ${isMobile ? '' : 'lg:text-sm'} text-muted-foreground`}>From AED {grade.monthlyFrom}/month</div>
                     </div>
                     <div className={`${isMobile ? 'space-y-2' : 'grid grid-cols-3 gap-2'}`}>
                       <Button

@@ -11,7 +11,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import VehicleGradeComparison from "./VehicleGradeComparison";
-import MobileGradeCard from "./MobileGradeCard";
+import MobileGradePair from "./MobileGradePair";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
@@ -213,16 +213,18 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
 
   const currentGrade = grades[selectedGrade];
 
-  const handleSelectGrade = () => {
-    onGradeSelect?.(currentGrade.name);
-    console.log("Grade selected:", currentGrade.name);
+  const handleSelectGrade = (gradeIndex?: number) => {
+    const grade = gradeIndex !== undefined ? grades[gradeIndex] : currentGrade;
+    onGradeSelect?.(grade.name);
+    console.log("Grade selected:", grade.name);
   };
 
-  const handleConfigureGrade = () => {
-    onCarBuilder?.(currentGrade.name);
+  const handleConfigureGrade = (grade?: any) => {
+    const gradeToUse = grade || currentGrade;
+    onCarBuilder?.(gradeToUse.name);
   };
 
-  const handleTestDriveGrade = () => {
+  const handleTestDriveGrade = (grade?: any) => {
     onTestDrive?.();
   };
 
@@ -248,6 +250,21 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     if (deviceCategory === 'extraLargeMobile') return 'px-5 py-4';
     return 'px-6 py-4';
   };
+
+  const gradePairs = useMemo(() => {
+    const pairs = [];
+    for (let i = 0; i < grades.length; i += 2) {
+      if (i + 1 < grades.length) {
+        pairs.push([grades[i], grades[i + 1]] as [typeof grades[0], typeof grades[0]]);
+      } else {
+        pairs.push([grades[i], grades[0]] as [typeof grades[0], typeof grades[0]]); // Duplicate first if odd number
+      }
+    }
+    return pairs;
+  }, [grades]);
+
+  const currentPairIndex = Math.floor(selectedGrade / 2);
+  const indexInPair = selectedGrade % 2;
 
   return (
     <>
@@ -284,7 +301,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
               <h3 className="text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
             </div>
             
-            <div className={`${isMobile ? 'space-y-4 px-4' : 'grid md:grid-cols-2 gap-6'} max-w-4xl mx-auto`}>
+            <div className={`${isMobile ? 'grid grid-cols-2 gap-3 px-4' : 'grid md:grid-cols-2 gap-6'} max-w-4xl mx-auto`}>
               {engines.map((engine) => (
                 <motion.div
                   key={engine.name}
@@ -298,22 +315,24 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                   <Card className={`h-full ${engine.selected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
                     <CardContent className={getMobilePadding()}>
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        <div className={`${isMobile ? 'w-8 h-8' : 'w-12 h-12'} rounded-full flex items-center justify-center ${
                           engine.selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                         }`}>
-                          {engine.icon}
+                          {React.cloneElement(engine.icon, { 
+                            className: isMobile ? 'h-4 w-4' : 'h-6 w-6' 
+                          })}
                         </div>
                         {engine.selected && (
-                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                            <Check className="h-4 w-4 text-primary-foreground" />
+                          <div className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}>
+                            <Check className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-primary-foreground`} />
                           </div>
                         )}
                       </div>
                       
-                      <h4 className="text-lg lg:text-xl font-bold mb-2">{engine.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-4">{engine.description}</p>
+                      <h4 className={`${isMobile ? 'text-sm' : 'text-lg lg:text-xl'} font-bold mb-2`}>{engine.name}</h4>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mb-4`}>{engine.description}</p>
                       
-                      <div className="flex justify-between text-sm">
+                      <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         <div>
                           <div className="font-semibold">{engine.power}</div>
                           <div className="text-muted-foreground text-xs">POWER</div>
@@ -345,18 +364,16 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
 
             {isMobile ? (
-              <div className="px-4">
-                <div className="space-y-6">
-                  <MobileGradeCard
-                    grade={currentGrade}
-                    isActive={true}
-                    onSelect={handleSelectGrade}
-                    onTestDrive={handleTestDriveGrade}
-                    onConfigure={handleConfigureGrade}
-                  />
-                </div>
+              <div className="space-y-6">
+                <MobileGradePair
+                  grades={gradePairs[currentPairIndex]}
+                  selectedIndex={indexInPair}
+                  onSelectGrade={(index) => handleSelectGrade(currentPairIndex * 2 + index)}
+                  onTestDrive={handleTestDriveGrade}
+                  onConfigure={handleConfigureGrade}
+                />
                 
-                <div className="flex justify-between items-center mt-6">
+                <div className="flex justify-between items-center px-4">
                   <button
                     onClick={prevGrade}
                     className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
