@@ -24,7 +24,7 @@ import { useImageCarousel } from "@/hooks/use-image-carousel";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import InteractiveSpecsTech from "@/components/vehicle-details/InteractiveSpecsTech";
+import CombinedSpecsAndTech from "@/components/vehicle-details/CombinedSpecsAndTech";
 import EnhancedLifestyleGallery from "@/components/vehicle-details/EnhancedLifestyleGallery";
 import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
@@ -186,12 +186,9 @@ const VehicleDetails = () => {
             </Suspense>
           )}
           
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <InteractiveSpecsTech 
-              vehicle={vehicle} 
-              onCarBuilder={handleConfigureWithGrade}
-            />
-          </section>
+          <CombinedSpecsAndTech 
+            vehicle={vehicle}
+          />
 
           <section className="py-8 lg:py-16 bg-muted/30">
             <RelatedVehicles currentVehicle={vehicle} />
