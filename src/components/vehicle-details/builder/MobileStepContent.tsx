@@ -9,6 +9,7 @@ import GradeCarouselStep from "./steps/GradeCarouselStep";
 import ColorsAccessoriesStep from "./steps/ColorsAccessoriesStep";
 import ReviewStep from "./steps/ReviewStep";
 import { contextualHaptic } from "@/utils/haptic";
+import { enhancedVariants, springConfigs } from "@/utils/animation-configs";
 
 interface BuilderConfig {
   modelYear: string;
@@ -31,33 +32,6 @@ interface MobileStepContentProps {
   onReset?: () => void;
 }
 
-const stepVariants = {
-  hidden: { 
-    opacity: 0, 
-    x: 30,
-    scale: 0.98
-  },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    scale: 1,
-    transition: {
-      duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
-      staggerChildren: 0.1
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    x: -30,
-    scale: 0.98,
-    transition: { 
-      duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94]
-    }
-  }
-};
-
 const MobileStepContent: React.FC<MobileStepContentProps> = ({
   step,
   config,
@@ -73,12 +47,12 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 
   const getButtonHeight = React.useCallback(() => {
     switch (deviceCategory) {
-      case 'smallMobile': return 'h-9';
-      case 'standardMobile': return 'h-10';
+      case 'smallMobile': return 'h-11';
+      case 'standardMobile': return 'h-12';
       case 'largeMobile': 
-      case 'extraLargeMobile': return 'h-11';
-      case 'tablet': return 'h-12';
-      default: return 'h-10';
+      case 'extraLargeMobile': return 'h-13';
+      case 'tablet': return 'h-14';
+      default: return 'h-12';
     }
   }, [deviceCategory]);
 
@@ -132,10 +106,10 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 
   const getStepIcon = () => {
     switch (step) {
-      case 1: return <Car className="h-4 w-4" />;
-      case 2: return <Cog className="h-4 w-4" />;
-      case 3: return <Palette className="h-4 w-4" />;
-      case 4: return <CheckCircle className="h-4 w-4" />;
+      case 1: return <Car className="h-5 w-5" />;
+      case 2: return <Cog className="h-5 w-5" />;
+      case 3: return <Palette className="h-5 w-5" />;
+      case 4: return <CheckCircle className="h-5 w-5" />;
       default: return null;
     }
   };
@@ -152,42 +126,56 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-background/95">
-      <motion.div
-        variants={stepVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {renderStepContent()}
-      </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          variants={enhancedVariants.fadeInScale}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="flex-1 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          {renderStepContent()}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Continue Button - Optimized */}
+      {/* Enhanced Continue Button */}
       {step < 4 && (
         <motion.div 
           className="flex-shrink-0 bg-background/98 border-t border-border/20 backdrop-blur-xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          transition={{ delay: 0.3, ...springConfigs.gentle }}
         >
-          {/* Stock Badge - Compact */}
-          <div className="px-4 py-1">
+          {/* Stock Badge - Enhanced */}
+          <motion.div 
+            className="px-4 py-2"
+            variants={enhancedVariants.fadeInUp}
+          >
             <div className="flex items-center justify-center">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <motion.div 
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-200"
+                whileHover={{ scale: 1.05 }}
+                transition={springConfigs.snappy}
+              >
+                <motion.div 
+                  className="w-2 h-2 bg-green-500 rounded-full"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
                 {getStockBadgeText()}
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Button Container - Reduced Padding */}
-          <div className="px-4 py-1.5">
+          {/* Enhanced Button Container */}
+          <div className="px-4 pb-4">
             <motion.button
               onClick={handleContinueClick}
               disabled={!canContinue}
               className={`
-                w-full ${getButtonHeight()} ${touchTarget}
+                w-full ${getButtonHeight()} min-h-[44px]
                 bg-gradient-to-r from-primary to-primary/90 
                 hover:from-primary/90 hover:to-primary/80
                 disabled:from-muted disabled:to-muted
@@ -195,19 +183,33 @@ const MobileStepContent: React.FC<MobileStepContentProps> = ({
                 font-semibold rounded-xl
                 transition-all duration-200
                 shadow-lg hover:shadow-xl disabled:shadow-none
-                flex items-center justify-center gap-2
-                active:scale-[0.98]
+                flex items-center justify-center gap-3
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                ${touchTarget}
               `}
-              whileHover={canContinue ? { y: -2 } : {}}
-              whileTap={canContinue ? { scale: 0.98 } : {}}
+              whileHover={canContinue ? { 
+                y: -2, 
+                scale: 1.02,
+                transition: springConfigs.snappy 
+              } : {}}
+              whileTap={canContinue ? { 
+                scale: 0.98,
+                transition: { duration: 0.1 }
+              } : {}}
+              aria-label={`Continue to ${getStepTitle()}`}
+              role="button"
             >
-              <div className="flex items-center gap-2">
+              <motion.div 
+                className="flex items-center gap-3"
+                animate={canContinue ? { x: 0 } : { x: 0 }}
+                transition={springConfigs.gentle}
+              >
                 {getStepIcon()}
-                <span className="text-sm font-semibold">
+                <span className="text-base font-semibold">
                   Continue to {getStepTitle()}
                 </span>
-                <ArrowRight className="h-4 w-4" />
-              </div>
+                <ArrowRight className="h-5 w-5" />
+              </motion.div>
             </motion.button>
           </div>
         </motion.div>

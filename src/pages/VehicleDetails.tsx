@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,11 @@ import OffersSection from "@/components/home/OffersSection";
 
 import { usePersona } from "@/contexts/PersonaContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useTouchGestures } from "@/hooks/use-touch-gestures";
-import { useImageCarousel } from "@/hooks/use-image-carousel";
 import { useVehicleData } from "@/hooks/use-vehicle-data";
+import { useCleanup } from "@/hooks/use-cleanup";
+import { useNetworkAware } from "@/hooks/use-network-aware";
+import { useEnhancedGestures } from "@/hooks/use-enhanced-gestures";
+import { useImageCarousel } from "@/hooks/use-image-carousel";
 
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import RefinedTechExperience from "@/components/vehicle-details/RefinedTechExperience";
@@ -30,6 +32,9 @@ import VehicleFAQ from "@/components/vehicle-details/VehicleFAQ";
 import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 import StorytellingSection from "@/components/vehicle-details/StorytellingSection";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
+import EnhancedLoading from "@/components/ui/enhanced-loading";
+
+import { enhancedVariants } from "@/utils/animation-configs";
 
 const VehicleDetails = () => {
   // Modal states
@@ -42,15 +47,22 @@ const VehicleDetails = () => {
   // Hooks
   const { personaData } = usePersona();
   const isMobile = useIsMobile();
+  const { addCleanup } = useCleanup();
+  const { shouldPreloadContent, isSlowConnection } = useNetworkAware();
   const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
   const { currentImageIndex, nextImage, previousImage, setCurrentImageIndex } = useImageCarousel({
     images: galleryImages
   });
 
-  // Touch gesture handlers
-  const { onTouchStart, onTouchMove, onTouchEnd } = useTouchGestures({
+  // Enhanced gesture handlers
+  const gesturesRef = useEnhancedGestures({
     onSwipeLeft: nextImage,
-    onSwipeRight: previousImage
+    onSwipeRight: previousImage,
+    onDoubleTap: () => {
+      // Toggle favorite on double tap
+      toggleFavorite();
+    },
+    hapticFeedback: true
   });
 
   const handleOfferClick = useCallback((offer: any) => {
@@ -58,11 +70,24 @@ const VehicleDetails = () => {
     setIsOffersModalOpen(true);
   }, []);
 
+  // Cleanup on unmount
+  React.useEffect(() => {
+    addCleanup(() => {
+      // Clean up any timers, observers, etc.
+      console.log('VehicleDetails cleanup');
+    });
+  }, [addCleanup]);
+
   if (!vehicle) {
     return (
       <ToyotaLayout>
         <div className="toyota-container py-16 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="space-y-4"
+            variants={enhancedVariants.fadeInUp}
+          >
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
             <Button asChild>
@@ -85,10 +110,8 @@ const VehicleDetails = () => {
       onFinanceCalculator={() => setIsFinanceOpen(true)}
     >
       <div
+        ref={gesturesRef}
         className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
       >
         <EnhancedHeroSection
           vehicle={vehicle}
@@ -100,7 +123,7 @@ const VehicleDetails = () => {
           monthlyEMI={monthlyEMI}
         />
 
-        <React.Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
+        <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
           <VirtualShowroom vehicle={vehicle} />
           
           <section className="py-8 lg:py-16 bg-muted/30">
@@ -116,8 +139,20 @@ const VehicleDetails = () => {
           />
 
           <OffersSection onOfferClick={handleOfferClick} />
-          <VehicleMediaShowcase vehicle={vehicle} />
-          <RefinedTechExperience vehicle={vehicle} />
+          
+          {shouldPreloadContent && (
+            <>
+              <VehicleMediaShowcase vehicle={vehicle} />
+              <RefinedTechExperience vehicle={vehicle} />
+            </>
+          )}
+          
+          {!shouldPreloadContent && (
+            <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+              <VehicleMediaShowcase vehicle={vehicle} />
+              <RefinedTechExperience vehicle={vehicle} />
+            </Suspense>
+          )}
           
           <section className="py-8 lg:py-16 bg-muted/30">
             <InteractiveSpecsTech vehicle={vehicle} />
@@ -129,7 +164,7 @@ const VehicleDetails = () => {
 
           <PreOwnedSimilar currentVehicle={vehicle} />
           <VehicleFAQ vehicle={vehicle} />
-        </React.Suspense>
+        </Suspense>
 
         <ActionPanel
           vehicle={vehicle}
