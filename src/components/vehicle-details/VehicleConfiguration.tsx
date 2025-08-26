@@ -457,7 +457,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                         <Button 
                           size="lg" 
                           className="flex-1 bg-primary hover:bg-primary/90"
-                          onClick={handleSelectGrade}
+                          onClick={() => handleSelectGrade()}
                         >
                           Select This Grade
                         </Button>
