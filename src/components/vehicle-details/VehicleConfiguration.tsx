@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import VehicleGradeComparison from "./VehicleGradeComparison";
-import MobileGradePair from "./MobileGradePair";
+import MobileGradeCard from "./MobileGradeCard";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
@@ -244,28 +245,6 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     onTestDrive?.();
   };
 
-  const getMobilePadding = () => {
-    if (deviceCategory === 'smallMobile') return 'px-4 py-3';
-    if (deviceCategory === 'standardMobile' || deviceCategory === 'largeMobile') return 'px-4 py-4';
-    if (deviceCategory === 'extraLargeMobile') return 'px-5 py-4';
-    return 'px-6 py-4';
-  };
-
-  const gradePairs = useMemo(() => {
-    const pairs = [];
-    for (let i = 0; i < grades.length; i += 2) {
-      if (i + 1 < grades.length) {
-        pairs.push([grades[i], grades[i + 1]] as [typeof grades[0], typeof grades[0]]);
-      } else {
-        pairs.push([grades[i], grades[0]] as [typeof grades[0], typeof grades[0]]); // Duplicate first if odd number
-      }
-    }
-    return pairs;
-  }, [grades]);
-
-  const currentPairIndex = Math.floor(selectedGrade / 2);
-  const indexInPair = selectedGrade % 2;
-
   return (
     <>
       <section className="py-8 lg:py-16 bg-gradient-to-br from-background via-muted/20 to-background">
@@ -291,6 +270,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </p>
           </motion.div>
 
+          {/* Engine Selection - Smaller Mobile Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -313,33 +293,35 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                   onClick={() => setSelectedEngine(engine.name)}
                 >
                   <Card className={`h-full ${engine.selected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
-                    <CardContent className={getMobilePadding()}>
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`${isMobile ? 'w-8 h-8' : 'w-12 h-12'} rounded-full flex items-center justify-center ${
+                    <CardContent className={isMobile ? 'p-3' : 'px-6 py-4'}>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`${isMobile ? 'w-6 h-6' : 'w-12 h-12'} rounded-full flex items-center justify-center ${
                           engine.selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                         }`}>
                           {React.cloneElement(engine.icon, { 
-                            className: isMobile ? 'h-4 w-4' : 'h-6 w-6' 
+                            className: isMobile ? 'h-3 w-3' : 'h-6 w-6' 
                           })}
                         </div>
                         {engine.selected && (
-                          <div className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}>
-                            <Check className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-primary-foreground`} />
+                          <div className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}>
+                            <Check className={`${isMobile ? 'h-2 w-2' : 'h-4 w-4'} text-primary-foreground`} />
                           </div>
                         )}
                       </div>
                       
-                      <h4 className={`${isMobile ? 'text-sm' : 'text-lg lg:text-xl'} font-bold mb-2`}>{engine.name}</h4>
-                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mb-4`}>{engine.description}</p>
+                      <h4 className={`${isMobile ? 'text-xs' : 'text-lg lg:text-xl'} font-bold mb-1`}>{engine.name}</h4>
+                      {!isMobile && (
+                        <p className="text-sm text-muted-foreground mb-4">{engine.description}</p>
+                      )}
                       
                       <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         <div>
                           <div className="font-semibold">{engine.power}</div>
-                          <div className="text-muted-foreground text-xs">POWER</div>
+                          {!isMobile && <div className="text-muted-foreground text-xs">POWER</div>}
                         </div>
                         <div className="text-right">
                           <div className="font-semibold">{engine.efficiency}</div>
-                          <div className="text-muted-foreground text-xs">EFFICIENCY</div>
+                          {!isMobile && <div className="text-muted-foreground text-xs">EFFICIENCY</div>}
                         </div>
                       </div>
                     </CardContent>
@@ -349,6 +331,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
           </motion.div>
 
+          {/* Grade Selection - Responsive Carousel */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -364,16 +347,17 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
 
             {isMobile ? (
-              <div className="space-y-6">
-                <MobileGradePair
-                  grades={gradePairs[currentPairIndex]}
-                  selectedIndex={indexInPair}
-                  onSelectGrade={(index) => handleSelectGrade(currentPairIndex * 2 + index)}
+              /* Mobile: Single Wide Card */
+              <div className="space-y-6 px-4">
+                <MobileGradeCard
+                  grade={currentGrade}
+                  isActive={true}
+                  onSelect={() => handleSelectGrade()}
                   onTestDrive={handleTestDriveGrade}
                   onConfigure={handleConfigureGrade}
                 />
                 
-                <div className="flex justify-between items-center px-4">
+                <div className="flex justify-between items-center">
                   <button
                     onClick={prevGrade}
                     className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
@@ -404,113 +388,103 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="relative">
-                <AnimatePresence mode="wait">
+              /* Desktop: Three Cards Side by Side */
+              <div className="grid lg:grid-cols-3 gap-6 px-4 lg:px-0">
+                {grades.map((grade, index) => (
                   <motion.div
-                    key={`${selectedEngine}-${selectedGrade}`}
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.3 }}
-                    className="grid lg:grid-cols-2 gap-8 lg:gap-12"
+                    key={grade.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`cursor-pointer transition-all duration-200 ${
+                      index === selectedGrade ? 'ring-2 ring-primary scale-105' : 'hover:scale-102'
+                    }`}
+                    onClick={() => setSelectedGrade(index)}
                   >
-                    <div className="relative">
-                      <Badge className={`absolute top-4 left-4 z-10 ${currentGrade.badgeColor} text-white px-3 py-1 text-sm font-medium`}>
-                        {currentGrade.badge}
-                      </Badge>
-                      <img
-                        src={currentGrade.image}
-                        alt={currentGrade.name}
-                        className="w-full h-80 lg:h-96 object-cover rounded-2xl"
-                      />
-                    </div>
-
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                          <h4 className="text-2xl lg:text-3xl font-bold">{currentGrade.name}</h4>
+                    <Card className={`h-full ${index === selectedGrade ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
+                      <CardContent className="p-0">
+                        <div className="relative">
+                          <Badge className={`absolute top-4 left-4 z-10 ${grade.badgeColor} text-white px-3 py-1 text-sm font-medium`}>
+                            {grade.badge}
+                          </Badge>
+                          <img
+                            src={grade.image}
+                            alt={grade.name}
+                            className="w-full h-48 object-cover rounded-t-lg"
+                          />
                         </div>
-                        <p className="text-muted-foreground mb-4">{currentGrade.description}</p>
-                        
-                        <div className="space-y-1">
-                          <div className="text-3xl font-black">AED {currentGrade.price.toLocaleString()}</div>
-                          <div className="text-sm text-muted-foreground">From AED {currentGrade.monthlyFrom}/month</div>
-                        </div>
-                      </div>
 
-                      <div>
-                        <h5 className="font-semibold mb-3">Key Features</h5>
-                        <div className="grid grid-cols-2 gap-3">
-                          {currentGrade.features.map((feature) => (
-                            <div key={feature} className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                <Check className="h-3 w-3 text-primary-foreground" />
-                              </div>
-                              <span className="text-sm">{feature}</span>
+                        <div className="p-6 space-y-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                              <h4 className="text-xl font-bold">{grade.name}</h4>
                             </div>
-                          ))}
+                            <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
+                            
+                            <div className="space-y-1">
+                              <div className="text-2xl font-black">AED {grade.price.toLocaleString()}</div>
+                              <div className="text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h5 className="font-semibold mb-3 text-sm">Key Features</h5>
+                            <div className="space-y-2">
+                              {grade.features.slice(0, 3).map((feature) => (
+                                <div key={feature} className="flex items-center gap-2">
+                                  <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Check className="h-2 w-2 text-primary-foreground" />
+                                  </div>
+                                  <span className="text-xs">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 pt-2">
+                            <Button 
+                              size="sm" 
+                              className="w-full bg-primary hover:bg-primary/90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectGrade(index);
+                              }}
+                            >
+                              Select Grade
+                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTestDriveGrade(grade);
+                                }}
+                              >
+                                <Car className="h-3 w-3" />
+                                Drive
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleConfigureGrade(grade);
+                                }}
+                              >
+                                <Wrench className="h-3 w-3" />
+                                Build
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                        <Button 
-                          size="lg" 
-                          className="flex-1 bg-primary hover:bg-primary/90"
-                          onClick={() => handleSelectGrade()}
-                        >
-                          Select This Grade
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          className="flex-1 gap-2"
-                          onClick={handleTestDriveGrade}
-                        >
-                          <Car className="h-4 w-4" />
-                          Test Drive
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          className="flex-1 gap-2"
-                          onClick={handleConfigureGrade}
-                        >
-                          <Wrench className="h-4 w-4" />
-                          Configure
-                        </Button>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </motion.div>
-                </AnimatePresence>
-
-                <button
-                  onClick={prevGrade}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-10"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-
-                <button
-                  onClick={nextGrade}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-10"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-
-                <div className="flex justify-center mt-6 gap-2">
-                  {grades.map((_, idx) => (
-                    <motion.button
-                      key={idx}
-                      onClick={() => setSelectedGrade(idx)}
-                      className={`w-3 h-3 rounded-full transition-all ${
-                        idx === selectedGrade ? 'bg-primary w-8' : 'bg-muted-foreground/30'
-                      }`}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
-                    />
-                  ))}
-                </div>
+                ))}
               </div>
             )}
           </motion.div>
