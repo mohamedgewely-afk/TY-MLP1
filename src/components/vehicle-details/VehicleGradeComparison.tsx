@@ -18,10 +18,11 @@ import {
   Car,
   Star,
   Eye,
-  EyeOff,
-  ArrowUpDown
+  EyeOff
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeviceInfo } from "@/hooks/use-device-info";
+import CollapsibleComparisonSection from "./CollapsibleComparisonSection";
 
 interface Grade {
   name: string;
@@ -62,7 +63,11 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
   onTestDrive
 }) => {
   const isMobile = useIsMobile();
+  const { deviceCategory } = useDeviceInfo();
+  
+  // Mobile: 2 grades, Desktop: 3 grades
   const maxGrades = isMobile ? 2 : 3;
+  
   const [selectedGrades, setSelectedGrades] = useState<number[]>(
     grades.slice(0, maxGrades).map((_, index) => index)
   );
@@ -108,8 +113,16 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
           getValue: (grade: Grade) => grade.specs.torque
         },
         { 
+          label: "Transmission", 
+          getValue: (grade: Grade) => grade.specs.transmission
+        },
+        { 
           label: "0-100 km/h", 
           getValue: (grade: Grade) => grade.specs.acceleration
+        },
+        { 
+          label: "Fuel Economy", 
+          getValue: (grade: Grade) => grade.specs.fuelEconomy
         }
       ]
     },
@@ -124,96 +137,101 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
     }
   ];
 
-  const hasDifferences = (getValue: (grade: Grade) => string, selectedGradeObjects: Grade[]) => {
-    const values = selectedGradeObjects.map(getValue);
-    return new Set(values).size > 1;
-  };
-
   const selectedGradeObjects = selectedGrades.map(index => grades[index]);
+
+  // Mobile-optimized dialog sizing
+  const getDialogSize = () => {
+    if (deviceCategory === 'smallMobile') return 'max-w-[95vw] max-h-[85vh]';
+    if (deviceCategory === 'standardMobile' || deviceCategory === 'largeMobile') return 'max-w-[95vw] max-h-[90vh]';
+    if (deviceCategory === 'extraLargeMobile') return 'max-w-[90vw] max-h-[90vh]';
+    return 'max-w-6xl max-h-[90vh]';
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-6xl max-h-[90vh]'} overflow-y-auto`}>
+      <DialogContent className={`${getDialogSize()} overflow-y-auto`}>
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="flex items-center justify-between">
-            <span>Compare {engineName} Grades</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <span className="text-lg lg:text-xl">Compare {engineName} Grades</span>
+            <Button variant="ghost" size="sm" onClick={onClose} className="min-h-[44px] min-w-[44px]">
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-6 space-y-6">
-          {/* Grade Selection */}
+        <div className="mt-4 lg:mt-6 space-y-4 lg:space-y-6">
+          {/* Grade Selection - Mobile Optimized */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Select Grades to Compare</h3>
+              <h3 className="text-base lg:text-lg font-semibold">Select Grades to Compare (Max {maxGrades})</h3>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowOnlyDifferences(!showOnlyDifferences)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 min-h-[44px]"
               >
                 {showOnlyDifferences ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 {showOnlyDifferences ? "Show All" : "Differences"}
               </Button>
             </div>
             
-            <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
+            <div className={`${isMobile ? 'space-y-2' : `grid grid-cols-3 gap-3`}`}>
               {grades.map((grade, index) => (
                 <Button
                   key={grade.name}
                   variant={selectedGrades.includes(index) ? "default" : "outline"}
                   size="sm"
                   onClick={() => toggleGradeSelection(index)}
-                  className="h-auto p-3 flex flex-col items-start"
+                  className={`${isMobile ? 'w-full justify-start' : ''} h-auto p-3 flex ${isMobile ? 'flex-row' : 'flex-col'} items-start min-h-[48px]`}
                   disabled={selectedGrades.length >= maxGrades && !selectedGrades.includes(index)}
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className={`flex items-center gap-2 ${isMobile ? 'flex-1' : 'mb-1'}`}>
                     {selectedGrades.includes(index) && <Check className="h-3 w-3" />}
                     <span className="font-semibold text-sm">{grade.name}</span>
                     {grade.badge === "Most Popular" && (
-                      <Badge className="bg-orange-100 text-orange-700 text-xs px-1 py-0">
+                      <Badge className="bg-orange-100 text-orange-700 text-xs px-1 py-0 ml-auto">
                         <Star className="h-2 w-2 mr-1" />
                         Popular
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xs opacity-80">AED {grade.price.toLocaleString()}</span>
+                  {!isMobile && (
+                    <span className="text-xs opacity-80">AED {grade.price.toLocaleString()}</span>
+                  )}
                 </Button>
               ))}
             </div>
           </div>
 
-          {/* Grade Images and Info */}
-          <div className={`grid ${isMobile ? 'grid-cols-1' : `grid-cols-${selectedGrades.length}`} gap-4`}>
+          {/* Grade Images and Info - Mobile Optimized */}
+          <div className={`${isMobile ? 'space-y-4' : `grid grid-cols-${selectedGrades.length} gap-4`}`}>
             {selectedGradeObjects.map((grade, idx) => (
               <Card key={grade.name} className="overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="aspect-video overflow-hidden">
+                  <div className={`${isMobile ? 'aspect-[16/9]' : 'aspect-video'} overflow-hidden`}>
                     <img
                       src={grade.image}
                       alt={grade.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="p-4">
+                  <div className="p-3 lg:p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{grade.name}</h4>
+                      <h4 className="font-semibold text-sm lg:text-base">{grade.name}</h4>
                       <Badge variant="secondary" className="text-xs">
                         {grade.badge}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
-                    <div className="mb-4">
-                      <div className="font-bold text-lg">AED {grade.price.toLocaleString()}</div>
-                      <div className="text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
+                    <p className="text-xs lg:text-sm text-muted-foreground mb-3">{grade.description}</p>
+                    <div className="mb-3 lg:mb-4">
+                      <div className="font-bold text-base lg:text-lg">AED {grade.price.toLocaleString()}</div>
+                      <div className="text-xs lg:text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={`${isMobile ? 'space-y-2' : 'grid grid-cols-3 gap-2'}`}>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs"
+                        className={`text-xs min-h-[40px] ${isMobile ? 'w-full' : ''}`}
                         onClick={() => {
                           onGradeSelect(grade.name);
                           onClose();
@@ -224,25 +242,25 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs"
+                        className={`text-xs min-h-[40px] ${isMobile ? 'w-full' : ''}`}
                         onClick={() => {
                           onTestDrive(grade.name);
                           onClose();
                         }}
                       >
                         <Car className="h-3 w-3 mr-1" />
-                        Drive
+                        {isMobile ? "Test Drive" : "Drive"}
                       </Button>
                       <Button
                         size="sm"
-                        className="text-xs"
+                        className={`text-xs min-h-[40px] ${isMobile ? 'w-full' : ''}`}
                         onClick={() => {
                           onCarBuilder(grade.name);
                           onClose();
                         }}
                       >
                         <Wrench className="h-3 w-3 mr-1" />
-                        Build
+                        {isMobile ? "Configure" : "Build"}
                       </Button>
                     </div>
                   </div>
@@ -251,64 +269,26 @@ const VehicleGradeComparison: React.FC<VehicleGradeComparisonProps> = ({
             ))}
           </div>
 
-          {/* Comparison Table */}
-          <div className="space-y-6">
-            {comparisonSpecs.map(section => {
-              const filteredItems = showOnlyDifferences 
-                ? section.items.filter(item => hasDifferences(item.getValue, selectedGradeObjects))
-                : section.items;
-
-              if (showOnlyDifferences && filteredItems.length === 0) return null;
-
-              return (
-                <div key={section.title}>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    {section.title}
-                    {showOnlyDifferences && filteredItems.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {filteredItems.length} differences
-                      </Badge>
-                    )}
-                  </h3>
-                  
-                  {filteredItems.map(item => {
-                    const hasDiff = hasDifferences(item.getValue, selectedGradeObjects);
-                    
-                    return (
-                      <div key={item.label} className={`grid gap-4 py-3 border-b ${isMobile ? 'grid-cols-1' : `grid-cols-${selectedGrades.length + 1}`}`}>
-                        <div className={`font-medium flex items-center gap-1 ${hasDiff ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {item.label}
-                          {hasDiff && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                        {isMobile ? (
-                          <div className="space-y-2">
-                            {selectedGradeObjects.map((grade, idx) => (
-                              <div key={idx} className={`text-sm p-2 rounded ${hasDiff ? 'bg-muted font-medium' : ''}`}>
-                                <span className="font-medium">{grade.name}:</span> {item.getValue(grade)}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          selectedGradeObjects.map((grade, idx) => (
-                            <div key={idx} className={`text-sm ${hasDiff ? 'font-medium bg-muted p-2 rounded' : 'text-muted-foreground'}`}>
-                              {item.getValue(grade)}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+          {/* Collapsible Comparison Sections */}
+          <div className="space-y-2">
+            {comparisonSpecs.map((section, index) => (
+              <CollapsibleComparisonSection
+                key={section.title}
+                title={section.title}
+                items={section.items}
+                grades={selectedGradeObjects}
+                showOnlyDifferences={showOnlyDifferences}
+                defaultOpen={!isMobile && index === 0} // Open first section by default on desktop
+              />
+            ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+          {/* Actions - Mobile Optimized */}
+          <div className={`flex gap-3 pt-4 border-t ${isMobile ? 'flex-col' : ''}`}>
+            <Button variant="outline" onClick={onClose} className={`${isMobile ? 'w-full' : 'flex-1'} min-h-[48px]`}>
               Close
             </Button>
-            <Button className="flex-1">
+            <Button className={`${isMobile ? 'w-full' : 'flex-1'} min-h-[48px]`}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
