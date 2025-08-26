@@ -5,6 +5,10 @@ import BookTestDrive from "./BookTestDrive";
 import FinanceCalculator from "./FinanceCalculator";
 import CarBuilder from "./CarBuilder";
 import OffersModal from "@/components/home/OffersModal";
+import SafetySuiteModal from "./modals/SafetySuiteModal";
+import ConnectivityModal from "./modals/ConnectivityModal";
+import HybridTechModal from "./modals/HybridTechModal";
+import InteriorExperienceModal from "./modals/InteriorExperienceModal";
 
 interface VehicleModalsProps {
   vehicle: VehicleModel;
@@ -18,6 +22,15 @@ interface VehicleModalsProps {
   setIsOffersModalOpen: (open: boolean) => void;
   selectedOffer: any;
   setSelectedOffer: (offer: any) => void;
+  isSafetyModalOpen: boolean;
+  setIsSafetyModalOpen: (open: boolean) => void;
+  isConnectivityModalOpen: boolean;
+  setIsConnectivityModalOpen: (open: boolean) => void;
+  isHybridTechModalOpen: boolean;
+  setIsHybridTechModalOpen: (open: boolean) => void;
+  isInteriorModalOpen: boolean;
+  setIsInteriorModalOpen: (open: boolean) => void;
+  carBuilderInitialGrade?: string;
 }
 
 const VehicleModals: React.FC<VehicleModalsProps> = ({
@@ -31,8 +44,26 @@ const VehicleModals: React.FC<VehicleModalsProps> = ({
   isOffersModalOpen,
   setIsOffersModalOpen,
   selectedOffer,
-  setSelectedOffer
+  setSelectedOffer,
+  isSafetyModalOpen,
+  setIsSafetyModalOpen,
+  isConnectivityModalOpen,
+  setIsConnectivityModalOpen,
+  isHybridTechModalOpen,
+  setIsHybridTechModalOpen,
+  isInteriorModalOpen,
+  setIsInteriorModalOpen,
+  carBuilderInitialGrade
 }) => {
+  const handleModalClose = (modalSetter: (open: boolean) => void) => {
+    modalSetter(false);
+  };
+
+  const handleTestDriveFromModal = (modalSetter: (open: boolean) => void) => {
+    modalSetter(false);
+    setIsBookingOpen(true);
+  };
+
   return (
     <>
       <OffersModal
@@ -60,6 +91,30 @@ const VehicleModals: React.FC<VehicleModalsProps> = ({
         isOpen={isCarBuilderOpen}
         onClose={() => setIsCarBuilderOpen(false)}
         vehicle={vehicle}
+      />
+
+      <SafetySuiteModal
+        isOpen={isSafetyModalOpen}
+        onClose={() => handleModalClose(setIsSafetyModalOpen)}
+        onBookTestDrive={() => handleTestDriveFromModal(setIsSafetyModalOpen)}
+      />
+
+      <ConnectivityModal
+        isOpen={isConnectivityModalOpen}
+        onClose={() => handleModalClose(setIsConnectivityModalOpen)}
+        onBookTestDrive={() => handleTestDriveFromModal(setIsConnectivityModalOpen)}
+      />
+
+      <HybridTechModal
+        isOpen={isHybridTechModalOpen}
+        onClose={() => handleModalClose(setIsHybridTechModalOpen)}
+        onBookTestDrive={() => handleTestDriveFromModal(setIsHybridTechModalOpen)}
+      />
+
+      <InteriorExperienceModal
+        isOpen={isInteriorModalOpen}
+        onClose={() => handleModalClose(setIsInteriorModalOpen)}
+        onBookTestDrive={() => handleTestDriveFromModal(setIsInteriorModalOpen)}
       />
     </>
   );

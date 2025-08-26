@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,10 @@ interface StorytellingProps {
   setIsBookingOpen: (open: boolean) => void;
   navigate: (path: string) => void;
   setIsFinanceOpen: (open: boolean) => void;
+  onSafetyExplore: () => void;
+  onConnectivityExplore: () => void;
+  onHybridTechExplore: () => void;
+  onInteriorExplore: () => void;
 }
 
 const StorySection: React.FC<{
@@ -302,7 +305,11 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
   monthlyEMI,
   setIsBookingOpen,
   navigate,
-  setIsFinanceOpen
+  setIsFinanceOpen,
+  onSafetyExplore,
+  onConnectivityExplore,
+  onHybridTechExplore,
+  onInteriorExplore
 }) => {
   const [activeStorySection, setActiveStorySection] = useState(0);
   const { addCleanup } = useCleanup();
@@ -317,8 +324,12 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
     monthlyEMI,
     setIsBookingOpen,
     navigate,
-    setIsFinanceOpen
-  ), [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen]);
+    setIsFinanceOpen,
+    onSafetyExplore,
+    onConnectivityExplore,
+    onHybridTechExplore,
+    onInteriorExplore
+  ), [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen, onSafetyExplore, onConnectivityExplore, onHybridTechExplore, onInteriorExplore]);
 
   // Memoized callback for better performance
   const handleSectionClick = useCallback((index: number) => {

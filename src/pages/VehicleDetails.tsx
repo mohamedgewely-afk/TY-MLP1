@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -43,6 +42,13 @@ const VehicleDetails = () => {
   const [isCarBuilderOpen, setIsCarBuilderOpen] = useState(false);
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
+  
+  // New modal states for feature exploration
+  const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
+  const [isConnectivityModalOpen, setIsConnectivityModalOpen] = useState(false);
+  const [isHybridTechModalOpen, setIsHybridTechModalOpen] = useState(false);
+  const [isInteriorModalOpen, setIsInteriorModalOpen] = useState(false);
+  const [carBuilderInitialGrade, setCarBuilderInitialGrade] = useState<string>();
 
   // Hooks
   const { personaData } = usePersona();
@@ -68,6 +74,28 @@ const VehicleDetails = () => {
   const handleOfferClick = useCallback((offer: any) => {
     setSelectedOffer(offer);
     setIsOffersModalOpen(true);
+  }, []);
+
+  // New modal handlers
+  const handleSafetyExplore = useCallback(() => {
+    setIsSafetyModalOpen(true);
+  }, []);
+
+  const handleConnectivityExplore = useCallback(() => {
+    setIsConnectivityModalOpen(true);
+  }, []);
+
+  const handleHybridTechExplore = useCallback(() => {
+    setIsHybridTechModalOpen(true);
+  }, []);
+
+  const handleInteriorExplore = useCallback(() => {
+    setIsInteriorModalOpen(true);
+  }, []);
+
+  const handleConfigureWithGrade = useCallback((grade?: string) => {
+    setCarBuilderInitialGrade(grade);
+    setIsCarBuilderOpen(true);
   }, []);
 
   // Cleanup on unmount
@@ -136,6 +164,10 @@ const VehicleDetails = () => {
             setIsBookingOpen={setIsBookingOpen}
             navigate={navigate}
             setIsFinanceOpen={setIsFinanceOpen}
+            onSafetyExplore={handleSafetyExplore}
+            onConnectivityExplore={handleConnectivityExplore}
+            onHybridTechExplore={handleHybridTechExplore}
+            onInteriorExplore={handleInteriorExplore}
           />
 
           <OffersSection onOfferClick={handleOfferClick} />
@@ -155,7 +187,10 @@ const VehicleDetails = () => {
           )}
           
           <section className="py-8 lg:py-16 bg-muted/30">
-            <InteractiveSpecsTech vehicle={vehicle} />
+            <InteractiveSpecsTech 
+              vehicle={vehicle} 
+              onCarBuilder={handleConfigureWithGrade}
+            />
           </section>
 
           <section className="py-8 lg:py-16 bg-muted/30">
@@ -188,6 +223,15 @@ const VehicleDetails = () => {
         setIsOffersModalOpen={setIsOffersModalOpen}
         selectedOffer={selectedOffer}
         setSelectedOffer={setSelectedOffer}
+        isSafetyModalOpen={isSafetyModalOpen}
+        setIsSafetyModalOpen={setIsSafetyModalOpen}
+        isConnectivityModalOpen={isConnectivityModalOpen}
+        setIsConnectivityModalOpen={setIsConnectivityModalOpen}
+        isHybridTechModalOpen={isHybridTechModalOpen}
+        setIsHybridTechModalOpen={setIsHybridTechModalOpen}
+        isInteriorModalOpen={isInteriorModalOpen}
+        setIsInteriorModalOpen={setIsInteriorModalOpen}
+        carBuilderInitialGrade={carBuilderInitialGrade}
       />
     </ToyotaLayout>
   );

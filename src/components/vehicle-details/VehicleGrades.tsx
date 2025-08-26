@@ -1,5 +1,5 @@
 // VehicleGrades.tsx – drop-in replacement (React + Tailwind + Framer Motion)
-import React, { useMemo, useReducer } from "react";
+import React, { useMemo, useReducer, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ interface VehicleGrade {
 
 interface VehicleGradesProps {
   vehicle: VehicleModel;
+  onCarBuilder?: (grade?: string) => void;
 }
 
 type State = { index: number; compareMode: boolean; selected: number[] };
@@ -55,7 +56,7 @@ function reducer(s: State, a: Action): State {
 
 const spring = { type: "spring", stiffness: 260, damping: 22 } as const;
 
-const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
+const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle, onCarBuilder }) => {
   const prefersReducedMotion = useReducedMotion();
   const [state, dispatch] = React.useReducer(reducer, { index: 0, compareMode: false, selected: [] });
 
@@ -108,6 +109,12 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
   };
 
   const i = state.index;
+
+  const handleConfigureGrade = useCallback((gradeName: string) => {
+    if (onCarBuilder) {
+      onCarBuilder(gradeName);
+    }
+  }, [onCarBuilder]);
 
   return (
     <section className="py-16 lg:py-24 relative overflow-hidden bg-gradient-to-br from-background via-red-50/30 to-background" style={bgStyle}>
@@ -251,10 +258,20 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
 
                     {/* CTA */}
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                      <Button size="lg" className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white">
+                      <Button 
+                        size="lg" 
+                        className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white"
+                        onClick={() => handleConfigureGrade(grades[i].name)}
+                      >
                         Configure {grades[i].name}
                       </Button>
-                      <Button variant="outline" size="lg" className="flex-1 rounded-xl border-red-200 text-red-600 hover:bg-red-50">
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        className="flex-1 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                        onClick={() => {/* Handle test drive */}
+                        }
+                      >
                         Test Drive
                       </Button>
                     </div>
@@ -326,7 +343,16 @@ const VehicleGrades: React.FC<VehicleGradesProps> = ({ vehicle }) => {
 
             {state.selected.length > 1 && (
               <div className="text-center">
-                <Button size="lg" className="px-8 rounded-xl bg-red-600 hover:bg-red-700 text-white">
+                <Button 
+                  size="lg" 
+                  className="px-8 rounded-xl bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    const selectedGrades = state.selected.map(idx => grades[idx].name);
+                    if (onCarBuilder) {
+                      onCarBuilder(selectedGrades[0]); // Open builder with first selected grade
+                    }
+                  }}
+                >
                   Compare Selected Grades ({state.selected.length})
                 </Button>
               </div>
