@@ -8,6 +8,7 @@ import NavigationDots from "./NavigationDots";
 import AnimatedCounter from "@/components/ui/animated-counter";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useSectionVisibility } from "@/hooks/use-section-visibility";
 import { useCleanup } from "@/hooks/use-cleanup";
 import { enhancedVariants, springConfigs } from "@/utils/animation-configs";
 
@@ -285,6 +286,10 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
 }) => {
   const [activeStorySection, setActiveStorySection] = useState(0);
   const { addCleanup } = useCleanup();
+  const { sectionRef, isVisible } = useSectionVisibility({
+    threshold: 0.2,
+    rootMargin: '-10% 0px -10% 0px'
+  });
 
   const storySection = createStorySections(
     galleryImages,
@@ -295,11 +300,15 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
   );
 
   return (
-    <section className="relative py-16 lg:py-28 bg-muted/30">
+    <section 
+      ref={sectionRef}
+      className="relative py-16 lg:py-28 bg-muted/30"
+    >
       <NavigationDots
         sections={storySection}
         activeSection={activeStorySection}
         onSectionClick={setActiveStorySection}
+        isVisible={isVisible}
       />
 
       <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-32 lg:space-y-40">
