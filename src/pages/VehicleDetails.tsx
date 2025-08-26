@@ -49,6 +49,7 @@ const VehicleDetails = () => {
   const [isHybridTechModalOpen, setIsHybridTechModalOpen] = useState(false);
   const [isInteriorModalOpen, setIsInteriorModalOpen] = useState(false);
   const [carBuilderInitialGrade, setCarBuilderInitialGrade] = useState<string>();
+  const [selectedGrade, setSelectedGrade] = useState<string>();
 
   // Hooks
   const { personaData } = usePersona();
@@ -96,6 +97,12 @@ const VehicleDetails = () => {
   const handleConfigureWithGrade = useCallback((grade?: string) => {
     setCarBuilderInitialGrade(grade);
     setIsCarBuilderOpen(true);
+  }, []);
+
+  const handleGradeSelect = useCallback((grade: string) => {
+    setSelectedGrade(grade);
+    console.log('Grade selected:', grade);
+    // You can add additional logic here like saving to localStorage, analytics, etc.
   }, []);
 
   // Cleanup on unmount
@@ -190,6 +197,7 @@ const VehicleDetails = () => {
             vehicle={vehicle}
             onCarBuilder={handleConfigureWithGrade}
             onTestDrive={() => setIsBookingOpen(true)}
+            onGradeSelect={handleGradeSelect}
           />
 
           <section className="py-8 lg:py-16 bg-muted/30">
