@@ -139,10 +139,10 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
         className="relative overflow-hidden touch-pan-y"
         style={{ minHeight: '400px' }}
       >
-        <AnimatePresence mode="wait" custom={dragDirection}>
+        <AnimatePresence mode="wait" custom={dragDirection === 'right' ? 1 : -1}>
           <motion.div
             key={selectedGrade}
-            custom={dragDirection}
+            custom={dragDirection === 'right' ? 1 : -1}
             variants={slideVariants}
             initial="enter"
             animate="center"
@@ -174,7 +174,7 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
         >
           <Button
             onClick={() => {
-              setDragDirection(-1);
+              setDragDirection('left');
               prevGrade();
             }}
             disabled={!canGoPrev}
@@ -195,7 +195,7 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
               key={idx}
               onClick={() => {
                 if (idx !== selectedGrade && !isAnimating) {
-                  setDragDirection(idx > selectedGrade ? 1 : -1);
+                  setDragDirection(idx > selectedGrade ? 'right' : 'left');
                   onGradeChange(idx);
                   contextualHaptic.selectionChange();
                   setShowSwipeHint(false);
@@ -220,7 +220,7 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
         >
           <Button
             onClick={() => {
-              setDragDirection(1);
+              setDragDirection('right');
               nextGrade();
             }}
             disabled={!canGoNext}
