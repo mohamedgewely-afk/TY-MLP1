@@ -79,10 +79,10 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
     setTimeout(() => setIsAnimating(false), 300);
   }, [selectedGrade, grades.length, onGradeChange, isAnimating]);
 
-  // Swipe handlers with enhanced gesture detection
+  // Fixed swipe handlers - swipe right goes to next, swipe left goes to previous
   const swipeableRef = useSwipeable({
-    onSwipeLeft: nextGrade,
-    onSwipeRight: prevGrade,
+    onSwipeLeft: prevGrade,  // Swipe left = go to previous
+    onSwipeRight: nextGrade, // Swipe right = go to next
     threshold: 50,
     preventDefaultTouchmoveEvent: true,
     debug: false
@@ -133,11 +133,11 @@ const SwipeableGradeCarousel: React.FC<SwipeableGradeCarouselProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Main Carousel Container */}
+      {/* Main Carousel Container - Reduced height for mobile */}
       <div
         ref={swipeableRef}
         className="relative overflow-hidden touch-pan-y"
-        style={{ minHeight: '400px' }}
+        style={{ minHeight: '320px' }}
       >
         <AnimatePresence mode="wait" custom={dragDirection === 'right' ? 1 : -1}>
           <motion.div

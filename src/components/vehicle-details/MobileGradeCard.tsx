@@ -60,21 +60,21 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
     >
       <Card className={`overflow-hidden shadow-xl ${isActive ? 'ring-2 ring-primary shadow-2xl' : 'border-border'}`}>
         <CardContent className="p-0">
-          {/* Enhanced Image Section with Parallax Effect */}
+          {/* Enhanced Image Section - Reduced height for mobile */}
           <div className="relative overflow-hidden">
-            <Badge className={`absolute top-4 left-4 z-10 ${grade.badgeColor} text-white px-3 py-2 text-sm font-medium shadow-lg backdrop-blur-sm`}>
+            <Badge className={`absolute top-3 left-3 z-10 ${grade.badgeColor} text-white px-2 py-1 text-xs font-medium shadow-lg backdrop-blur-sm`}>
               {grade.badge}
             </Badge>
             
-            {/* Grade Info Badge */}
+            {/* Grade Info Badge - Smaller on mobile */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, ...springConfigs.luxurious }}
-              className="absolute top-4 right-4 z-10 bg-black/50 text-white px-3 py-2 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-1"
+              className="absolute top-3 right-3 z-10 bg-black/50 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-1"
             >
-              <Info className="h-3 w-3" />
-              Premium Grade
+              <Info className="h-2 w-2" />
+              Premium
             </motion.div>
 
             <motion.img
@@ -84,40 +84,40 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
               whileHover={{ scale: 1.02 }}
               src={grade.image}
               alt={grade.name}
-              className="w-full h-56 sm:h-64 object-cover"
+              className="w-full h-32 sm:h-48 object-cover" // Reduced from h-56 to h-32
             />
             
-            {/* Gradient Overlay for Better Text Readability */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
+            {/* Gradient Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
           </div>
 
-          {/* Enhanced Content Section */}
-          <div className="p-4 sm:p-6 space-y-5">
-            {/* Header with Enhanced Styling */}
+          {/* Enhanced Content Section - Compact spacing */}
+          <div className="p-3 sm:p-6 space-y-3 sm:space-y-5"> {/* Reduced padding and spacing */}
+            {/* Header with Enhanced Styling - Smaller text on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, ...springConfigs.luxurious }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center">
-                  <Star className="h-5 w-5 text-primary-foreground fill-current" />
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center">
+                  <Star className="h-3 w-3 sm:h-5 sm:w-5 text-primary-foreground fill-current" />
                 </div>
                 <div>
-                  <h4 className="text-xl sm:text-2xl font-black">{grade.name}</h4>
+                  <h4 className="text-lg sm:text-2xl font-black">{grade.name}</h4> {/* Reduced from text-xl */}
                   <p className="text-xs text-muted-foreground">{grade.specs.engine}</p>
                 </div>
               </div>
               
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{grade.description}</p>
+              <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{grade.description}</p>
               
-              {/* Enhanced Pricing Display */}
-              <div className="bg-gradient-to-r from-muted/50 to-muted/30 p-4 rounded-xl space-y-2">
+              {/* Enhanced Pricing Display - Smaller on mobile */}
+              <div className="bg-gradient-to-r from-muted/50 to-muted/30 p-3 rounded-xl space-y-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-primary">
+                  <span className="text-2xl sm:text-4xl font-black text-primary"> {/* Reduced from text-3xl */}
                     AED {grade.price.toLocaleString()}
                   </span>
-                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-xs text-muted-foreground">Total</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   From <span className="font-semibold text-foreground">AED {grade.monthlyFrom}/month</span> with financing
@@ -125,20 +125,20 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
               </div>
             </motion.div>
 
-            {/* Enhanced Key Features with Icons */}
+            {/* Enhanced Key Features - Limited to 3 on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, ...springConfigs.luxurious }}
             >
-              <h5 className="font-bold mb-4 text-sm flex items-center gap-2">
-                <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Check className="h-3 w-3 text-primary" />
+              <h5 className="font-bold mb-3 text-sm flex items-center gap-2">
+                <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center">
+                  <Check className="h-2 w-2 text-primary" />
                 </div>
                 Key Features
               </h5>
-              <div className="grid grid-cols-1 gap-3">
-                {grade.features.map((feature, index) => (
+              <div className="grid grid-cols-1 gap-2">
+                {grade.features.slice(0, isMobile ? 3 : 4).map((feature, index) => (
                   <motion.div 
                     key={feature} 
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
@@ -147,34 +147,34 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
                     transition={{ delay: 0.1 * index, ...springConfigs.snappy }}
                     whileHover={{ x: 4, transition: springConfigs.snappy }}
                   >
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <Check className="h-3 w-3 text-primary-foreground" />
+                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <Check className="h-2 w-2 text-primary-foreground" />
                     </div>
                     <span className="text-sm font-medium">{feature}</span>
                   </motion.div>
                 ))}
-                {grade.features.length > 4 && (
+                {grade.features.length > (isMobile ? 3 : 4) && (
                   <motion.div 
-                    className="text-xs text-muted-foreground mt-2 flex items-center gap-1"
+                    className="text-xs text-muted-foreground mt-1 flex items-center gap-1"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
                   >
                     <Info className="h-3 w-3" />
-                    +{grade.features.length - 4} more premium features included
+                    +{grade.features.length - (isMobile ? 3 : 4)} more features included
                   </motion.div>
                 )}
               </div>
             </motion.div>
 
-            {/* Enhanced Action Buttons with Better UX */}
+            {/* Enhanced Action Buttons - Compact on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, ...springConfigs.luxurious }}
-              className="space-y-4 pt-2"
+              className="space-y-3 pt-2"
             >
-              {/* Primary Action with Gradient */}
+              {/* Primary Action - Smaller height on mobile */}
               <motion.div
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -182,14 +182,14 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
               >
                 <Button 
                   size="lg" 
-                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground min-h-[52px] font-semibold shadow-lg"
+                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground min-h-[44px] sm:min-h-[52px] font-semibold shadow-lg" // Reduced mobile height
                   onClick={() => handleButtonClick(onSelect, 'configComplete')}
                 >
                   Select This Grade
                 </Button>
               </motion.div>
               
-              {/* Secondary Actions with Enhanced Design */}
+              {/* Secondary Actions - Smaller on mobile */}
               <div className="grid grid-cols-2 gap-3">
                 <motion.div
                   whileHover={{ scale: 1.02, y: -1 }}
@@ -199,10 +199,10 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="gap-2 min-h-[48px] w-full font-medium border-2 hover:border-primary hover:text-primary"
+                    className="gap-2 min-h-[40px] sm:min-h-[48px] w-full font-medium border-2 hover:border-primary hover:text-primary" // Reduced mobile height
                     onClick={() => handleButtonClick(onTestDrive)}
                   >
-                    <Car className="h-4 w-4" />
+                    <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                     {isMobile ? "Drive" : "Test Drive"}
                   </Button>
                 </motion.div>
@@ -214,10 +214,10 @@ const MobileGradeCard: React.FC<MobileGradeCardProps> = ({
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="gap-2 min-h-[48px] w-full font-medium border-2 hover:border-primary hover:text-primary"
+                    className="gap-2 min-h-[40px] sm:min-h-[48px] w-full font-medium border-2 hover:border-primary hover:text-primary" // Reduced mobile height
                     onClick={() => handleButtonClick(onConfigure)}
                   >
-                    <Wrench className="h-4 w-4" />
+                    <Wrench className="h-3 w-3 sm:h-4 sm:w-4" />
                     {isMobile ? "Build" : "Configure"}
                   </Button>
                 </motion.div>
