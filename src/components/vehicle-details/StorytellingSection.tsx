@@ -318,18 +318,22 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
     rootMargin: '-10% 0px -10% 0px'
   });
 
+  // Create modal handlers object to pass to createStorySections
+  const modalHandlers = useMemo(() => ({
+    onSafetyExplore,
+    onConnectivityExplore,
+    onHybridTechExplore,
+    onInteriorExplore
+  }), [onSafetyExplore, onConnectivityExplore, onHybridTechExplore, onInteriorExplore]);
+
   // Memoize story sections to prevent recreation
   const storySection = useMemo(() => createStorySections(
     galleryImages,
     monthlyEMI,
     setIsBookingOpen,
-    navigate,
     setIsFinanceOpen,
-    onSafetyExplore,
-    onConnectivityExplore,
-    onHybridTechExplore,
-    onInteriorExplore
-  ), [galleryImages, monthlyEMI, setIsBookingOpen, navigate, setIsFinanceOpen, onSafetyExplore, onConnectivityExplore, onHybridTechExplore, onInteriorExplore]);
+    modalHandlers
+  ), [galleryImages, monthlyEMI, setIsBookingOpen, setIsFinanceOpen, modalHandlers]);
 
   // Memoized callback for better performance
   const handleSectionClick = useCallback((index: number) => {

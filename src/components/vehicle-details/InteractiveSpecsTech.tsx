@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,6 +17,33 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle, on
   const handleTabChange = useCallback((value: "specs" | "tech" | "configure") => {
     setActiveTab(value);
   }, []);
+
+  // Default specifications data since VehicleModel doesn't have detailed specs
+  const defaultSpecs = {
+    engineType: vehicle.specifications?.engine || "N/A",
+    transmission: vehicle.specifications?.transmission || "N/A",
+    fuelEconomy: vehicle.specifications?.fuelEconomy || "N/A",
+    safetyRating: vehicle.specifications?.safetyRating || "N/A",
+    warranty: vehicle.specifications?.warranty || "N/A"
+  };
+
+  const defaultFeatures = {
+    safetyFeatures: [
+      "Toyota Safety Sense 3.0",
+      "Pre-Collision System",
+      "Lane Departure Alert"
+    ],
+    entertainmentFeatures: [
+      "8-inch Touch Display",
+      "Apple CarPlay/Android Auto",
+      "Premium Audio System"
+    ],
+    convenienceFeatures: [
+      "Smart Key System",
+      "Automatic Climate Control",
+      "Power Adjustable Seats"
+    ]
+  };
 
   return (
     <div className="toyota-container">
@@ -38,26 +66,30 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle, on
                 <h2 className="text-2xl font-bold mb-4">Vehicle Specifications</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold">Engine</h3>
-                    <p>Type: {vehicle.engineType}</p>
-                    <p>Displacement: {vehicle.engineDisplacement}</p>
-                    <p>Horsepower: {vehicle.horsepower}</p>
+                    <h3 className="text-lg font-semibold">Engine & Performance</h3>
+                    <p>Engine: {defaultSpecs.engineType}</p>
+                    <p>Transmission: {defaultSpecs.transmission}</p>
+                    <p>Fuel Economy: {defaultSpecs.fuelEconomy}</p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Dimensions</h3>
-                    <p>Length: {vehicle.length}</p>
-                    <p>Width: {vehicle.width}</p>
-                    <p>Height: {vehicle.height}</p>
+                    <h3 className="text-lg font-semibold">Safety & Warranty</h3>
+                    <p>Safety Rating: {defaultSpecs.safetyRating}</p>
+                    <p>Warranty: {defaultSpecs.warranty}</p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Fuel Efficiency</h3>
-                    <p>City: {vehicle.cityFuelEconomy}</p>
-                    <p>Highway: {vehicle.highwayFuelEconomy}</p>
+                    <h3 className="text-lg font-semibold">Features</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {vehicle.features.map((feature, index) => (
+                        <Badge key={index} variant="secondary">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Other</h3>
-                    <p>Seating Capacity: {vehicle.seatingCapacity}</p>
-                    <p>Cargo Volume: {vehicle.cargoVolume}</p>
+                    <h3 className="text-lg font-semibold">Category</h3>
+                    <p>Type: {vehicle.category}</p>
+                    <p>Starting Price: ${vehicle.price.toLocaleString()}</p>
                   </div>
                 </div>
               </motion.div>
@@ -75,27 +107,27 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle, on
                 <h2 className="text-2xl font-bold mb-4">Technology Features</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold">Safety</h3>
+                    <h3 className="text-lg font-semibold">Safety Technology</h3>
                     <ul className="list-disc list-inside">
-                      <li>{vehicle.safetyFeatures[0]}</li>
-                      <li>{vehicle.safetyFeatures[1]}</li>
-                      <li>{vehicle.safetyFeatures[2]}</li>
+                      {defaultFeatures.safetyFeatures.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">Entertainment</h3>
                     <ul className="list-disc list-inside">
-                      <li>{vehicle.entertainmentFeatures[0]}</li>
-                      <li>{vehicle.entertainmentFeatures[1]}</li>
-                      <li>{vehicle.entertainmentFeatures[2]}</li>
+                      {defaultFeatures.entertainmentFeatures.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">Convenience</h3>
                     <ul className="list-disc list-inside">
-                      <li>{vehicle.convenienceFeatures[0]}</li>
-                      <li>{vehicle.convenienceFeatures[1]}</li>
-                      <li>{vehicle.convenienceFeatures[2]}</li>
+                      {defaultFeatures.convenienceFeatures.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -119,7 +151,7 @@ const InteractiveSpecsTech: React.FC<InteractiveSpecsTechProps> = ({ vehicle, on
               <div className="flex items-center justify-between bg-muted/30 rounded-lg p-4">
                 <div>
                   <h3 className="text-lg font-semibold">Starting Price</h3>
-                  <p className="text-xl font-bold">${vehicle.price}</p>
+                  <p className="text-xl font-bold">${vehicle.price.toLocaleString()}</p>
                 </div>
                 <Badge variant="secondary">Base Model</Badge>
               </div>
