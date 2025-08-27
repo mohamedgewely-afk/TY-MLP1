@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import OptimizedSceneCard from "./OptimizedSceneCard";
@@ -301,7 +302,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
       {/* Live region */}
       <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
 
-      {/* Enhanced background for desktop */}
+      {/* Simplified background without problematic animations */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         {currentBG && (
           <img
@@ -312,13 +313,12 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
           />
         )}
         
-        {/* Optimized particle field */}
+        {/* Simple static particle field without animation */}
         <div 
           className="absolute inset-0 opacity-15"
           style={{
             backgroundImage: `radial-gradient(circle at 25% 35%, ${TOYOTA_RED}20 2px, transparent 2px), radial-gradient(circle at 75% 65%, ${TOYOTA_RED}15 1px, transparent 1px)`,
             backgroundSize: isDesktop ? '80px 80px, 120px 120px' : '60px 60px, 80px 80px',
-            animation: 'float 25s ease-in-out infinite',
           }}
         />
         
@@ -471,16 +471,6 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({
           }}
         />
       )}
-
-      {/* CSS animations */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
-          25% { transform: translateY(-8px) rotate(0.5deg); opacity: 0.2; }
-          50% { transform: translateY(-12px) rotate(0deg); opacity: 0.25; }
-          75% { transform: translateY(-6px) rotate(-0.5deg); opacity: 0.2; }
-        }
-      `}</style>
     </section>
   );
 };
