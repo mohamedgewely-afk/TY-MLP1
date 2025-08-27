@@ -13,18 +13,21 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      // Disable react-refresh in production builds
+      devTarget: mode === 'development' ? 'es2020' : undefined,
+    }),
     mode === 'development' && componentTagger(),
     
     // Bundle analyzer - generates stats.html in dist folder
     mode === 'production' && visualizer({
       filename: 'dist/stats.html',
-      open: true,
+      open: false, // Don't auto-open in CI
       gzipSize: true,
       brotliSize: true,
     }),
     
-    // Brotli and Gzip compression
+    // Brotli and Gzip compression for production
     mode === 'production' && compression({
       algorithms: ['brotli'],
       filename: '[path][base].br',
@@ -43,72 +46,80 @@ export default defineConfig(({ mode }) => ({
   
   build: {
     // Enhanced build optimization
-    target: ['es2020', 'chrome80', 'firefox78', 'safari13'],
+    target: mode === 'production' ? ['es2020', 'chrome80', 'firefox78', 'safari13'] : 'es2020',
     cssTarget: 'chrome80',
     
     rollupOptions: {
       output: {
-        // Code splitting configuration
-        manualChunks: {
-          // Vendor chunk for large dependencies
-          vendor: [
-            'react',
-            'react-dom',
-            'react-router-dom'
-          ],
-          // UI chunk for component library
-          ui: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            'framer-motion'
-          ],
-          // Charts chunk for data visualization
-          charts: ['recharts'],
-          // Query chunk for data fetching
-          query: ['@tanstack/react-query']
+        // Enhanced code splitting configuration
+        manualChunks: (id) => {
+          // Core React chunk
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
+          // UI library chunk
+          if (id.includes('@radix-ui') || id.includes('framer-motion')) {
+            return 'ui-vendor';
+          }
+          // Charts chunk
+          if (id.includes('recharts')) {
+            return 'charts-vendor';
+          }
+          // Query/routing chunk
+          if (id.includes('@tanstack/react-query') || id.includes('react-router')) {
+            return 'query-vendor';
+          }
+          // Heavy vehicle components
+          if (id.includes('vehicle-details/VirtualShowroom') || 
+              id.includes('vehicle-details/CarBuilder') ||
+              id.includes('vehicle-details/EnhancedLifestyleGallery')) {
+            return 'heavy-components';
+          }
         },
         
-        // Optimize chunk file names
+        // Optimize chunk file names for caching
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId ? 
             chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') || 'chunk' : 
             'chunk';
-          return `assets/${facadeModuleId}-[hash].js`;
+          return `assets/js/${facadeModuleId}-[hash].js`;
         },
         
-        // Optimize asset file names
+        // Optimize asset file names for caching
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name?.split('.').pop();
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(extType || '')) {
             return 'assets/images/[name]-[hash][extname]';
           }
           if (/woff2?|eot|ttf|otf/i.test(extType || '')) {
             return 'assets/fonts/[name]-[hash][extname]';
+          }
+          if (/css/i.test(extType || '')) {
+            return 'assets/css/[name]-[hash][extname]';
           }
           return 'assets/[name]-[hash][extname]';
         }
       }
     },
     
-    // Minification and optimization
-    minify: 'terser',
-    terserOptions: {
+    // Production optimizations
+    minify: mode === 'production' ? 'terser' : false,
+    terserOptions: mode === 'production' ? {
       compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : []
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
       },
       mangle: {
         safari10: true
       }
-    },
+    } : undefined,
     
-    // Source maps for debugging
+    // Source maps only in development
     sourcemap: mode === 'development',
     
     // Chunk size warnings
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500,
     
     // Asset inlining threshold
     assetsInlineLimit: 4096
@@ -119,6 +130,7 @@ export default defineConfig(({ mode }) => ({
     devSourcemap: mode === 'development',
     postcss: {
       plugins: mode === 'production' ? [
+        require('autoprefixer'),
         require('cssnano')({
           preset: ['default', {
             discardComments: { removeAll: true },
@@ -146,9 +158,10 @@ export default defineConfig(({ mode }) => ({
   
   // Experimental features for better performance
   esbuild: {
-    target: 'es2020',
+    target: mode === 'production' ? 'es2020' : 'esnext',
     legalComments: 'none',
     minifyIdentifiers: mode === 'production',
-    minifySyntax: mode === 'production'
+    minifySyntax: mode === 'production',
+    drop: mode === 'production' ? ['console', 'debugger'] : []
   }
 }));
