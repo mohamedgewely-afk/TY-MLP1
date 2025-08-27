@@ -1,5 +1,6 @@
 
 import React from "react";
+import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Zap, Star, Palette } from "lucide-react";
 
@@ -50,23 +51,28 @@ const ChoiceCollector: React.FC<ChoiceCollectorProps> = ({ config, step }) => {
   if (visibleChoices.length === 0) return null;
 
   return (
-    <div className="space-y-2 opacity-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-2"
+    >
       <h4 className="text-xs font-medium text-muted-foreground">Your Choices</h4>
       <div className="flex flex-wrap gap-1">
         {visibleChoices.map((choice, index) => (
-          <div
+          <motion.div
             key={choice.label}
-            className="opacity-0 animate-fade-in"
-            style={{ animationDelay: `${0.1 + index * 0.05}s` }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
           >
             <Badge variant="secondary" className="text-xs px-2 py-1 bg-primary/10 text-primary border-primary/20">
               <span className="mr-1">{choice.icon}</span>
               {choice.value}
             </Badge>
-          </div>
+          </motion.div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

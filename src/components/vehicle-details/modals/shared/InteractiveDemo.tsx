@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +15,7 @@ interface InteractiveDemoProps {
     duration?: number;
   }[];
   autoPlay?: boolean;
-  type?: string;
+  type?: string; // Add the type prop
 }
 
 const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
@@ -22,8 +23,9 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
   description,
   demoSteps,
   autoPlay = false,
-  type = "default"
+  type = "default" // Default value for type
 }) => {
+  // Generate default demo content based on type if no demoSteps provided
   const defaultDemoSteps = React.useMemo(() => {
     if (demoSteps && demoSteps.length > 0) return demoSteps;
     
@@ -138,25 +140,31 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
       )}
 
       <div className="relative bg-muted rounded-2xl overflow-hidden">
-        <div
-          key={currentStep}
-          className="aspect-video relative opacity-0 animate-fade-in"
-        >
-          <img
-            src={defaultDemoSteps[currentStep]?.image}
-            alt={defaultDemoSteps[currentStep]?.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          <div className="absolute bottom-6 left-6 right-6 text-white">
-            <h4 className="text-xl font-bold mb-2">
-              {defaultDemoSteps[currentStep]?.title}
-            </h4>
-            <p className="text-white/90">
-              {defaultDemoSteps[currentStep]?.description}
-            </p>
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
+            className="aspect-video relative"
+          >
+            <img
+              src={defaultDemoSteps[currentStep]?.image}
+              alt={defaultDemoSteps[currentStep]?.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white">
+              <h4 className="text-xl font-bold mb-2">
+                {defaultDemoSteps[currentStep]?.title}
+              </h4>
+              <p className="text-white/90">
+                {defaultDemoSteps[currentStep]?.description}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Play/Pause Control */}
         <Button
@@ -175,7 +183,7 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
           <button
             key={index}
             onClick={() => setCurrentStep(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-2 rounded-full transition-all ${
               index === currentStep ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
             }`}
           />

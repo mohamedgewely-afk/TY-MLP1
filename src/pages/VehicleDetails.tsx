@@ -1,6 +1,6 @@
-
 import React, { useState, useCallback, Suspense } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 import ToyotaLayout from "@/components/ToyotaLayout";
@@ -32,6 +32,8 @@ import VirtualShowroom from "@/components/vehicle-details/VirtualShowroom";
 import StorytellingSection from "@/components/vehicle-details/StorytellingSection";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
+
+import { enhancedVariants } from "@/utils/animation-configs";
 
 const VehicleDetails = () => {
   // Modal states
@@ -115,13 +117,18 @@ const VehicleDetails = () => {
     return (
       <ToyotaLayout>
         <div className="toyota-container py-16 text-center">
-          <div className="space-y-4 opacity-0 animate-fade-in">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="space-y-4"
+            variants={enhancedVariants.fadeInUp}
+          >
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
             <Button asChild>
               <Link to="/">Return to Home</Link>
             </Button>
-          </div>
+          </motion.div>
         </div>
       </ToyotaLayout>
     );
