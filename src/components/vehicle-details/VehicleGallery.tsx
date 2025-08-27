@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect, memo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import OptimizedSceneCard from "./OptimizedSceneCard";
 import OptimizedSceneModal from "./OptimizedSceneModal";
@@ -185,7 +185,7 @@ const DEFAULT_SCENES: SceneData[] = [
   },
 ];
 
-const VehicleGallery = memo<VehicleGalleryProps>(({
+const VehicleGallery: React.FC<VehicleGalleryProps> = ({
   scenes = DEFAULT_SCENES,
   locale = "en",
   rtl = false,
@@ -483,7 +483,7 @@ const VehicleGallery = memo<VehicleGalleryProps>(({
       `}</style>
     </section>
   );
-});
+};
 
 VehicleGallery.displayName = "VehicleGallery";
 
