@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { PersonaContextType, PersonaType, Persona } from "@/types/persona";
 import { personas } from "@/data/personas";
 import { toast } from "@/hooks/use-toast";
@@ -20,10 +20,10 @@ const PersonaContext = createContext<PersonaContextType>(defaultContextValue);
 export const usePersona = () => useContext(PersonaContext);
 
 interface PersonaProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export const PersonaProvider = ({ children }: PersonaProviderProps) => {
+export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) => {
   // Initialize state, check localStorage for previously selected persona
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>(() => {
     try {
@@ -146,7 +146,7 @@ export const PersonaProvider = ({ children }: PersonaProviderProps) => {
     });
   };
 
-  const value = {
+  const value: PersonaContextType = {
     selectedPersona,
     personaData,
     setSelectedPersona: handleSetSelectedPersona,
