@@ -1,6 +1,5 @@
 
 import React, { useState, Suspense, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
 import NavigationDots from "./NavigationDots";
 import OptimizedStorySection from "./OptimizedStorySection";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
