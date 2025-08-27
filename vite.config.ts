@@ -48,9 +48,6 @@ export default defineConfig(({ mode }) => ({
     cssTarget: 'chrome80',
     
     rollupOptions: {
-      // Handle react-refresh properly
-      external: mode === 'development' ? [] : ['/@react-refresh'],
-      
       output: {
         // Enhanced code splitting for 732KB savings
         manualChunks: (id) => {
