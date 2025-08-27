@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, lazy } from "react";
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -19,12 +19,12 @@ console.log('App.tsx React hooks check:', {
 });
 
 // Aggressive lazy loading for route-level code splitting (429KB → 150KB initial)
-const Index = React.lazy(() => import("./pages/Index"));
-const VehicleDetails = React.lazy(() => import("./pages/VehicleDetails"));
-const TestDrive = React.lazy(() => import("./pages/TestDrive"));
-const Enquire = React.lazy(() => import("./pages/Enquire"));
-const PreOwned = React.lazy(() => import("./pages/PreOwned"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Index = lazy(() => import("./pages/Index"));
+const VehicleDetails = lazy(() => import("./pages/VehicleDetails"));
+const TestDrive = lazy(() => import("./pages/TestDrive"));
+const Enquire = lazy(() => import("./pages/Enquire"));
+const PreOwned = lazy(() => import("./pages/PreOwned"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized query client with enhanced caching for reduced network requests
 const queryClient = new QueryClient({
