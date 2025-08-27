@@ -5,13 +5,105 @@ import {
   X, Play, Pause, ChevronLeft, ChevronRight,
   GaugeCircle, Zap, TimerReset, Navigation, Gauge, BatteryCharging, Sparkles,
 } from "lucide-react";
-import { performantVariants, performantSpringConfigs } from "@/utils/performance-animations";
+import { performantVariants, performantSpringConfigs, performanceUtils } from "@/utils/performance-animations";
 
 // —————————————————————————————————
 // THEME
 // —————————————————————————————————
 const TOYOTA_RED = "#EB0A1E" as const;
 const TOYOTA_BG  = "#0D0F10" as const;
+
+// —————————————————————————————————
+// ENHANCED PERFORMANCE CONFIGS FOR MODAL STATE
+// —————————————————————————————————
+const modalOptimizedConfigs = {
+  // Ultra-fast transitions for modal interactions
+  ultraFast: {
+    type: "spring",
+    stiffness: 300,
+    damping: 25,
+    mass: 0.4
+  },
+  // Smooth but performant for overlay content
+  modalSmooth: {
+    type: "spring",
+    stiffness: 150,
+    damping: 18,
+    mass: 0.6
+  },
+  // Minimal animation for heavy content
+  minimal: {
+    type: "tween",
+    duration: 0.2,
+    ease: "easeOut"
+  }
+} as const;
+
+// GPU-optimized modal variants
+const modalOptimizedVariants = {
+  overlay: {
+    hidden: { 
+      opacity: 0,
+      backdropFilter: 'blur(0px)',
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'opacity, backdrop-filter'
+    },
+    visible: { 
+      opacity: 1,
+      backdropFilter: 'blur(8px)',
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'auto',
+      transition: modalOptimizedConfigs.ultraFast
+    },
+    exit: {
+      opacity: 0,
+      backdropFilter: 'blur(0px)',
+      transition: modalOptimizedConfigs.minimal
+    }
+  },
+  panel: {
+    hidden: { 
+      opacity: 0,
+      scale: 0.96,
+      y: 20,
+      transform: 'translate3d(0, 20px, 0) scale(0.96)',
+      willChange: 'transform, opacity'
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transform: 'translate3d(0, 0, 0) scale(1)',
+      willChange: 'auto',
+      transition: modalOptimizedConfigs.modalSmooth
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.96,
+      y: 20,
+      transform: 'translate3d(0, 20px, 0) scale(0.96)',
+      transition: modalOptimizedConfigs.minimal
+    }
+  },
+  content: {
+    hidden: { 
+      opacity: 0,
+      y: 10,
+      transform: 'translate3d(0, 10px, 0)',
+      willChange: 'transform, opacity'
+    },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'auto',
+      transition: {
+        ...modalOptimizedConfigs.modalSmooth,
+        delay: 0.1
+      }
+    }
+  }
+};
 
 function ToyotaLogo({
   className = "w-20 h-auto",
@@ -491,12 +583,13 @@ export default function LandCruiserLifestyleGalleryPro({
             prefersReduced={prefersReduced}
             ariaLabel={T.openScene(sc.scene)}
             expandLabel={T.expand}
+            isModalOpen={!!selected}
           />
         ))}
       </div>
 
       {/* Desktop arrows outside overlay */}
-      {filtered.length > 0 && (
+      {filtered.length > 0 && !selected && (
         <div className="relative hidden md:block z-10">
           <div className="pointer-events-none absolute top-1/2 left-0 right-0 mx-auto max-w-[min(98vw,2000px)] px-2 md:px-6 -translate-y-1/2">
             <div className="flex items-center justify-between">
@@ -556,7 +649,7 @@ export default function LandCruiserLifestyleGalleryPro({
       </div>
 
       {/* Overlay */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {selected && (
           <ExpandedSceneOverlay
             key={selected.id}
@@ -584,6 +677,7 @@ function SceneCardPro({
   tabIndex,
   ariaLabel,
   expandLabel,
+  isModalOpen,
 }: {
   data: SceneData;
   active: boolean;
@@ -593,7 +687,16 @@ function SceneCardPro({
   tabIndex: number;
   ariaLabel: string;
   expandLabel: string;
+  isModalOpen: boolean;
 }) {
+  // Performance optimizations when modal is open
+  const cardAnimationConfig = useMemo(() => {
+    if (isModalOpen || prefersReduced) {
+      return { duration: 0.1 }; // Minimal animation when modal is open
+    }
+    return performantSpringConfigs.luxurious;
+  }, [isModalOpen, prefersReduced]);
+
   // Bigger desktop widths + subtle elevation for active card
   const cardCls = `snap-center shrink-0
   min-w-[300px] max-w-[300px]
@@ -610,16 +713,17 @@ function SceneCardPro({
   return (
     <motion.article
       className={cardCls}
-      layoutId={data.id}
+      layoutId={isModalOpen ? undefined : data.id} // Disable layoutId when modal is open for performance
       initial={false}
       animate={{
         boxShadow: active
           ? `0 0 0 2px ${TOYOTA_RED}66, 0 20px 45px rgba(0,0,0,0.55)`
           : "0 10px 25px rgba(0,0,0,0.35)",
-        y: active && !prefersReduced ? -4 : 0,
-        scale: active ? 1.0 : 0.98,
+        y: active && !prefersReduced && !isModalOpen ? -4 : 0,
+        scale: active && !isModalOpen ? 1.0 : 0.98,
       }}
-      transition={prefersReduced ? { duration: 0 } : performantSpringConfigs.luxurious}
+      transition={cardAnimationConfig}
+      style={isModalOpen ? performanceUtils.forceGPULayer : undefined}
     >
       <button
         type="button"
@@ -663,7 +767,10 @@ function SceneCardPro({
                 initial={{ opacity: 0, y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
+                transition={{ 
+                  duration: isModalOpen ? 0.1 : 0.3, 
+                  delay: prefersReduced || isModalOpen ? 0 : i * 0.04 
+                }}
                 className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-black/60 backdrop-blur px-3 py-2 hover:shadow-[0_0_0_1px_rgba(235,10,30,0.35),0_0_24px_rgba(235,10,30,0.25)] transition-shadow duration-300"
               >
                 <span style={{ color: TOYOTA_RED }}>
@@ -747,40 +854,61 @@ function ExpandedSceneOverlay({
     <motion.div
       ref={overlayRef}
       className="fixed inset-0 z-50"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      aria-modal="true" role="dialog" aria-labelledby={headingId}
+      variants={modalOptimizedVariants.overlay}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      aria-modal="true" 
+      role="dialog" 
+      aria-labelledby={headingId}
+      style={performanceUtils.forceGPULayer}
     >
       {/* Backdrop */}
       <motion.div
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.8)" }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/80"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={modalOptimizedConfigs.ultraFast}
         aria-hidden
       />
 
       {/* Panel */}
       <motion.div
-        layoutId={scene.id}
         className="relative z-10 mx-auto h-full w-full md:w-[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
         style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
-        transition={prefersReduced ? { duration: 0 } : performantSpringConfigs.cinematic}
+        variants={modalOptimizedVariants.panel}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
       >
         {/* Hero */}
-        <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div 
+          className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" 
+          onTouchStart={onTouchStart} 
+          onTouchEnd={onTouchEnd}
+          style={performanceUtils.forceGPULayer}
+        >
           <img
             src={scene.image}
             alt={`${scene.title} • ${scene.scene}`}
             className="absolute inset-0 w-full h-full object-cover"
-            loading="eager" decoding="async"
+            loading="eager" 
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/0" aria-hidden />
 
           {/* Top Bar */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pt-[env(safe-area-inset-top)]">
+          <motion.div 
+            className="absolute top-3 left-3 right-3 flex items-center justify-between pt-[env(safe-area-inset-top)]"
+            variants={modalOptimizedVariants.content}
+            initial="hidden"
+            animate="visible"
+          >
             <button
               type="button"
               onClick={onPrev}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-150"
               aria-label={T.prevScene}
             >
               <ChevronLeft className="w-6 h-6" />
@@ -789,7 +917,7 @@ function ExpandedSceneOverlay({
               type="button"
               onClick={onClose}
               data-close
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-150"
               aria-label={T.collapse}
             >
               <X className="w-6 h-6" />
@@ -797,15 +925,20 @@ function ExpandedSceneOverlay({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-150"
               aria-label={T.nextScene}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
-          </div>
+          </motion.div>
 
           {/* Title */}
-          <div className="absolute left-0 right-0 bottom-3 px-4 sm:px-6 flex items-end justify-between gap-3">
+          <motion.div 
+            className="absolute left-0 right-0 bottom-3 px-4 sm:px-6 flex items-end justify-between gap-3"
+            variants={modalOptimizedVariants.content}
+            initial="hidden"
+            animate="visible"
+          >
             <div>
               <h3 id={headingId} className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
                 {scene.title}
@@ -815,16 +948,21 @@ function ExpandedSceneOverlay({
             <button
               type="button"
               onClick={() => onAskToyota?.(scene)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15 transition-colors duration-200"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15 transition-colors duration-150"
               style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
             >
               {T.ask}
             </button>
-          </div>
+          </motion.div>
         </div>
 
         {/* Content */}
-        <div className="relative bg-gradient-to-b from-zinc-950 to-black">
+        <motion.div 
+          className="relative bg-gradient-to-b from-zinc-950 to-black"
+          variants={modalOptimizedVariants.content}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 pt-4 pb-24">
             <p className="text-white/85 text-sm sm:text-base md:text-lg">{scene.description}</p>
 
@@ -836,8 +974,12 @@ function ExpandedSceneOverlay({
                     key={key}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: prefersReduced ? 0 : i * 0.035 }}
+                    transition={{ 
+                      duration: prefersReduced ? 0.1 : 0.2, 
+                      delay: prefersReduced ? 0 : i * 0.02 
+                    }}
                     className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-black/60 backdrop-blur px-3 py-2"
+                    style={performanceUtils.forceGPULayer}
                   >
                     <span style={{ color: TOYOTA_RED }}>
                       {specIcons[normalized] ?? <Gauge className="w-5 h-5" aria-hidden />}
@@ -855,7 +997,7 @@ function ExpandedSceneOverlay({
               <button
                 type="button"
                 onClick={() => onAskToyota?.(scene)}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15 transition-colors duration-200"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15 transition-colors duration-150"
                 style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
               >
                 {T.ask}
@@ -870,7 +1012,7 @@ function ExpandedSceneOverlay({
                 <button
                   type="button"
                   onClick={onPrev}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-150"
                   aria-label={T.prevScene}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -878,7 +1020,7 @@ function ExpandedSceneOverlay({
                 <button
                   type="button"
                   onClick={onNext}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-150"
                   aria-label={T.nextScene}
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -886,7 +1028,7 @@ function ExpandedSceneOverlay({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
