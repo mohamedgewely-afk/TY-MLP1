@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -31,11 +30,9 @@ export default defineConfig(({ mode }) => ({
     // Brotli and Gzip compression for production
     mode === 'production' && compression({
       algorithms: ['brotliCompress'],
-      ext: '.br',
     }),
     mode === 'production' && compression({
       algorithms: ['gzip'],
-      ext: '.gz',
     })
   ].filter(Boolean),
   
