@@ -1,5 +1,11 @@
+import React from 'react';
 
-import { usePerformanceMonitor } from '@/hooks/use-performance-monitor';
+// Add gtag types
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 // Enhanced performance monitoring with Core Web Vitals
 interface PerformanceMetric {
@@ -66,8 +72,8 @@ class EnhancedPerformanceMonitor {
   private processNavigationEntry(entry: PerformanceNavigationTiming, timestamp: number, url: string) {
     const metrics = [
       { name: 'TTFB', value: entry.responseStart - entry.requestStart },
-      { name: 'DOM-Load', value: entry.domContentLoadedEventEnd - entry.navigationStart },
-      { name: 'Load-Complete', value: entry.loadEventEnd - entry.navigationStart },
+      { name: 'DOM-Load', value: entry.domContentLoadedEventEnd - entry.startTime },
+      { name: 'Load-Complete', value: entry.loadEventEnd - entry.startTime },
       { name: 'DNS-Lookup', value: entry.domainLookupEnd - entry.domainLookupStart },
       { name: 'TCP-Connect', value: entry.connectEnd - entry.connectStart }
     ];

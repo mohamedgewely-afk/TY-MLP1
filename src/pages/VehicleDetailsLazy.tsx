@@ -26,20 +26,20 @@ export default function VehicleDetailsLazy() {
 }
 
 // Export individual lazy components for more granular loading
-export const LazyEnhancedHeroSection = React.forwardRef<HTMLDivElement>((props, ref) => (
+export const LazyEnhancedHeroSection = (props: any) => (
   <Suspense fallback={<EnhancedLoading variant="skeleton" className="h-96" />}>
-    <EnhancedHeroSection {...props} ref={ref} />
+    <EnhancedHeroSection {...props} />
   </Suspense>
-));
+);
 
-export const LazyVirtualShowroom = React.forwardRef<HTMLDivElement>((props, ref) => (
+export const LazyVirtualShowroom = (props: any) => (
   <Suspense fallback={<EnhancedLoading variant="skeleton" className="h-64" />}>
-    <VirtualShowroom {...props} ref={ref} />
+    <VirtualShowroom {...props} />
   </Suspense>
-));
+);
 
-export const LazyCarBuilder = React.forwardRef<HTMLDivElement>((props, ref) => (
+export const LazyCarBuilder = (props: any) => (
   <Suspense fallback={<EnhancedLoading variant="skeleton" className="h-96" />}>
-    <CarBuilder {...props} ref={ref} />
+    <CarBuilder {...props} />
   </Suspense>
-));
+);

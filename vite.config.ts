@@ -26,12 +26,12 @@ export default defineConfig(({ mode }) => ({
     
     // Brotli and Gzip compression
     mode === 'production' && compression({
-      algorithm: 'brotliCompress',
+      algorithms: ['brotli'],
       ext: '.br',
       deleteOriginFile: false,
     }),
     mode === 'production' && compression({
-      algorithm: 'gzip',
+      algorithms: ['gzip'],
       ext: '.gz',
       deleteOriginFile: false,
     })
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => ({
         // Optimize chunk file names
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId ? 
-            chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 
+            chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') || 'chunk' : 
             'chunk';
           return `assets/${facadeModuleId}-[hash].js`;
         },
