@@ -1,28 +1,58 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
-export const useSimpleDevice = () => {
-  const [screenWidth, setScreenWidth] = useState(() => 
-    typeof window !== 'undefined' ? window.innerWidth : 1024
-  );
+interface DeviceInfo {
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  width: number;
+}
+
+export const useSimpleDevice = (): DeviceInfo => {
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>(() => {
+    // Initialize with current values to avoid hydration mismatch
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      return {
+        width,
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024,
+      };
+    }
+    // Fallback for SSR
+    return {
+      width: 1024,
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+    };
+  });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
+    const updateDeviceInfo = () => {
+      const width = window.innerWidth;
+      setDeviceInfo({
+        width,
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024,
+      });
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    // Throttle resize events for performance
+    let timeoutId: NodeJS.Timeout;
+    const throttledResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateDeviceInfo, 150);
+    };
 
-  const deviceInfo = useMemo(() => ({
-    isDesktop: screenWidth >= 1024,
-    isTablet: screenWidth >= 768 && screenWidth < 1024,
-    isMobile: screenWidth < 768,
-    screenWidth,
-  }), [screenWidth]);
+    window.addEventListener('resize', throttledResize);
+    return () => {
+      window.removeEventListener('resize', throttledResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   return deviceInfo;
 };

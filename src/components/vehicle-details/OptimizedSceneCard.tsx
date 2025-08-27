@@ -68,10 +68,9 @@ const OptimizedSceneCard = memo(({
       {/* Holographic border effect - CSS only */}
       {active && (
         <div 
-          className="absolute inset-0 rounded-2xl opacity-50"
+          className="absolute inset-0 rounded-2xl opacity-50 animate-pulse"
           style={{
             background: `conic-gradient(from 0deg, transparent, ${TOYOTA_RED}40, transparent, ${TOYOTA_RED}40, transparent)`,
-            animation: 'spin 8s linear infinite',
           }}
         />
       )}
@@ -168,14 +167,6 @@ const OptimizedSceneCard = memo(({
           </div>
         </div>
       </button>
-
-      {/* CSS keyframes */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </article>
   );
 });
