@@ -33,7 +33,10 @@ import StorytellingSection from "@/components/vehicle-details/StorytellingSectio
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
 
-import { enhancedVariants } from "@/utils/animation-configs";
+// New performance-optimized imports
+import { usePerformanceConfig, performanceMonitor, a11yUtils } from "@/utils/performance-optimization";
+import { createAdaptiveVariants } from "@/utils/adaptive-animations";
+import { cn } from "@/lib/utils";
 
 const VehicleDetails = () => {
   // Modal states
@@ -61,15 +64,32 @@ const VehicleDetails = () => {
     images: galleryImages
   });
 
-  // Enhanced gesture handlers
+  // Performance optimization hooks
+  const performanceConfig = usePerformanceConfig();
+  const adaptiveVariants = createAdaptiveVariants({
+    isMobile,
+    isSlowScroll: isSlowConnection,
+    prefersReducedMotion: !performanceConfig.animations.enabled
+  });
+
+  // Performance monitoring
+  React.useEffect(() => {
+    const endMeasure = performanceMonitor.measureInteraction('vehicle-details-mount');
+    performanceMonitor.logWebVitals();
+    
+    return () => {
+      endMeasure();
+    };
+  }, []);
+
+  // Enhanced gesture handlers with performance optimization
   const gesturesRef = useEnhancedGestures({
     onSwipeLeft: nextImage,
     onSwipeRight: previousImage,
     onDoubleTap: () => {
-      // Toggle favorite on double tap
       toggleFavorite();
     },
-    hapticFeedback: true
+    hapticFeedback: performanceConfig.interactions.hapticFeedback
   });
 
   const handleOfferClick = useCallback((offer: any) => {
@@ -116,17 +136,17 @@ const VehicleDetails = () => {
   if (!vehicle) {
     return (
       <ToyotaLayout>
-        <div className="toyota-container py-16 text-center">
+        <div className={cn("toyota-container py-16 text-center", a11yUtils.focusRing)}>
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             className="space-y-4"
-            variants={enhancedVariants.fadeInUp}
+            variants={adaptiveVariants.fadeInUp}
           >
             <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
             <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
-            <Button asChild>
-              <Link to="/">Return to Home</Link>
+            <Button asChild className={a11yUtils.touchTarget}>
+              <Link to="/" aria-label="Return to home page">Return to Home</Link>
             </Button>
           </motion.div>
         </div>
@@ -146,76 +166,106 @@ const VehicleDetails = () => {
     >
       <div
         ref={gesturesRef as React.RefObject<HTMLDivElement>}
-        className={`relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`}
+        className={cn(
+          `relative overflow-hidden ${isMobile ? "pb-28" : "pb-32"}`,
+          a11yUtils.respectMotion
+        )}
+        role="main"
+        aria-label="Vehicle details page"
       >
-        <EnhancedHeroSection
-          vehicle={vehicle}
-          galleryImages={galleryImages}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onBookTestDrive={() => setIsBookingOpen(true)}
-          onCarBuilder={() => setIsCarBuilderOpen(true)}
-          monthlyEMI={monthlyEMI}
-        />
-
-        <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
-          <VirtualShowroom vehicle={vehicle} />
-          
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <VehicleGallery />
-          </section>
-
-          <StorytellingSection
-            galleryImages={galleryImages}
-            monthlyEMI={monthlyEMI}
-            setIsBookingOpen={setIsBookingOpen}
-            navigate={navigate}
-            setIsFinanceOpen={setIsFinanceOpen}
-            onSafetyExplore={handleSafetyExplore}
-            onConnectivityExplore={handleConnectivityExplore}
-            onHybridTechExplore={handleHybridTechExplore}
-            onInteriorExplore={handleInteriorExplore}
-          />
-
-          <OffersSection onOfferClick={handleOfferClick} />
-          
-          {shouldPreloadContent && (
-            <>
-              <VehicleMediaShowcase vehicle={vehicle} />
-              <RefinedTechExperience vehicle={vehicle} />
-            </>
+        {/* Skip link for accessibility */}
+        <a 
+          href="#main-content" 
+          className={cn(
+            a11yUtils.srOnly,
+            'focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded'
           )}
-          
-          {!shouldPreloadContent && (
-            <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-              <VehicleMediaShowcase vehicle={vehicle} />
-              <RefinedTechExperience vehicle={vehicle} />
-            </Suspense>
-          )}
-          
-          <VehicleConfiguration 
+        >
+          Skip to main content
+        </a>
+
+        <div id="main-content">
+          <EnhancedHeroSection
             vehicle={vehicle}
-            onCarBuilder={handleConfigureWithGrade}
-            onTestDrive={() => setIsBookingOpen(true)}
-            onGradeSelect={handleGradeSelect}
+            galleryImages={galleryImages}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            onBookTestDrive={() => setIsBookingOpen(true)}
+            onCarBuilder={() => setIsCarBuilderOpen(true)}
+            monthlyEMI={monthlyEMI}
           />
 
-          <section className="py-8 lg:py-16 bg-muted/30">
-            <RelatedVehicles currentVehicle={vehicle} />
-          </section>
+          <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
+            <VirtualShowroom vehicle={vehicle} />
+            
+            <section 
+              className="py-8 lg:py-16 bg-muted/30"
+              aria-labelledby="gallery-heading"
+            >
+              <h2 id="gallery-heading" className={a11yUtils.srOnly}>
+                Vehicle Gallery
+              </h2>
+              <VehicleGallery />
+            </section>
 
-          <PreOwnedSimilar currentVehicle={vehicle} />
-          <VehicleFAQ vehicle={vehicle} />
-        </Suspense>
+            <StorytellingSection
+              galleryImages={galleryImages}
+              monthlyEMI={monthlyEMI}
+              setIsBookingOpen={setIsBookingOpen}
+              navigate={navigate}
+              setIsFinanceOpen={setIsFinanceOpen}
+              onSafetyExplore={handleSafetyExplore}
+              onConnectivityExplore={handleConnectivityExplore}
+              onHybridTechExplore={handleHybridTechExplore}
+              onInteriorExplore={handleInteriorExplore}
+            />
 
-        <ActionPanel
-          vehicle={vehicle}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onBookTestDrive={() => setIsBookingOpen(true)}
-          onCarBuilder={() => setIsCarBuilderOpen(true)}
-          onFinanceCalculator={() => setIsFinanceOpen(true)}
-        />
+            <OffersSection onOfferClick={handleOfferClick} />
+            
+            {shouldPreloadContent && (
+              <>
+                <VehicleMediaShowcase vehicle={vehicle} />
+                <RefinedTechExperience vehicle={vehicle} />
+              </>
+            )}
+            
+            {!shouldPreloadContent && (
+              <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+                <VehicleMediaShowcase vehicle={vehicle} />
+                <RefinedTechExperience vehicle={vehicle} />
+              </Suspense>
+            )}
+            
+            <VehicleConfiguration 
+              vehicle={vehicle}
+              onCarBuilder={handleConfigureWithGrade}
+              onTestDrive={() => setIsBookingOpen(true)}
+              onGradeSelect={handleGradeSelect}
+            />
+
+            <section 
+              className="py-8 lg:py-16 bg-muted/30"
+              aria-labelledby="related-vehicles-heading"
+            >
+              <h2 id="related-vehicles-heading" className={a11yUtils.srOnly}>
+                Related Vehicles
+              </h2>
+              <RelatedVehicles currentVehicle={vehicle} />
+            </section>
+
+            <PreOwnedSimilar currentVehicle={vehicle} />
+            <VehicleFAQ vehicle={vehicle} />
+          </Suspense>
+
+          <ActionPanel
+            vehicle={vehicle}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            onBookTestDrive={() => setIsBookingOpen(true)}
+            onCarBuilder={() => setIsCarBuilderOpen(true)}
+            onFinanceCalculator={() => setIsFinanceOpen(true)}
+          />
+        </div>
       </div>
 
       <VehicleModals
