@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSwipeable } from "@/hooks/use-swipeable";
 import { 
   Calendar, Gauge, Fuel, MapPin, ArrowRight, Award,
   CheckCircle, Shield, ChevronLeft, ChevronRight, ShoppingCart
@@ -84,51 +86,58 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
     }
   ];
 
-  // Calculate cards per view and max index
+  // Calculate cards per view and total pages
   const cardsPerView = isMobile ? 1 : 3;
-  const maxIndex = Math.max(0, preOwnedVehicles.length - cardsPerView);
+  const totalPages = Math.ceil(preOwnedVehicles.length / cardsPerView);
+  const maxIndex = totalPages - 1;
+
+  // Navigation functions
+  const nextSlide = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  };
+
+  const goToSlide = (index: number) => {
+    setIsAutoPlaying(false);
+    setCurrentIndex(Math.min(Math.max(index, 0), maxIndex));
+  };
+
+  // Swipe handlers
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: nextSlide,
+    onSwipeRight: prevSlide,
+    threshold: 50,
+    debug: false
+  });
 
   // Auto-swipe functionality
   useEffect(() => {
     if (!isAutoPlaying || isPaused) return;
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => {
-        const nextIndex = prev + 1;
-        return nextIndex > maxIndex ? 0 : nextIndex;
-      });
-    }, 4000); // Auto-swipe every 4 seconds
+      setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+    }, 4000);
     
     return () => clearInterval(interval);
   }, [isAutoPlaying, isPaused, maxIndex]);
 
-  const nextSlide = () => {
-    setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
-  };
-
-  const prevSlide = () => {
-    setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  const goToSlide = (index: number) => {
-    setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex(Math.min(index, maxIndex));
-  };
-
   // Get visible vehicles based on current index and cards per view
   const getVisibleVehicles = () => {
-    return preOwnedVehicles.slice(currentIndex, currentIndex + cardsPerView);
+    const startIndex = currentIndex * cardsPerView;
+    return preOwnedVehicles.slice(startIndex, startIndex + cardsPerView);
   };
 
   const VehicleCard = ({ vehicle, index }: { vehicle: any; index: number }) => (
     <motion.div
-      key={`${vehicle.id}-${index}`}
+      key={vehicle.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
       className={`${isMobile ? 'w-full' : 'w-1/3 px-2'} flex-shrink-0`}
     >
       <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group h-full">
@@ -139,6 +148,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${
               isMobile ? 'h-64 lg:h-80' : 'h-48'
             }`}
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           
@@ -276,55 +286,43 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
         {/* Carousel Container */}
         <div className={`relative ${isMobile ? 'max-w-2xl mx-auto' : 'max-w-7xl mx-auto'}`}>
           {/* Navigation Buttons */}
-          {(isMobile || currentIndex > 0) && (
-            <button
-              onClick={prevSlide}
-              disabled={currentIndex === 0}
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isMobile ? '-translate-x-4' : '-translate-x-6'
-              }`}
-            >
-              <ChevronLeft className="h-6 w-6 text-gray-700" />
-            </button>
-          )}
+          <button
+            onClick={prevSlide}
+            disabled={currentIndex === 0}
+            className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isMobile ? '-translate-x-4' : '-translate-x-6'
+            }`}
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-700" />
+          </button>
 
-          {(isMobile || currentIndex < maxIndex) && (
-            <button
-              onClick={nextSlide}
-              disabled={currentIndex >= maxIndex}
-              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isMobile ? 'translate-x-4' : 'translate-x-6'
-              }`}
-            >
-              <ChevronRight className="h-6 w-6 text-gray-700" />
-            </button>
-          )}
+          <button
+            onClick={nextSlide}
+            disabled={currentIndex >= maxIndex}
+            className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isMobile ? 'translate-x-4' : 'translate-x-6'
+            }`}
+          >
+            <ChevronRight className="h-6 w-6 text-gray-700" />
+          </button>
 
           {/* Cards Display */}
           <div 
+            ref={swipeableRef}
             className="overflow-hidden"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: isMobile ? 100 : 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isMobile ? -100 : -50 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className={`flex ${isMobile ? '' : 'space-x-0'}`}
-              >
-                {getVisibleVehicles().map((vehicle, index) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} index={index} />
-                ))}
-              </motion.div>
-            </AnimatePresence>
+            <div className={`flex transition-transform duration-500 ease-out ${isMobile ? '' : 'space-x-0'}`}>
+              {getVisibleVehicles().map((vehicle, index) => (
+                <VehicleCard key={`${vehicle.id}-${currentIndex}`} vehicle={vehicle} index={index} />
+              ))}
+            </div>
           </div>
 
           {/* Dots Indicator */}
           <div className="flex justify-center space-x-3 mt-6">
-            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+            {Array.from({ length: totalPages }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
