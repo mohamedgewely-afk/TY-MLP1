@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -47,9 +48,6 @@ export default defineConfig(({ mode }) => ({
     cssTarget: 'chrome80',
     
     rollupOptions: {
-      // Exclude react-refresh from production builds
-      external: mode === 'production' ? ['/@react-refresh'] : [],
-      
       output: {
         // Enhanced code splitting for 732KB savings
         manualChunks: (id) => {
