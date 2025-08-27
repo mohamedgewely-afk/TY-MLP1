@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { PersonaContextType, PersonaType, Persona } from "@/types/persona";
 import { personas } from "@/data/personas";
