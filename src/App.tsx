@@ -1,4 +1,3 @@
-
 import React, { Suspense } from "react";
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster";
