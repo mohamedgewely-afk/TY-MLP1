@@ -169,9 +169,7 @@ const OptimizedHead: React.FC<OptimizedHeadProps> = ({
       />
       
       {/* Fallback for browsers that don't support preload */}
-      <noscript>
-        <link rel="stylesheet" href="/src/index.css" />
-      </noscript>
+      <noscript>{`<link rel="stylesheet" href="/src/index.css" />`}</noscript>
       
       {/* Open Graph tags */}
       <meta property="og:title" content={title} />
