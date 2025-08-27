@@ -7,32 +7,33 @@ import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode, command }) => ({
+export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
-    react({
-      // Configure React plugin properly for different modes
-      devTarget: mode === 'development' ? 'es2020' : undefined,
-    }),
-    mode === 'development' && command === 'serve' && componentTagger(),
+    react(),
+    mode === 'development' && componentTagger(),
     
     // Bundle analyzer - generates stats.html in dist folder
     mode === 'production' && visualizer({
       filename: 'dist/stats.html',
-      open: false,
+      open: true,
       gzipSize: true,
       brotliSize: true,
     }),
     
-    // Brotli and Gzip compression for production
+    // Brotli and Gzip compression
     mode === 'production' && compression({
-      algorithms: ['brotliCompress'],
+      algorithm: 'brotliCompress',
+      ext: '.br',
+      deleteOriginFile: false,
     }),
     mode === 'production' && compression({
-      algorithms: ['gzip'],
+      algorithm: 'gzip',
+      ext: '.gz',
+      deleteOriginFile: false,
     })
   ].filter(Boolean),
   
@@ -43,98 +44,89 @@ export default defineConfig(({ mode, command }) => ({
   },
   
   build: {
-    target: mode === 'production' ? ['es2020', 'chrome80', 'firefox78', 'safari13'] : 'es2020',
+    // Enhanced build optimization
+    target: ['es2020', 'chrome80', 'firefox78', 'safari13'],
     cssTarget: 'chrome80',
     
     rollupOptions: {
-      // Don't externalize react-refresh for builds
-      external: command === 'build' ? [] : undefined,
       output: {
-        // Enhanced code splitting for 732KB savings
-        manualChunks: command === 'build' ? (id) => {
-          // React core chunk (smallest possible)
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'react-core';
-          }
-          // UI libraries chunk
-          if (id.includes('@radix-ui') || id.includes('framer-motion') || id.includes('lucide-react')) {
-            return 'ui-libs';
-          }
-          // Charts and data visualization
-          if (id.includes('recharts') || id.includes('@tanstack/react-virtual')) {
-            return 'data-viz';
-          }
-          // Query and routing
-          if (id.includes('@tanstack/react-query') || id.includes('react-router')) {
-            return 'app-libs';
-          }
-          // Heavy vehicle components - lazy load these
-          if (id.includes('vehicle-details/VirtualShowroom') || 
-              id.includes('vehicle-details/CarBuilder') ||
-              id.includes('vehicle-details/EnhancedLifestyleGallery')) {
-            return 'heavy-vehicle';
-          }
-          // Utilities and helpers
-          if (id.includes('date-fns') || id.includes('class-variance-authority') || id.includes('clsx')) {
-            return 'utils';
-          }
-        } : undefined,
+        // Code splitting configuration
+        manualChunks: {
+          // Vendor chunk for large dependencies
+          vendor: [
+            'react',
+            'react-dom',
+            'react-router-dom'
+          ],
+          // UI chunk for component library
+          ui: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast',
+            'framer-motion'
+          ],
+          // Charts chunk for data visualization
+          charts: ['recharts'],
+          // Query chunk for data fetching
+          query: ['@tanstack/react-query']
+        },
         
-        // Optimize chunk names for caching
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
+        // Optimize chunk file names
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? 
+            chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 
+            'chunk';
+          return `assets/${facadeModuleId}-[hash].js`;
+        },
+        
+        // Optimize asset file names
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name?.split('.').pop();
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(extType || '')) {
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
             return 'assets/images/[name]-[hash][extname]';
           }
-          if (/css/i.test(extType || '')) {
-            return 'assets/css/[name]-[hash][extname]';
+          if (/woff2?|eot|ttf|otf/i.test(extType || '')) {
+            return 'assets/fonts/[name]-[hash][extname]';
           }
           return 'assets/[name]-[hash][extname]';
         }
       }
     },
     
-    // Production optimizations for 243KB JS savings
-    minify: mode === 'production' ? 'terser' : false,
-    terserOptions: mode === 'production' ? {
+    // Minification and optimization
+    minify: 'terser',
+    terserOptions: {
       compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+        drop_console: mode === 'production',
+        drop_debugger: mode === 'production',
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : []
       },
       mangle: {
         safari10: true
-      },
-      format: {
-        comments: false
       }
-    } : undefined,
+    },
     
-    // Source maps only in development
+    // Source maps for debugging
     sourcemap: mode === 'development',
     
     // Chunk size warnings
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 1000,
     
     // Asset inlining threshold
     assetsInlineLimit: 4096
   },
   
-  // CSS optimization for 51KB CSS savings
+  // CSS optimization
   css: {
     devSourcemap: mode === 'development',
     postcss: {
       plugins: mode === 'production' ? [
-        require('autoprefixer'),
         require('cssnano')({
           preset: ['default', {
             discardComments: { removeAll: true },
             normalizeWhitespace: true,
             mergeLonghand: true,
-            mergeRules: true,
-            discardUnused: true
+            mergeRules: true
           }]
         })
       ] : []
@@ -151,15 +143,14 @@ export default defineConfig(({ mode, command }) => ({
       'framer-motion',
       'lucide-react'
     ],
-    exclude: command === 'build' ? ['@vite/client', '@vite/env'] : []
+    exclude: ['@vite/client', '@vite/env']
   },
   
   // Experimental features for better performance
   esbuild: {
-    target: mode === 'production' ? 'es2020' : 'esnext',
+    target: 'es2020',
     legalComments: 'none',
     minifyIdentifiers: mode === 'production',
-    minifySyntax: mode === 'production',
-    drop: mode === 'production' ? ['console', 'debugger'] : []
+    minifySyntax: mode === 'production'
   }
 }));

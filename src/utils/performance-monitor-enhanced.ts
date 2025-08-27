@@ -1,14 +1,7 @@
 
-import React from 'react';
+import { usePerformanceMonitor } from '@/hooks/use-performance-monitor';
 
-// Add gtag types
-declare global {
-  interface Window {
-    gtag?: (...args: any[]) => void;
-  }
-}
-
-// Enhanced performance monitoring with batched DOM operations
+// Enhanced performance monitoring with Core Web Vitals
 interface PerformanceMetric {
   name: string;
   value: number;
@@ -22,8 +15,6 @@ class EnhancedPerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
   private observer: PerformanceObserver | null = null;
   private vitalsReported: Set<string> = new Set();
-  private batchedUpdates: (() => void)[] = [];
-  private rafId: number | null = null;
 
   constructor() {
     this.initializeObserver();
@@ -33,35 +24,19 @@ class EnhancedPerformanceMonitor {
   private initializeObserver() {
     if ('PerformanceObserver' in window) {
       this.observer = new PerformanceObserver((list) => {
-        // Batch DOM reads/writes to prevent forced reflows
-        this.batchDOMOperations(() => {
-          for (const entry of list.getEntries()) {
-            this.processEntry(entry);
-          }
-        });
+        for (const entry of list.getEntries()) {
+          this.processEntry(entry);
+        }
       });
 
+      // Observe all performance entry types
       try {
         this.observer.observe({ 
           entryTypes: ['navigation', 'measure', 'paint', 'largest-contentful-paint', 'first-input', 'layout-shift']
         });
       } catch (error) {
-        // Silently handle unsupported entry types
+        console.warn('Some performance entry types not supported:', error);
       }
-    }
-  }
-
-  // Batch DOM operations to prevent forced reflows (122ms+ savings)
-  private batchDOMOperations(callback: () => void) {
-    this.batchedUpdates.push(callback);
-    
-    if (this.rafId === null) {
-      this.rafId = requestAnimationFrame(() => {
-        // Execute all batched operations in a single frame
-        this.batchedUpdates.forEach(fn => fn());
-        this.batchedUpdates = [];
-        this.rafId = null;
-      });
     }
   }
 
@@ -91,8 +66,8 @@ class EnhancedPerformanceMonitor {
   private processNavigationEntry(entry: PerformanceNavigationTiming, timestamp: number, url: string) {
     const metrics = [
       { name: 'TTFB', value: entry.responseStart - entry.requestStart },
-      { name: 'DOM-Load', value: entry.domContentLoadedEventEnd - entry.startTime },
-      { name: 'Load-Complete', value: entry.loadEventEnd - entry.startTime },
+      { name: 'DOM-Load', value: entry.domContentLoadedEventEnd - entry.navigationStart },
+      { name: 'Load-Complete', value: entry.loadEventEnd - entry.navigationStart },
       { name: 'DNS-Lookup', value: entry.domainLookupEnd - entry.domainLookupStart },
       { name: 'TCP-Connect', value: entry.connectEnd - entry.connectStart }
     ];
@@ -185,23 +160,24 @@ class EnhancedPerformanceMonitor {
   private recordMetric(metric: PerformanceMetric) {
     this.metrics.push(metric);
     
-    // Store in localStorage for persistence (avoid console.log in production)
+    // Store in localStorage for persistence
     this.persistMetrics();
     
-    // Send to analytics only in production
-    if (process.env.NODE_ENV === 'production') {
-      this.sendToAnalytics(metric);
-    }
+    // Send to analytics (in production)
+    this.sendToAnalytics(metric);
+    
+    console.log('Performance Metric:', metric);
   }
 
   private persistMetrics() {
     if (typeof localStorage !== 'undefined') {
-      const recentMetrics = this.metrics.slice(-50); // Keep last 50 metrics
+      const recentMetrics = this.metrics.slice(-100); // Keep last 100 metrics
       localStorage.setItem('performance-metrics-enhanced', JSON.stringify(recentMetrics));
     }
   }
 
   private sendToAnalytics(metric: PerformanceMetric) {
+    // In production, send to your analytics service
     if (window.gtag) {
       window.gtag('event', 'performance_metric', {
         metric_name: metric.name,
@@ -213,6 +189,7 @@ class EnhancedPerformanceMonitor {
   }
 
   private measureInitialMetrics() {
+    // Measure initial page load metrics
     if (document.readyState === 'complete') {
       this.measurePageMetrics();
     } else {
@@ -226,10 +203,47 @@ class EnhancedPerformanceMonitor {
       this.processNavigationEntry(navigation, Date.now(), window.location.pathname);
     }
 
+    // Measure paint metrics
     const paintEntries = performance.getEntriesByType('paint');
     paintEntries.forEach(entry => {
       this.processPaintEntry(entry as PerformancePaintTiming, Date.now(), window.location.pathname);
     });
+  }
+
+  public getMetricsSummary() {
+    const summary: Record<string, any> = {};
+    
+    this.metrics.forEach(metric => {
+      if (!summary[metric.name]) {
+        summary[metric.name] = {
+          values: [],
+          ratings: { good: 0, 'needs-improvement': 0, poor: 0 },
+          count: 0
+        };
+      }
+      
+      summary[metric.name].values.push(metric.value);
+      summary[metric.name].ratings[metric.rating]++;
+      summary[metric.name].count++;
+    });
+    
+    // Calculate statistics
+    Object.keys(summary).forEach(key => {
+      const values = summary[key].values;
+      summary[key].average = values.reduce((a: number, b: number) => a + b, 0) / values.length;
+      summary[key].min = Math.min(...values);
+      summary[key].max = Math.max(...values);
+      summary[key].p75 = this.percentile(values, 0.75);
+      summary[key].p95 = this.percentile(values, 0.95);
+    });
+    
+    return summary;
+  }
+
+  private percentile(values: number[], percentile: number): number {
+    const sorted = values.slice().sort((a, b) => a - b);
+    const index = Math.ceil(sorted.length * percentile) - 1;
+    return sorted[index] || 0;
   }
 
   public measureInteraction(name: string) {
@@ -259,10 +273,6 @@ class EnhancedPerformanceMonitor {
       this.observer.disconnect();
       this.observer = null;
     }
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
   }
 }
 
@@ -272,13 +282,15 @@ export const performanceMonitor = new EnhancedPerformanceMonitor();
 // React hook for using performance monitoring
 export const useEnhancedPerformanceMonitor = () => {
   const measureInteraction = (name: string) => performanceMonitor.measureInteraction(name);
+  const getMetricsSummary = () => performanceMonitor.getMetricsSummary();
   
   return {
-    measureInteraction
+    measureInteraction,
+    getMetricsSummary
   };
 };
 
-// Utility for measuring component render performance without console.log
+// Utility for measuring component render performance
 export const withPerformanceMonitoring = <P extends object>(
   Component: React.ComponentType<P>,
   name: string
