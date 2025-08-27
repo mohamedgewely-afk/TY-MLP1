@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -7,8 +6,7 @@ const config: Config = {
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "./src/**/*.{js,jsx}",
+    "./src/**/*.{ts,tsx,js,jsx}",
     "./index.html"
   ],
   prefix: "",
@@ -82,31 +80,29 @@ const config: Config = {
       },
     },
   },
-  // Safelist for dynamic Toyota classes that might not be detected
+  // Optimized safelist - only include classes that are actually used dynamically
   safelist: [
-    'toyota-red',
-    'toyota-container',
-    'toyota-card',
-    'toyota-button',
-    'toyota-text-gradient',
+    // Toyota brand colors that might be dynamic
+    'text-primary',
+    'bg-primary',
+    'border-primary',
+    // Animation classes for performance optimization
     'animate-shimmer',
+    // Common aspect ratios for images
     'aspect-[16/9]',
     'aspect-[4/3]',
-    'aspect-[3/2]',
-    // Common responsive classes
-    'sm:block',
-    'md:block',
-    'lg:block',
-    'xl:block',
-    '2xl:block',
-    // Grid and flex classes
-    'grid-cols-1',
-    'grid-cols-2',
-    'grid-cols-3',
-    'grid-cols-4',
-    'md:grid-cols-2',
-    'lg:grid-cols-3',
-    'xl:grid-cols-4',
+    // Responsive grid classes that might be dynamic
+    {
+      pattern: /grid-cols-(1|2|3|4)/,
+      variants: ['sm', 'md', 'lg', 'xl']
+    },
+    // Transform classes for GPU acceleration
+    {
+      pattern: /translate-[xyz]-/,
+    },
+    {
+      pattern: /scale-/,
+    }
   ],
   plugins: [require("tailwindcss-animate")],
 };

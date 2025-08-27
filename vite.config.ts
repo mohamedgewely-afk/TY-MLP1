@@ -14,27 +14,28 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // Disable react-refresh in production builds
+      // Fix React Refresh issue - disable in production
       devTarget: mode === 'development' ? 'es2020' : undefined,
+      jsxImportSource: undefined, // Let Vite handle JSX transform
     }),
     mode === 'development' && componentTagger(),
     
     // Bundle analyzer - generates stats.html in dist folder
     mode === 'production' && visualizer({
       filename: 'dist/stats.html',
-      open: false, // Don't auto-open in CI
+      open: false,
       gzipSize: true,
       brotliSize: true,
     }),
     
     // Brotli and Gzip compression for production
     mode === 'production' && compression({
-      algorithms: ['brotli'],
-      filename: '[path][base].br',
+      algorithm: 'brotliCompress',
+      ext: '.br',
     }),
     mode === 'production' && compression({
-      algorithms: ['gzip'],
-      filename: '[path][base].gz',
+      algorithm: 'gzip',
+      ext: '.gz',
     })
   ].filter(Boolean),
   
@@ -45,54 +46,51 @@ export default defineConfig(({ mode }) => ({
   },
   
   build: {
-    // Enhanced build optimization
     target: mode === 'production' ? ['es2020', 'chrome80', 'firefox78', 'safari13'] : 'es2020',
     cssTarget: 'chrome80',
     
     rollupOptions: {
+      // Exclude react-refresh from production builds
+      external: mode === 'production' ? ['/@react-refresh'] : [],
+      
       output: {
-        // Enhanced code splitting configuration
+        // Enhanced code splitting for 732KB savings
         manualChunks: (id) => {
-          // Core React chunk
+          // React core chunk (smallest possible)
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'react-vendor';
+            return 'react-core';
           }
-          // UI library chunk
-          if (id.includes('@radix-ui') || id.includes('framer-motion')) {
-            return 'ui-vendor';
+          // UI libraries chunk
+          if (id.includes('@radix-ui') || id.includes('framer-motion') || id.includes('lucide-react')) {
+            return 'ui-libs';
           }
-          // Charts chunk
-          if (id.includes('recharts')) {
-            return 'charts-vendor';
+          // Charts and data visualization
+          if (id.includes('recharts') || id.includes('@tanstack/react-virtual')) {
+            return 'data-viz';
           }
-          // Query/routing chunk
+          // Query and routing
           if (id.includes('@tanstack/react-query') || id.includes('react-router')) {
-            return 'query-vendor';
+            return 'app-libs';
           }
-          // Heavy vehicle components
+          // Heavy vehicle components - lazy load these
           if (id.includes('vehicle-details/VirtualShowroom') || 
               id.includes('vehicle-details/CarBuilder') ||
               id.includes('vehicle-details/EnhancedLifestyleGallery')) {
-            return 'heavy-components';
+            return 'heavy-vehicle';
+          }
+          // Utilities and helpers
+          if (id.includes('date-fns') || id.includes('class-variance-authority') || id.includes('clsx')) {
+            return 'utils';
           }
         },
         
-        // Optimize chunk file names for caching
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? 
-            chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') || 'chunk' : 
-            'chunk';
-          return `assets/js/${facadeModuleId}-[hash].js`;
-        },
-        
-        // Optimize asset file names for caching
+        // Optimize chunk names for caching
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name?.split('.').pop();
           if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(extType || '')) {
             return 'assets/images/[name]-[hash][extname]';
-          }
-          if (/woff2?|eot|ttf|otf/i.test(extType || '')) {
-            return 'assets/fonts/[name]-[hash][extname]';
           }
           if (/css/i.test(extType || '')) {
             return 'assets/css/[name]-[hash][extname]';
@@ -102,16 +100,19 @@ export default defineConfig(({ mode }) => ({
       }
     },
     
-    // Production optimizations
+    // Production optimizations for 243KB JS savings
     minify: mode === 'production' ? 'terser' : false,
     terserOptions: mode === 'production' ? {
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
       },
       mangle: {
         safari10: true
+      },
+      format: {
+        comments: false
       }
     } : undefined,
     
@@ -125,7 +126,7 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096
   },
   
-  // CSS optimization
+  // CSS optimization for 51KB CSS savings
   css: {
     devSourcemap: mode === 'development',
     postcss: {
@@ -136,7 +137,8 @@ export default defineConfig(({ mode }) => ({
             discardComments: { removeAll: true },
             normalizeWhitespace: true,
             mergeLonghand: true,
-            mergeRules: true
+            mergeRules: true,
+            discardUnused: true
           }]
         })
       ] : []

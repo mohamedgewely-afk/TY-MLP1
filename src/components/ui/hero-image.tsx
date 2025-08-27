@@ -11,67 +11,55 @@ interface HeroImageProps {
   priority?: boolean;
   onLoad?: () => void;
   onError?: () => void;
+  sizes?: string;
 }
 
-// Generate optimized CDN URLs for different formats and sizes
+// Generate optimized CDN URLs for AVIF/WebP with proper quality settings
 const generateImageSources = (src: string, width: number, height: number) => {
   const isUnsplash = src.includes('unsplash.com');
-  const isDamAlfuttaim = src.includes('dam.alfuttaim.com');
   
   if (isUnsplash) {
     const baseUrl = new URL(src);
     
-    // Generate different sizes for responsive loading
-    const sizes = [
-      { width: Math.min(width, 400), suffix: 'sm' },
-      { width: Math.min(width, 768), suffix: 'md' },
-      { width: Math.min(width, 1200), suffix: 'lg' },
-      { width: width, suffix: 'xl' }
-    ];
+    // AVIF - 50% smaller than WebP
+    const avifUrl = new URL(src);
+    avifUrl.searchParams.set('fm', 'avif');
+    avifUrl.searchParams.set('w', width.toString());
+    avifUrl.searchParams.set('h', height.toString());
+    avifUrl.searchParams.set('q', '85');
+    avifUrl.searchParams.set('fit', 'crop');
+    avifUrl.searchParams.set('auto', 'format');
     
-    const sources = sizes.map(size => {
-      // AVIF - best compression
-      const avifUrl = new URL(src);
-      avifUrl.searchParams.set('fm', 'avif');
-      avifUrl.searchParams.set('w', size.width.toString());
-      avifUrl.searchParams.set('h', Math.round(size.width * (height / width)).toString());
-      avifUrl.searchParams.set('q', '85');
-      avifUrl.searchParams.set('fit', 'crop');
-      
-      // WebP - good compression with wide support
-      const webpUrl = new URL(src);
-      webpUrl.searchParams.set('fm', 'webp');
-      webpUrl.searchParams.set('w', size.width.toString());
-      webpUrl.searchParams.set('h', Math.round(size.width * (height / width)).toString());
-      webpUrl.searchParams.set('q', '85');
-      webpUrl.searchParams.set('fit', 'crop');
-      
-      // JPEG fallback
-      const jpegUrl = new URL(src);
-      jpegUrl.searchParams.set('fm', 'jpg');
-      jpegUrl.searchParams.set('w', size.width.toString());
-      jpegUrl.searchParams.set('h', Math.round(size.width * (height / width)).toString());
-      jpegUrl.searchParams.set('q', '85');
-      jpegUrl.searchParams.set('fit', 'crop');
-      
-      return {
-        avif: avifUrl.toString(),
-        webp: webpUrl.toString(),
-        jpeg: jpegUrl.toString(),
-        width: size.width
-      };
-    });
+    // WebP - 30% smaller than JPEG
+    const webpUrl = new URL(src);
+    webpUrl.searchParams.set('fm', 'webp');
+    webpUrl.searchParams.set('w', width.toString());
+    webpUrl.searchParams.set('h', height.toString());
+    webpUrl.searchParams.set('q', '85');
+    webpUrl.searchParams.set('fit', 'crop');
+    webpUrl.searchParams.set('auto', 'format');
     
-    return sources;
+    // JPEG fallback
+    const jpegUrl = new URL(src);
+    jpegUrl.searchParams.set('fm', 'jpg');
+    jpegUrl.searchParams.set('w', width.toString());
+    jpegUrl.searchParams.set('h', height.toString());
+    jpegUrl.searchParams.set('q', '85');
+    jpegUrl.searchParams.set('fit', 'crop');
+    jpegUrl.searchParams.set('auto', 'format');
+    
+    return {
+      avif: avifUrl.toString(),
+      webp: webpUrl.toString(),
+      jpeg: jpegUrl.toString()
+    };
   }
   
-  // For other CDNs or local images, return original
-  return [{
+  return {
     avif: src,
     webp: src,
-    jpeg: src,
-    width: width
-  }];
+    jpeg: src
+  };
 };
 
 const HeroImage: React.FC<HeroImageProps> = memo(({
@@ -82,7 +70,8 @@ const HeroImage: React.FC<HeroImageProps> = memo(({
   height,
   priority = true,
   onLoad,
-  onError
+  onError,
+  sizes = '100vw'
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -118,84 +107,55 @@ const HeroImage: React.FC<HeroImageProps> = memo(({
     );
   }
 
-  // Generate srcSet and sizes for responsive images
-  const srcSet = imageSources.map(source => 
-    `${source.webp} ${source.width}w`
-  ).join(', ');
-  
-  const sizes = [
-    '(max-width: 640px) 100vw',
-    '(max-width: 768px) 100vw', 
-    '(max-width: 1024px) 100vw',
-    '100vw'
-  ].join(', ');
-
   return (
     <div 
-      className={cn('relative overflow-hidden', className)}
+      className={cn('relative overflow-hidden hero-container', className)}
       style={{ aspectRatio }}
     >
       {/* Loading skeleton - only show while loading */}
       {!isLoaded && !hasError && (
-        <div 
-          className="absolute inset-0 bg-gradient-to-r from-muted via-muted/50 to-muted animate-shimmer"
-          style={{
-            backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-            backgroundSize: '200% 100%',
-          }}
-        />
+        <div className="absolute inset-0 hero-skeleton" />
       )}
       
-      {/* Optimized picture element with modern formats */}
+      {/* Optimized picture element with modern formats for LCP */}
       <picture>
-        {/* AVIF sources for modern browsers */}
-        {imageSources.map((source, index) => (
-          <source
-            key={`avif-${index}`}
-            srcSet={source.avif}
-            type="image/avif"
-            media={index === 0 ? '(max-width: 640px)' : 
-                   index === 1 ? '(max-width: 768px)' :
-                   index === 2 ? '(max-width: 1200px)' : undefined}
-          />
-        ))}
+        {/* AVIF for 50% better compression */}
+        <source
+          srcSet={imageSources.avif}
+          type="image/avif"
+        />
         
-        {/* WebP sources for broader support */}
-        {imageSources.map((source, index) => (
-          <source
-            key={`webp-${index}`}
-            srcSet={source.webp}
-            type="image/webp"
-            media={index === 0 ? '(max-width: 640px)' : 
-                   index === 1 ? '(max-width: 768px)' :
-                   index === 2 ? '(max-width: 1200px)' : undefined}
-          />
-        ))}
+        {/* WebP for broad support and 30% better compression */}
+        <source
+          srcSet={imageSources.webp}
+          type="image/webp"
+        />
         
-        {/* Main image with fallback */}
+        {/* Main hero image with all LCP optimizations */}
         <img
           ref={imgRef}
-          src={imageSources[imageSources.length - 1].jpeg}
-          srcSet={srcSet}
-          sizes={sizes}
+          src={imageSources.jpeg}
           alt={alt}
           width={width}
           height={height}
           className={cn(
-            'w-full h-full object-cover transition-opacity duration-300',
+            'hero-image gpu-accelerated',
+            'transition-opacity duration-300',
             isLoaded ? 'opacity-100' : 'opacity-0'
           )}
+          sizes={sizes}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={priority ? 'high' : 'auto'}
           onLoad={handleLoad}
           onError={handleError}
           style={{
-            // Prevent layout shift with explicit aspect ratio
+            // Explicit aspect ratio prevents CLS
             aspectRatio: `${width} / ${height}`,
-            // GPU acceleration
+            // GPU acceleration for smooth animations
             transform: 'translate3d(0, 0, 0)',
-            willChange: isLoaded ? 'auto' : 'opacity'
+            willChange: isLoaded ? 'auto' : 'opacity',
+            backfaceVisibility: 'hidden'
           }}
         />
       </picture>
