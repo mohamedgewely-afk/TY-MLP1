@@ -1,10 +1,9 @@
 
 import React from "react";
-import { motion } from "framer-motion";
 
 const TOYOTA_RED = "#EB0A1E" as const;
 
-type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
+export type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
 
 interface FuturisticCategoryFilterProps {
   categories: SceneCategory[];
@@ -14,77 +13,56 @@ interface FuturisticCategoryFilterProps {
   className?: string;
 }
 
-export default function FuturisticCategoryFilter({
+const FuturisticCategoryFilter: React.FC<FuturisticCategoryFilterProps> = ({
   categories,
   activeFilter,
   onFilterChange,
   allLabel,
   className = "",
-}: FuturisticCategoryFilterProps) {
-  const allCategories = ["All", ...categories] as const;
+}) => {
+  const filters = [allLabel, ...categories];
 
   return (
-    <div className={`flex flex-wrap justify-center gap-2 ${className}`}>
-      {allCategories.map((category) => {
-        const isActive = activeFilter === category;
-        const displayName = category === "All" ? allLabel : category;
+    <div className={`flex flex-wrap justify-center gap-3 ${className}`}>
+      {filters.map((filter) => {
+        const isActive = filter === allLabel ? activeFilter === "All" : activeFilter === filter;
+        const filterValue = filter === allLabel ? "All" : (filter as SceneCategory);
         
         return (
-          <motion.button
-            key={category}
+          <button
+            key={filter}
             type="button"
-            onClick={() => onFilterChange(category as any)}
+            onClick={() => onFilterChange(filterValue)}
             className={`
-              relative px-6 py-3 rounded-full text-sm font-medium transition-all
-              border backdrop-blur-sm overflow-hidden
+              relative px-6 py-3 rounded-full font-medium text-sm transition-all duration-300
               ${isActive 
-                ? 'text-white shadow-lg' 
-                : 'text-white/70 hover:text-white'
+                ? 'text-white shadow-lg transform scale-105' 
+                : 'text-white/70 hover:text-white hover:scale-105'
+              }
+              border backdrop-blur-sm
+              ${isActive
+                ? 'border-red-500/50 bg-gradient-to-r from-red-600/20 to-red-700/20'
+                : 'border-white/20 bg-black/20 hover:border-white/30 hover:bg-black/30'
               }
             `}
-            style={{
-              backgroundColor: isActive 
-                ? `${TOYOTA_RED}25` 
-                : 'rgba(255,255,255,0.05)',
-              borderColor: isActive 
-                ? `${TOYOTA_RED}70` 
-                : 'rgba(255,255,255,0.15)',
-              boxShadow: isActive 
-                ? `0 0 25px ${TOYOTA_RED}40, 0 8px 16px rgba(0,0,0,0.2)` 
-                : '0 4px 8px rgba(0,0,0,0.1)',
-            }}
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: isActive 
-                ? `0 0 35px ${TOYOTA_RED}50, 0 12px 24px rgba(0,0,0,0.3)` 
-                : `0 0 20px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.2)`,
-            }}
-            whileTap={{ scale: 0.95 }}
-            aria-pressed={isActive}
+            style={isActive ? {
+              boxShadow: `0 0 20px ${TOYOTA_RED}40`,
+            } : {}}
           >
-            {/* Holographic shine effect */}
             {isActive && (
-              <motion.div
-                className="absolute inset-0 opacity-30"
+              <div 
+                className="absolute inset-0 rounded-full opacity-30"
                 style={{
-                  background: `linear-gradient(45deg, transparent, ${TOYOTA_RED}80, transparent)`,
-                  backgroundSize: '200% 200%',
-                }}
-                animate={{
-                  backgroundPosition: ['0% 0%', '100% 100%'],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
+                  background: `conic-gradient(from 0deg, transparent, ${TOYOTA_RED}60, transparent, ${TOYOTA_RED}60, transparent)`,
                 }}
               />
             )}
-            
-            <span className="relative z-10">{displayName}</span>
-          </motion.button>
+            <span className="relative z-10">{filter}</span>
+          </button>
         );
       })}
     </div>
   );
-}
+};
+
+export default FuturisticCategoryFilter;
