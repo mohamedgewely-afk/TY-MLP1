@@ -14,8 +14,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // Properly configure React refresh for different modes
-      fastRefresh: mode === 'development',
+      // Configure React plugin properly for different modes
       devTarget: mode === 'development' ? 'es2020' : undefined,
     }),
     mode === 'development' && componentTagger(),
