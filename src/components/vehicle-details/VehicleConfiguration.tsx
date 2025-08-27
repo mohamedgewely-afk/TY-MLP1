@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +39,8 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const [animationKey, setAnimationKey] = useState(0);
   
   const isMobile = useIsMobile();
-  const { isMobile: deviceIsMobile, prefersReducedMotion } = useOptimizedDeviceInfo();
+  const { isMobile: deviceIsMobile } = useOptimizedDeviceInfo();
+  const prefersReducedMotion = useReducedMotion();
   const performanceConfig = usePerformanceConfig();
   const { targetRef, isIntersecting } = usePerformantIntersection({ threshold: 0.1 });
 
@@ -48,13 +48,13 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const adaptiveVariants = useMemo(() => createAdaptiveVariants({
     isMobile: deviceIsMobile,
     isSlowScroll: false,
-    prefersReducedMotion
+    prefersReducedMotion: prefersReducedMotion || false
   }), [deviceIsMobile, prefersReducedMotion]);
 
   const microAnimations = useMemo(() => createAdaptiveMicroAnimations({
     isMobile: deviceIsMobile,
     isSlowScroll: false,
-    prefersReducedMotion
+    prefersReducedMotion: prefersReducedMotion || false
   }), [deviceIsMobile, prefersReducedMotion]);
 
   // Optimized engines data with memoization
@@ -79,7 +79,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     }
   ], [selectedEngine]);
 
-  // Optimized grades with better memoization
+  // Optimized grades with better memoization and safety checks
   const grades = useMemo(() => {
     const baseGrades = selectedEngine === "2.5L Hybrid" ? [
       {
