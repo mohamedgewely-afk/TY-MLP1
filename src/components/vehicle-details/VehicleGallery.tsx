@@ -1,10 +1,10 @@
-
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useState, useCallback, useMemo, useRef, useEffect, memo } from "react";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-import FuturisticSceneCard from "./FuturisticSceneCard";
-import FuturisticSceneModal from "./FuturisticSceneModal";
+import OptimizedSceneCard from "./OptimizedSceneCard";
+import OptimizedSceneModal from "./OptimizedSceneModal";
+import DesktopGalleryGrid from "./DesktopGalleryGrid";
 import FuturisticCategoryFilter from "./FuturisticCategoryFilter";
+import { useSimpleDevice } from "../../hooks/use-simple-device";
 
 const TOYOTA_RED = "#EB0A1E" as const;
 const TOYOTA_BG = "#0D0F10" as const;
@@ -185,13 +185,14 @@ const DEFAULT_SCENES: SceneData[] = [
   },
 ];
 
-export default function VehicleGallery({
+const VehicleGallery = memo(({
   scenes = DEFAULT_SCENES,
   locale = "en",
   rtl = false,
   onAskToyota,
-}: VehicleGalleryProps) {
+}: VehicleGalleryProps) => {
   const T: LocaleStrings = STR[locale] ?? STR.en;
+  const { isDesktop, isMobile } = useSimpleDevice();
   
   const [activeIdx, setActiveIdx] = useState(0);
   const [selected, setSelected] = useState<SceneData | null>(null);
@@ -206,19 +207,23 @@ export default function VehicleGallery({
   );
 
   const centerCard = useCallback((index: number) => {
+    if (isDesktop) return; // No need to center on desktop grid
+    
     const el = trackRef.current;
     if (!el) return;
     const child = el.children[index] as HTMLElement | undefined;
     if (!child) return;
     const left = child.offsetLeft - (el.clientWidth - child.clientWidth) / 2;
     el.scrollTo({ left, behavior: "smooth" });
-  }, []);
+  }, [isDesktop]);
 
   // Reset on filter change
   useEffect(() => {
     setActiveIdx(0);
-    trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-  }, [filter]);
+    if (!isDesktop) {
+      trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  }, [filter, isDesktop]);
 
   // Center active card and announce
   useEffect(() => {
@@ -229,7 +234,7 @@ export default function VehicleGallery({
     }
   }, [activeIdx, centerCard, filtered, T]);
 
-  // Navigation handlers
+  // Optimized navigation handlers
   const openNext = useCallback(() => {
     if (!selected) return;
     const idx = filtered.findIndex((s) => s.id === selected.id);
@@ -245,6 +250,11 @@ export default function VehicleGallery({
     setSelected(prev);
     setActiveIdx((p) => (p - 1 + filtered.length) % filtered.length);
   }, [selected, filtered]);
+
+  const handleSceneSelect = useCallback((scene: SceneData, index: number) => {
+    setSelected(scene);
+    setActiveIdx(index);
+  }, []);
 
   // Keyboard navigation
   const onRootKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -291,163 +301,190 @@ export default function VehicleGallery({
       {/* Live region */}
       <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
 
-      {/* Futuristic background with particles */}
+      {/* Enhanced background for desktop */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         {currentBG && (
           <img
             src={currentBG}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover scale-110 blur-3xl opacity-30"
+            className={`absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 transition-opacity duration-500 ${isDesktop ? 'scale-105' : 'scale-110'}`}
           />
         )}
         
-        {/* Particle field */}
+        {/* Optimized particle field */}
         <div 
-          className="absolute inset-0 opacity-20 animate-pulse"
+          className="absolute inset-0 opacity-15"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 30%, ${TOYOTA_RED}25 1px, transparent 1px), radial-gradient(circle at 80% 70%, ${TOYOTA_RED}15 1px, transparent 1px)`,
-            backgroundSize: '60px 60px, 80px 80px',
+            backgroundImage: `radial-gradient(circle at 25% 35%, ${TOYOTA_RED}20 2px, transparent 2px), radial-gradient(circle at 75% 65%, ${TOYOTA_RED}15 1px, transparent 1px)`,
+            backgroundSize: isDesktop ? '80px 80px, 120px 120px' : '60px 60px, 80px 80px',
+            animation: 'float 25s ease-in-out infinite',
           }}
         />
         
         <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/60 to-black/95" aria-hidden />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 mx-auto max-w-7xl flex flex-col items-center text-center gap-4 px-4 pt-8">
+      {/* Enhanced header for desktop */}
+      <header className={`relative z-10 mx-auto max-w-7xl flex flex-col items-center text-center gap-6 px-4 ${isDesktop ? 'pt-12 pb-8' : 'pt-8'}`}>
         <div className="flex items-center gap-3" style={{ color: TOYOTA_RED }}>
-          <ToyotaLogo className="w-16 md:w-20 drop-shadow-[0_0_20px_currentColor]" />
+          <ToyotaLogo className={`drop-shadow-[0_0_20px_currentColor] ${isDesktop ? 'w-24 lg:w-28' : 'w-16 md:w-20'}`} />
           <span className="sr-only">Toyota</span>
         </div>
         
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight bg-gradient-to-br from-white via-white to-white/80 bg-clip-text">
+        <h1 className={`font-extrabold tracking-tight bg-gradient-to-br from-white via-white to-white/80 bg-clip-text ${isDesktop ? 'text-5xl lg:text-7xl xl:text-8xl' : 'text-3xl md:text-5xl lg:text-6xl'}`}>
           {T.title}
         </h1>
         
-        <p className="text-base md:text-lg text-white/80 max-w-2xl">
+        <p className={`text-white/80 max-w-3xl ${isDesktop ? 'text-xl lg:text-2xl' : 'text-base md:text-lg'}`}>
           {T.subtitle}
         </p>
         
-        <p className="text-xs md:text-sm flex items-center gap-2 text-white/60">
-          <Sparkles className="w-4 h-4" style={{ color: TOYOTA_RED }} aria-hidden /> 
+        <p className={`flex items-center gap-2 text-white/60 ${isDesktop ? 'text-lg' : 'text-xs md:text-sm'}`}>
+          <Sparkles className={`${isDesktop ? 'w-6 h-6' : 'w-4 h-4'}`} style={{ color: TOYOTA_RED }} aria-hidden /> 
           {T.hint}
         </p>
 
-        {/* Futuristic category filter */}
         <FuturisticCategoryFilter
           categories={T.scenes}
           activeFilter={filter}
           onFilterChange={setFilter}
           allLabel={T.all}
-          className="mt-6"
+          className={isDesktop ? 'mt-8' : 'mt-6'}
         />
       </header>
 
-      {/* Carousel */}
-      <div
-        id="content"
-        ref={trackRef}
-        className="relative z-10 mt-8 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth mx-auto w-full max-w-7xl px-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-        role="region"
-        aria-roledescription="carousel"
-        aria-label={T.sceneList}
-        aria-live="off"
-      >
-        {filtered.length === 0 && (
-          <div className="text-white/70 text-sm py-10 mx-auto">
-            {T.empty}
-          </div>
-        )}
-        
-        {filtered.map((scene, idx) => (
-          <FuturisticSceneCard
-            key={scene.id}
-            data={scene}
-            active={idx === activeIdx}
-            tabIndex={idx === activeIdx ? 0 : -1}
-            onEnter={() => { setSelected(scene); setActiveIdx(idx); }}
-            onFocus={() => setActiveIdx(idx)}
-            ariaLabel={T.openScene(scene.scene)}
-            expandLabel={T.expand}
-          />
-        ))}
-      </div>
+      {/* Adaptive gallery layout */}
+      {isDesktop ? (
+        <div className="relative z-10 mt-12 pb-16">
+          {filtered.length === 0 ? (
+            <div className="text-white/70 text-lg py-20 text-center">
+              {T.empty}
+            </div>
+          ) : (
+            <DesktopGalleryGrid
+              scenes={filtered}
+              activeIdx={activeIdx}
+              onSceneSelect={handleSceneSelect}
+              onSceneFocus={setActiveIdx}
+              expandLabel={T.expand}
+              openSceneLabel={T.openScene}
+            />
+          )}
+        </div>
+      ) : (
+        <div
+          id="content"
+          ref={trackRef}
+          className="relative z-10 mt-8 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 scroll-smooth mx-auto w-full max-w-7xl px-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={T.sceneList}
+          aria-live="off"
+        >
+          {filtered.length === 0 && (
+            <div className="text-white/70 text-sm py-10 mx-auto">
+              {T.empty}
+            </div>
+          )}
+          
+          {filtered.map((scene, idx) => (
+            <OptimizedSceneCard
+              key={scene.id}
+              data={scene}
+              active={idx === activeIdx}
+              tabIndex={idx === activeIdx ? 0 : -1}
+              onEnter={() => handleSceneSelect(scene, idx)}
+              onFocus={() => setActiveIdx(idx)}
+              ariaLabel={T.openScene(scene.scene)}
+              expandLabel={T.expand}
+              isDesktop={false}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Navigation arrows */}
-      {filtered.length > 1 && (
+      {/* Navigation arrows - mobile only */}
+      {!isDesktop && filtered.length > 1 && (
         <div className="relative z-10 flex justify-center gap-4 mt-6">
           <button
             type="button"
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 transition-all hover:scale-105"
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 transition-all hover:scale-105 duration-200"
             aria-label={T.prevScene}
             onClick={() => setActiveIdx((i) => Math.max(i - 1, 0))}
-            style={{
-              boxShadow: `0 0 20px ${TOYOTA_RED}20`,
-            }}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           
           <button
             type="button"
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 transition-all hover:scale-105"
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 transition-all hover:scale-105 duration-200"
             aria-label={T.nextScene}
             onClick={() => setActiveIdx((i) => Math.min(i + 1, filtered.length - 1))}
-            style={{
-              boxShadow: `0 0 20px ${TOYOTA_RED}20`,
-            }}
           >
             <ChevronRight className="w-6 h-6" />
           </button>
         </div>
       )}
 
-      {/* Progress indicators */}
-      <div className="relative z-10 flex items-center justify-center gap-3 mt-6 px-4">
-        <div className="flex items-center gap-2">
-          {filtered.map((_, i) => {
-            const isActive = i === activeIdx;
-            return (
-              <button
-                key={i}
-                type="button"
-                className={`h-2 rounded-full transition-all ${isActive ? 'w-8' : 'w-2'}`}
-                onClick={() => setActiveIdx(i)}
-                style={{ 
-                  backgroundColor: isActive ? TOYOTA_RED : 'rgba(255,255,255,0.3)',
-                  boxShadow: isActive ? `0 0 12px ${TOYOTA_RED}60` : 'none',
-                }}
-                aria-label={T.goToSlide(i + 1)}
-              />
-            );
-          })}
+      {/* Progress indicators - mobile only */}
+      {!isDesktop && (
+        <div className="relative z-10 flex items-center justify-center gap-3 mt-6 px-4">
+          <div className="flex items-center gap-2">
+            {filtered.map((_, i) => {
+              const isActive = i === activeIdx;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={`h-2 rounded-full transition-all duration-200 ${isActive ? 'w-8' : 'w-2'}`}
+                  onClick={() => setActiveIdx(i)}
+                  style={{ 
+                    backgroundColor: isActive ? TOYOTA_RED : 'rgba(255,255,255,0.3)',
+                    boxShadow: isActive ? `0 0 12px ${TOYOTA_RED}60` : 'none',
+                  }}
+                  aria-label={T.goToSlide(i + 1)}
+                />
+              );
+            })}
+          </div>
+          
+          <span className="text-sm text-white/60 ml-4">
+            {Math.min(activeIdx + 1, filtered.length)} / {filtered.length}
+          </span>
         </div>
-        
-        <span className="text-sm text-white/60 ml-4">
-          {Math.min(activeIdx + 1, filtered.length)} / {filtered.length}
-        </span>
-      </div>
+      )}
 
-      {/* Modal */}
-      <AnimatePresence>
-        {selected && (
-          <FuturisticSceneModal
-            key={selected.id}
-            scene={selected}
-            onClose={() => setSelected(null)}
-            onNext={openNext}
-            onPrev={openPrev}
-            onAskToyota={onAskToyota}
-            strings={{
-              collapse: T.collapse,
-              nextScene: T.nextScene,
-              prevScene: T.prevScene,
-              ask: T.ask,
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Optimized modal */}
+      {selected && (
+        <OptimizedSceneModal
+          scene={selected}
+          onClose={() => setSelected(null)}
+          onNext={openNext}
+          onPrev={openPrev}
+          onAskToyota={onAskToyota}
+          strings={{
+            collapse: T.collapse,
+            nextScene: T.nextScene,
+            prevScene: T.prevScene,
+            ask: T.ask,
+          }}
+        />
+      )}
+
+      {/* CSS animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
+          25% { transform: translateY(-8px) rotate(0.5deg); opacity: 0.2; }
+          50% { transform: translateY(-12px) rotate(0deg); opacity: 0.25; }
+          75% { transform: translateY(-6px) rotate(-0.5deg); opacity: 0.2; }
+        }
+      `}</style>
     </section>
   );
-}
+});
+
+VehicleGallery.displayName = "VehicleGallery";
+
+export default VehicleGallery;
