@@ -1,7 +1,6 @@
-
 import React from "react";
 import { motion } from "framer-motion";
-import { Battery, Zap, Gauge, Leaf, Engine, RotateCcw, TrendingUp, Award } from "lucide-react";
+import { Battery, Zap, Gauge, Leaf, Car, RotateCcw, TrendingUp, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,7 +28,7 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
 }) => {
   const hybridComponents = [
     {
-      icon: Engine,
+      icon: Car,
       name: "2.5L 4-Cylinder Engine",
       description: "Efficient gasoline engine optimized for hybrid operation",
       details: "Atkinson cycle engine designed for maximum fuel efficiency while maintaining performance. Features direct injection and variable valve timing.",

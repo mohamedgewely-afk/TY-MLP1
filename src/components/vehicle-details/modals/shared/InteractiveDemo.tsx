@@ -5,9 +5,9 @@ import { Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface InteractiveDemoProps {
-  title: string;
-  description: string;
-  demoSteps: {
+  title?: string;
+  description?: string;
+  demoSteps?: {
     id: string;
     title: string;
     description: string;
@@ -15,33 +15,129 @@ interface InteractiveDemoProps {
     duration?: number;
   }[];
   autoPlay?: boolean;
+  type?: string; // Add the type prop
 }
 
 const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
   title,
   description,
   demoSteps,
-  autoPlay = false
+  autoPlay = false,
+  type = "default" // Default value for type
 }) => {
+  // Generate default demo content based on type if no demoSteps provided
+  const defaultDemoSteps = React.useMemo(() => {
+    if (demoSteps && demoSteps.length > 0) return demoSteps;
+    
+    switch (type) {
+      case "safety":
+        return [
+          {
+            id: "1",
+            title: "Pre-Collision System",
+            description: "Advanced radar and camera technology detects potential collisions",
+            image: "/placeholder.svg",
+            duration: 3000
+          },
+          {
+            id: "2", 
+            title: "Lane Departure Alert",
+            description: "Monitors lane markings and alerts when drifting without signaling",
+            image: "/placeholder.svg",
+            duration: 3000
+          }
+        ];
+      case "connectivity":
+        return [
+          {
+            id: "1",
+            title: "Wireless CarPlay",
+            description: "Connect your iPhone wirelessly for seamless integration",
+            image: "/placeholder.svg",
+            duration: 3000
+          },
+          {
+            id: "2",
+            title: "Wi-Fi Hotspot", 
+            description: "Built-in 4G LTE provides internet for up to 5 devices",
+            image: "/placeholder.svg",
+            duration: 3000
+          }
+        ];
+      case "hybrid":
+        return [
+          {
+            id: "1",
+            title: "Electric Motor",
+            description: "Instant torque delivery for smooth acceleration",
+            image: "/placeholder.svg",
+            duration: 3000
+          },
+          {
+            id: "2",
+            title: "Regenerative Braking",
+            description: "Captures energy during braking to recharge the battery",
+            image: "/placeholder.svg",
+            duration: 3000
+          }
+        ];
+      case "interior":
+        return [
+          {
+            id: "1",
+            title: "Premium Seating",
+            description: "8-way power adjustable seats with memory settings",
+            image: "/placeholder.svg",
+            duration: 3000
+          },
+          {
+            id: "2",
+            title: "Climate Control",
+            description: "Dual-zone automatic climate control for personalized comfort",
+            image: "/placeholder.svg",
+            duration: 3000
+          }
+        ];
+      default:
+        return [
+          {
+            id: "1",
+            title: "Interactive Demo",
+            description: "Experience the features in action",
+            image: "/placeholder.svg",
+            duration: 3000
+          }
+        ];
+    }
+  }, [type, demoSteps]);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
 
   React.useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || !defaultDemoSteps.length) return;
 
     const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % demoSteps.length);
-    }, demoSteps[currentStep]?.duration || 3000);
+      setCurrentStep((prev) => (prev + 1) % defaultDemoSteps.length);
+    }, defaultDemoSteps[currentStep]?.duration || 3000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, currentStep, demoSteps]);
+  }, [isPlaying, currentStep, defaultDemoSteps]);
+
+  if (!defaultDemoSteps.length) {
+    return <div className="aspect-video bg-muted rounded-2xl flex items-center justify-center">
+      <p className="text-muted-foreground">Demo content loading...</p>
+    </div>;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-2xl font-bold mb-2">{title}</h3>
-        <p className="text-muted-foreground">{description}</p>
-      </div>
+      {title && (
+        <div className="text-center">
+          <h3 className="text-2xl font-bold mb-2">{title}</h3>
+          {description && <p className="text-muted-foreground">{description}</p>}
+        </div>
+      )}
 
       <div className="relative bg-muted rounded-2xl overflow-hidden">
         <AnimatePresence mode="wait">
@@ -54,17 +150,17 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
             className="aspect-video relative"
           >
             <img
-              src={demoSteps[currentStep]?.image}
-              alt={demoSteps[currentStep]?.title}
+              src={defaultDemoSteps[currentStep]?.image}
+              alt={defaultDemoSteps[currentStep]?.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 right-6 text-white">
               <h4 className="text-xl font-bold mb-2">
-                {demoSteps[currentStep]?.title}
+                {defaultDemoSteps[currentStep]?.title}
               </h4>
               <p className="text-white/90">
-                {demoSteps[currentStep]?.description}
+                {defaultDemoSteps[currentStep]?.description}
               </p>
             </div>
           </motion.div>
@@ -83,7 +179,7 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
 
       {/* Step Navigation */}
       <div className="flex justify-center gap-2">
-        {demoSteps.map((_, index) => (
+        {defaultDemoSteps.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentStep(index)}
