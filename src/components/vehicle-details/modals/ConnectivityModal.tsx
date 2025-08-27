@@ -1,168 +1,157 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MobileDialog, MobileDialogContent } from "@/components/ui/mobile-dialog";
+import { Smartphone, Wifi, Radio, Navigation, Phone, Music, MessageSquare, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, Wifi, Mic, Car, Zap, Music } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import ModalHeader from "./shared/ModalHeader";
+import {
+  MobileOptimizedDialog,
+  MobileOptimizedDialogContent,
+  MobileOptimizedDialogHeader,
+  MobileOptimizedDialogBody,
+  MobileOptimizedDialogFooter,
+  MobileOptimizedDialogTitle,
+  MobileOptimizedDialogDescription,
+} from "@/components/ui/mobile-optimized-dialog";
+import CollapsibleContent from "@/components/ui/collapsible-content";
 import InteractiveDemo from "./shared/InteractiveDemo";
 
 interface ConnectivityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onBookTestDrive?: () => void;
+  onBookTestDrive: () => void;
 }
-
-const connectivityFeatures = [
-  {
-    icon: <Smartphone className="h-6 w-6" />,
-    title: "Apple CarPlay & Android Auto",
-    description: "Seamless smartphone integration",
-    apps: ["Maps", "Music", "Messages", "Phone"]
-  },
-  {
-    icon: <Wifi className="h-6 w-6" />,
-    title: "Wi-Fi Hotspot",
-    description: "Keep up to 5 devices connected",
-    apps: ["4G LTE", "Data Plans", "Multiple Users"]
-  },
-  {
-    icon: <Mic className="h-6 w-6" />,
-    title: "Voice Assistant",
-    description: "Hey Toyota voice commands",
-    apps: ["Navigation", "Climate", "Music", "Calls"]
-  },
-  {
-    icon: <Zap className="h-6 w-6" />,
-    title: "Wireless Charging",
-    description: "Charge compatible devices wirelessly",
-    apps: ["Qi Compatible", "Fast Charging", "Multiple Zones"]
-  }
-];
-
-const demoSteps = [
-  {
-    id: "carplay",
-    title: "Apple CarPlay Integration",
-    description: "Access your iPhone apps directly on the infotainment screen",
-    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    id: "voice",
-    title: "Voice Control",
-    description: "Control navigation, music, and climate with natural voice commands",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    id: "wireless",
-    title: "Wireless Charging",
-    description: "Keep your devices powered without cables",
-    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&w=1200&q=80"
-  }
-];
 
 const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
   isOpen,
   onClose,
   onBookTestDrive
 }) => {
-  const isMobile = useIsMobile();
-  const [activeFeature, setActiveFeature] = useState(0);
+  const connectivityFeatures = [
+    {
+      icon: Smartphone,
+      name: "Apple CarPlay & Android Auto",
+      description: "Seamlessly connect your smartphone for apps, music, and navigation",
+      details: "Wireless connectivity allows you to access your favorite apps, make calls, send messages, and navigate using your phone's interface on the vehicle's display.",
+      compatibility: ["iPhone 5s and later", "Android phones with Android 6.0+"]
+    },
+    {
+      icon: Wifi,
+      name: "Wi-Fi Connect",
+      description: "Built-in 4G LTE Wi-Fi hotspot for up to 5 devices",
+      details: "Stay connected on the go with high-speed internet access for passengers to stream, browse, and work from anywhere.",
+      compatibility: ["Up to 5 devices", "4G LTE speeds", "Data plan required"]
+    },
+    {
+      icon: Navigation,
+      name: "Connected Navigation",
+      description: "Real-time traffic updates and intelligent route planning",
+      details: "Cloud-based navigation with live traffic data, weather information, and points of interest updates.",
+      compatibility: ["Real-time traffic", "Weather integration", "POI updates"]
+    },
+    {
+      icon: Radio,
+      name: "SiriusXM Connected Services",
+      description: "Premium audio content and connected vehicle services",
+      details: "Access to satellite radio, podcasts, and vehicle health reports with remote monitoring capabilities.",
+      compatibility: ["360+ channels", "Travel Link", "Vehicle health alerts"]
+    }
+  ];
 
-  const DialogComponent = isMobile ? MobileDialog : Dialog;
-  const DialogContentComponent = isMobile ? MobileDialogContent : DialogContent;
+  const smartFeatures = [
+    {
+      icon: Phone,
+      title: "Remote Connect",
+      features: ["Remote Start", "Door Lock/Unlock", "Vehicle Locator", "Guest Driver Monitor"]
+    },
+    {
+      icon: Music,
+      title: "Audio Plus",
+      features: ["Amazon Alexa Built-in", "Premium Audio System", "Wireless Charging", "Multiple USB Ports"]
+    },
+    {
+      icon: MessageSquare,
+      title: "Communication",
+      features: ["Hands-free Calling", "Voice-to-Text Messaging", "Email Notifications", "Social Media Integration"]
+    },
+    {
+      icon: Settings,
+      title: "Customization",
+      features: ["Driver Profiles", "Climate Presets", "Seat Memory", "Mirror Positions"]
+    }
+  ];
 
   return (
-    <DialogComponent open={isOpen} onOpenChange={onClose}>
-      <DialogContentComponent className={isMobile ? "" : "max-w-6xl max-h-[90vh] p-0"}>
-        <ModalHeader
-          title="Connected Experience"
-          subtitle="Stay connected, entertained, and informed on every journey"
-          onClose={onClose}
-        />
-        
-        <div className="overflow-y-auto">
-          <div className="p-6 space-y-8">
-            {/* Interactive Demo */}
-            <InteractiveDemo
-              title="Connectivity in Action"
-              description="Experience seamless integration between your device and vehicle"
-              demoSteps={demoSteps}
-              autoPlay={true}
-            />
+    <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
+      <MobileOptimizedDialogContent className="sm:max-w-4xl">
+        <MobileOptimizedDialogHeader>
+          <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
+            Connected Services
+          </MobileOptimizedDialogTitle>
+          <MobileOptimizedDialogDescription className="text-base">
+            Stay connected, entertained, and informed with advanced connectivity features
+          </MobileOptimizedDialogDescription>
+        </MobileOptimizedDialogHeader>
 
-            {/* Phone Integration Showcase */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6">
-              <div className="grid lg:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Smartphone Integration</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Your smartphone becomes part of your driving experience with wireless Apple CarPlay and Android Auto.
-                  </p>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Smartphone className="h-4 w-4 text-white" />
-                      </div>
-                      <span>Wireless connection - no cables needed</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <Music className="h-4 w-4 text-white" />
-                      </div>
-                      <span>Access to your music, podcasts, and audiobooks</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Car className="h-4 w-4 text-white" />
-                      </div>
-                      <span>Native app experience on the car display</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=80"
-                    alt="CarPlay Interface"
-                    className="rounded-xl shadow-lg"
-                  />
-                </div>
+        <MobileOptimizedDialogBody>
+          <div className="space-y-6">
+            {/* Hero Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 lg:p-8"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Wifi className="h-8 w-8 text-blue-500" />
+                <Badge variant="secondary" className="text-sm font-semibold bg-blue-100 text-blue-700">
+                  Always Connected
+                </Badge>
               </div>
-            </div>
+              <h3 className="text-xl lg:text-2xl font-bold mb-3">Your Digital Companion</h3>
+              <p className="text-muted-foreground mb-6">
+                Experience seamless integration between your digital life and your Toyota Camry with 
+                cutting-edge connectivity features.
+              </p>
+              
+              <InteractiveDemo type="connectivity" />
+            </motion.div>
 
-            {/* Connectivity Features */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">Connectivity Features</h3>
-              <div className="grid md:grid-cols-2 gap-4">
+            {/* Core Connectivity Features */}
+            <div>
+              <h3 className="text-xl font-bold mb-4">Core Connectivity Features</h3>
+              <div className="space-y-4">
                 {connectivityFeatures.map((feature, index) => (
                   <motion.div
-                    key={index}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      activeFeature === index ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => setActiveFeature(index)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    key={feature.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-4 rounded-xl border hover:border-primary/20 transition-all duration-300"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        activeFeature === index ? "bg-primary text-primary-foreground" : "bg-muted"
-                      }`}>
-                        {feature.icon}
+                      <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                        <feature.icon className="h-4 w-4" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{feature.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {feature.apps.map((app, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {app}
-                            </Badge>
-                          ))}
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold mb-1 leading-tight">{feature.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{feature.description}</p>
+                        
+                        <CollapsibleContent title="Technical Details" className="border-0">
+                          <div className="space-y-3">
+                            <p className="text-sm text-muted-foreground">{feature.details}</p>
+                            <div>
+                              <h5 className="font-medium mb-2 text-sm">Compatibility:</h5>
+                              <div className="grid gap-1 sm:grid-cols-2">
+                                {feature.compatibility.map((item, idx) => (
+                                  <div key={idx} className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                    <span className="text-xs">{item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </CollapsibleContent>
                       </div>
                     </div>
                   </motion.div>
@@ -170,54 +159,75 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
               </div>
             </div>
 
-            {/* Voice Commands Showcase */}
-            <div className="bg-muted/30 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Mic className="h-6 w-6 text-primary" />
-                <h3 className="text-xl font-bold">Voice Commands</h3>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Navigation</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>"Navigate to downtown Dubai"</li>
-                    <li>"Find the nearest gas station"</li>
-                    <li>"Avoid toll roads"</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Entertainment</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>"Play my driving playlist"</li>
-                    <li>"Call John from contacts"</li>
-                    <li>"Read my messages"</li>
-                  </ul>
-                </div>
+            {/* Smart Features */}
+            <div>
+              <h3 className="text-xl font-bold mb-4">Smart Features & Services</h3>
+              <div className="space-y-4">
+                {smartFeatures.map((system, index) => (
+                  <CollapsibleContent
+                    key={system.title}
+                    title={
+                      <div className="flex items-center gap-3">
+                        <system.icon className="h-5 w-5 text-blue-500" />
+                        <span>{system.title}</span>
+                      </div>
+                    }
+                    defaultOpen={index === 0}
+                  >
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {system.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                ))}
               </div>
             </div>
 
-            {/* CTA Section */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button 
-                size="lg" 
-                className="flex-1"
-                onClick={onBookTestDrive}
-              >
-                Test Connectivity Features
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="flex-1"
-                onClick={onClose}
-              >
-                Learn More
-              </Button>
-            </div>
+            {/* Subscription Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100"
+            >
+              <h3 className="text-xl font-bold mb-4 text-blue-900">Service Plans</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-2">Complimentary Trial</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Remote Connect (1 year)</li>
+                    <li>• SiriusXM All Access (3 months)</li>
+                    <li>• Connected Services (1 year)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-2">Extended Plans</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Monthly & annual options</li>
+                    <li>• Family sharing plans</li>
+                    <li>• Premium features available</li>
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </DialogContentComponent>
-    </DialogComponent>
+        </MobileOptimizedDialogBody>
+
+        <MobileOptimizedDialogFooter>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:ml-auto">
+            <Button variant="outline" onClick={onClose} className="sm:w-auto">
+              Close
+            </Button>
+            <Button onClick={onBookTestDrive} className="sm:w-auto">
+              Test Connectivity Features
+            </Button>
+          </div>
+        </MobileOptimizedDialogFooter>
+      </MobileOptimizedDialogContent>
+    </MobileOptimizedDialog>
   );
 };
 

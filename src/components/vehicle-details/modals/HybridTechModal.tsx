@@ -1,155 +1,177 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MobileDialog, MobileDialogContent } from "@/components/ui/mobile-dialog";
+import { Battery, Zap, Gauge, Leaf, Engine, RotateCcw, TrendingUp, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, Battery, Zap, Gauge, TreePine, Fuel } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import ModalHeader from "./shared/ModalHeader";
+import {
+  MobileOptimizedDialog,
+  MobileOptimizedDialogContent,
+  MobileOptimizedDialogHeader,
+  MobileOptimizedDialogBody,
+  MobileOptimizedDialogFooter,
+  MobileOptimizedDialogTitle,
+  MobileOptimizedDialogDescription,
+} from "@/components/ui/mobile-optimized-dialog";
+import CollapsibleContent from "@/components/ui/collapsible-content";
 import InteractiveDemo from "./shared/InteractiveDemo";
-import AnimatedCounter from "@/components/ui/animated-counter";
 
 interface HybridTechModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onBookTestDrive?: () => void;
+  onBookTestDrive: () => void;
 }
-
-const hybridModes = [
-  {
-    name: "EV Mode",
-    icon: <Battery className="h-6 w-6" />,
-    description: "Pure electric driving for quiet city cruising",
-    efficiency: "0 L/100km",
-    range: "2-3 km"
-  },
-  {
-    name: "Hybrid Mode",
-    icon: <Zap className="h-6 w-6" />,
-    description: "Optimal balance of power and efficiency",
-    efficiency: "4.5 L/100km",
-    range: "1000+ km"
-  },
-  {
-    name: "Power Mode",
-    icon: <Gauge className="h-6 w-6" />,
-    description: "Maximum performance for highway driving",
-    efficiency: "5.2 L/100km",
-    range: "900+ km"
-  }
-];
-
-const demoSteps = [
-  {
-    id: "system",
-    title: "Hybrid System Overview",
-    description: "See how the engine and electric motor work together seamlessly",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    id: "regeneration",
-    title: "Regenerative Braking",
-    description: "Energy recovery system charges the battery while braking",
-    image: "https://images.unsplash.com/photo-1609501676725-7186f76444f8?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    id: "efficiency",
-    title: "Efficiency Optimization",
-    description: "Smart system automatically chooses the most efficient power source",
-    image: "https://images.unsplash.com/photo-1454391304352-2bf4678b1a7a?auto=format&fit=crop&w=1200&q=80"
-  }
-];
 
 const HybridTechModal: React.FC<HybridTechModalProps> = ({
   isOpen,
   onClose,
   onBookTestDrive
 }) => {
-  const isMobile = useIsMobile();
-  const [activeMode, setActiveMode] = useState(0);
+  const hybridComponents = [
+    {
+      icon: Engine,
+      name: "2.5L 4-Cylinder Engine",
+      description: "Efficient gasoline engine optimized for hybrid operation",
+      details: "Atkinson cycle engine designed for maximum fuel efficiency while maintaining performance. Features direct injection and variable valve timing.",
+      specs: ["176 HP", "Atkinson Cycle", "Direct Injection", "VVT-i Technology"]
+    },
+    {
+      icon: Zap,
+      name: "Electric Motor System",
+      description: "Powerful electric motors for instant torque and efficiency",
+      details: "Dual electric motor setup provides immediate power delivery and regenerative braking capabilities for enhanced efficiency.",
+      specs: ["118 HP Combined", "Instant Torque", "Regenerative Braking", "Silent Operation"]
+    },
+    {
+      icon: Battery,
+      name: "Hybrid Battery Pack",
+      description: "Advanced lithium-ion battery system",
+      details: "Compact, lightweight lithium-ion battery pack positioned for optimal weight distribution and maximum cabin space.",
+      specs: ["Lithium-ion", "8-Year Warranty", "Minimal Maintenance", "Compact Design"]
+    },
+    {
+      icon: RotateCcw,
+      name: "Power Control Unit",
+      description: "Intelligent system that manages power flow",
+      details: "Sophisticated computer system that seamlessly switches between gasoline and electric power for optimal efficiency and performance.",
+      specs: ["Seamless Switching", "Smart Management", "Real-time Optimization", "Predictive Logic"]
+    }
+  ];
 
-  const DialogComponent = isMobile ? MobileDialog : Dialog;
-  const DialogContentComponent = isMobile ? MobileDialogContent : DialogContent;
+  const drivingModes = [
+    {
+      icon: Leaf,
+      title: "EV Mode",
+      description: "Pure electric driving for short distances",
+      features: ["Silent Operation", "Zero Emissions", "City Driving", "Parking Lots"]
+    },
+    {
+      icon: TrendingUp,
+      title: "Eco Mode",
+      description: "Maximum fuel efficiency optimization",
+      features: ["Extended Range", "Gentle Acceleration", "Climate Optimization", "Efficiency Coaching"]
+    },
+    {
+      icon: Gauge,
+      title: "Normal Mode",
+      description: "Balanced performance and efficiency",
+      features: ["Everyday Driving", "Smooth Power", "Automatic Switching", "Optimal Balance"]
+    },
+    {
+      icon: Zap,
+      title: "Sport Mode",
+      description: "Enhanced performance and responsiveness",
+      features: ["Quick Acceleration", "Responsive Handling", "Performance Focus", "Dynamic Feel"]
+    }
+  ];
 
   return (
-    <DialogComponent open={isOpen} onOpenChange={onClose}>
-      <DialogContentComponent className={isMobile ? "" : "max-w-6xl max-h-[90vh] p-0"}>
-        <ModalHeader
-          title="Hybrid Technology"
-          subtitle="Advanced hybrid powertrain for efficiency and performance"
-          onClose={onClose}
-        />
-        
-        <div className="overflow-y-auto">
-          <div className="p-6 space-y-8">
-            {/* Efficiency Stats */}
-            <motion.div 
-              className="grid grid-cols-3 gap-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6"
+    <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
+      <MobileOptimizedDialogContent className="sm:max-w-4xl">
+        <MobileOptimizedDialogHeader>
+          <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
+            Hybrid Synergy Drive®
+          </MobileOptimizedDialogTitle>
+          <MobileOptimizedDialogDescription className="text-base">
+            Advanced hybrid technology delivering exceptional fuel efficiency and performance
+          </MobileOptimizedDialogDescription>
+        </MobileOptimizedDialogHeader>
+
+        <MobileOptimizedDialogBody>
+          <div className="space-y-6">
+            {/* Hero Section */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 lg:p-8"
             >
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-1">
-                  <AnimatedCounter value={4.5} decimals={1} duration={2} />L
-                </div>
-                <div className="text-sm text-muted-foreground">Fuel Consumption</div>
-                <div className="text-xs text-muted-foreground">per 100km</div>
+              <div className="flex items-center gap-3 mb-4">
+                <Battery className="h-8 w-8 text-green-500" />
+                <Badge variant="secondary" className="text-sm font-semibold bg-green-100 text-green-700">
+                  25+ Years of Innovation
+                </Badge>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-1">
-                  <AnimatedCounter value={218} duration={2} />HP
+              <h3 className="text-xl lg:text-2xl font-bold mb-3">The Future of Efficiency</h3>
+              <p className="text-muted-foreground mb-6">
+                Experience Toyota's proven hybrid technology that seamlessly combines gasoline and 
+                electric power for exceptional fuel economy without compromise.
+              </p>
+              
+              {/* Key Stats */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">52</div>
+                  <div className="text-xs text-muted-foreground">City MPG</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Total Power</div>
-                <div className="text-xs text-muted-foreground">Combined Output</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-1">
-                  <AnimatedCounter value={40} duration={2} />%
+                <div className="text-center">
+                  <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">208</div>
+                  <div className="text-xs text-muted-foreground">Total HP</div>
                 </div>
-                <div className="text-sm text-muted-foreground">CO₂ Reduction</div>
-                <div className="text-xs text-muted-foreground">vs Conventional</div>
+                <div className="text-center">
+                  <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">AT-PZEV</div>
+                  <div className="text-xs text-muted-foreground">Emissions</div>
+                </div>
               </div>
+              
+              <InteractiveDemo type="hybrid" />
             </motion.div>
 
-            {/* Interactive Demo */}
-            <InteractiveDemo
-              title="Hybrid System in Action"
-              description="Watch how the hybrid powertrain adapts to different driving conditions"
-              demoSteps={demoSteps}
-              autoPlay={true}
-            />
-
-            {/* Driving Modes */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">Driving Modes</h3>
-              <div className="grid gap-4">
-                {hybridModes.map((mode, index) => (
+            {/* Hybrid Components */}
+            <div>
+              <h3 className="text-xl font-bold mb-4">Hybrid System Components</h3>
+              <div className="space-y-4">
+                {hybridComponents.map((component, index) => (
                   <motion.div
-                    key={index}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      activeMode === index ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => setActiveMode(index)}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                    key={component.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-4 rounded-xl border hover:border-green-200 transition-all duration-300 hover:bg-green-50/50"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          activeMode === index ? "bg-primary text-primary-foreground" : "bg-muted"
-                        }`}>
-                          {mode.icon}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">{mode.name}</h4>
-                          <p className="text-sm text-muted-foreground">{mode.description}</p>
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-green-50 text-green-600">
+                        <component.icon className="h-4 w-4" />
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-semibold">{mode.efficiency}</div>
-                        <div className="text-xs text-muted-foreground">{mode.range} range</div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold mb-1 leading-tight">{component.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{component.description}</p>
+                        
+                        <CollapsibleContent title="Technical Specifications" className="border-0">
+                          <div className="space-y-3">
+                            <p className="text-sm text-muted-foreground">{component.details}</p>
+                            <div>
+                              <h5 className="font-medium mb-2 text-sm">Key Specifications:</h5>
+                              <div className="grid gap-1 sm:grid-cols-2">
+                                {component.specs.map((spec, idx) => (
+                                  <div key={idx} className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                    <span className="text-xs">{spec}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </CollapsibleContent>
                       </div>
                     </div>
                   </motion.div>
@@ -157,93 +179,82 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
               </div>
             </div>
 
+            {/* Driving Modes */}
+            <div>
+              <h3 className="text-xl font-bold mb-4">Intelligent Driving Modes</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {drivingModes.map((mode, index) => (
+                  <motion.div
+                    key={mode.title}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-4 rounded-xl border border-green-200 bg-green-50/30"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <mode.icon className="h-5 w-5 text-green-600" />
+                      <h4 className="font-semibold">{mode.title}</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">{mode.description}</p>
+                    <div className="space-y-1">
+                      {mode.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-1 h-1 rounded-full bg-green-500" />
+                          <span className="text-xs text-green-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
             {/* Environmental Impact */}
-            <div className="bg-green-50 rounded-2xl p-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100"
+            >
               <div className="flex items-center gap-3 mb-4">
-                <TreePine className="h-6 w-6 text-green-600" />
-                <h3 className="text-xl font-bold">Environmental Benefits</h3>
+                <Award className="h-6 w-6 text-green-600" />
+                <h3 className="text-xl font-bold text-green-900">Environmental Benefits</h3>
               </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Leaf className="h-5 w-5 text-green-600" />
-                    <span>40% lower CO₂ emissions</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Fuel className="h-5 w-5 text-green-600" />
-                    <span>Superior fuel economy</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Battery className="h-5 w-5 text-green-600" />
-                    <span>Zero emissions in EV mode</span>
-                  </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h4 className="font-semibold text-green-800 mb-2">Reduced Emissions</h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    <li>• AT-PZEV certified</li>
+                    <li>• 70% fewer emissions than gas-only</li>
+                    <li>• Cleaner air contribution</li>
+                    <li>• Sustainable technology</li>
+                  </ul>
                 </div>
-                <div className="bg-white rounded-xl p-4">
-                  <h4 className="font-semibold mb-2">Annual Savings</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Fuel Cost Savings</span>
-                      <span className="font-semibold">AED 2,400/year</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>CO₂ Reduction</span>
-                      <span className="font-semibold">1.2 tons/year</span>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-green-800 mb-2">Fuel Savings</h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    <li>• Up to 52 MPG city rating</li>
+                    <li>• Reduced fuel consumption</li>
+                    <li>• Lower carbon footprint</li>
+                    <li>• Long-term cost savings</li>
+                  </ul>
                 </div>
               </div>
-            </div>
-
-            {/* Technology Explained */}
-            <div className="bg-muted/30 rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-4">How It Works</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Zap className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Electric Motor</h4>
-                  <p className="text-sm text-muted-foreground">Provides instant torque and silent operation</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Battery className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Hybrid Battery</h4>
-                  <p className="text-sm text-muted-foreground">Stores energy from regenerative braking</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Gauge className="h-8 w-8 text-orange-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Engine</h4>
-                  <p className="text-sm text-muted-foreground">Efficient gasoline engine for long-range driving</p>
-                </div>
-              </div>
-            </div>
-
-            {/* CTA Section */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button 
-                size="lg" 
-                className="flex-1"
-                onClick={onBookTestDrive}
-              >
-                Experience Hybrid Efficiency
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="flex-1"
-                onClick={onClose}
-              >
-                Learn More
-              </Button>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </DialogContentComponent>
-    </DialogComponent>
+        </MobileOptimizedDialogBody>
+
+        <MobileOptimizedDialogFooter>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:ml-auto">
+            <Button variant="outline" onClick={onClose} className="sm:w-auto">
+              Close
+            </Button>
+            <Button onClick={onBookTestDrive} className="sm:w-auto">
+              Experience Hybrid Drive
+            </Button>
+          </div>
+        </MobileOptimizedDialogFooter>
+      </MobileOptimizedDialogContent>
+    </MobileOptimizedDialog>
   );
 };
 
