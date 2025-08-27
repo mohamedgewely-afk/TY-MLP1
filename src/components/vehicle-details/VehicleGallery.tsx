@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
@@ -303,11 +304,10 @@ export default function VehicleGallery({
         
         {/* Particle field */}
         <div 
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-20 animate-pulse"
           style={{
             backgroundImage: `radial-gradient(circle at 20% 30%, ${TOYOTA_RED}25 1px, transparent 1px), radial-gradient(circle at 80% 70%, ${TOYOTA_RED}15 1px, transparent 1px)`,
             backgroundSize: '60px 60px, 80px 80px',
-            animation: 'float 20s ease-in-out infinite',
           }}
         />
         
@@ -448,14 +448,6 @@ export default function VehicleGallery({
           />
         )}
       </AnimatePresence>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-10px) rotate(1deg); }
-          66% { transform: translateY(5px) rotate(-1deg); }
-        }
-      `}</style>
     </section>
   );
 }
