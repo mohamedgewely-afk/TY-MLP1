@@ -27,12 +27,12 @@ export default defineConfig(({ mode }) => ({
     // Brotli and Gzip compression
     mode === 'production' && compression({
       algorithms: ['brotli'],
-      ext: '.br',
+      filename: '[path][base].br',
       deleteOriginFile: false,
     }),
     mode === 'production' && compression({
       algorithms: ['gzip'],
-      ext: '.gz',
+      filename: '[path][base].gz',
       deleteOriginFile: false,
     })
   ].filter(Boolean),
