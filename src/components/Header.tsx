@@ -145,7 +145,6 @@ const Header: React.FC = () => {
                 whileHover={{ scale: 1.05, y: -1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent pointer-events-none"></div>
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none"></div>
                 <span className="relative z-10">Enquire</span>
               </motion.button>
