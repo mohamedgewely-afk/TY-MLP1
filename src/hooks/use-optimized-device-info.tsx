@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 // Define types locally since we can't import from use-device-info
 export type DeviceCategory = 'smallMobile' | 'standardMobile' | 'largeMobile' | 'extraLargeMobile' | 'tablet' | 'laptop' | 'largeDesktop';

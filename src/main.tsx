@@ -1,4 +1,5 @@
 
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -27,4 +28,8 @@ appleTouchIcon.rel = 'apple-touch-icon';
 appleTouchIcon.href = '/icon-192.png';
 document.getElementsByTagName('head')[0].appendChild(appleTouchIcon);
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
