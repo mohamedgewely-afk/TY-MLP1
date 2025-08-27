@@ -7,17 +7,17 @@ import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode, command }) => ({
+export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
     react({
-      // Configure React plugin properly for different modes
-      devTarget: mode === 'development' ? 'es2020' : undefined,
+      // Simplified React plugin configuration
+      devTarget: 'es2020',
     }),
-    mode === 'development' && command === 'serve' && componentTagger(),
+    mode === 'development' && componentTagger(),
     
     // Bundle analyzer - generates stats.html in dist folder
     mode === 'production' && visualizer({
@@ -43,16 +43,14 @@ export default defineConfig(({ mode, command }) => ({
   },
   
   build: {
-    target: mode === 'production' ? ['es2020', 'chrome80', 'firefox78', 'safari13'] : 'es2020',
+    target: 'es2020',
     cssTarget: 'chrome80',
     
     rollupOptions: {
-      // Don't externalize react-refresh for builds
-      external: command === 'build' ? [] : undefined,
       output: {
-        // Enhanced code splitting for 732KB savings
-        manualChunks: command === 'build' ? (id) => {
-          // React core chunk (smallest possible)
+        // Simplified code splitting
+        manualChunks: mode === 'production' ? (id) => {
+          // React core chunk
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'react-core';
           }
@@ -67,16 +65,6 @@ export default defineConfig(({ mode, command }) => ({
           // Query and routing
           if (id.includes('@tanstack/react-query') || id.includes('react-router')) {
             return 'app-libs';
-          }
-          // Heavy vehicle components - lazy load these
-          if (id.includes('vehicle-details/VirtualShowroom') || 
-              id.includes('vehicle-details/CarBuilder') ||
-              id.includes('vehicle-details/EnhancedLifestyleGallery')) {
-            return 'heavy-vehicle';
-          }
-          // Utilities and helpers
-          if (id.includes('date-fns') || id.includes('class-variance-authority') || id.includes('clsx')) {
-            return 'utils';
           }
         } : undefined,
         
@@ -96,7 +84,7 @@ export default defineConfig(({ mode, command }) => ({
       }
     },
     
-    // Production optimizations for 243KB JS savings
+    // Production optimizations
     minify: mode === 'production' ? 'terser' : false,
     terserOptions: mode === 'production' ? {
       compress: {
@@ -122,23 +110,9 @@ export default defineConfig(({ mode, command }) => ({
     assetsInlineLimit: 4096
   },
   
-  // CSS optimization for 51KB CSS savings
+  // CSS optimization
   css: {
     devSourcemap: mode === 'development',
-    postcss: {
-      plugins: mode === 'production' ? [
-        require('autoprefixer'),
-        require('cssnano')({
-          preset: ['default', {
-            discardComments: { removeAll: true },
-            normalizeWhitespace: true,
-            mergeLonghand: true,
-            mergeRules: true,
-            discardUnused: true
-          }]
-        })
-      ] : []
-    }
   },
   
   // Performance optimizations
@@ -150,13 +124,12 @@ export default defineConfig(({ mode, command }) => ({
       '@tanstack/react-query',
       'framer-motion',
       'lucide-react'
-    ],
-    exclude: command === 'build' ? ['@vite/client', '@vite/env'] : []
+    ]
   },
   
-  // Experimental features for better performance
+  // Simplified esbuild configuration
   esbuild: {
-    target: mode === 'production' ? 'es2020' : 'esnext',
+    target: 'es2020',
     legalComments: 'none',
     minifyIdentifiers: mode === 'production',
     minifySyntax: mode === 'production',

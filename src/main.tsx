@@ -1,7 +1,8 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
 
 // Add viewport meta tag to support safe area insets
 const meta = document.createElement('meta');
@@ -27,4 +28,12 @@ appleTouchIcon.rel = 'apple-touch-icon';
 appleTouchIcon.href = '/icon-192.png';
 document.getElementsByTagName('head')[0].appendChild(appleTouchIcon);
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Debug React availability
+console.log('React availability check:', { React, version: React.version });
+
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+createRoot(rootElement).render(<App />);

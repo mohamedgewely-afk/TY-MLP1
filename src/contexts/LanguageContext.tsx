@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Debug React availability in LanguageContext
+console.log('LanguageContext.tsx React hooks check:', { 
+  useState: React.useState, 
+  useEffect: React.useEffect,
+  useContext: React.useContext,
+  createContext: React.createContext
+});
+
 interface LanguageContextType {
   language: 'en' | 'ar';
   setLanguage: (lang: 'en' | 'ar') => void;
@@ -204,32 +212,42 @@ const translations = {
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  console.log('LanguageProvider initializing...');
+  
+  try {
+    const [language, setLanguage] = useState<'en' | 'ar'>('en');
+    console.log('LanguageProvider useState successful, language:', language);
 
-  const isRTL = language === 'ar';
+    const isRTL = language === 'ar';
 
-  const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations['en']] || key;
-  };
+    const t = (key: string): string => {
+      return translations[language][key as keyof typeof translations['en']] || key;
+    };
 
-  // Apply RTL class to document when language changes
-  useEffect(() => {
-    if (isRTL) {
-      document.documentElement.dir = 'rtl';
-      document.documentElement.lang = 'ar';
-      document.body.classList.add('rtl');
-    } else {
-      document.documentElement.dir = 'ltr';
-      document.documentElement.lang = 'en';
-      document.body.classList.remove('rtl');
-    }
-  }, [isRTL]);
+    // Apply RTL class to document when language changes
+    useEffect(() => {
+      console.log('LanguageProvider useEffect triggered, isRTL:', isRTL);
+      if (isRTL) {
+        document.documentElement.dir = 'rtl';
+        document.documentElement.lang = 'ar';
+        document.body.classList.add('rtl');
+      } else {
+        document.documentElement.dir = 'ltr';
+        document.documentElement.lang = 'en';
+        document.body.classList.remove('rtl');
+      }
+    }, [isRTL]);
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, isRTL, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+    console.log('LanguageProvider rendering context provider');
+    return (
+      <LanguageContext.Provider value={{ language, setLanguage, isRTL, t }}>
+        {children}
+      </LanguageContext.Provider>
+    );
+  } catch (error) {
+    console.error('LanguageProvider error:', error);
+    throw error;
+  }
 };
 
 export const useLanguage = () => {
