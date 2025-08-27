@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { VehicleModel } from "@/types/vehicle";
 import { 
   ChevronLeft, ChevronRight, Check, Zap, Fuel, Settings,
@@ -32,6 +33,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const [selectedEngine, setSelectedEngine] = useState("2.5L Hybrid");
   const [selectedGrade, setSelectedGrade] = useState(0);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isGradeLoading, setIsGradeLoading] = useState(false);
   const isMobile = useIsMobile();
   const { deviceCategory } = useDeviceInfo();
 
@@ -204,43 +206,61 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     }
   }, [selectedEngine]);
 
-  React.useEffect(() => {
+  // Safe access to current grade with bounds checking
+  const currentGrade = useMemo(() => {
+    if (!grades || grades.length === 0) return null;
+    if (selectedGrade < 0 || selectedGrade >= grades.length) return grades[0];
+    return grades[selectedGrade];
+  }, [grades, selectedGrade]);
+
+  const handleEngineChange = useCallback(async (engineName: string) => {
+    if (engineName === selectedEngine) return;
+    
+    setIsGradeLoading(true);
+    setSelectedEngine(engineName);
+    
+    // Reset grade selection immediately to prevent out-of-bounds access
     setSelectedGrade(0);
+    
+    // Small delay to allow for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 100));
+    setIsGradeLoading(false);
+    
+    contextualHaptic.selectionChange();
   }, [selectedEngine]);
 
-  const handleEngineChange = (engineName: string) => {
-    setSelectedEngine(engineName);
-    contextualHaptic.selectionChange();
-  };
+  const handleGradeChange = useCallback((gradeIndex: number) => {
+    if (gradeIndex >= 0 && gradeIndex < grades.length) {
+      setSelectedGrade(gradeIndex);
+    }
+  }, [grades.length]);
 
-  const handleGradeChange = (gradeIndex: number) => {
-    setSelectedGrade(gradeIndex);
-  };
-
-  const currentGrade = grades[selectedGrade];
-
-  const handleSelectGrade = (gradeIndex?: number) => {
+  const handleSelectGrade = useCallback((gradeIndex?: number) => {
     const grade = gradeIndex !== undefined ? grades[gradeIndex] : currentGrade;
+    if (!grade) return;
+    
     onGradeSelect?.(grade.name);
     contextualHaptic.configComplete();
     console.log("Grade selected:", grade.name);
-  };
+  }, [grades, currentGrade, onGradeSelect]);
 
-  const handleConfigureGrade = (grade?: any) => {
+  const handleConfigureGrade = useCallback((grade?: any) => {
     const gradeToUse = grade || currentGrade;
+    if (!gradeToUse) return;
+    
     onCarBuilder?.(gradeToUse.name);
     contextualHaptic.buttonPress();
-  };
+  }, [currentGrade, onCarBuilder]);
 
-  const handleTestDriveGrade = (grade?: any) => {
+  const handleTestDriveGrade = useCallback((grade?: any) => {
     onTestDrive?.();
     contextualHaptic.buttonPress();
-  };
+  }, [onTestDrive]);
 
-  const handleCompareGrades = () => {
+  const handleCompareGrades = useCallback(() => {
     setIsCompareOpen(true);
     contextualHaptic.buttonPress();
-  };
+  }, []);
 
   const handleComparisonSelect = (gradeName: string) => {
     onGradeSelect?.(gradeName);
@@ -253,6 +273,28 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const handleComparisonTestDrive = (gradeName: string) => {
     onTestDrive?.();
   };
+
+  const renderGradesSkeleton = () => (
+    <div className={isMobile ? 'px-4' : 'grid lg:grid-cols-3 gap-6 px-4 lg:px-0'}>
+      {Array.from({ length: isMobile ? 1 : 3 }).map((_, index) => (
+        <Card key={index} className="h-full">
+          <CardContent className="p-0">
+            <Skeleton className="w-full h-48 rounded-t-lg" />
+            <div className="p-6 space-y-4">
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-8 w-1/2" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -355,7 +397,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
           </motion.div>
 
-          {/* Enhanced Grade Selection with Swipeable Carousel */}
+          {/* Enhanced Grade Selection with Loading State */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -371,146 +413,167 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
               </Button>
             </div>
 
-            {isMobile ? (
-              /* Mobile: Enhanced Swipeable Single Card */
-              <motion.div
-                variants={enhancedVariants.cinematicStagger}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="px-4"
-              >
-                <SwipeableGradeCarousel
-                  grades={grades}
-                  selectedGrade={selectedGrade}
-                  onGradeChange={handleGradeChange}
-                  onGradeSelect={() => handleSelectGrade()}
-                  onTestDrive={handleTestDriveGrade}
-                  onConfigure={handleConfigureGrade}
-                />
-              </motion.div>
-            ) : (
-              /* Desktop: Three Cards Side by Side with Enhanced Animations */
-              <motion.div
-                variants={enhancedVariants.cinematicStagger}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="grid lg:grid-cols-3 gap-6 px-4 lg:px-0"
-              >
-                {grades.map((grade, index) => (
-                  <motion.div
-                    key={grade.name}
-                    variants={enhancedVariants.fadeInScale}
-                    whileHover={{ 
-                      scale: 1.03,
-                      y: -8,
-                      transition: springConfigs.luxurious 
-                    }}
-                    className={`cursor-pointer transition-all duration-200 ${
-                      index === selectedGrade ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => setSelectedGrade(index)}
-                  >
-                    <Card className={`h-full ${index === selectedGrade ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
-                      <CardContent className="p-0">
-                        <div className="relative overflow-hidden">
-                          <Badge className={`absolute top-4 left-4 z-10 ${grade.badgeColor} text-white px-3 py-1 text-sm font-medium`}>
-                            {grade.badge}
-                          </Badge>
-                          <motion.img
-                            whileHover={{ scale: 1.05 }}
-                            transition={springConfigs.cinematic}
-                            src={grade.image}
-                            alt={grade.name}
-                            className="w-full h-48 object-cover rounded-t-lg"
-                          />
-                        </div>
+            <AnimatePresence mode="wait">
+              {isGradeLoading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {renderGradesSkeleton()}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="grades"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isMobile ? (
+                    /* Mobile: Enhanced Swipeable Single Card */
+                    <motion.div
+                      variants={enhancedVariants.cinematicStagger}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                      className="px-4"
+                    >
+                      <SwipeableGradeCarousel
+                        grades={grades}
+                        selectedGrade={selectedGrade}
+                        onGradeChange={handleGradeChange}
+                        onGradeSelect={() => handleSelectGrade()}
+                        onTestDrive={handleTestDriveGrade}
+                        onConfigure={handleConfigureGrade}
+                      />
+                    </motion.div>
+                  ) : (
+                    /* Desktop: Three Cards Side by Side with Enhanced Animations */
+                    <motion.div
+                      variants={enhancedVariants.cinematicStagger}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                      className="grid lg:grid-cols-3 gap-6 px-4 lg:px-0"
+                    >
+                      {grades.map((grade, index) => (
+                        <motion.div
+                          key={grade.name}
+                          variants={enhancedVariants.fadeInScale}
+                          whileHover={{ 
+                            scale: 1.03,
+                            y: -8,
+                            transition: springConfigs.luxurious 
+                          }}
+                          className={`cursor-pointer transition-all duration-200 ${
+                            index === selectedGrade ? 'ring-2 ring-primary' : ''
+                          }`}
+                          onClick={() => setSelectedGrade(index)}
+                        >
+                          <Card className={`h-full ${index === selectedGrade ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50'}`}>
+                            <CardContent className="p-0">
+                              <div className="relative overflow-hidden">
+                                <Badge className={`absolute top-4 left-4 z-10 ${grade.badgeColor} text-white px-3 py-1 text-sm font-medium`}>
+                                  {grade.badge}
+                                </Badge>
+                                <motion.img
+                                  whileHover={{ scale: 1.05 }}
+                                  transition={springConfigs.cinematic}
+                                  src={grade.image}
+                                  alt={grade.name}
+                                  className="w-full h-48 object-cover rounded-t-lg"
+                                />
+                              </div>
 
-                        <div className="p-6 space-y-4">
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                              <h4 className="text-xl font-bold">{grade.name}</h4>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
-                            
-                            <div className="space-y-1">
-                              <div className="text-2xl font-black">AED {grade.price.toLocaleString()}</div>
-                              <div className="text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h5 className="font-semibold mb-3 text-sm">Key Features</h5>
-                            <div className="space-y-2">
-                              {grade.features.slice(0, 3).map((feature) => (
-                                <motion.div 
-                                  key={feature} 
-                                  className="flex items-center gap-2"
-                                  whileHover={{ x: 4 }}
-                                  transition={springConfigs.snappy}
-                                >
-                                  <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                    <Check className="h-2 w-2 text-primary-foreground" />
+                              <div className="p-6 space-y-4">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                                    <h4 className="text-xl font-bold">{grade.name}</h4>
                                   </div>
-                                  <span className="text-xs">{feature}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
+                                  <p className="text-sm text-muted-foreground mb-3">{grade.description}</p>
+                                  
+                                  <div className="space-y-1">
+                                    <div className="text-2xl font-black">AED {grade.price.toLocaleString()}</div>
+                                    <div className="text-sm text-muted-foreground">From AED {grade.monthlyFrom}/month</div>
+                                  </div>
+                                </div>
 
-                          <div className="flex flex-col gap-2 pt-2">
-                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                              <Button 
-                                size="sm" 
-                                className="w-full bg-primary hover:bg-primary/90"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectGrade(index);
-                                }}
-                              >
-                                Select Grade
-                              </Button>
-                            </motion.div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="gap-1 w-full"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleTestDriveGrade(grade);
-                                  }}
-                                >
-                                  <Car className="h-3 w-3" />
-                                  Drive
-                                </Button>
-                              </motion.div>
-                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="gap-1 w-full"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleConfigureGrade(grade);
-                                  }}
-                                >
-                                  <Wrench className="h-3 w-3" />
-                                  Build
-                                </Button>
-                              </motion.div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+                                <div>
+                                  <h5 className="font-semibold mb-3 text-sm">Key Features</h5>
+                                  <div className="space-y-2">
+                                    {grade.features.slice(0, 3).map((feature) => (
+                                      <motion.div 
+                                        key={feature} 
+                                        className="flex items-center gap-2"
+                                        whileHover={{ x: 4 }}
+                                        transition={springConfigs.snappy}
+                                      >
+                                        <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                          <Check className="h-2 w-2 text-primary-foreground" />
+                                        </div>
+                                        <span className="text-xs">{feature}</span>
+                                      </motion.div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2 pt-2">
+                                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <Button 
+                                      size="sm" 
+                                      className="w-full bg-primary hover:bg-primary/90"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectGrade(index);
+                                      }}
+                                    >
+                                      Select Grade
+                                    </Button>
+                                  </motion.div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="gap-1 w-full"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleTestDriveGrade(grade);
+                                        }}
+                                      >
+                                        <Car className="h-3 w-3" />
+                                        Drive
+                                      </Button>
+                                    </motion.div>
+                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="gap-1 w-full"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleConfigureGrade(grade);
+                                        }}
+                                      >
+                                        <Wrench className="h-3 w-3" />
+                                        Build
+                                      </Button>
+                                    </motion.div>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </section>
@@ -520,9 +583,9 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
         onClose={() => setIsCompareOpen(false)}
         engineName={selectedEngine}
         grades={grades}
-        onGradeSelect={handleComparisonSelect}
-        onCarBuilder={handleComparisonCarBuilder}
-        onTestDrive={handleComparisonTestDrive}
+        onGradeSelect={(gradeName) => onGradeSelect?.(gradeName)}
+        onCarBuilder={(gradeName) => onCarBuilder?.(gradeName)}
+        onTestDrive={() => onTestDrive?.()}
       />
     </>
   );
