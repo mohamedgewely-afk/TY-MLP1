@@ -1,9 +1,11 @@
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  Volume2, VolumeX, X, Play, Pause, ChevronLeft, ChevronRight,
+  X, Play, Pause, ChevronLeft, ChevronRight,
   GaugeCircle, Zap, TimerReset, Navigation, Gauge, BatteryCharging, Sparkles,
 } from "lucide-react";
+import { performantVariants, performantSpringConfigs } from "@/utils/performance-animations";
 
 // —————————————————————————————————
 // THEME
@@ -41,7 +43,6 @@ export interface SceneData {
   scene: SceneCategory;
   image: string;
   description: string;
-  narration?: string;
   specs: Record<string, string>;
 }
 
@@ -51,6 +52,7 @@ interface LandCruiserLifestyleGalleryProProps {
   rtl?: boolean;
   onAskToyota?: (scene: SceneData) => void;
 }
+
 // ---- i18n types ----
 type LocaleStrings = {
   title: string;
@@ -59,26 +61,20 @@ type LocaleStrings = {
   expand: string;
   collapse: string;
   ask: string;
-  ambientOn: string;
-  ambientOff: string;
-  narrationOn: string;
-  narrationOff: string;
-  scenes: SceneCategory[]; // keep your SceneCategory type
+  scenes: SceneCategory[];
   empty: string;
-  playing: string;
-  paused: string;
   skipToContent: string;
   filters: string;
   sceneList: string;
   openScene: (scene: string) => string;
   prevScene: string;
   nextScene: string;
-  narrationPosition: string;
   all: string;
   thumbnails: string;
   slideOf: (i: number, total: number, name: string) => string;
   goToSlide: (i: number) => string;
 };
+
 // —————————————————————————————————
 // STRINGS
 // —————————————————————————————————
@@ -90,21 +86,14 @@ const STR: Record<"en" | "ar", LocaleStrings> = {
     expand: "Enter Scene",
     collapse: "Close",
     ask: "Ask Toyota",
-    ambientOn: "Ambient on",
-    ambientOff: "Ambient off",
-    narrationOn: "Narration on",
-    narrationOff: "Narration off",
     scenes: ["Exterior", "Urban", "Capability", "Interior", "Night"] as SceneCategory[],
     empty: "No scenes in this filter.",
-    playing: "Playing",
-    paused: "Paused",
     skipToContent: "Skip to content",
     filters: "Lifestyle filters",
     sceneList: "Land Cruiser lifestyle scenes",
     openScene: (scene: string) => `Open ${scene} scene`,
     prevScene: "Previous scene",
     nextScene: "Next scene",
-    narrationPosition: "Narration position",
     all: "All",
     thumbnails: "Thumbnails",
     slideOf: (i: number, total: number, name: string) => `Slide ${i} of ${total}: ${name}`,
@@ -117,27 +106,21 @@ const STR: Record<"en" | "ar", LocaleStrings> = {
     expand: "ادخل المشهد",
     collapse: "إغلاق",
     ask: "اسأل تويوتا",
-    ambientOn: "صوت الخلفية مُفعل",
-    ambientOff: "صوت الخلفية متوقف",
-    narrationOn: "السرد مُفعل",
-    narrationOff: "السرد متوقف",
     scenes: ["Exterior", "Urban", "Capability", "Interior", "Night"] as SceneCategory[],
     empty: "لا توجد مشاهد لهذا الفلتر.",
-    playing: "يعمل",
-    paused: "متوقف",
     skipToContent: "تخطّي إلى المحتوى",
     filters: "فلاتر أنماط الحياة",
     sceneList: "مشاهد لاند كروزر",
     openScene: (scene: string) => `افتح مشهد ${scene}`,
     prevScene: "المشهد السابق",
     nextScene: "المشهد التالي",
-    narrationPosition: "موضع السرد",
     all: "الكل",
     thumbnails: "الصور المصغرة",
     slideOf: (i: number, total: number, name: string) => `الشريحة ${i} من ${total}: ${name}`,
     goToSlide: (i: number) => `اذهب إلى الشريحة ${i}`,
   },
 };
+
 // —————————————————————————————————
 // ICONS (normalize keys → lowercase)
 // —————————————————————————————————
@@ -156,7 +139,7 @@ const specIcons: Record<string, JSX.Element> = {
 };
 
 // —————————————————————————————————
-// DEFAULT SCENES (unchanged content)
+// DEFAULT SCENES
 // —————————————————————————————————
 const DEFAULT_SCENES: SceneData[] = [
   {
@@ -166,7 +149,6 @@ const DEFAULT_SCENES: SceneData[] = [
     image:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true",
     description: "TNGA‑F platform. Lighter, tougher, more capable.",
-    narration: "/audio/lc_exterior.mp3",
     specs: {
       drivetrain: "Full‑time 4WD, locking diffs",
       horsepower: "409 hp (3.5L V6 TT)",
@@ -183,7 +165,6 @@ const DEFAULT_SCENES: SceneData[] = [
     image:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
     description: "Commanding stance with refined aerodynamics.",
-    narration: "/audio/lc_urban.mp3",
     specs: {
       drivetrain: "10‑speed automatic",
       horsepower: "409 hp",
@@ -200,7 +181,6 @@ const DEFAULT_SCENES: SceneData[] = [
     image:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f9670484-f03f-46ba-aac8-424889e779a0/renditions/ad34680c-160b-43a6-9785-541adba34a45?binary=true&mformat=true",
     description: "Born for dunes. Crawl Control and Multi‑Terrain Select.",
-    narration: "/audio/lc_capability.mp3",
     specs: {
       drivetrain: "MTS + Crawl",
       torque: "650 Nm",
@@ -217,7 +197,6 @@ const DEFAULT_SCENES: SceneData[] = [
     image:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
     description: "Functional luxury. 12.3'' display & Terrain Monitor.",
-    narration: "/audio/lc_interior.mp3",
     specs: {
       seats: "Ventilated leather, flexible 3rd row",
       drivetrain: "Under‑body camera",
@@ -234,7 +213,6 @@ const DEFAULT_SCENES: SceneData[] = [
     image:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/0e241336-53f3-4bd0-8c67-61baf34bfdbd/renditions/cda649a1-788a-481d-a794-15dc2d9f7d64?binary=true&mformat=true",
     description: "Quiet power after dark. LED signature.",
-    narration: "/audio/lc_night.mp3",
     specs: {
       drivetrain: "Full‑time 4WD",
       suspension: "Adaptive lighting",
@@ -267,13 +245,6 @@ function sortSpecs(scene: SceneCategory, specs: Record<string, string>): Array<[
   });
 }
 
-const fmt = (t: number) => {
-  if (!isFinite(t)) return "0:00";
-  const m = Math.floor(t / 60).toString();
-  const s = Math.floor(t % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-};
-
 // Lock body scroll while overlay is open (SSR-safe)
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
@@ -293,6 +264,7 @@ function useBodyScrollLock(locked: boolean) {
     };
   }, [locked]);
 }
+
 export default function LandCruiserLifestyleGalleryPro({
   scenes = DEFAULT_SCENES,
   locale = "en",
@@ -305,13 +277,8 @@ export default function LandCruiserLifestyleGalleryPro({
   const [activeIdx, setActiveIdx] = useState(0);
   const [selected, setSelected] = useState<SceneData | null>(null);
   const [filter, setFilter] = useState<SceneCategory | "All">("All");
-  const [ambientOn, setAmbientOn] = useState(false);
-  const [narrOn, setNarrOn] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const ambientRef = useRef<HTMLAudioElement>(null);
-  const narrationRef = useRef<HTMLAudioElement>(null);
-  const liveAudioRef = useRef<HTMLDivElement>(null);
   const liveSlideRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(
@@ -339,27 +306,6 @@ export default function LandCruiserLifestyleGalleryPro({
     }
   }, [activeIdx]);
 
-  // Ambient audio
-  useEffect(() => {
-    const a = ambientRef.current;
-    if (!a) return;
-    if (ambientOn) {
-      a.loop = true;
-      a.volume = 0.35;
-      a.play().catch(() => {});
-    } else {
-      a.pause();
-    }
-  }, [ambientOn]);
-
-  // Duck ambient when narration plays
-  const [isNarrPlaying, setNarrPlaying] = useState(false);
-  useEffect(() => {
-    const a = ambientRef.current;
-    if (!a) return;
-    a.volume = isNarrPlaying ? 0.12 : 0.35;
-  }, [isNarrPlaying]);
-
   // Reset on filter
   useEffect(() => {
     setActiveIdx(0);
@@ -374,46 +320,6 @@ export default function LandCruiserLifestyleGalleryPro({
       liveSlideRef.current.textContent = T.slideOf(activeIdx + 1, filtered.length, name);
     }
   }, [activeIdx, centerCard, filtered, T]);
-
-  // Narration state
-  const [narrTime, setNarrTime] = useState(0);
-  const [narrDur, setNarrDur] = useState(0);
-
-  useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    const onTime = () => setNarrTime(n.currentTime || 0);
-    const onMeta = () => setNarrDur(isFinite(n.duration) ? n.duration : 0);
-    const onPlay = () => setNarrPlaying(true);
-    const onPause = () => setNarrPlaying(false);
-    n.addEventListener("timeupdate", onTime);
-    n.addEventListener("loadedmetadata", onMeta);
-    n.addEventListener("play", onPlay);
-    n.addEventListener("pause", onPause);
-    return () => {
-      n.removeEventListener("timeupdate", onTime);
-      n.removeEventListener("loadedmetadata", onMeta);
-      n.removeEventListener("play", onPlay);
-      n.removeEventListener("pause", onPause);
-    };
-  }, []);
-
-  useEffect(() => {
-    const n = narrationRef.current;
-    if (!n) return;
-    n.pause();
-    n.currentTime = 0;
-    if (selected?.narration && narrOn) {
-      n.src = selected.narration;
-      n.play().catch(() => {});
-      if (liveAudioRef.current) liveAudioRef.current.textContent = T.playing;
-    } else {
-      n.removeAttribute("src");
-      setNarrTime(0);
-      setNarrDur(0);
-      if (liveAudioRef.current) liveAudioRef.current.textContent = T.paused;
-    }
-  }, [selected, narrOn, T]);
 
   // Next/Prev inside overlay
   const openNext = useCallback(() => {
@@ -481,12 +387,7 @@ export default function LandCruiserLifestyleGalleryPro({
       </a>
 
       {/* Live regions */}
-      <div ref={liveAudioRef} className="sr-only" aria-live="polite" aria-atomic="true" />
       <div ref={liveSlideRef} className="sr-only" aria-live="polite" aria-atomic="true" />
-
-      {/* Audio */}
-      <audio ref={ambientRef} src="/audio/toyota-ambient.mp3" className="hidden" />
-      <audio ref={narrationRef} className="hidden" />
 
       {/* Brand-immersive blurred background from active slide */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -513,28 +414,6 @@ export default function LandCruiserLifestyleGalleryPro({
           <Sparkles className="w-3.5 h-3.5" aria-hidden /> {T.hint}
         </p>
 
-        {/* Controls */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAmbientOn((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={ambientOn}
-            title={ambientOn ? T.ambientOn : T.ambientOff}
-          >
-            {ambientOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {ambientOn ? T.ambientOn : T.ambientOff}
-          </button>
-          <button
-            type="button"
-            onClick={() => setNarrOn((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[40px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-pressed={narrOn}
-            title={narrOn ? T.narrationOn : T.narrationOff}
-          >
-            {narrOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {narrOn ? T.narrationOn : T.narrationOff}
-          </button>
-        </div>
-
         {/* Filters (desktop) */}
         <nav className="mt-4 hidden md:flex flex-wrap items-center justify-center gap-2 px-2" aria-label={T.filters}>
           {["All", ...T.scenes].map((c) => (
@@ -542,7 +421,7 @@ export default function LandCruiserLifestyleGalleryPro({
               key={c}
               type="button"
               onClick={() => setFilter(c as any)}
-              className="rounded-full px-3 py-2 min-h-[40px] text-xs sm:text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="rounded-full px-3 py-2 min-h-[40px] text-xs sm:text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-all duration-200"
               style={{
                 borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
                 background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
@@ -563,7 +442,7 @@ export default function LandCruiserLifestyleGalleryPro({
                 key={`m-${c}`}
                 type="button"
                 onClick={() => setFilter(c as any)}
-                className="rounded-full px-3 py-2 min-h-[36px] text-xs border"
+                className="rounded-full px-3 py-2 min-h-[36px] text-xs border transition-all duration-200"
                 style={{
                   borderColor: filter === (c as any) ? TOYOTA_RED : "rgba(255,255,255,0.2)",
                   background: filter === (c as any) ? "rgba(235,10,30,0.12)" : "rgba(255,255,255,0.06)",
@@ -623,7 +502,7 @@ export default function LandCruiserLifestyleGalleryPro({
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
                 aria-label={T.prevScene}
                 onClick={() => setActiveIdx((i) => Math.max(i - 1, 0))}
               >
@@ -631,7 +510,7 @@ export default function LandCruiserLifestyleGalleryPro({
               </button>
               <button
                 type="button"
-                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+                className="pointer-events-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
                 aria-label={T.nextScene}
                 onClick={() => setActiveIdx((i) => Math.min(i + 1, filtered.length - 1))}
               >
@@ -642,12 +521,12 @@ export default function LandCruiserLifestyleGalleryPro({
         </div>
       )}
 
-      {/* Navigation indicators — progress bar hidden on desktop */}
+      {/* Navigation indicators */}
       <div className="relative z-10 mx-auto max-w-[min(98vw,2000px)] px-4 md:px-6">
         {/* MOBILE progress bar */}
         <div className="mt-1.5 h-1 w-full bg-white/10 rounded md:hidden" aria-hidden="true">
           <div
-            className="h-1 rounded"
+            className="h-1 rounded transition-all duration-300"
             style={{ width: `${filtered.length ? ((activeIdx + 1) / filtered.length) * 100 : 0}%`, backgroundColor: TOYOTA_RED }}
           />
         </div>
@@ -662,7 +541,7 @@ export default function LandCruiserLifestyleGalleryPro({
                 role="tab"
                 aria-selected={selectedDot}
                 aria-label={`${T.goToSlide(i + 1)} — ${s.scene}`}
-                className={`h-2.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
+                className={`h-2.5 rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${selectedDot ? "w-6" : "w-2.5"}`}
                 onClick={() => setActiveIdx(i)}
                 style={{ background: selectedDot ? TOYOTA_RED : "rgba(255,255,255,0.35)" }}
               />
@@ -685,14 +564,6 @@ export default function LandCruiserLifestyleGalleryPro({
             onClose={() => setSelected(null)}
             onNext={openNext}
             onPrev={openPrev}
-            narrationRef={narrationRef}
-            narrOn={narrOn}
-            setNarrOn={setNarrOn}
-            narrTime={narrTime}
-            narrDur={narrDur}
-            setNarrTime={(t) => { const n = narrationRef.current; if (!n) return; n.currentTime = t; setNarrTime(t); }}
-            isNarrPlaying={isNarrPlaying}
-            setIsNarrPlaying={(p) => { const n = narrationRef.current; if (!n) return; p ? n.play().catch(() => {}) : n.pause(); }}
             onAskToyota={onAskToyota}
             prefersReduced={prefersReduced}
             localeStrings={T}
@@ -703,6 +574,7 @@ export default function LandCruiserLifestyleGalleryPro({
     </section>
   );
 }
+
 function SceneCardPro({
   data,
   active,
@@ -730,7 +602,7 @@ function SceneCardPro({
   lg:min-w-[1040px] lg:max-w-[1040px]
   xl:min-w-[1200px] xl:max-w-[1200px]
   2xl:min-w-[1320px] 2xl:max-w-[1320px]
-  rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden`;
+  rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black shadow-xl overflow-hidden transition-all duration-300`;
 
   const imgDeemph = active ? "" : "opacity-90 saturate-[.85]";
   const imgHeights = "h-44 sm:h-56 md:h-96 lg:h-[28rem] xl:h-[32rem] 2xl:h-[36rem]";
@@ -747,7 +619,7 @@ function SceneCardPro({
         y: active && !prefersReduced ? -4 : 0,
         scale: active ? 1.0 : 0.98,
       }}
-      transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 26 }}
+      transition={prefersReduced ? { duration: 0 } : performantSpringConfigs.luxurious}
     >
       <button
         type="button"
@@ -779,7 +651,7 @@ function SceneCardPro({
         </div>
       </button>
 
-      {/* Premium “badge” specs */}
+      {/* Premium "badge" specs */}
       <div className="p-4 sm:p-5 md:p-6">
         <p className="text-white/85 text-[13px] sm:text-sm md:text-base">{data.description}</p>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4 sm:mt-5" aria-label="Specifications">
@@ -792,7 +664,7 @@ function SceneCardPro({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.3, delay: prefersReduced ? 0 : i * 0.04 }}
-                className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-black/60 backdrop-blur px-3 py-2 hover:shadow-[0_0_0_1px_rgba(235,10,30,0.35),0_0_24px_rgba(235,10,30,0.25)] transition-shadow"
+                className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-black/60 backdrop-blur px-3 py-2 hover:shadow-[0_0_0_1px_rgba(235,10,30,0.35),0_0_24px_rgba(235,10,30,0.25)] transition-shadow duration-300"
               >
                 <span style={{ color: TOYOTA_RED }}>
                   {specIcons[normalized] ?? <Gauge className="w-5 h-5" aria-hidden />}
@@ -809,19 +681,12 @@ function SceneCardPro({
     </motion.article>
   );
 }
+
 function ExpandedSceneOverlay({
   scene,
   onClose,
   onNext,
   onPrev,
-  narrationRef,
-  narrOn,
-  setNarrOn,
-  narrTime,
-  narrDur,
-  setNarrTime,
-  isNarrPlaying,
-  setIsNarrPlaying,
   onAskToyota,
   prefersReduced,
   localeStrings,
@@ -831,14 +696,6 @@ function ExpandedSceneOverlay({
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
-  narrationRef: React.RefObject<HTMLAudioElement>;
-  narrOn: boolean;
-  setNarrOn: (v: boolean) => void;
-  narrTime: number;
-  narrDur: number;
-  setNarrTime: (t: number) => void;
-  isNarrPlaying: boolean;
-  setIsNarrPlaying: (p: boolean) => void;
   onAskToyota?: (s: SceneData) => void;
   prefersReduced: boolean;
   localeStrings: LocaleStrings;
@@ -859,12 +716,6 @@ function ExpandedSceneOverlay({
       if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
       if (e.key === "ArrowRight") { rtl ? onPrev() : onNext(); return; }
       if (e.key === "ArrowLeft") { rtl ? onNext() : onPrev(); return; }
-      if (e.key === " ") {
-        const target = e.target as HTMLElement;
-        if (target?.getAttribute("role") !== "slider" && (target as any)?.tagName !== "INPUT") {
-          e.preventDefault(); setIsNarrPlaying(!isNarrPlaying);
-        }
-      }
       if (e.key === "Tab") {
         const focusables = root.querySelectorAll<HTMLElement>(
           'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
@@ -879,7 +730,7 @@ function ExpandedSceneOverlay({
 
     document.addEventListener("keydown", handleKey);
     return () => { document.removeEventListener("keydown", handleKey); previouslyFocused?.focus(); };
-  }, [onClose, onNext, onPrev, setIsNarrPlaying, isNarrPlaying, rtl]);
+  }, [onClose, onNext, onPrev, rtl]);
 
   // Touch swipe on hero
   const startX = useRef<number | null>(null);
@@ -912,7 +763,7 @@ function ExpandedSceneOverlay({
         layoutId={scene.id}
         className="relative z-10 mx-auto h-full w-full md:w-[min(1400px,92vw)] md:rounded-[24px] md:overflow-hidden"
         style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
-        transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28 }}
+        transition={prefersReduced ? { duration: 0 } : performantSpringConfigs.cinematic}
       >
         {/* Hero */}
         <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -929,7 +780,7 @@ function ExpandedSceneOverlay({
             <button
               type="button"
               onClick={onPrev}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
               aria-label={T.prevScene}
             >
               <ChevronLeft className="w-6 h-6" />
@@ -938,7 +789,7 @@ function ExpandedSceneOverlay({
               type="button"
               onClick={onClose}
               data-close
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
               aria-label={T.collapse}
             >
               <X className="w-6 h-6" />
@@ -946,7 +797,7 @@ function ExpandedSceneOverlay({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15"
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur border border-white/15 transition-colors duration-200"
               aria-label={T.nextScene}
             >
               <ChevronRight className="w-6 h-6" />
@@ -964,7 +815,7 @@ function ExpandedSceneOverlay({
             <button
               type="button"
               onClick={() => onAskToyota?.(scene)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border border-white/15 transition-colors duration-200"
               style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
             >
               {T.ask}
@@ -1004,7 +855,7 @@ function ExpandedSceneOverlay({
               <button
                 type="button"
                 onClick={() => onAskToyota?.(scene)}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm border border-white/15 transition-colors duration-200"
                 style={{ background: "rgba(235,10,30,0.12)", color: TOYOTA_RED }}
               >
                 {T.ask}
@@ -1014,50 +865,12 @@ function ExpandedSceneOverlay({
 
           {/* Bottom controls */}
           <div className="fixed md:absolute bottom-0 left-0 right-0 z-50 bg-black/70 backdrop-blur border-t border-white/10">
-            <div className="mx-auto max-w-[1320px] px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3 pb-[max(env(safe-area-inset-bottom),12px)]">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setNarrOn(!narrOn)}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 min-h-[44px] bg-white/10 hover:bg-white/20 text-xs sm:text-sm"
-                  aria-pressed={narrOn}
-                  title={narrOn ? T.narrationOn : T.narrationOff}
-                >
-                  {narrOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />} {narrOn ? T.narrationOn : T.narrationOff}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsNarrPlaying(!isNarrPlaying)}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label={isNarrPlaying ? T.paused : T.playing}
-                  aria-pressed={isNarrPlaying}
-                >
-                  {isNarrPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                </button>
-                <div className="flex items-center gap-2 w-full sm:w-[420px]">
-                  <label htmlFor="narrationRange" className="sr-only">{T.narrationPosition}</label>
-                  <span className="text-[10px] text-white/70 w-10 text-right" aria-hidden>{fmt(narrTime)}</span>
-                  <input
-                    id="narrationRange"
-                    type="range"
-                    min={0} max={narrDur || 0} step={0.1}
-                    value={Math.min(narrTime, narrDur || 0)}
-                    onChange={(e) => setNarrTime(parseFloat(e.currentTarget.value))}
-                    className="w-full"
-                    style={{ accentColor: TOYOTA_RED }}
-                    aria-valuemin={0}
-                    aria-valuemax={Math.floor(narrDur || 0)}
-                    aria-valuenow={Math.floor(Math.min(narrTime, narrDur || 0))}
-                    aria-valuetext={`${fmt(narrTime)} of ${fmt(narrDur)}`}
-                  />
-                  <span className="text-[10px] text-white/70 w-10" aria-hidden>{fmt(narrDur)}</span>
-                </div>
-              </div>
+            <div className="mx-auto max-w-[1320px] px-4 sm:px-6 py-3 flex items-center justify-between pb-[max(env(safe-area-inset-bottom),12px)]">
               <div className="flex items-center gap-2 sm:ml-auto">
                 <button
                   type="button"
                   onClick={onPrev}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
                   aria-label={T.prevScene}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -1065,7 +878,7 @@ function ExpandedSceneOverlay({
                 <button
                   type="button"
                   onClick={onNext}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
                   aria-label={T.nextScene}
                 >
                   <ChevronRight className="w-5 h-5" />
