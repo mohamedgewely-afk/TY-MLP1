@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,9 +11,11 @@ import {
   ArrowUpDown, Star, Car, Wrench
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useDeviceInfo } from "@/hooks/use-device-info";
+import { useOptimizedDeviceInfo } from "@/hooks/use-optimized-device-info";
 import { contextualHaptic } from "@/utils/haptic";
-import { enhancedVariants, springConfigs } from "@/utils/animation-configs";
+import { createAdaptiveVariants, createAdaptiveMicroAnimations } from "@/utils/adaptive-animations";
+import { usePerformanceConfig } from "@/utils/performance-optimization";
+import { usePerformantIntersection } from "@/hooks/use-performant-intersection";
 import VehicleGradeComparison from "./VehicleGradeComparison";
 import MobileGradeCard from "./MobileGradeCard";
 import SwipeableGradeCarousel from "./SwipeableGradeCarousel";
@@ -34,10 +37,28 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const [selectedGrade, setSelectedGrade] = useState(0);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isGradeLoading, setIsGradeLoading] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  
   const isMobile = useIsMobile();
-  const { deviceCategory } = useDeviceInfo();
+  const { isMobile: deviceIsMobile, prefersReducedMotion } = useOptimizedDeviceInfo();
+  const performanceConfig = usePerformanceConfig();
+  const { targetRef, isIntersecting } = usePerformantIntersection({ threshold: 0.1 });
 
-  const engines = [
+  // Create adaptive animations based on device capabilities
+  const adaptiveVariants = useMemo(() => createAdaptiveVariants({
+    isMobile: deviceIsMobile,
+    isSlowScroll: false,
+    prefersReducedMotion
+  }), [deviceIsMobile, prefersReducedMotion]);
+
+  const microAnimations = useMemo(() => createAdaptiveMicroAnimations({
+    isMobile: deviceIsMobile,
+    isSlowScroll: false,
+    prefersReducedMotion
+  }), [deviceIsMobile, prefersReducedMotion]);
+
+  // Optimized engines data with memoization
+  const engines = useMemo(() => [
     {
       name: "2.5L Hybrid",
       description: "Advanced hybrid powertrain with seamless electric assist",
@@ -56,184 +77,131 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
       icon: <Fuel className="h-6 w-6" />,
       selected: selectedEngine === "3.5L V6"
     }
-  ];
+  ], [selectedEngine]);
 
+  // Optimized grades with better memoization
   const grades = useMemo(() => {
-    if (selectedEngine === "2.5L Hybrid") {
-      return [
-        {
-          name: "Hybrid SE",
-          description: "Sport-enhanced hybrid driving experience",
-          price: 94900,
-          monthlyFrom: 945,
-          badge: "Balanced Choice",
-          badgeColor: "bg-yellow-500",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
-          features: [
-            "Hybrid Drive Modes",
-            "Enhanced Audio",
-            "Sport Seats", 
-            "18\" Alloy Wheels"
-          ],
-          specs: {
-            engine: "2.5L Hybrid",
-            power: "218 HP",
-            torque: "221 Nm",
-            transmission: "eCVT",
-            acceleration: "8.7 seconds",
-            fuelEconomy: "25.2 km/L"
-          }
-        },
-        {
-          name: "Hybrid XLE",
-          description: "Premium hybrid with advanced features",
-          price: 105900,
-          monthlyFrom: 1059,
-          badge: "Most Popular",
-          badgeColor: "bg-primary",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-          features: [
-            "Premium Sound System",
-            "Leather-trimmed Interior",
-            "Wireless Charging",
-            "Panoramic Moonroof"
-          ],
-          specs: {
-            engine: "2.5L Hybrid",
-            power: "218 HP",
-            torque: "221 Nm",
-            transmission: "eCVT",
-            acceleration: "8.7 seconds",
-            fuelEconomy: "25.2 km/L"
-          }
-        },
-        {
-          name: "Hybrid Limited",
-          description: "Top-tier luxury hybrid experience",
-          price: 118900,
-          monthlyFrom: 1189,
-          badge: "Premium",
-          badgeColor: "bg-gray-800",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
-          features: [
-            "JBL Premium Audio",
-            "Ventilated Seats",
-            "Head-up Display",
-            "Advanced Safety Suite"
-          ],
-          specs: {
-            engine: "2.5L Hybrid",
-            power: "218 HP",
-            torque: "221 Nm",
-            transmission: "eCVT",
-            acceleration: "8.7 seconds",
-            fuelEconomy: "25.2 km/L"
-          }
+    const baseGrades = selectedEngine === "2.5L Hybrid" ? [
+      {
+        name: "Hybrid SE",
+        description: "Sport-enhanced hybrid driving experience",
+        price: 94900,
+        monthlyFrom: 945,
+        badge: "Balanced Choice",
+        badgeColor: "bg-yellow-500",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
+        features: ["Hybrid Drive Modes", "Enhanced Audio", "Sport Seats", "18\" Alloy Wheels"],
+        specs: {
+          engine: "2.5L Hybrid", power: "218 HP", torque: "221 Nm",
+          transmission: "eCVT", acceleration: "8.7 seconds", fuelEconomy: "25.2 km/L"
         }
-      ];
-    } else {
-      return [
-        {
-          name: "V6 SE",
-          description: "Sport-enhanced V6 performance",
-          price: 99900,
-          monthlyFrom: 999,
-          badge: "Performance",
-          badgeColor: "bg-red-500",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
-          features: [
-            "V6 Power",
-            "Sport Suspension",
-            "Performance Tires", 
-            "19\" Alloy Wheels"
-          ],
-          specs: {
-            engine: "3.5L V6",
-            power: "301 HP",
-            torque: "362 Nm",
-            transmission: "8-Speed Auto",
-            acceleration: "6.6 seconds",
-            fuelEconomy: "18.4 km/L"
-          }
-        },
-        {
-          name: "V6 XLE",
-          description: "Premium V6 with luxury features",
-          price: 110900,
-          monthlyFrom: 1109,
-          badge: "Most Popular",
-          badgeColor: "bg-primary",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-          features: [
-            "Premium Sound System",
-            "Leather-trimmed Interior",
-            "Performance Brakes",
-            "Panoramic Moonroof"
-          ],
-          specs: {
-            engine: "3.5L V6",
-            power: "301 HP",
-            torque: "362 Nm",
-            transmission: "8-Speed Auto",
-            acceleration: "6.6 seconds",
-            fuelEconomy: "18.4 km/L"
-          }
-        },
-        {
-          name: "V6 Limited",
-          description: "Ultimate V6 luxury experience",
-          price: 123900,
-          monthlyFrom: 1239,
-          badge: "Premium",
-          badgeColor: "bg-gray-800",
-          image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
-          features: [
-            "JBL Premium Audio",
-            "Ventilated Seats",
-            "Head-up Display",
-            "Advanced Safety Suite"
-          ],
-          specs: {
-            engine: "3.5L V6",
-            power: "301 HP",
-            torque: "362 Nm",
-            transmission: "8-Speed Auto",
-            acceleration: "6.6 seconds",
-            fuelEconomy: "18.4 km/L"
-          }
+      },
+      {
+        name: "Hybrid XLE",
+        description: "Premium hybrid with advanced features",
+        price: 105900,
+        monthlyFrom: 1059,
+        badge: "Most Popular",
+        badgeColor: "bg-primary",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+        features: ["Premium Sound System", "Leather-trimmed Interior", "Wireless Charging", "Panoramic Moonroof"],
+        specs: {
+          engine: "2.5L Hybrid", power: "218 HP", torque: "221 Nm",
+          transmission: "eCVT", acceleration: "8.7 seconds", fuelEconomy: "25.2 km/L"
         }
-      ];
-    }
+      },
+      {
+        name: "Hybrid Limited",
+        description: "Top-tier luxury hybrid experience",
+        price: 118900,
+        monthlyFrom: 1189,
+        badge: "Premium",
+        badgeColor: "bg-gray-800",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
+        features: ["JBL Premium Audio", "Ventilated Seats", "Head-up Display", "Advanced Safety Suite"],
+        specs: {
+          engine: "2.5L Hybrid", power: "218 HP", torque: "221 Nm",
+          transmission: "eCVT", acceleration: "8.7 seconds", fuelEconomy: "25.2 km/L"
+        }
+      }
+    ] : [
+      {
+        name: "V6 SE",
+        description: "Sport-enhanced V6 performance",
+        price: 99900,
+        monthlyFrom: 999,
+        badge: "Performance",
+        badgeColor: "bg-red-500",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
+        features: ["V6 Power", "Sport Suspension", "Performance Tires", "19\" Alloy Wheels"],
+        specs: {
+          engine: "3.5L V6", power: "301 HP", torque: "362 Nm",
+          transmission: "8-Speed Auto", acceleration: "6.6 seconds", fuelEconomy: "18.4 km/L"
+        }
+      },
+      {
+        name: "V6 XLE",
+        description: "Premium V6 with luxury features",
+        price: 110900,
+        monthlyFrom: 1109,
+        badge: "Most Popular",
+        badgeColor: "bg-primary",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+        features: ["Premium Sound System", "Leather-trimmed Interior", "Performance Brakes", "Panoramic Moonroof"],
+        specs: {
+          engine: "3.5L V6", power: "301 HP", torque: "362 Nm",
+          transmission: "8-Speed Auto", acceleration: "6.6 seconds", fuelEconomy: "18.4 km/L"
+        }
+      },
+      {
+        name: "V6 Limited",
+        description: "Ultimate V6 luxury experience",
+        price: 123900,
+        monthlyFrom: 1239,
+        badge: "Premium",
+        badgeColor: "bg-gray-800",
+        image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
+        features: ["JBL Premium Audio", "Ventilated Seats", "Head-up Display", "Advanced Safety Suite"],
+        specs: {
+          engine: "3.5L V6", power: "301 HP", torque: "362 Nm",
+          transmission: "8-Speed Auto", acceleration: "6.6 seconds", fuelEconomy: "18.4 km/L"
+        }
+      }
+    ];
+    
+    return baseGrades;
   }, [selectedEngine]);
 
-  // Safe access to current grade with bounds checking
+  // Safe access to current grade with enhanced validation
   const currentGrade = useMemo(() => {
     if (!grades || grades.length === 0) return null;
-    if (selectedGrade < 0 || selectedGrade >= grades.length) return grades[0];
-    return grades[selectedGrade];
+    const validIndex = Math.max(0, Math.min(selectedGrade, grades.length - 1));
+    return grades[validIndex] || grades[0] || null;
   }, [grades, selectedGrade]);
 
+  // Performance optimized handlers
   const handleEngineChange = useCallback(async (engineName: string) => {
     if (engineName === selectedEngine) return;
     
     setIsGradeLoading(true);
     setSelectedEngine(engineName);
+    setSelectedGrade(0); // Reset to first grade immediately
+    setAnimationKey(prev => prev + 1); // Force re-animation
     
-    // Reset grade selection immediately to prevent out-of-bounds access
-    setSelectedGrade(0);
-    
-    // Small delay to allow for smooth transition
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Optimized delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, performanceConfig.animations.duration * 1000));
     setIsGradeLoading(false);
     
     contextualHaptic.selectionChange();
-  }, [selectedEngine]);
+  }, [selectedEngine, performanceConfig.animations.duration]);
 
   const handleGradeChange = useCallback((gradeIndex: number) => {
-    if (gradeIndex >= 0 && gradeIndex < grades.length) {
-      setSelectedGrade(gradeIndex);
+    const safeIndex = Math.max(0, Math.min(gradeIndex, grades.length - 1));
+    if (safeIndex !== selectedGrade) {
+      setSelectedGrade(safeIndex);
+      contextualHaptic.selectionChange();
     }
-  }, [grades.length]);
+  }, [grades.length, selectedGrade]);
 
   const handleSelectGrade = useCallback((gradeIndex?: number) => {
     const grade = gradeIndex !== undefined ? grades[gradeIndex] : currentGrade;
@@ -241,7 +209,6 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     
     onGradeSelect?.(grade.name);
     contextualHaptic.configComplete();
-    console.log("Grade selected:", grade.name);
   }, [grades, currentGrade, onGradeSelect]);
 
   const handleConfigureGrade = useCallback((grade?: any) => {
@@ -262,19 +229,8 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
     contextualHaptic.buttonPress();
   }, []);
 
-  const handleComparisonSelect = (gradeName: string) => {
-    onGradeSelect?.(gradeName);
-  };
-
-  const handleComparisonCarBuilder = (gradeName: string) => {
-    onCarBuilder?.(gradeName);
-  };
-
-  const handleComparisonTestDrive = (gradeName: string) => {
-    onTestDrive?.();
-  };
-
-  const renderGradesSkeleton = () => (
+  // Optimized skeleton renderer
+  const renderGradesSkeleton = useCallback(() => (
     <div className={isMobile ? 'px-4' : 'grid lg:grid-cols-3 gap-6 px-4 lg:px-0'}>
       {Array.from({ length: isMobile ? 1 : 3 }).map((_, index) => (
         <Card key={index} className="h-full">
@@ -294,18 +250,23 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
         </Card>
       ))}
     </div>
-  );
+  ), [isMobile]);
+
+  // Don't render if not in viewport for better performance
+  if (!isIntersecting && typeof window !== 'undefined') {
+    return <div ref={targetRef} className="h-96" />;
+  }
 
   return (
     <>
-      <section className="py-8 lg:py-16 bg-gradient-to-br from-background via-muted/20 to-background">
+      <section ref={targetRef} className="py-8 lg:py-16 bg-gradient-to-br from-background via-muted/20 to-background">
         <div className="toyota-container">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-8 lg:mb-12"
-            variants={enhancedVariants.fadeInUp}
+            variants={adaptiveVariants.fadeInUp}
           >
             <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-2 rounded-full text-sm font-medium mb-4 lg:mb-6">
               <Settings className="h-4 w-4 mr-2" />
@@ -322,13 +283,13 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </p>
           </motion.div>
 
-          {/* Enhanced Engine Selection - Mobile Optimized */}
+          {/* Enhanced Engine Selection - Performance Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mb-8 lg:mb-12"
-            variants={enhancedVariants.fadeInUp}
+            variants={adaptiveVariants.fadeInUp}
           >
             <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
               <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
@@ -338,9 +299,8 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
               {engines.map((engine) => (
                 <motion.div
                   key={engine.name}
-                  whileHover={{ scale: isMobile ? 1 : 1.02 }}
+                  whileHover={performanceConfig.animations.enabled ? microAnimations.buttonHover : undefined}
                   whileTap={{ scale: 0.98 }}
-                  transition={springConfigs.luxurious}
                   className={`relative cursor-pointer transition-all duration-200 ${
                     engine.selected ? 'ring-2 ring-primary' : ''
                   }`}
@@ -356,16 +316,19 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                             className: isMobile ? 'h-3 w-3' : 'h-6 w-6' 
                           })}
                         </div>
-                        {engine.selected && (
-                          <motion.div 
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={springConfigs.bouncy}
-                            className={`${isMobile ? 'w-3 h-3' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}
-                          >
-                            <Check className={`${isMobile ? 'h-2 w-2' : 'h-4 w-4'} text-primary-foreground`} />
-                          </motion.div>
-                        )}
+                        <AnimatePresence>
+                          {engine.selected && (
+                            <motion.div 
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0, opacity: 0 }}
+                              transition={{ duration: performanceConfig.animations.duration }}
+                              className={`${isMobile ? 'w-3 h-3' : 'w-6 h-6'} bg-primary rounded-full flex items-center justify-center`}
+                            >
+                              <Check className={`${isMobile ? 'h-2 w-2' : 'h-4 w-4'} text-primary-foreground`} />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                       
                       <h4 className={`${isMobile ? 'text-xs' : 'text-lg lg:text-xl'} font-bold mb-1`}>
@@ -397,13 +360,13 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
           </motion.div>
 
-          {/* Enhanced Grade Selection with Loading State */}
+          {/* Enhanced Grade Selection with Optimized Loading */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mb-8 lg:mb-12"
-            variants={enhancedVariants.fadeInUp}
+            variants={adaptiveVariants.fadeInUp}
           >
             <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
               <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 2: Choose Your Grade</h3>
@@ -416,25 +379,25 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             <AnimatePresence mode="wait">
               {isGradeLoading ? (
                 <motion.div
-                  key="loading"
+                  key={`loading-${animationKey}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: performanceConfig.animations.duration }}
                 >
                   {renderGradesSkeleton()}
                 </motion.div>
               ) : (
                 <motion.div
-                  key="grades"
+                  key={`grades-${animationKey}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: performanceConfig.animations.duration * 1.5 }}
                 >
                   {isMobile ? (
                     /* Mobile: Enhanced Swipeable Single Card */
                     <motion.div
-                      variants={enhancedVariants.cinematicStagger}
+                      variants={adaptiveVariants.staggerContainer}
                       initial="hidden"
                       whileInView="visible"
                       viewport={{ once: true }}
@@ -452,7 +415,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                   ) : (
                     /* Desktop: Three Cards Side by Side with Enhanced Animations */
                     <motion.div
-                      variants={enhancedVariants.cinematicStagger}
+                      variants={adaptiveVariants.staggerContainer}
                       initial="hidden"
                       whileInView="visible"
                       viewport={{ once: true }}
@@ -460,13 +423,9 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                     >
                       {grades.map((grade, index) => (
                         <motion.div
-                          key={grade.name}
-                          variants={enhancedVariants.fadeInScale}
-                          whileHover={{ 
-                            scale: 1.03,
-                            y: -8,
-                            transition: springConfigs.luxurious 
-                          }}
+                          key={`${grade.name}-${animationKey}`}
+                          variants={adaptiveVariants.fadeInScale}
+                          whileHover={performanceConfig.animations.enabled ? microAnimations.luxuryHover : undefined}
                           className={`cursor-pointer transition-all duration-200 ${
                             index === selectedGrade ? 'ring-2 ring-primary' : ''
                           }`}
@@ -479,11 +438,12 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                                   {grade.badge}
                                 </Badge>
                                 <motion.img
-                                  whileHover={{ scale: 1.05 }}
-                                  transition={springConfigs.cinematic}
+                                  whileHover={performanceConfig.animations.enabled ? { scale: 1.05 } : undefined}
+                                  transition={{ duration: performanceConfig.animations.duration }}
                                   src={grade.image}
                                   alt={grade.name}
                                   className="w-full h-48 object-cover rounded-t-lg"
+                                  loading="lazy"
                                 />
                               </div>
 
@@ -508,8 +468,8 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                                       <motion.div 
                                         key={feature} 
                                         className="flex items-center gap-2"
-                                        whileHover={{ x: 4 }}
-                                        transition={springConfigs.snappy}
+                                        whileHover={performanceConfig.animations.enabled ? { x: 4 } : undefined}
+                                        transition={{ duration: performanceConfig.animations.duration / 2 }}
                                       >
                                         <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                           <Check className="h-2 w-2 text-primary-foreground" />
@@ -521,7 +481,10 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                                 </div>
 
                                 <div className="flex flex-col gap-2 pt-2">
-                                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                  <motion.div 
+                                    whileHover={performanceConfig.animations.enabled ? { scale: 1.02 } : undefined} 
+                                    whileTap={{ scale: 0.98 }}
+                                  >
                                     <Button 
                                       size="sm" 
                                       className="w-full bg-primary hover:bg-primary/90"
@@ -534,7 +497,10 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                                     </Button>
                                   </motion.div>
                                   <div className="grid grid-cols-2 gap-2">
-                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <motion.div 
+                                      whileHover={performanceConfig.animations.enabled ? { scale: 1.02 } : undefined} 
+                                      whileTap={{ scale: 0.98 }}
+                                    >
                                       <Button 
                                         variant="outline" 
                                         size="sm" 
@@ -548,7 +514,10 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
                                         Drive
                                       </Button>
                                     </motion.div>
-                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <motion.div 
+                                      whileHover={performanceConfig.animations.enabled ? { scale: 1.02 } : undefined} 
+                                      whileTap={{ scale: 0.98 }}
+                                    >
                                       <Button 
                                         variant="outline" 
                                         size="sm" 
