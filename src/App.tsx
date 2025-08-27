@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from "react";
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster";
@@ -10,13 +11,6 @@ import { PersonaProvider } from "@/contexts/PersonaContext";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
 import OptimizedHead from "@/components/OptimizedHead";
 import ErrorBoundary from "@/components/ErrorBoundary";
-
-// Debug React hooks availability
-console.log('App.tsx React hooks check:', { 
-  useState: React.useState, 
-  useEffect: React.useEffect,
-  useContext: React.useContext 
-});
 
 // Aggressive lazy loading for route-level code splitting (429KB → 150KB initial)
 const Index = lazy(() => import("./pages/Index"));
@@ -53,8 +47,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App component rendering, React version:', React.version);
-  
   return (
     <ErrorBoundary>
       <HelmetProvider>
