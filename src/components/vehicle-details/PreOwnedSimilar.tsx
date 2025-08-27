@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Calendar, Gauge, Fuel, MapPin, ArrowRight, Award,
   CheckCircle, Shield, ChevronLeft, ChevronRight, ShoppingCart
@@ -18,6 +18,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const isMobile = useIsMobile();
 
   // Mock pre-owned similar vehicles data
   const preOwnedVehicles = [
@@ -83,33 +84,169 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
     }
   ];
 
+  // Calculate cards per view and max index
+  const cardsPerView = isMobile ? 1 : 3;
+  const maxIndex = Math.max(0, preOwnedVehicles.length - cardsPerView);
+
   // Auto-swipe functionality
   useEffect(() => {
     if (!isAutoPlaying || isPaused) return;
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % preOwnedVehicles.length);
+      setCurrentIndex((prev) => {
+        const nextIndex = prev + 1;
+        return nextIndex > maxIndex ? 0 : nextIndex;
+      });
     }, 4000); // Auto-swipe every 4 seconds
     
     return () => clearInterval(interval);
-  }, [isAutoPlaying, isPaused, preOwnedVehicles.length]);
+  }, [isAutoPlaying, isPaused, maxIndex]);
 
   const nextSlide = () => {
     setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex((prev) => (prev + 1) % preOwnedVehicles.length);
+    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
   };
 
   const prevSlide = () => {
     setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex((prev) => (prev - 1 + preOwnedVehicles.length) % preOwnedVehicles.length);
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
 
   const goToSlide = (index: number) => {
     setIsAutoPlaying(false); // Stop auto-play when user interacts
-    setCurrentIndex(index);
+    setCurrentIndex(Math.min(index, maxIndex));
   };
 
-  const selectedVehicle = preOwnedVehicles[currentIndex];
+  // Get visible vehicles based on current index and cards per view
+  const getVisibleVehicles = () => {
+    return preOwnedVehicles.slice(currentIndex, currentIndex + cardsPerView);
+  };
+
+  const VehicleCard = ({ vehicle, index }: { vehicle: any; index: number }) => (
+    <motion.div
+      key={`${vehicle.id}-${index}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      className={`${isMobile ? 'w-full' : 'w-1/3 px-2'} flex-shrink-0`}
+    >
+      <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group h-full">
+        <div className="relative">
+          <img 
+            src={vehicle.image} 
+            alt={vehicle.name}
+            className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+              isMobile ? 'h-64 lg:h-80' : 'h-48'
+            }`}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          
+          {/* Overlays */}
+          <div className="absolute top-4 left-4">
+            <Badge className="bg-green-600 text-white text-sm">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              {vehicle.certification}
+            </Badge>
+          </div>
+          
+          {/* Auto-play indicator */}
+          {isAutoPlaying && !isPaused && index === 0 && (
+            <div className="absolute bottom-4 right-4">
+              <div className="flex items-center bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 text-white text-xs">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2"></div>
+                Auto-playing
+              </div>
+            </div>
+          )}
+        </div>
+
+        <CardContent className={`space-y-4 ${isMobile ? 'p-6' : 'p-4'}`}>
+          <div>
+            <h3 className={`font-bold text-foreground mb-2 ${isMobile ? 'text-2xl' : 'text-xl'}`}>
+              {vehicle.name}
+            </h3>
+            <div className={`flex items-center space-x-4 text-muted-foreground ${
+              isMobile ? 'text-sm' : 'text-xs'
+            }`}>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                {vehicle.year}
+              </div>
+              <div className="flex items-center">
+                <Gauge className="h-4 w-4 mr-1" />
+                {vehicle.mileage}
+              </div>
+              {isMobile && (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {vehicle.location}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className={`font-bold text-foreground ${isMobile ? 'text-3xl' : 'text-2xl'}`}>
+                AED {vehicle.price.toLocaleString()}
+              </span>
+              {vehicle.originalPrice > vehicle.price && (
+                <span className={`text-muted-foreground line-through ${
+                  isMobile ? 'text-lg' : 'text-sm'
+                }`}>
+                  AED {vehicle.originalPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+            
+            <div className={`flex items-center justify-between ${isMobile ? 'text-sm' : 'text-xs'}`}>
+              <div className="flex items-center text-green-600">
+                <Shield className="h-4 w-4 mr-1" />
+                {vehicle.warranty} warranty
+              </div>
+              <div className="text-muted-foreground">
+                {vehicle.owners} previous owner{vehicle.owners > 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <div className={`font-medium mb-2 ${isMobile ? 'text-sm' : 'text-xs'}`}>Key Features</div>
+              <div className="flex flex-wrap gap-2">
+                {vehicle.features.slice(0, isMobile ? 3 : 2).map((feature: string, idx: number) => (
+                  <Badge key={idx} variant="secondary" className={isMobile ? 'text-xs' : 'text-[10px]'}>
+                    {feature}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            <div className={`flex items-center justify-between ${isMobile ? 'text-sm' : 'text-xs'}`}>
+              <div>
+                <span className="text-muted-foreground">Condition: </span>
+                <span className="font-medium">{vehicle.condition}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={`flex space-x-3 pt-4 ${isMobile ? '' : 'flex-col space-x-0 space-y-2'}`}>
+            <Button className={`${isMobile ? 'flex-1' : 'w-full text-xs py-2'}`}>
+              View Details
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+            {isMobile && (
+              <Button variant="outline" size="default">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Buy Now
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-muted/30 to-background">
@@ -136,24 +273,34 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
           </p>
         </motion.div>
 
-        {/* Single Card Carousel */}
-        <div className="relative max-w-2xl mx-auto">
+        {/* Carousel Container */}
+        <div className={`relative ${isMobile ? 'max-w-2xl mx-auto' : 'max-w-7xl mx-auto'}`}>
           {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-700" />
-          </button>
+          {(isMobile || currentIndex > 0) && (
+            <button
+              onClick={prevSlide}
+              disabled={currentIndex === 0}
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isMobile ? '-translate-x-4' : '-translate-x-6'
+              }`}
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
 
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-700" />
-          </button>
+          {(isMobile || currentIndex < maxIndex) && (
+            <button
+              onClick={nextSlide}
+              disabled={currentIndex >= maxIndex}
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-3 rounded-full bg-white/90 shadow-lg border transition-all hover:bg-white hover:shadow-xl hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isMobile ? 'translate-x-4' : 'translate-x-6'
+              }`}
+            >
+              <ChevronRight className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
 
-          {/* Card Display */}
+          {/* Cards Display */}
           <div 
             className="overflow-hidden"
             onMouseEnter={() => setIsPaused(true)}
@@ -162,120 +309,22 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
+                initial={{ opacity: 0, x: isMobile ? 100 : 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
+                exit={{ opacity: 0, x: isMobile ? -100 : -50 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
+                className={`flex ${isMobile ? '' : 'space-x-0'}`}
               >
-                <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group">
-                  <div className="relative">
-                    <img 
-                      src={selectedVehicle.image} 
-                      alt={selectedVehicle.name}
-                      className="w-full h-64 lg:h-80 object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    
-                    {/* Overlays */}
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-green-600 text-white text-sm">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        {selectedVehicle.certification}
-                      </Badge>
-                    </div>
-                    
-                    {/* Auto-play indicator */}
-                    {isAutoPlaying && !isPaused && (
-                      <div className="absolute bottom-4 right-4">
-                        <div className="flex items-center bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 text-white text-xs">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2"></div>
-                          Auto-playing
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <h3 className="text-2xl font-bold text-foreground mb-2">{selectedVehicle.name}</h3>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {selectedVehicle.year}
-                        </div>
-                        <div className="flex items-center">
-                          <Gauge className="h-4 w-4 mr-1" />
-                          {selectedVehicle.mileage}
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {selectedVehicle.location}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-3xl font-bold text-foreground">
-                          AED {selectedVehicle.price.toLocaleString()}
-                        </span>
-                        {selectedVehicle.originalPrice > selectedVehicle.price && (
-                          <span className="text-lg text-muted-foreground line-through">
-                            AED {selectedVehicle.originalPrice.toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-green-600">
-                          <Shield className="h-4 w-4 mr-1" />
-                          {selectedVehicle.warranty} warranty
-                        </div>
-                        <div className="text-muted-foreground">
-                          {selectedVehicle.owners} previous owner{selectedVehicle.owners > 1 ? 's' : ''}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <div className="text-sm font-medium mb-2">Key Features</div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedVehicle.features.map((feature, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Condition: </span>
-                          <span className="font-medium">{selectedVehicle.condition}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-3 pt-4">
-                      <Button className="flex-1">
-                        View Details
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
-                      <Button variant="outline" size="default">
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Buy Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                {getVisibleVehicles().map((vehicle, index) => (
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} index={index} />
+                ))}
               </motion.div>
             </AnimatePresence>
           </div>
 
           {/* Dots Indicator */}
           <div className="flex justify-center space-x-3 mt-6">
-            {preOwnedVehicles.map((_, index) => (
+            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
