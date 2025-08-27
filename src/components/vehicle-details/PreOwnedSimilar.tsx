@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
   const [isPaused, setIsPaused] = useState(false);
   const isMobile = useIsMobile();
 
-  // Mock pre-owned similar vehicles data
+  // Extended mock pre-owned similar vehicles data (8 total)
   const preOwnedVehicles = [
     {
       id: 1,
@@ -83,6 +83,66 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       features: ["Budget Friendly", "Recently Serviced", "Clean History"],
       condition: "Good",
       owners: 1
+    },
+    {
+      id: 5,
+      name: `${currentVehicle.name.split(' ')[1]} 2023`,
+      year: 2023,
+      mileage: "28,000 km",
+      price: Math.round(currentVehicle.price * 0.85),
+      originalPrice: Math.round(currentVehicle.price * 0.95),
+      location: "Dubai, UAE",
+      certification: "Toyota Certified",
+      warranty: "18 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+      features: ["Nearly New", "Full Warranty", "Latest Features"],
+      condition: "Excellent",
+      owners: 1
+    },
+    {
+      id: 6,
+      name: `${currentVehicle.name.split(' ')[1]} 2018`,
+      year: 2018,
+      mileage: "112,000 km",
+      price: Math.round(currentVehicle.price * 0.35),
+      originalPrice: Math.round(currentVehicle.price * 0.45),
+      location: "Ras Al Khaimah, UAE",
+      certification: "Toyota Certified",
+      warranty: "3 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+      features: ["Affordable", "Good Condition", "Reliable Transport"],
+      condition: "Good",
+      owners: 2
+    },
+    {
+      id: 7,
+      name: `${currentVehicle.name.split(' ')[1]} 2021 Sport`,
+      year: 2021,
+      mileage: "58,000 km",
+      price: Math.round(currentVehicle.price * 0.65),
+      originalPrice: Math.round(currentVehicle.price * 0.78),
+      location: "Fujairah, UAE",
+      certification: "Toyota Certified",
+      warranty: "9 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+      features: ["Sport Package", "Performance Tuned", "Premium Audio"],
+      condition: "Very Good",
+      owners: 1
+    },
+    {
+      id: 8,
+      name: `${currentVehicle.name.split(' ')[1]} 2020 Limited`,
+      year: 2020,
+      mileage: "82,000 km",
+      price: Math.round(currentVehicle.price * 0.55),
+      originalPrice: Math.round(currentVehicle.price * 0.68),
+      location: "Abu Dhabi, UAE",
+      certification: "Toyota Certified",
+      warranty: "8 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+      features: ["Limited Edition", "Luxury Package", "Heated Seats"],
+      condition: "Very Good",
+      owners: 1
     }
   ];
 
@@ -115,13 +175,13 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
     debug: false
   });
 
-  // Auto-swipe functionality
+  // Auto-swipe functionality with improved pause handling
   useEffect(() => {
     if (!isAutoPlaying || isPaused) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-    }, 4000);
+    }, 5000); // Increased interval to 5 seconds
     
     return () => clearInterval(interval);
   }, [isAutoPlaying, isPaused, maxIndex]);
@@ -133,19 +193,20 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
   };
 
   const VehicleCard = ({ vehicle, index }: { vehicle: any; index: number }) => (
-    <motion.div
+    <div
       key={vehicle.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
       className={`${isMobile ? 'w-full' : 'w-1/3 px-2'} flex-shrink-0`}
     >
-      <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group h-full">
+      <Card 
+        className="overflow-hidden border-0 shadow-xl transition-all duration-300 group h-full hover:shadow-2xl"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <div className="relative">
           <img 
             src={vehicle.image} 
             alt={vehicle.name}
-            className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+            className={`w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
               isMobile ? 'h-64 lg:h-80' : 'h-48'
             }`}
             loading="lazy"
@@ -159,16 +220,6 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
               {vehicle.certification}
             </Badge>
           </div>
-          
-          {/* Auto-play indicator */}
-          {isAutoPlaying && !isPaused && index === 0 && (
-            <div className="absolute bottom-4 right-4">
-              <div className="flex items-center bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 text-white text-xs">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2"></div>
-                Auto-playing
-              </div>
-            </div>
-          )}
         </div>
 
         <CardContent className={`space-y-4 ${isMobile ? 'p-6' : 'p-4'}`}>
@@ -255,7 +306,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 
   return (
@@ -310,12 +361,15 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
           <div 
             ref={swipeableRef}
             className="overflow-hidden"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
           >
-            <div className={`flex transition-transform duration-500 ease-out ${isMobile ? '' : 'space-x-0'}`}>
+            <div 
+              className="flex transition-transform duration-500 ease-out"
+              style={{
+                transform: `translateX(-${currentIndex * 100}%)`
+              }}
+            >
               {getVisibleVehicles().map((vehicle, index) => (
-                <VehicleCard key={`${vehicle.id}-${currentIndex}`} vehicle={vehicle} index={index} />
+                <VehicleCard key={vehicle.id} vehicle={vehicle} index={index} />
               ))}
             </div>
           </div>
@@ -334,6 +388,16 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
               />
             ))}
           </div>
+
+          {/* Auto-play Status */}
+          {isAutoPlaying && !isPaused && (
+            <div className="flex justify-center mt-4">
+              <div className="flex items-center bg-black/10 backdrop-blur-sm rounded-full px-3 py-1 text-muted-foreground text-xs">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse mr-2"></div>
+                Auto-playing
+              </div>
+            </div>
+          )}
         </div>
 
         {/* CTA Section */}
