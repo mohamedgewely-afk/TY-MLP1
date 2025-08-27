@@ -7,7 +7,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode, command }) => ({
   server: {
     host: "::",
     port: 8080,
@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       // Configure React plugin properly for different modes
       devTarget: mode === 'development' ? 'es2020' : undefined,
     }),
-    mode === 'development' && componentTagger(),
+    mode === 'development' && command === 'serve' && componentTagger(),
     
     // Bundle analyzer - generates stats.html in dist folder
     mode === 'production' && visualizer({
@@ -47,9 +47,11 @@ export default defineConfig(({ mode }) => ({
     cssTarget: 'chrome80',
     
     rollupOptions: {
+      // Don't externalize react-refresh for builds
+      external: command === 'build' ? [] : undefined,
       output: {
         // Enhanced code splitting for 732KB savings
-        manualChunks: (id) => {
+        manualChunks: command === 'build' ? (id) => {
           // React core chunk (smallest possible)
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'react-core';
@@ -76,7 +78,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('date-fns') || id.includes('class-variance-authority') || id.includes('clsx')) {
             return 'utils';
           }
-        },
+        } : undefined,
         
         // Optimize chunk names for caching
         chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -149,7 +151,7 @@ export default defineConfig(({ mode }) => ({
       'framer-motion',
       'lucide-react'
     ],
-    exclude: ['@vite/client', '@vite/env']
+    exclude: command === 'build' ? ['@vite/client', '@vite/env'] : []
   },
   
   // Experimental features for better performance
