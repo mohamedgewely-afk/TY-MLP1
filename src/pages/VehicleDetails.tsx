@@ -179,16 +179,15 @@ const VehicleDetails = () => {
 
           <OffersSection onOfferClick={handleOfferClick} />
           
+          {/* Enhanced VehicleMediaShowcase with performance optimizations */}
+          <VehicleMediaShowcase vehicle={vehicle} />
+          
           {shouldPreloadContent && (
-            <>
-              <VehicleMediaShowcase vehicle={vehicle} />
-              <RefinedTechExperience vehicle={vehicle} />
-            </>
+            <RefinedTechExperience vehicle={vehicle} />
           )}
           
           {!shouldPreloadContent && (
             <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-              <VehicleMediaShowcase vehicle={vehicle} />
               <RefinedTechExperience vehicle={vehicle} />
             </Suspense>
           )}
