@@ -14,9 +14,9 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // Fix React Refresh issue - disable in production
+      // Properly configure React refresh for different modes
+      fastRefresh: mode === 'development',
       devTarget: mode === 'development' ? 'es2020' : undefined,
-      jsxImportSource: undefined, // Let Vite handle JSX transform
     }),
     mode === 'development' && componentTagger(),
     
