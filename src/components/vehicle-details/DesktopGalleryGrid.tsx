@@ -20,14 +20,14 @@ interface DesktopGalleryGridProps {
   openSceneLabel: (scene: string) => string;
 }
 
-const DesktopGalleryGrid = memo(({
+const DesktopGalleryGrid = memo<DesktopGalleryGridProps>(({
   scenes,
   activeIdx,
   onSceneSelect,
   onSceneFocus,
   expandLabel,
   openSceneLabel,
-}: DesktopGalleryGridProps) => {
+}) => {
   if (scenes.length === 0) return null;
 
   return (

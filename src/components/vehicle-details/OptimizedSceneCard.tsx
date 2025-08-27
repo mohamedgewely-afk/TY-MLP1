@@ -36,7 +36,7 @@ const specIcons: Record<string, JSX.Element> = {
   safety: <GaugeCircle className="w-5 h-5" aria-hidden />,
 };
 
-const OptimizedSceneCard = memo(({
+const OptimizedSceneCard = memo<OptimizedSceneCardProps>(({
   data,
   active,
   onEnter,
@@ -45,7 +45,7 @@ const OptimizedSceneCard = memo(({
   ariaLabel,
   expandLabel,
   isDesktop = false,
-}: OptimizedSceneCardProps) => {
+}) => {
   const cardClasses = `
     snap-center shrink-0 relative cursor-pointer
     transition-all duration-300 ease-out

@@ -185,12 +185,12 @@ const DEFAULT_SCENES: SceneData[] = [
   },
 ];
 
-const VehicleGallery = memo(({
+const VehicleGallery = memo<VehicleGalleryProps>(({
   scenes = DEFAULT_SCENES,
   locale = "en",
   rtl = false,
   onAskToyota,
-}: VehicleGalleryProps) => {
+}) => {
   const T: LocaleStrings = STR[locale] ?? STR.en;
   const { isDesktop, isMobile } = useSimpleDevice();
   
