@@ -19,7 +19,6 @@ interface PreOwnedSimilarProps {
 const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
   const isMobile = useIsMobile();
 
   // Extended mock pre-owned similar vehicles data (8 total)
@@ -94,7 +93,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       location: "Dubai, UAE",
       certification: "Toyota Certified",
       warranty: "18 months",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
       features: ["Nearly New", "Full Warranty", "Latest Features"],
       condition: "Excellent",
       owners: 1
@@ -109,7 +108,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       location: "Ras Al Khaimah, UAE",
       certification: "Toyota Certified",
       warranty: "3 months",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
       features: ["Affordable", "Good Condition", "Reliable Transport"],
       condition: "Good",
       owners: 2
@@ -124,7 +123,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       location: "Fujairah, UAE",
       certification: "Toyota Certified",
       warranty: "9 months",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
       features: ["Sport Package", "Performance Tuned", "Premium Audio"],
       condition: "Very Good",
       owners: 1
@@ -139,19 +138,20 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
       location: "Abu Dhabi, UAE",
       certification: "Toyota Certified",
       warranty: "8 months",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
       features: ["Limited Edition", "Luxury Package", "Heated Seats"],
       condition: "Very Good",
       owners: 1
     }
   ];
 
-  // Calculate cards per view and total pages
+  // Calculate proper bounds for mobile vs desktop
+  const totalCards = preOwnedVehicles.length; // 8 cards
   const cardsPerView = isMobile ? 1 : 3;
-  const totalPages = Math.ceil(preOwnedVehicles.length / cardsPerView);
-  const maxIndex = totalPages - 1;
+  const maxIndex = isMobile ? totalCards - 1 : totalCards - cardsPerView; // Mobile: 0-7, Desktop: 0-5
+  const totalDots = isMobile ? totalCards : maxIndex + 1; // Mobile: 8 dots, Desktop: 6 dots
 
-  // Navigation functions
+  // Navigation functions with proper bounds
   const nextSlide = () => {
     setIsAutoPlaying(false);
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
@@ -175,32 +175,35 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
     debug: false
   });
 
-  // Auto-swipe functionality with improved pause handling
+  // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying || isPaused) return;
+    if (!isAutoPlaying) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-    }, 5000); // Increased interval to 5 seconds
+    }, 4000);
     
     return () => clearInterval(interval);
-  }, [isAutoPlaying, isPaused, maxIndex]);
+  }, [isAutoPlaying, maxIndex]);
 
-  // Get visible vehicles based on current index and cards per view
-  const getVisibleVehicles = () => {
-    const startIndex = currentIndex * cardsPerView;
-    return preOwnedVehicles.slice(startIndex, startIndex + cardsPerView);
+  // Calculate transform based on mobile vs desktop
+  const getTransformValue = () => {
+    if (isMobile) {
+      return `translateX(-${currentIndex * 100}%)`;
+    } else {
+      return `translateX(-${currentIndex * 33.333333}%)`;
+    }
   };
 
   const VehicleCard = ({ vehicle, index }: { vehicle: any; index: number }) => (
     <div
       key={vehicle.id}
-      className={`${isMobile ? 'w-full' : 'w-1/3 px-2'} flex-shrink-0`}
+      className={`flex-shrink-0 ${isMobile ? 'w-full px-4' : 'w-1/3 px-2'}`}
     >
       <Card 
         className="overflow-hidden border-0 shadow-xl transition-all duration-300 group h-full hover:shadow-2xl"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        onMouseEnter={() => setIsAutoPlaying(false)}
+        onMouseLeave={() => setIsAutoPlaying(true)}
       >
         <div className="relative">
           <img 
@@ -357,7 +360,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             <ChevronRight className="h-6 w-6 text-gray-700" />
           </button>
 
-          {/* Cards Display */}
+          {/* Cards Display - Render ALL 8 cards */}
           <div 
             ref={swipeableRef}
             className="overflow-hidden"
@@ -365,10 +368,10 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             <div 
               className="flex transition-transform duration-500 ease-out"
               style={{
-                transform: `translateX(-${currentIndex * 100}%)`
+                transform: getTransformValue()
               }}
             >
-              {getVisibleVehicles().map((vehicle, index) => (
+              {preOwnedVehicles.map((vehicle, index) => (
                 <VehicleCard key={vehicle.id} vehicle={vehicle} index={index} />
               ))}
             </div>
@@ -376,7 +379,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
 
           {/* Dots Indicator */}
           <div className="flex justify-center space-x-3 mt-6">
-            {Array.from({ length: totalPages }).map((_, index) => (
+            {Array.from({ length: totalDots }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
@@ -390,7 +393,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
           </div>
 
           {/* Auto-play Status */}
-          {isAutoPlaying && !isPaused && (
+          {isAutoPlaying && (
             <div className="flex justify-center mt-4">
               <div className="flex items-center bg-black/10 backdrop-blur-sm rounded-full px-3 py-1 text-muted-foreground text-xs">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse mr-2"></div>
