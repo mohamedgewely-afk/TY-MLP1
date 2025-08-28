@@ -231,11 +231,24 @@ const VehicleDetails = () => {
               <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
                 <VirtualShowroom vehicle={vehicle} />
                 
-                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
+                <section className="py-8 lg:py-16" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
-                  <OptimizedVehicleGallery 
-                    images={galleryImages} 
-                    vehicleName={vehicle.name}
+                  <VehicleGallery 
+                    scenes={galleryImages.map((image, index) => ({
+                      id: `vehicle-${index}`,
+                      title: vehicle.name,
+                      scene: (index === 0 ? "Exterior" : index === 1 ? "Interior" : index === 2 ? "Urban" : index === 3 ? "Capability" : "Night") as any,
+                      image,
+                      description: `Experience the ${vehicle.name} from every angle`,
+                      specs: {
+                        horsepower: "203 hp",
+                        torque: "190 Nm", 
+                        fuelEconomy: "4.1 L/100km",
+                        drivetrain: "CVT Automatic"
+                      }
+                    }))}
+                    locale="en"
+                    rtl={false}
                   />
                 </section>
 
@@ -260,12 +273,25 @@ const VehicleDetails = () => {
               <>
                 <VirtualShowroom vehicle={vehicle} />
                 
-                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
+                <section className="py-8 lg:py-16" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
                   <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-                    <OptimizedVehicleGallery 
-                      images={galleryImages} 
-                      vehicleName={vehicle.name}
+                    <VehicleGallery 
+                      scenes={galleryImages.map((image, index) => ({
+                        id: `vehicle-${index}`,
+                        title: vehicle.name,
+                        scene: (index === 0 ? "Exterior" : index === 1 ? "Interior" : index === 2 ? "Urban" : index === 3 ? "Capability" : "Night") as any,
+                        image,
+                        description: `Experience the ${vehicle.name} from every angle`,
+                        specs: {
+                          horsepower: "203 hp",
+                          torque: "190 Nm", 
+                          fuelEconomy: "4.1 L/100km",
+                          drivetrain: "CVT Automatic"
+                        }
+                      }))}
+                      locale="en"
+                      rtl={false}
                     />
                   </Suspense>
                 </section>
