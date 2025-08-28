@@ -1,14 +1,16 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 
+// Import the correct types from VehicleGallery
+export type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
+
 export interface SceneData {
   id: string;
   title: string;
-  scene: "Exterior" | "Urban" | "Capability" | "Interior" | "Night" | "Technology";
+  scene: SceneCategory;
   image: string;
   description: string;
   specs: Record<string, string>;
@@ -63,9 +65,9 @@ export const useVehicleData = () => {
       }
     },
     {
-      id: "camry-technology",
+      id: "camry-capability",
       title: "Camry Hybrid",
-      scene: "Technology",
+      scene: "Capability",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
       description: "Hybrid Synergy Drive technology. Seamless power delivery and efficiency.",
       specs: {
