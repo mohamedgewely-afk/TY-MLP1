@@ -50,14 +50,22 @@ const isDAMUrl = (url: string): boolean => {
   return url.includes('dam.alfuttaim.com') || url.includes('alfuttaim.com/dx/api/dam');
 };
 
+const isExternalImageService = (url: string): boolean => {
+  return url.includes('unsplash.com') || 
+         url.includes('pexels.com') || 
+         url.includes('pixabay.com') ||
+         url.includes('cloudinary.com') ||
+         isDAMUrl(url);
+};
+
 const getOptimizedImageUrl = (src: string, isMobile: boolean, quality: string): string => {
-  // For DAM URLs or URLs that already have complex parameters, use as-is
-  if (isDAMUrl(src) || src.includes('?') || src.includes('&')) {
+  // For DAM URLs and other external image services, use original URL to avoid breaking
+  if (isExternalImageService(src)) {
     return src;
   }
   
-  // For other URLs, we could add optimization parameters
-  // But for now, return original to avoid breaking existing images
+  // For local or compatible URLs, could add optimization parameters here
+  // But for safety, return original URL
   return src;
 };
 
@@ -81,7 +89,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   const dimensions = IMAGE_DIMENSIONS[aspectRatio];
   const targetDimensions = isMobile ? dimensions.mobile : dimensions.desktop;
 
-  // Use original URL to avoid breaking DAM images
+  // Always use original URL for DAM and external services
   const optimizedSrc = useMemo(() => {
     if (!shouldLoad) return '';
     return getOptimizedImageUrl(src, isMobile, quality);

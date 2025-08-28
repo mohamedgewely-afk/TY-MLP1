@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, Suspense, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -73,8 +74,6 @@ const VirtualShowroom = createLazyComponent(
 preloadOnFastNetwork(() => import("@/components/vehicle-details/VehicleGallery"));
 preloadOnFastNetwork(() => import("@/components/vehicle-details/StorytellingSection"));
 
-import OptimizedVehicleGallery from "@/components/vehicle-details/OptimizedVehicleGallery";
-
 const VehicleDetails = () => {
   // Modal states - memoized to prevent unnecessary re-renders
   const [modals, setModals] = useState({
@@ -97,7 +96,7 @@ const VehicleDetails = () => {
   const { isMobile, deviceCategory } = useOptimizedDeviceInfo();
   const { addCleanup } = useCleanup();
   const { shouldPreloadContent, isSlowConnection, isFastConnection } = useNetworkAware();
-  const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
+  const { vehicle, isFavorite, galleryImages, galleryScenes, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
   const { reportMetric } = useWebVitalsOptimized();
   const { isLowMemory } = useMemoryPressure();
 
@@ -234,19 +233,7 @@ const VehicleDetails = () => {
                 <section className="py-8 lg:py-16" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
                   <VehicleGallery 
-                    scenes={galleryImages.map((image, index) => ({
-                      id: `vehicle-${index}`,
-                      title: vehicle.name,
-                      scene: (index === 0 ? "Exterior" : index === 1 ? "Interior" : index === 2 ? "Urban" : index === 3 ? "Capability" : "Night") as any,
-                      image,
-                      description: `Experience the ${vehicle.name} from every angle`,
-                      specs: {
-                        horsepower: "203 hp",
-                        torque: "190 Nm", 
-                        fuelEconomy: "4.1 L/100km",
-                        drivetrain: "CVT Automatic"
-                      }
-                    }))}
+                    scenes={galleryScenes}
                     locale="en"
                     rtl={false}
                   />
@@ -277,19 +264,7 @@ const VehicleDetails = () => {
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
                   <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
                     <VehicleGallery 
-                      scenes={galleryImages.map((image, index) => ({
-                        id: `vehicle-${index}`,
-                        title: vehicle.name,
-                        scene: (index === 0 ? "Exterior" : index === 1 ? "Interior" : index === 2 ? "Urban" : index === 3 ? "Capability" : "Night") as any,
-                        image,
-                        description: `Experience the ${vehicle.name} from every angle`,
-                        specs: {
-                          horsepower: "203 hp",
-                          torque: "190 Nm", 
-                          fuelEconomy: "4.1 L/100km",
-                          drivetrain: "CVT Automatic"
-                        }
-                      }))}
+                      scenes={galleryScenes}
                       locale="en"
                       rtl={false}
                     />
