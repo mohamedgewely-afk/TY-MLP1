@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from "react";
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
@@ -8,11 +8,14 @@ import {
   Calendar, 
   Shield, 
   Award,
+  ChevronLeft,
+  ChevronRight,
   ArrowRight,
-  Settings
+  Settings,
+  Play,
+  Pause
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { OptimizedCarousel } from "@/components/ui/optimized-carousel";
 import YouTubeEmbed from "@/components/ui/youtube-embed";
 import AnimatedCounter from "@/components/ui/animated-counter";
 import { openTestDrivePopup } from "@/utils/testDriveUtils";
@@ -36,7 +39,11 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   onCarBuilder,
   monthlyEMI
 }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const isMobile = useIsMobile();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
@@ -48,12 +55,61 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   const heroImageRef = useRef<HTMLDivElement>(null);
   const isHeroInView = useInView(heroImageRef);
 
-  const handleTestDrive = () => {
-    openTestDrivePopup(vehicle);
+  // Auto-rotate gallery images
+  useEffect(() => {
+    if (!isHeroInView || !isAutoPlaying || showVideo) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    }, 4000);
+    
+    return () => clearInterval(interval);
+  }, [isHeroInView, galleryImages.length, isAutoPlaying, showVideo]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextImage();
+    }
+    if (isRightSwipe) {
+      prevImage();
+    }
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying(!isAutoPlaying);
   };
 
   const toggleVideo = () => {
     setShowVideo(!showVideo);
+    if (!showVideo) {
+      setIsAutoPlaying(false);
+    }
+  };
+
+  const handleTestDrive = () => {
+    openTestDrivePopup(vehicle);
   };
 
   const isBestSeller = 
@@ -72,43 +128,101 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         ref={heroImageRef}
         style={{ y, scale }}
         className="absolute inset-0 w-full h-full"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
+        {/* Loading Skeleton */}
+        <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
+        
         {/* Vehicle Images or Video */}
-        {showVideo ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-            className="absolute inset-0 w-full h-full"
-          >
-            <YouTubeEmbed
-              videoId="xEkrrzLvya8"
-              className="w-full h-full"
-              autoplay={true}
-              muted={true}
-              controls={false}
+        <AnimatePresence mode="wait">
+          {showVideo ? (
+            <motion.div
+              key="video"
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <YouTubeEmbed
+                videoId="xEkrrzLvya8"
+                className="w-full h-full"
+                autoplay={true}
+                muted={true}
+                controls={false}
+              />
+            </motion.div>
+          ) : (
+            <motion.img
+              key={currentImageIndex}
+              src={galleryImages[currentImageIndex]}
+              alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              loading="lazy"
+              onLoad={(e) => {
+                const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+                if (skeleton) {
+                  skeleton.style.display = 'none';
+                }
+              }}
             />
-          </motion.div>
-        ) : (
-          <OptimizedCarousel
-            images={galleryImages}
-            aspectRatio="hero"
-            autoPlay={isHeroInView}
-            interval={4000}
-            className="w-full h-full"
-            showControls={!isMobile}
-            showIndicators={true}
-          />
-        )}
+          )}
+        </AnimatePresence>
 
-        {/* Gradient overlay */}
+        {/* Minimal Gradient - Only at bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
       </motion.div>
 
-      {/* Content Overlay */}
+      {/* Pause Button - Bottom Right Corner */}
+      <motion.div 
+        className="absolute bottom-4 right-4 z-20"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+      >
+        <button
+          onClick={toggleAutoPlay}
+          className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 shadow-lg"
+        >
+          {isAutoPlaying ? (
+            <Pause className="h-4 w-4 text-white" />
+          ) : (
+            <Play className="h-4 w-4 text-white" />
+          )}
+        </button>
+      </motion.div>
+
+      {/* Compact Content Overlay - Much smaller area */}
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="toyota-container pb-4">
+          {/* Image Indicators */}
+          {!showVideo && (
+            <motion.div 
+              className="flex justify-center space-x-1 mb-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.6 }}
+            >
+              {galleryImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex 
+                      ? 'bg-white w-4' 
+                      : 'bg-white/40 w-1 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </motion.div>
+          )}
+
           {/* Badges */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -140,14 +254,14 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             </h1>
           </motion.div>
 
-          {/* Compact Price Box */}
+          {/* Very Compact Price Box */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.6 }}
             className="bg-black/60 backdrop-blur-md rounded-lg p-3 mb-3 border border-white/20 max-w-xs mx-auto"
           >
-            {/* Main Pricing */}
+            {/* Main Pricing - Horizontal Layout */}
             <div className="flex justify-between items-center mb-2">
               <div className="text-center flex-1">
                 <div className="text-xs text-white/60 uppercase font-medium">Starting From</div>
@@ -169,7 +283,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               </div>
             </div>
 
-            {/* Performance Stats */}
+            {/* Performance Stats - Horizontal */}
             <div className="flex justify-between items-center pt-2 border-t border-white/20">
               <div className="text-center">
                 <div className="text-base font-black text-white">
@@ -200,7 +314,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             </div>
           </motion.div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Compact */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

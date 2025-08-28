@@ -96,7 +96,7 @@ const VehicleDetails = () => {
   const { isMobile, deviceCategory } = useOptimizedDeviceInfo();
   const { addCleanup } = useCleanup();
   const { shouldPreloadContent, isSlowConnection, isFastConnection } = useNetworkAware();
-  const { vehicle, isFavorite, galleryImages, galleryScenes, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
+  const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
   const { reportMetric } = useWebVitalsOptimized();
   const { isLowMemory } = useMemoryPressure();
 
@@ -230,13 +230,9 @@ const VehicleDetails = () => {
               <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
                 <VirtualShowroom vehicle={vehicle} />
                 
-                <section className="py-8 lg:py-16" aria-labelledby="gallery-heading">
+                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
-                  <VehicleGallery 
-                    scenes={galleryScenes}
-                    locale="en"
-                    rtl={false}
-                  />
+                  <VehicleGallery />
                 </section>
 
                 <StorytellingSection
@@ -260,14 +256,10 @@ const VehicleDetails = () => {
               <>
                 <VirtualShowroom vehicle={vehicle} />
                 
-                <section className="py-8 lg:py-16" aria-labelledby="gallery-heading">
+                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
                   <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-                    <VehicleGallery 
-                      scenes={galleryScenes}
-                      locale="en"
-                      rtl={false}
-                    />
+                    <VehicleGallery />
                   </Suspense>
                 </section>
 
