@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
-import VehicleGallery from "@/components/vehicle-details/VehicleGallery";
+import OptimizedVehicleGallery from "@/components/vehicle-details/OptimizedVehicleGallery";
 import StorytellingSection from "@/components/vehicle-details/StorytellingSection";
 import VehicleGrades from "@/components/vehicle-details/VehicleGrades";
 import CombinedSpecsAndTech from "@/components/vehicle-details/CombinedSpecsAndTech";
@@ -73,7 +73,7 @@ const VehicleDetails: React.FC = () => {
           onBookTestDrive={() => setIsBookingOpen(true)}
           onCarBuilder={() => {}}
         />
-        <VehicleGallery 
+        <OptimizedVehicleGallery 
           images={galleryImages}
           vehicleName={vehicleData.name}
         />
