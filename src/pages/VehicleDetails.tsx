@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -15,15 +16,15 @@ import PreOwnedSimilar from "@/components/vehicle-details/PreOwnedSimilar";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import { useVehicleData } from "@/hooks/use-vehicle-data";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { performantSpringConfigs } from "@/utils/performance-animations";
 
 const VehicleDetails: React.FC = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
-  const { data: vehicleData, isLoading, isError } = useVehicleData(vehicleName || "");
-  const { isMobile } = useMobile();
-  const { navigate } = useLanguage();
+  const { data: vehicleData, isLoading, isError, galleryScenes } = useVehicleData(vehicleName || "");
+  const isMobile = useIsMobile();
+  const { language } = useLanguage();
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
@@ -64,46 +65,46 @@ const VehicleDetails: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={performantSpringConfigs.gentle}
+        transition={performantSpringConfigs.smooth}
       >
         <EnhancedHeroSection
           vehicle={vehicleData}
-          monthlyEMI={399} // Example value
-          setIsBookingOpen={setIsBookingOpen}
+          monthlyEMI={399}
           isMobile={isMobile}
         />
-        <VehicleGallery images={galleryImages} />
+        <VehicleGallery 
+          galleryScenes={galleryScenes}
+          vehicleName={vehicleData.name}
+        />
         <StorytellingSection
           galleryImages={galleryImages}
-          monthlyEMI={399} // Example value
+          monthlyEMI={399}
           setIsBookingOpen={setIsBookingOpen}
-          navigate={navigate}
           setIsFinanceOpen={setIsFinanceOpen}
           onSafetyExplore={handleSafetyExplore}
           onConnectivityExplore={handleConnectivityExplore}
           onHybridTechExplore={handleHybridTechExplore}
           onInteriorExplore={handleInteriorExplore}
         />
-        <VehicleGrades grades={vehicleData.grades} />
+        <VehicleGrades vehicleGrades={vehicleData.grades} />
         <CombinedSpecsAndTech vehicle={vehicleData} />
-        <VehicleFeatures features={vehicleData.features} />
-        <RelatedVehicles related={vehicleData.relatedVehicles} />
-        <VehicleFAQ faqData={vehicleData.faq} />
-        <OwnerTestimonials testimonials={vehicleData.ownerTestimonials} />
-        <PreOwnedSimilar similarVehicles={vehicleData.similarPreOwned} />
+        <VehicleFeatures vehicleFeatures={vehicleData.features} />
+        <RelatedVehicles relatedVehicles={vehicleData.relatedVehicles} />
+        <VehicleFAQ vehicleFAQ={vehicleData.faq} />
+        <OwnerTestimonials vehicleTestimonials={vehicleData.ownerTestimonials} />
+        <PreOwnedSimilar preOwnedVehicles={vehicleData.similarPreOwned} />
       </motion.div>
 
       <VehicleModals
-        isOpen={!!activeModal}
-        onClose={() => setActiveModal(null)}
         activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
         vehicle={vehicleData}
       />
 
       <ActionPanel
         vehicle={vehicleData}
-        setIsBookingOpen={setIsBookingOpen}
-        setIsFinanceOpen={setIsFinanceOpen}
+        onBookingClick={() => setIsBookingOpen(true)}
+        onFinanceClick={() => setIsFinanceOpen(true)}
       />
     </ToyotaLayout>
   );

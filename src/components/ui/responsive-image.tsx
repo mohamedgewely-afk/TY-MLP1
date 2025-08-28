@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ interface ResponsiveImageProps {
   cover?: boolean;
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
   eager?: boolean;
+  aspectRatio?: 'hero' | 'gallery' | 'showcase' | 'card' | 'feature';
 }
 
 const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -32,6 +34,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   cover = false,
   objectFit = "cover",
   eager = false,
+  aspectRatio,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,7 +50,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     };
 
     if (fill || cover) {
-      baseStyles.position = "absolute";
+      baseStyles.position = "absolute" as const;
       baseStyles.top = 0;
       baseStyles.left = 0;
       baseStyles.width = "100%";
@@ -57,20 +60,37 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     return baseStyles;
   }, [isLoading, fill, cover, objectFit]);
 
-  const containerStyle = useMemo(() => {
+  const containerStyle = useMemo((): React.CSSProperties => {
     if (fill) {
       return {
-        position: "relative",
+        position: "relative" as const,
         width: "100%",
         height: "100%",
-        overflow: "hidden",
+        overflow: "hidden" as const,
       };
     }
     return {};
   }, [fill]);
 
+  const aspectRatioClass = useMemo(() => {
+    switch (aspectRatio) {
+      case 'hero':
+        return 'aspect-[16/9]';
+      case 'gallery':
+        return 'aspect-[4/3]';
+      case 'showcase':
+        return 'aspect-[3/2]';
+      case 'card':
+        return 'aspect-[1/1]';
+      case 'feature':
+        return 'aspect-[5/3]';
+      default:
+        return '';
+    }
+  }, [aspectRatio]);
+
   return (
-    <div className={className} style={containerStyle}>
+    <div className={`${className} ${aspectRatioClass}`} style={containerStyle}>
       {isLoading && (
         <Skeleton
           className={`absolute inset-0 ${skeletonClassName}`}
@@ -82,11 +102,9 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         alt={alt}
         width={width}
         height={height}
-        priority={priority}
         style={imageStyle}
-        className="will-change-transform"
+        className="will-change-transform w-full h-full object-cover"
         sizes={sizes}
-        quality={quality}
         onLoad={handleImageLoad}
         loading={eager ? "eager" : "lazy"}
       />

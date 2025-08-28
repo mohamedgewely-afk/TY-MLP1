@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -16,12 +17,16 @@ export interface SceneData {
   specs: Record<string, string>;
 }
 
-export const useVehicleData = () => {
-  const { vehicleName } = useParams<{ vehicleName: string }>();
+export const useVehicleData = (vehicleName?: string) => {
+  const { vehicleName: paramVehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const currentVehicleName = vehicleName || paramVehicleName;
 
   // Camry Hybrid specific gallery scenes with proper DAM URLs
   const galleryScenes = useMemo((): SceneData[] => [
@@ -123,24 +128,34 @@ export const useVehicleData = () => {
   }, [vehicle, isFavorite, toast]);
 
   useEffect(() => {
+    setIsLoading(true);
+    setIsError(false);
+    
     const foundVehicle = vehicles.find((v) => {
-      if (v.id === vehicleName) return true;
+      if (v.id === currentVehicleName) return true;
       const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
-      return slug === vehicleName;
+      return slug === currentVehicleName;
     });
 
     if (foundVehicle) {
       setVehicle(foundVehicle);
       document.title = `${foundVehicle.name} | Toyota UAE`;
+      setIsError(false);
+    } else {
+      setIsError(true);
     }
 
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
 
+    setIsLoading(false);
     window.scrollTo(0, 0);
-  }, [vehicleName]);
+  }, [currentVehicleName]);
 
   return {
+    data: vehicle,
+    isLoading,
+    isError,
     vehicle,
     isFavorite,
     galleryImages,
