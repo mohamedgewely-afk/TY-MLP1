@@ -22,7 +22,7 @@ import { performantSpringConfigs } from "@/utils/performance-animations";
 
 const VehicleDetails: React.FC = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
-  const { data: vehicleData, isLoading, isError, galleryScenes, isFavorite, toggleFavorite } = useVehicleData(vehicleName || "");
+  const { data: vehicleData, isLoading, isError, galleryScenes, isFavorite, toggleFavorite, galleryImages } = useVehicleData(vehicleName || "");
   const isMobile = useIsMobile();
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -30,10 +30,6 @@ const VehicleDetails: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
-
-  const galleryImages = useMemo(() => {
-    return galleryScenes?.map(scene => scene.image) || [];
-  }, [galleryScenes]);
 
   const handleSafetyExplore = useCallback(() => {
     setActiveModal('safety');
@@ -78,7 +74,7 @@ const VehicleDetails: React.FC = () => {
           onCarBuilder={() => {}}
         />
         <VehicleGallery 
-          galleryScenes={galleryScenes}
+          images={galleryImages}
           vehicleName={vehicleData.name}
         />
         <StorytellingSection
@@ -92,13 +88,13 @@ const VehicleDetails: React.FC = () => {
           onHybridTechExplore={handleHybridTechExplore}
           onInteriorExplore={handleInteriorExplore}
         />
-        <VehicleGrades grades={vehicleData.features || []} />
+        <VehicleGrades vehicle={vehicleData} />
         <CombinedSpecsAndTech vehicle={vehicleData} />
-        <VehicleFeatures features={vehicleData.features} />
+        <VehicleFeatures vehicle={vehicleData} />
         <RelatedVehicles currentVehicle={vehicleData} />
         <VehicleFAQ vehicle={vehicleData} />
-        <OwnerTestimonials testimonials={[]} />
-        <PreOwnedSimilar vehicles={[]} />
+        <OwnerTestimonials vehicle={vehicleData} />
+        <PreOwnedSimilar currentVehicle={vehicleData} />
       </motion.div>
 
       <VehicleModals
@@ -125,8 +121,11 @@ const VehicleDetails: React.FC = () => {
 
       <ActionPanel
         vehicle={vehicleData}
+        isFavorite={isFavorite}
+        onToggleFavorite={toggleFavorite}
         onBookTestDrive={() => setIsBookingOpen(true)}
-        onFinance={() => setIsFinanceOpen(true)}
+        onCarBuilder={() => {}}
+        onFinanceCalculator={() => setIsFinanceOpen(true)}
       />
     </ToyotaLayout>
   );
