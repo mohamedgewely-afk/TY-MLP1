@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import ResponsiveImage from '@/components/ui/responsive-image';
+import { ResponsiveImage } from '@/components/ui/responsive-image';
 import { useOptimizedDeviceInfo } from '@/hooks/use-optimized-device-info';
 import { cn } from '@/lib/utils';
 

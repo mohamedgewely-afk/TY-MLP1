@@ -5,28 +5,21 @@ import { useToast } from "@/hooks/use-toast";
 import { vehicles } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 
-// Import the correct types from VehicleGallery
-export type SceneCategory = "Exterior" | "Urban" | "Capability" | "Interior" | "Night";
-
 export interface SceneData {
   id: string;
   title: string;
-  scene: SceneCategory;
+  scene: "Exterior" | "Urban" | "Capability" | "Interior" | "Night" | "Technology";
   image: string;
   description: string;
   specs: Record<string, string>;
 }
 
-export const useVehicleData = (vehicleName?: string) => {
-  const { vehicleName: paramVehicleName } = useParams<{ vehicleName: string }>();
+export const useVehicleData = () => {
+  const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const currentVehicleName = vehicleName || paramVehicleName;
 
   // Camry Hybrid specific gallery scenes with proper DAM URLs
   const galleryScenes = useMemo((): SceneData[] => [
@@ -70,9 +63,9 @@ export const useVehicleData = (vehicleName?: string) => {
       }
     },
     {
-      id: "camry-capability",
+      id: "camry-technology",
       title: "Camry Hybrid",
-      scene: "Capability",
+      scene: "Technology",
       image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
       description: "Hybrid Synergy Drive technology. Seamless power delivery and efficiency.",
       specs: {
@@ -128,34 +121,24 @@ export const useVehicleData = (vehicleName?: string) => {
   }, [vehicle, isFavorite, toast]);
 
   useEffect(() => {
-    setIsLoading(true);
-    setIsError(false);
-    
     const foundVehicle = vehicles.find((v) => {
-      if (v.id === currentVehicleName) return true;
+      if (v.id === vehicleName) return true;
       const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
-      return slug === currentVehicleName;
+      return slug === vehicleName;
     });
 
     if (foundVehicle) {
       setVehicle(foundVehicle);
       document.title = `${foundVehicle.name} | Toyota UAE`;
-      setIsError(false);
-    } else {
-      setIsError(true);
     }
 
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
 
-    setIsLoading(false);
     window.scrollTo(0, 0);
-  }, [currentVehicleName]);
+  }, [vehicleName]);
 
   return {
-    data: vehicle,
-    isLoading,
-    isError,
     vehicle,
     isFavorite,
     galleryImages,

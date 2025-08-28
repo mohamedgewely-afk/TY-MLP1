@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
-import ResponsiveImage from './responsive-image';
+import { ResponsiveImage } from './responsive-image';
 import { useOptimizedDeviceInfo } from '@/hooks/use-optimized-device-info';
 import { cn } from '@/lib/utils';
 
