@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import ToyotaLayout from "@/components/ToyotaLayout";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
@@ -25,14 +25,15 @@ const VehicleDetails: React.FC = () => {
   const { data: vehicleData, isLoading, isError, galleryScenes } = useVehicleData(vehicleName || "");
   const isMobile = useIsMobile();
   const { language } = useLanguage();
+  const navigate = useNavigate();
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const galleryImages = useMemo(() => {
-    return vehicleData?.images?.gallery || [];
-  }, [vehicleData?.images?.gallery]);
+    return galleryScenes?.map(scene => scene.image) || [];
+  }, [galleryScenes]);
 
   const handleSafetyExplore = useCallback(() => {
     setActiveModal('safety');
@@ -70,7 +71,6 @@ const VehicleDetails: React.FC = () => {
         <EnhancedHeroSection
           vehicle={vehicleData}
           monthlyEMI={399}
-          isMobile={isMobile}
         />
         <VehicleGallery 
           galleryScenes={galleryScenes}
@@ -81,30 +81,47 @@ const VehicleDetails: React.FC = () => {
           monthlyEMI={399}
           setIsBookingOpen={setIsBookingOpen}
           setIsFinanceOpen={setIsFinanceOpen}
+          navigate={navigate}
           onSafetyExplore={handleSafetyExplore}
           onConnectivityExplore={handleConnectivityExplore}
           onHybridTechExplore={handleHybridTechExplore}
           onInteriorExplore={handleInteriorExplore}
         />
-        <VehicleGrades vehicleGrades={vehicleData.grades} />
+        <VehicleGrades grades={vehicleData.features || []} />
         <CombinedSpecsAndTech vehicle={vehicleData} />
-        <VehicleFeatures vehicleFeatures={vehicleData.features} />
-        <RelatedVehicles relatedVehicles={vehicleData.relatedVehicles} />
-        <VehicleFAQ vehicleFAQ={vehicleData.faq} />
-        <OwnerTestimonials vehicleTestimonials={vehicleData.ownerTestimonials} />
-        <PreOwnedSimilar preOwnedVehicles={vehicleData.similarPreOwned} />
+        <VehicleFeatures features={vehicleData.features} />
+        <RelatedVehicles currentVehicle={vehicleData} />
+        <VehicleFAQ vehicle={vehicleData} />
+        <OwnerTestimonials testimonials={[]} />
+        <PreOwnedSimilar vehicles={[]} />
       </motion.div>
 
       <VehicleModals
-        activeModal={activeModal}
-        onClose={() => setActiveModal(null)}
         vehicle={vehicleData}
+        isBookingOpen={isBookingOpen}
+        setIsBookingOpen={setIsBookingOpen}
+        isFinanceOpen={isFinanceOpen}
+        setIsFinanceOpen={setIsFinanceOpen}
+        isCarBuilderOpen={false}
+        setIsCarBuilderOpen={() => {}}
+        isOffersModalOpen={false}
+        setIsOffersModalOpen={() => {}}
+        selectedOffer={null}
+        setSelectedOffer={() => {}}
+        isSafetyModalOpen={activeModal === 'safety'}
+        setIsSafetyModalOpen={(open) => setActiveModal(open ? 'safety' : null)}
+        isConnectivityModalOpen={activeModal === 'connectivity'}
+        setIsConnectivityModalOpen={(open) => setActiveModal(open ? 'connectivity' : null)}
+        isHybridTechModalOpen={activeModal === 'hybridTech'}
+        setIsHybridTechModalOpen={(open) => setActiveModal(open ? 'hybridTech' : null)}
+        isInteriorModalOpen={activeModal === 'interior'}
+        setIsInteriorModalOpen={(open) => setActiveModal(open ? 'interior' : null)}
       />
 
       <ActionPanel
         vehicle={vehicleData}
-        onBookingClick={() => setIsBookingOpen(true)}
-        onFinanceClick={() => setIsFinanceOpen(true)}
+        onBookTestDrive={() => setIsBookingOpen(true)}
+        onFinance={() => setIsFinanceOpen(true)}
       />
     </ToyotaLayout>
   );
