@@ -88,7 +88,7 @@ export const createStorySections = (
     title: 'Hybrid efficiency meets real-world performance.',
     subtitle: 'Sustainable Innovation',
     description: 'Advanced hybrid technology that reduces emissions while delivering exceptional performance.',
-    image: 'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/42f030ab-e6fa-444c-8233-aad8aa428a71/items/a1495897-db6d-401b-b04b-32aea391261c/renditions/c8b3de7a-40a2-4450-84ba-e06e45af51f1?binary=true',
     stats: [
       { label: 'Fuel Economy', value: 4.5, unit: 'L/100km' },
       { label: 'CO₂ Reduction', value: 40, unit: '% Less Emissions' },
@@ -105,7 +105,7 @@ export const createStorySections = (
     title: 'Crafted for comfort, designed for life.',
     subtitle: 'Premium Comfort & Design',
     description: 'Luxurious materials, ergonomic design, and spacious interior create your personal sanctuary.',
-    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/42f030ab-e6fa-444c-8233-aad8aa428a71/items/14a16f35-b752-4b2e-b91a-42d981935cea/renditions/30455a3f-116c-4371-a1db-ddb7a42a2e16?binary=true',
     stats: [
       { label: 'Premium Materials', value: 12, unit: 'Soft-Touch Surfaces' },
       { label: 'Seating Space', value: 95, unit: 'cm Legroom' },
