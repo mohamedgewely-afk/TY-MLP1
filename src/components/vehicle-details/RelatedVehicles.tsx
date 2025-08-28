@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ChevronLeft, ChevronRight, Eye, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -112,11 +111,11 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
             >
               <div className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
                 {/* Image Container */}
-                <div className="relative h-56 sm:h-64 lg:h-72 overflow-hidden">
+                <div className="relative h-56 sm:h-64 lg:h-72 overflow-hidden bg-gray-50 dark:bg-gray-700">
                   <img
                     src={vehicle.image}
                     alt={vehicle.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
                   
