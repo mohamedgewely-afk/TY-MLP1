@@ -22,7 +22,7 @@ import { performantSpringConfigs } from "@/utils/performance-animations";
 
 const VehicleDetails: React.FC = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
-  const { data: vehicleData, isLoading, isError, galleryScenes } = useVehicleData(vehicleName || "");
+  const { data: vehicleData, isLoading, isError, galleryScenes, isFavorite, toggleFavorite } = useVehicleData(vehicleName || "");
   const isMobile = useIsMobile();
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -71,6 +71,11 @@ const VehicleDetails: React.FC = () => {
         <EnhancedHeroSection
           vehicle={vehicleData}
           monthlyEMI={399}
+          galleryImages={galleryImages}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => setIsBookingOpen(true)}
+          onCarBuilder={() => {}}
         />
         <VehicleGallery 
           galleryScenes={galleryScenes}
