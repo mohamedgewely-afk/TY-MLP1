@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, Suspense, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -73,6 +72,8 @@ const VirtualShowroom = createLazyComponent(
 // Preload components on fast networks
 preloadOnFastNetwork(() => import("@/components/vehicle-details/VehicleGallery"));
 preloadOnFastNetwork(() => import("@/components/vehicle-details/StorytellingSection"));
+
+import OptimizedVehicleGallery from "@/components/vehicle-details/OptimizedVehicleGallery";
 
 const VehicleDetails = () => {
   // Modal states - memoized to prevent unnecessary re-renders
@@ -232,7 +233,10 @@ const VehicleDetails = () => {
                 
                 <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
-                  <VehicleGallery />
+                  <OptimizedVehicleGallery 
+                    images={galleryImages} 
+                    vehicleName={vehicle.name}
+                  />
                 </section>
 
                 <StorytellingSection
@@ -259,7 +263,10 @@ const VehicleDetails = () => {
                 <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
                   <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
                   <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-                    <VehicleGallery />
+                    <OptimizedVehicleGallery 
+                      images={galleryImages} 
+                      vehicleName={vehicle.name}
+                    />
                   </Suspense>
                 </section>
 
