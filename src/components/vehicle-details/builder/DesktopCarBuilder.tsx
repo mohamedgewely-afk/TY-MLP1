@@ -1,15 +1,14 @@
-// ✅ FULL RESTORED AND FUNCTIONAL DESKTOP CAR BUILDER
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
+import MobileStepContent from "./MobileStepContent";
 import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
 import CollapsibleSpecs from "./CollapsibleSpecs";
-import MobileStepContent from "./MobileStepContent";
-import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
+import { addLuxuryHapticToButton, contextualHaptic, LuxuryHapticType } from "@/utils/haptic";
 
 interface BuilderConfig {
   modelYear: string;
@@ -34,6 +33,12 @@ interface DesktopCarBuilderProps {
   onReset: () => void;
 }
 
+const vehicleImages = [
+  { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true" },
+  { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true" },
+  { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true" },
+];
+
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   vehicle,
   step,
@@ -53,12 +58,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const resetButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const setup = [
-      { ref: backButtonRef, type: "luxuryPress" },
-      { ref: closeButtonRef, type: "luxuryPress" },
-      { ref: resetButtonRef, type: "premiumError" },
-    ];
-    setup.forEach(({ ref, type }) => {
+    const attachHaptic = (ref: React.RefObject<HTMLButtonElement>, type: LuxuryHapticType) => {
       if (ref.current) {
         addLuxuryHapticToButton(ref.current, {
           type,
@@ -66,46 +66,21 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           onHover: true,
         });
       }
-    });
+    };
+    attachHaptic(backButtonRef, "luxuryPress");
+    attachHaptic(closeButtonRef, "luxuryPress");
+    attachHaptic(resetButtonRef, "premiumError");
   }, []);
 
-  const getVehicleImage = useCallback(() => {
-    const exteriorColors = [
-      {
-        name: "Pearl White",
-        image:
-          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-      },
-      {
-        name: "Midnight Black",
-        image:
-          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-      },
-      {
-        name: "Silver Metallic",
-        image:
-          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-      },
-    ];
-    const found = exteriorColors.find((c) => c.name === config.exteriorColor);
-    return found?.image || exteriorColors[0].image;
+  const getCurrentVehicleImage = useCallback(() => {
+    const match = vehicleImages.find((v) => v.name === config.exteriorColor);
+    return match?.image ?? vehicleImages[0].image;
   }, [config.exteriorColor]);
 
   const showSpecs = useMemo(
     () => step > 3 && config.modelYear && config.grade,
-    [step, config]
+    [step, config.modelYear, config.grade]
   );
-
-  const panelWidths = useMemo(() => {
-    switch (deviceCategory) {
-      case "laptop":
-        return { left: "w-[65%]", right: "w-[35%]" };
-      case "largeDesktop":
-        return { left: "w-[60%]", right: "w-[40%]" };
-      default:
-        return { left: "w-[70%]", right: "w-[30%]" };
-    }
-  }, [deviceCategory]);
 
   const handleBackClick = useCallback(() => {
     contextualHaptic.stepProgress();
@@ -119,44 +94,50 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   return (
     <motion.div
-      className="relative h-full w-full flex overflow-hidden bg-background"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full flex bg-background overflow-hidden"
     >
-      {/* LEFT PANEL */}
-      <motion.div
-        className={`${panelWidths.left} relative bg-muted/5 border-r border-border/10`}
-      >
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-6 border-b border-border/10 z-10 bg-background/90 backdrop-blur">
+      <div className="w-3/5 h-full relative bg-muted/10">
+        <div className="absolute top-4 left-4 flex gap-4 z-20">
           <button ref={step > 1 ? backButtonRef : closeButtonRef} onClick={handleBackClick}>
             {step > 1 ? <ArrowLeft /> : <X />}
           </button>
-          <h1 className="text-lg font-bold">
-            Build Your <span className="text-primary">{vehicle.name}</span>
-          </h1>
           <button ref={resetButtonRef} onClick={handleResetClick}>
             <RotateCcw />
           </button>
         </div>
 
         <motion.img
-          key={config.exteriorColor}
-          src={getVehicleImage()}
-          alt="Vehicle"
+          key={getCurrentVehicleImage()}
+          src={getCurrentVehicleImage()}
+          alt="Vehicle Preview"
           className="w-full h-full object-cover"
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
-      </motion.div>
 
-      {/* RIGHT PANEL */}
-      <motion.div className={`${panelWidths.right} flex flex-col h-full bg-background`}>
-        <div className="border-b border-border/10 p-4">
+        <div className="absolute bottom-6 left-6 bg-background/80 backdrop-blur-md p-6 rounded-xl shadow-xl z-10">
+          <h2 className="text-3xl font-bold text-foreground">
+            {config.modelYear} {vehicle.name}
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            {config.grade} • {config.engine} • {config.exteriorColor} Exterior
+          </p>
+          <p className="text-primary text-4xl font-semibold mt-2">
+            AED {calculateTotalPrice().toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="w-2/5 h-full flex flex-col bg-background border-l border-border">
+        <div className="p-4 border-b border-border">
           <MobileProgress currentStep={step} totalSteps={4} />
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-auto p-4 space-y-4">
           <ChoiceCollector config={config} step={step} />
           {showSpecs && <CollapsibleSpecs config={config} />}
           <AnimatePresence mode="wait">
@@ -173,7 +154,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             />
           </AnimatePresence>
         </div>
-        <div className="border-t border-border/10 p-4">
+        <div className="border-t border-border p-4">
           <MobileSummary
             config={config}
             totalPrice={calculateTotalPrice()}
@@ -183,7 +164,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             showPaymentButton={step !== 4}
           />
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };
