@@ -6,13 +6,7 @@ import { ENHANCED_GALLERY_DATA } from "@/data/enhanced-gallery-data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-/** ───────────────────────────────────────────────────────────────────────────
- *  Toyota Gallery — mobile carousel, desktop grid, rich overlay
- *  - Uses your data shape: media.primaryImage + media.gallery[]
- *  - Minimal filters: Search + Category chips + Reset
- *  - One primary CTA in overlay (Book a Test Drive)
- *  - a11y: focus trap, Esc/Arrows, RTL-aware, reduced motion
- *  ───────────────────────────────────────────────────────────────────────── */
+/** Toyota Gallery — mobile carousel, desktop grid, rich overlay (TS-safe) */
 
 const TOYOTA_RED = "#EB0A1E";
 
@@ -24,19 +18,33 @@ interface EnhancedVehicleGalleryProps {
   experiences?: EnhancedSceneData[];
   locale?: "en" | "ar";
   rtl?: boolean;
-  onAskToyota?: (scene: EnhancedSceneData) => void; // used for Test Drive
+  onAskToyota?: (scene: EnhancedSceneData) => void; // Test Drive
 }
 
 /* ------------------------------- Helpers -------------------------------- */
-const pickCover = (exp: any): string | undefined =>
-  exp?.media?.primaryImage ||
-  exp?.coverImage ||
-  exp?.thumbnail ||
-  exp?.image ||
-  exp?.media?.hero ||
-  exp?.media?.images?.[0] ||
-  exp?.media?.gallery?.[0] ||
-  undefined;
+// No direct .images access on typed MediaData. Use `m: any` safely here:
+const pickCover = (exp: any): string | undefined => {
+  const m: any = exp?.media;
+  return (
+    m?.primaryImage ||
+    exp?.coverImage ||
+    exp?.thumbnail ||
+    exp?.image ||
+    m?.hero ||
+    (Array.isArray(m?.images) ? m.images[0] : undefined) ||
+    (Array.isArray(m?.gallery) ? m.gallery[0] : undefined) ||
+    undefined
+  );
+};
+
+const getGallery = (exp: any): string[] => {
+  const m: any = exp?.media;
+  const arr =
+    (Array.isArray(m?.gallery) && m.gallery) ||
+    (Array.isArray(m?.images) && m.images) ||
+    [];
+  return arr.filter(Boolean);
+};
 
 const uniq = (arr: (string | undefined | null)[]) =>
   Array.from(new Set(arr.filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
@@ -259,11 +267,7 @@ function ExpandedOverlay({
 
   if (!open || !exp) return null;
 
-  const gallery: string[] = (
-    exp?.media?.gallery ??
-    exp?.media?.images ??
-    []
-  ).filter(Boolean);
+  const gallery = getGallery(exp);
   const cover = pickCover(exp) ?? gallery[0];
   const images = (gallery.length ? gallery : [cover]).filter(Boolean) as string[];
 
@@ -411,7 +415,6 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
   const [selected, setSelected] = useState<EnhancedSceneData | null>(null);
   const [expanded, setExpanded] = useState(false);
 
-  // mobile = carousel, desktop = grid (don’t fight user choice after mount)
   useEffect(() => {
     setView((p) => {
       const desired = isMobile ? "carousel" : "grid";
@@ -507,7 +510,6 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         {has ? (
           <>
-            {/* Mobile carousel */}
             {view.layout === "carousel" && (
               <>
                 <div className="-mx-4 overflow-x-auto px-4">
@@ -527,7 +529,6 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
               </>
             )}
 
-            {/* Desktop grid */}
             {view.layout === "grid" && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {list.map((exp) => (
