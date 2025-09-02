@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useCallback, Suspense } from "react";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -27,26 +27,36 @@ import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
+/** ===== Types preserved for drop-in compatibility ===== */
 interface CarBuilderProps {
   vehicle: VehicleModel;
   isOpen: boolean;
   onClose: () => void;
 }
-
 interface BuilderConfig {
   modelYear: string;
   engine: string;
   grade: string;
-  exteriorColor: string;
+  exteriorColor: string; // canonical key, lower-case
   interiorColor: string;
   accessories: string[];
 }
 
+/** ===== Color normalizer / labeler to avoid key mismatches ===== */
+const toKey = (s = "") =>
+  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
+const toLabel = (key = "") =>
+  key
+    .split(" ")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ""))
+    .join(" ");
+
+/** ===== Default config (canonical keys) ===== */
 const DEFAULT_CONFIG: BuilderConfig = {
   modelYear: "2025",
   engine: "3.5L V6",
   grade: "",
-  exteriorColor: "Pearl White",
+  exteriorColor: "pearl white",
   interiorColor: "",
   accessories: [],
 };
@@ -61,6 +71,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
 
+  /** ===== Reset (same UX) ===== */
   const handleReset = useCallback(async () => {
     if (isResetting) return;
     try {
@@ -69,14 +80,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       setStep(1);
       setShowResetDialog(false);
       setShowConfirmation(false);
+      toast({ title: "Configuration reset", description: "Back to factory defaults." });
+    } catch {
       toast({
-        title: "Configuration Reset",
-        description: "Your vehicle configuration has been reset.",
-      });
-    } catch (error) {
-      toast({
-        title: "Reset Error",
-        description: "There was an issue resetting.",
+        title: "Reset failed",
+        description: "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -84,46 +92,55 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
+  /** ===== Pricing (same outcome, keyed by canonical color) ===== */
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
-    const enginePricing = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 };
-    const gradePricing = {
+
+    const enginePricing: Record<string, number> = {
+      "3.5L V6": 0,
+      "4.0L V6": 5000,
+      "2.5L Hybrid": 3000,
+    };
+
+    const gradePricing: Record<string, number> = {
       Base: 0,
       SE: 2000,
       XLE: 4000,
       Limited: 6000,
       Platinum: 10000,
     };
-    const exteriorColors = [
-      { name: "Pearl White", price: 0 },
-      { name: "Midnight Black", price: 500 },
-      { name: "Silver Metallic", price: 300 },
-      { name: "Deep Blue", price: 400 },
-      { name: "Ruby Red", price: 600 },
-    ];
-    const interiorPricing = {
+
+    const exteriorPricing: Record<string, number> = {
+      "pearl white": 0,
+      "midnight black": 500,
+      "silver metallic": 300,
+      "deep blue": 400,
+      "ruby red": 600,
+    };
+
+    const interiorPricing: Record<string, number> = {
       "Black Leather": 0,
       "Beige Leather": 800,
       "Gray Fabric": -500,
     };
-    const accessories = [
-      { name: "Premium Sound System", price: 1200 },
-      { name: "Sunroof", price: 800 },
-      { name: "Navigation System", price: 600 },
-      { name: "Heated Seats", price: 400 },
-      { name: "Backup Camera", price: 300 },
-      { name: "Alloy Wheels", price: 900 },
-    ];
+
+    const accessoriesPriceList: Record<string, number> = {
+      "Premium Sound System": 1200,
+      Sunroof: 800,
+      "Navigation System": 600,
+      "Heated Seats": 400,
+      "Backup Camera": 300,
+      "Alloy Wheels": 900,
+    };
 
     const enginePrice = enginePricing[config.engine] || 0;
     const gradePrice = gradePricing[config.grade] || 0;
-    const exteriorPrice =
-      exteriorColors.find((c) => c.name === config.exteriorColor)?.price || 0;
+    const exteriorPrice = exteriorPricing[toKey(config.exteriorColor)] || 0;
     const interiorPrice = interiorPricing[config.interiorColor] || 0;
-    const accessoriesPrice = config.accessories.reduce((total, name) => {
-      const item = accessories.find((a) => a.name === name);
-      return total + (item?.price || 0);
-    }, 0);
+    const accessoriesPrice = (config.accessories || []).reduce(
+      (sum, name) => sum + (accessoriesPriceList[name] || 0),
+      0
+    );
 
     return basePrice + enginePrice + gradePrice + exteriorPrice + interiorPrice + accessoriesPrice;
   }, [config, vehicle.price]);
@@ -131,16 +148,13 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const handlePayment = useCallback(() => {
     toast({ title: "Processing Payment", description: "One moment..." });
     setTimeout(() => {
-      toast({
-        title: "Order Confirmed!",
-        description: "Your configuration has been saved.",
-      });
+      toast({ title: "Order Confirmed!", description: "Your configuration has been saved." });
       setShowConfirmation(true);
-    }, 2000);
+    }, 1200);
   }, [toast]);
 
-  const goBack = useCallback(() => step > 1 && setStep(step - 1), [step]);
-  const goNext = useCallback(() => step < 4 && setStep(step + 1), [step]);
+  const goBack = useCallback(() => setStep((s) => (s > 1 ? s - 1 : s)), []);
+  const goNext = useCallback(() => setStep((s) => (s < 4 ? s + 1 : s)), []);
 
   if (!isInitialized) {
     const LoaderDialog = isMobile ? MobileDialog : Dialog;
@@ -152,7 +166,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
             <DialogTitle>Loading Car Builder</DialogTitle>
             <DialogDescription>Initializing vehicle configuration...</DialogDescription>
           </VisuallyHidden>
-          <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-b-transparent"></div>
+          <motion.div
+            className="h-9 w-9 rounded-full border-2 border-primary/70 border-b-transparent"
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
+          />
         </LoaderContent>
       </LoaderDialog>
     );
@@ -177,7 +195,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
+            <AlertDialogTitle>Reset configuration</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to reset? This clears all selections.
             </AlertDialogDescription>
@@ -207,13 +225,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <MobileDialogContent>
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>
-                Select model year, engine, colors, grade, and accessories.
-              </DialogDescription>
+              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
             </VisuallyHidden>
-            <AnimatePresence mode="wait">
+            <Suspense fallback={<div className="p-6">Loading…</div>}>
               <MobileCarBuilder key="mobile" {...sharedProps} deviceCategory={deviceCategory} />
-            </AnimatePresence>
+            </Suspense>
           </MobileDialogContent>
         </MobileDialog>
       ) : (
@@ -221,13 +237,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <DialogContent className="max-w-[95vw] h-[95vh] w-full p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>
-                Select model year, engine, colors, grade, and accessories.
-              </DialogDescription>
+              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
             </VisuallyHidden>
-            <AnimatePresence mode="wait">
+            <Suspense fallback={<div className="p-6">Loading…</div>}>
               <DesktopCarBuilder key="desktop" {...sharedProps} />
-            </AnimatePresence>
+            </Suspense>
           </DialogContent>
         </Dialog>
       )}
