@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
@@ -14,10 +14,11 @@ interface BuilderConfig {
   modelYear: string;
   engine: string;
   grade: string;
-  exteriorColor: string; // label or canonical
+  exteriorColor: string;
   interiorColor: string;
   accessories: string[];
 }
+
 interface MobileCarBuilderProps {
   vehicle: VehicleModel;
   step: number;
@@ -33,11 +34,12 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-/* --- Normalize + DAM map --- */
+/** Normalize + use canonical keys for the DAM map */
 const normalizeColor = (s = "") =>
   s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
 
-const EXTERIOR_IMG: Record<string, string> = {
+/** DAM images: same set used on desktop */
+const exteriorColorImageMap: Record<string, string> = {
   "pearl white":
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
   "midnight black":
@@ -45,17 +47,30 @@ const EXTERIOR_IMG: Record<string, string> = {
   "silver metallic":
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
 };
-const FIRST_DAM = EXTERIOR_IMG["pearl white"] || Object.values(EXTERIOR_IMG)[0];
+const FIRST_DAM = exteriorColorImageMap["pearl white"] || Object.values(exteriorColorImageMap)[0];
 const LOCAL_FALLBACK = "/images/vehicles/generic.png";
 
-const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
-  vehicle, step, config, setConfig, showConfirmation,
-  calculateTotalPrice, handlePayment, goBack, goNext, onClose, onReset, deviceCategory,
-}) => {
-  const prefersReducedMotion = useReducedMotion();
-  const { touchTarget } = useResponsiveSize();
+/** Motion (subtle, safe) */
+const headerVariants = { hidden: { y: -8, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.18 } } };
+const imageVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.22 } } };
+const contentVariants = { hidden: { y: 8, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.18 } } };
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.2, staggerChildren: 0.04 } }, exit: { opacity: 0, transition: { duration: 0.15 } } };
 
-  // keep the old, reliable interaction wiring
+const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
+  vehicle,
+  step,
+  config,
+  setConfig,
+  showConfirmation,
+  calculateTotalPrice,
+  handlePayment,
+  goBack,
+  goNext,
+  onClose,
+  onReset,
+  deviceCategory,
+}) => {
+  const { touchTarget } = useResponsiveSize();
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
@@ -75,91 +90,80 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     onSwipeLeft: () => { if (step >= 1 && step < 4) { contextualHaptic.swipeNavigation(); goNext(); } },
     onSwipeRight: () => { if (step > 1) { contextualHaptic.swipeNavigation(); goBack(); } else { onClose(); } },
     threshold: 80,
+    preventDefaultTouchmoveEvent: false,
   });
 
+  const handleBackClick = () => { contextualHaptic.stepProgress(); step > 1 ? goBack() : onClose(); };
+  const handleResetClick = () => { contextualHaptic.resetAction(); onReset(); };
+  const handleExitClick = () => { contextualHaptic.exitAction(); onClose(); };
+
+  /** Fixed heights per device class (no vh, no jank) */
+  const imageHeight = {
+    smallMobile: "h-40",
+    standardMobile: "h-44",
+    largeMobile: "h-52",
+    extraLargeMobile: "h-56",
+    tablet: "h-64",
+  }[deviceCategory] || "h-44";
+
+  const vehicleImage = exteriorColorImageMap[normalizeColor(config.exteriorColor)] || FIRST_DAM;
+
   const buttonClass =
-    `${touchTarget} rounded-xl bg-background border border-border/50 hover:border-primary/40 transition-all duration-150 flex items-center justify-center shadow-sm hover:shadow p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`;
-
-  /* --- CRITICAL: fixed, device-class heights (no vh) --- */
-  const heroH =
-    {
-      smallMobile: "h-40",
-      standardMobile: "h-44",
-      largeMobile: "h-52",
-      extraLargeMobile: "h-56",
-      tablet: "h-64",
-    }[deviceCategory] || "h-44";
-
-  const colorKey = normalizeColor(config.exteriorColor);
-  const imgSrc = EXTERIOR_IMG[colorKey] || FIRST_DAM;
-
-  const t = { duration: prefersReducedMotion ? 0 : 0.22 };
+    `${touchTarget} rounded-lg bg-background border border-border/50 hover:border-primary/30 transition-all duration-150 flex items-center justify-center shadow-sm hover:shadow p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`;
 
   return (
     <motion.div
       ref={swipeableRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: t }}
-      exit={{ opacity: 0, transition: t }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
       className="relative w-full min-h-screen bg-background overflow-y-auto flex flex-col"
     >
       {/* Header */}
-      <div className="z-30 flex items-center justify-between bg-background border-b border-border/20 px-2 py-1 sticky top-0">
+      <motion.div variants={headerVariants} className="sticky top-0 z-30 flex items-center justify-between bg-background border-b border-border/20 px-2 py-1">
         <div className="flex items-center gap-1.5">
-          <button
-            ref={step > 1 ? backButtonRef : closeButtonRef}
-            onClick={() => (step > 1 ? (contextualHaptic.stepProgress(), goBack()) : onClose())}
-            className={buttonClass}
-            aria-label={step > 1 ? "Go back" : "Close builder"}
-          >
+          <motion.button ref={step > 1 ? backButtonRef : closeButtonRef} onClick={handleBackClick} className={buttonClass}>
             {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </button>
-          <button
-            ref={resetButtonRef}
-            onClick={() => { contextualHaptic.resetAction(); onReset(); }}
-            className={buttonClass}
-            aria-label="Reset configuration"
-          >
+          </motion.button>
+          <motion.button ref={resetButtonRef} onClick={handleResetClick} className={buttonClass}>
             <RotateCcw className="h-4 w-4" />
-          </button>
+          </motion.button>
         </div>
-        <div className="text-center flex-1 mx-2">
-          <h1 className="text-[10px] font-semibold truncate leading-none">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+        <motion.div className="text-center flex-1 mx-2">
+          <h1 className="text-[10px] font-semibold truncate leading-none">
+            Build Your <span className="text-primary">{vehicle.name}</span>
+          </h1>
           <p className="text-[8px] text-muted-foreground font-medium leading-none">Step {step} of 4</p>
-        </div>
-        <button
-          ref={exitButtonRef}
-          onClick={() => { contextualHaptic.exitAction(); onClose(); }}
-          className={buttonClass}
-          aria-label="Exit builder"
-        >
+        </motion.div>
+        <motion.button ref={exitButtonRef} onClick={handleExitClick} className={buttonClass}>
           <LogOut className="h-4 w-4" />
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {/* Hero image – no overlays, no vh, no crop */}
-      <section className={`relative w-full ${heroH} bg-gradient-to-b from-black via-black to-background flex items-center justify-center border-b border-border/10`}>
+      {/* Vehicle Image */}
+      <motion.div variants={imageVariants} className={`relative w-full ${imageHeight} overflow-hidden border-b border-border/10 flex-shrink-0 bg-black`}>
         <img
-          src={imgSrc}
+          src={vehicleImage}
           alt="Vehicle Preview"
           className="w-full h-full object-contain"
           loading="lazy"
           onError={(e) => { if (!e.currentTarget.src.includes(LOCAL_FALLBACK)) e.currentTarget.src = LOCAL_FALLBACK; }}
         />
-      </section>
+      </motion.div>
 
       {/* Progress */}
-      <div className="bg-background border-b border-border/10">
+      <motion.div variants={contentVariants} className="flex-shrink-0 bg-background border-b border-border/10">
         <MobileProgress currentStep={step} totalSteps={4} />
-      </div>
+      </motion.div>
 
-      {/* Choices */}
-      <div className="px-2 py-2 bg-background border-b border-border/10">
+      {/* Choice Collector */}
+      <motion.div variants={contentVariants} className="px-2 py-2 flex-shrink-0 bg-background border-b border-border/10">
         <ChoiceCollector config={config} step={step} />
-      </div>
+      </motion.div>
 
       {/* Step Content */}
-      <div className="px-2 py-2 bg-background">
+      <motion.div variants={contentVariants} className="flex-1 overflow-hidden bg-background px-2 py-2">
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
@@ -174,10 +178,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             onReset={onReset}
           />
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* Summary */}
-      <div className="bg-background border-t border-border/20 px-2 py-2 sticky bottom-0">
+      <motion.div variants={contentVariants} className="flex-shrink-0 bg-background border-t border-border/20 px-2 py-2 sticky bottom-0">
         <MobileSummary
           config={config}
           totalPrice={calculateTotalPrice()}
@@ -186,7 +190,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           deviceCategory={deviceCategory}
           showPaymentButton={step !== 4}
         />
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
