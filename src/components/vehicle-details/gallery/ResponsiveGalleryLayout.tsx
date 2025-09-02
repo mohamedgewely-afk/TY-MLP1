@@ -24,21 +24,21 @@ const ResponsiveGalleryLayout: React.FC<ResponsiveGalleryLayoutProps> = ({
     
     if (layout === 'carousel') {
       return {
-        containerClass: "flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide",
-        cardClass: "snap-center shrink-0 w-80 sm:w-96",
+        containerClass: "flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 scrollbar-hide",
+        cardClass: "snap-center shrink-0 w-80 sm:w-96 lg:w-[400px]", // Bigger cards
         showScrollbar: false
       };
     }
 
-    // Grid layout
+    // Grid layout - bigger cards
     const gridClasses = {
-      small: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5",
-      medium: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-      large: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+      small: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+      medium: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+      large: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
     };
 
     return {
-      containerClass: `grid ${gridClasses[cardSize]} gap-6`,
+      containerClass: `grid ${gridClasses[cardSize]} gap-8`, // Increased gap
       cardClass: "",
       showScrollbar: true
     };
@@ -52,7 +52,10 @@ const ResponsiveGalleryLayout: React.FC<ResponsiveGalleryLayoutProps> = ({
           <div
             key={`skeleton-${index}`}
             className={cn("bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse", layoutConfig.cardClass)}
-            style={{ height: viewPrefs.cardSize === 'small' ? '256px' : viewPrefs.cardSize === 'large' ? '448px' : '384px' }}
+            style={{ 
+              height: viewPrefs.cardSize === 'small' ? '320px' : 
+                     viewPrefs.cardSize === 'large' ? '520px' : '450px' // Increased heights
+            }}
           />
         ))}
       </div>

@@ -11,7 +11,6 @@ import ExpandedSceneOverlay from "./gallery/ExpandedSceneOverlay";
 import { cn } from "@/lib/utils";
 
 const TOYOTA_RED = "#EB0A1E";
-const TOYOTA_BG = "#0D0F10";
 
 interface EnhancedVehicleGalleryProps {
   experiences?: EnhancedSceneData[];
@@ -37,21 +36,21 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
     sortBy: 'featured'
   });
 
+  // Default to carousel layout for better desktop experience
   const [viewPrefs, setViewPrefs] = useState<ViewPreferences>({
-    layout: isMobile ? 'carousel' : 'grid',
-    cardSize: isMobile ? 'medium' : 'medium',
+    layout: 'carousel', // Default to carousel
+    cardSize: 'medium', // Better default size
     showPreviews: false
   });
 
   const [selectedExperience, setSelectedExperience] = useState<EnhancedSceneData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update layout preference based on screen size
+  // Update card size based on screen size
   useEffect(() => {
     setViewPrefs(prev => ({
       ...prev,
-      layout: isMobile ? 'carousel' : prev.layout,
-      cardSize: isMobile ? 'medium' : prev.cardSize
+      cardSize: isMobile ? 'medium' : 'medium'
     }));
   }, [isMobile]);
 
