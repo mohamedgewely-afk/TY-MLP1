@@ -36,17 +36,16 @@ interface BuilderConfig {
   modelYear: string;
   engine: string;
   grade: string;
-  exteriorColor: string; // label or canonical; normalized in builders
+  exteriorColor: string; // label or canonical
   interiorColor: string;
   accessories: string[];
 }
 
-/** Keep defaults; we normalize downstream so labels like "Pearl White" are fine */
 const DEFAULT_CONFIG: BuilderConfig = {
   modelYear: "2025",
   engine: "3.5L V6",
   grade: "",
-  exteriorColor: "Pearl White",
+  exteriorColor: "Pearl White", // we normalize downstream
   interiorColor: "",
   accessories: [],
 };
@@ -71,17 +70,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       setShowConfirmation(false);
       toast({ title: "Configuration reset", description: "Back to defaults." });
     } catch {
-      toast({
-        title: "Reset failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Reset failed", description: "Please try again.", variant: "destructive" });
     } finally {
       setIsResetting(false);
     }
   }, [isResetting, toast]);
 
-  /** Pricing logic unchanged; we only normalize exterior color for price matching */
   const calculateTotalPrice = useCallback(() => {
     const normalize = (s = "") =>
       s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -110,10 +104,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     const gradePrice = gradePricing[config.grade] || 0;
     const exteriorPrice = exteriorPricing[normalize(config.exteriorColor)] || 0;
     const interiorPrice = interiorPricing[config.interiorColor] || 0;
-    const accessoriesSum = (config.accessories || []).reduce(
-      (sum, name) => sum + (accessoriesPrice[name] || 0),
-      0
-    );
+    const accessoriesSum = (config.accessories || []).reduce((sum, name) => sum + (accessoriesPrice[name] || 0), 0);
 
     return basePrice + enginePrice + gradePrice + exteriorPrice + interiorPrice + accessoriesSum;
   }, [config, vehicle.price]);
@@ -123,7 +114,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     setTimeout(() => {
       toast({ title: "Order confirmed!", description: "Your configuration has been saved." });
       setShowConfirmation(true);
-    }, 1000);
+    }, 900);
   }, [toast]);
 
   const goBack = useCallback(() => setStep((s) => (s > 1 ? s - 1 : s)), []);
@@ -165,21 +156,14 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reset configuration</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure? This clears all selections.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure? This clears all selections.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReset}
-              disabled={isResetting}
-              className="relative min-h-[44px] min-w-[44px]"
-            >
+            <AlertDialogAction onClick={handleReset} disabled={isResetting} className="relative min-h-[44px] min-w-[44px]">
               {isResetting ? (
                 <>
-                  <div className="animate-spin h-4 w-4 border-b-2 border-white rounded-full mr-2" />
-                  Resetting…
+                  <div className="animate-spin h-4 w-4 border-b-2 border-white rounded-full mr-2" /> Resetting…
                 </>
               ) : (
                 "Reset"
@@ -194,9 +178,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <MobileDialogContent className="p-0">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>
-                Select model year, engine, colors, grade, and accessories.
-              </DialogDescription>
+              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
             </VisuallyHidden>
             <Suspense fallback={<div className="p-6">Loading…</div>}>
               <MobileCarBuilder key="mobile" {...sharedProps} deviceCategory={deviceCategory} />
@@ -208,9 +190,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <DialogContent className="max-w-[96vw] h-[96vh] w-full p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>
-                Select model year, engine, colors, grade, and accessories.
-              </DialogDescription>
+              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
             </VisuallyHidden>
             <Suspense fallback={<div className="p-6">Loading…</div>}>
               <DesktopCarBuilder key="desktop" {...sharedProps} />
