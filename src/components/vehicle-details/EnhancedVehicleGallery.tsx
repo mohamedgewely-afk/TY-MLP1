@@ -360,20 +360,19 @@ function ExpandedOverlay({
         )}
 
         {/* MEDIA: absolute cover (fills column), subtle vignettes */}
-        <div className="absolute inset-0">
-          <img
-            src={images[activeIdx]}
-            alt={exp.title}
-            className="absolute inset-0 h-full w-full object-cover"
-            draggable={false}
-            loading="lazy"
-          />
-          {/* vignettes */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
-          {/* Hotspots */}
-          {hotspots?.length ? <HotspotLayer hotspots={hotspots} /> : null}
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+  <div className="relative aspect-square w-full max-w-[600px]">
+    <img
+      src={images[activeIdx]}
+      alt={exp.title}
+      className="h-full w-full object-cover rounded-xl shadow-lg"
+      draggable={false}
+      loading="lazy"
+    />
+    {/* Hotspots overlay */}
+    {hotspots?.length ? <HotspotLayer hotspots={hotspots} /> : null}
+  </div>
+</div>
 
         {/* Thumbnail rail */}
         {images.length > 1 && (
