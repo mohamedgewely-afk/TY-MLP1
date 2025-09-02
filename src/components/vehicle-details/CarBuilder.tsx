@@ -1,5 +1,4 @@
 import React, { useState, useCallback, Suspense } from "react";
-import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +26,6 @@ import MobileCarBuilder from "./builder/MobileCarBuilder";
 import DesktopCarBuilder from "./builder/DesktopCarBuilder";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
-/** ===== Types preserved for drop-in compatibility ===== */
 interface CarBuilderProps {
   vehicle: VehicleModel;
   isOpen: boolean;
@@ -37,26 +35,16 @@ interface BuilderConfig {
   modelYear: string;
   engine: string;
   grade: string;
-  exteriorColor: string; // canonical key, lower-case
+  exteriorColor: string; // can be label or canonical; we normalize when rendering
   interiorColor: string;
   accessories: string[];
 }
 
-/** ===== Color normalizer / labeler to avoid key mismatches ===== */
-const toKey = (s = "") =>
-  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
-const toLabel = (key = "") =>
-  key
-    .split(" ")
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ""))
-    .join(" ");
-
-/** ===== Default config (canonical keys) ===== */
 const DEFAULT_CONFIG: BuilderConfig = {
   modelYear: "2025",
   engine: "3.5L V6",
   grade: "",
-  exteriorColor: "pearl white",
+  exteriorColor: "Pearl White", // keep your original label; we normalize in builders
   interiorColor: "",
   accessories: [],
 };
@@ -71,7 +59,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   const { toast } = useToast();
   const { isMobile, deviceCategory, isInitialized } = useDeviceInfo();
 
-  /** ===== Reset (same UX) ===== */
   const handleReset = useCallback(async () => {
     if (isResetting) return;
     try {
@@ -80,7 +67,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       setStep(1);
       setShowResetDialog(false);
       setShowConfirmation(false);
-      toast({ title: "Configuration reset", description: "Back to factory defaults." });
+      toast({ title: "Configuration reset", description: "Back to defaults." });
     } catch {
       toast({
         title: "Reset failed",
@@ -92,53 +79,36 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
-  /** ===== Pricing (same outcome, keyed by canonical color) ===== */
   const calculateTotalPrice = useCallback(() => {
     let basePrice = vehicle.price;
-
-    const enginePricing: Record<string, number> = {
-      "3.5L V6": 0,
-      "4.0L V6": 5000,
-      "2.5L Hybrid": 3000,
-    };
-
-    const gradePricing: Record<string, number> = {
-      Base: 0,
-      SE: 2000,
-      XLE: 4000,
-      Limited: 6000,
-      Platinum: 10000,
-    };
-
-    const exteriorPricing: Record<string, number> = {
+    const enginePricing = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 };
+    const gradePricing = { Base: 0, SE: 2000, XLE: 4000, Limited: 6000, Platinum: 10000 };
+    const exteriorPricing = {
       "pearl white": 0,
       "midnight black": 500,
       "silver metallic": 300,
       "deep blue": 400,
       "ruby red": 600,
-    };
-
-    const interiorPricing: Record<string, number> = {
-      "Black Leather": 0,
-      "Beige Leather": 800,
-      "Gray Fabric": -500,
-    };
-
-    const accessoriesPriceList: Record<string, number> = {
+    } as Record<string, number>;
+    const interiorPricing = { "Black Leather": 0, "Beige Leather": 800, "Gray Fabric": -500 };
+    const accessories = {
       "Premium Sound System": 1200,
       Sunroof: 800,
       "Navigation System": 600,
       "Heated Seats": 400,
       "Backup Camera": 300,
       "Alloy Wheels": 900,
-    };
+    } as Record<string, number>;
+
+    const normalize = (s = "") =>
+      s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
 
     const enginePrice = enginePricing[config.engine] || 0;
     const gradePrice = gradePricing[config.grade] || 0;
-    const exteriorPrice = exteriorPricing[toKey(config.exteriorColor)] || 0;
+    const exteriorPrice = exteriorPricing[normalize(config.exteriorColor)] || 0;
     const interiorPrice = interiorPricing[config.interiorColor] || 0;
     const accessoriesPrice = (config.accessories || []).reduce(
-      (sum, name) => sum + (accessoriesPriceList[name] || 0),
+      (sum, name) => sum + (accessories[name] || 0),
       0
     );
 
@@ -146,11 +116,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   }, [config, vehicle.price]);
 
   const handlePayment = useCallback(() => {
-    toast({ title: "Processing Payment", description: "One moment..." });
+    toast({ title: "Processing payment", description: "One moment..." });
     setTimeout(() => {
-      toast({ title: "Order Confirmed!", description: "Your configuration has been saved." });
+      toast({ title: "Order confirmed!", description: "Your configuration is saved." });
       setShowConfirmation(true);
-    }, 1200);
+    }, 1000);
   }, [toast]);
 
   const goBack = useCallback(() => setStep((s) => (s > 1 ? s - 1 : s)), []);
@@ -164,13 +134,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         <LoaderContent className="p-0 w-screen h-screen flex items-center justify-center">
           <VisuallyHidden>
             <DialogTitle>Loading Car Builder</DialogTitle>
-            <DialogDescription>Initializing vehicle configuration...</DialogDescription>
+            <DialogDescription>Initializing…</DialogDescription>
           </VisuallyHidden>
-          <motion.div
-            className="h-9 w-9 rounded-full border-2 border-primary/70 border-b-transparent"
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-          />
+          <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-b-transparent" />
         </LoaderContent>
       </LoaderDialog>
     );
@@ -197,7 +163,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <AlertDialogHeader>
             <AlertDialogTitle>Reset configuration</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to reset? This clears all selections.
+              Are you sure? This clears all selections.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -210,7 +176,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               {isResetting ? (
                 <>
                   <div className="animate-spin h-4 w-4 border-b-2 border-white rounded-full mr-2" />
-                  Resetting...
+                  Resetting…
                 </>
               ) : (
                 "Reset"
@@ -225,7 +191,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <MobileDialogContent>
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
+              <DialogDescription>
+                Select model year, engine, colors, grade, and accessories.
+              </DialogDescription>
             </VisuallyHidden>
             <Suspense fallback={<div className="p-6">Loading…</div>}>
               <MobileCarBuilder key="mobile" {...sharedProps} deviceCategory={deviceCategory} />
@@ -237,7 +205,9 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <DialogContent className="max-w-[95vw] h-[95vh] w-full p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Select model year, engine, colors, grade, and accessories.</DialogDescription>
+              <DialogDescription>
+                Select model year, engine, colors, grade, and accessories.
+              </DialogDescription>
             </VisuallyHidden>
             <Suspense fallback={<div className="p-6">Loading…</div>}>
               <DesktopCarBuilder key="desktop" {...sharedProps} />
