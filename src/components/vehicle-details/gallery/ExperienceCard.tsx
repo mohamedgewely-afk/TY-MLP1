@@ -1,11 +1,9 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Play, RotateCcw, Images, Zap, Eye, Clock, Star } from "lucide-react";
+import { Play, RotateCcw, Images, Zap, Eye, Clock, Star, ArrowRight } from "lucide-react";
 import { EnhancedSceneData, ExperienceType } from "@/types/gallery";
 import { cn } from "@/lib/utils";
-
-const TOYOTA_RED = "#EB0A1E";
 
 interface ExperienceCardProps {
   data: EnhancedSceneData;
@@ -37,28 +35,20 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Bigger card sizes
   const sizeClasses = {
-    small: "h-80 sm:h-96", // Increased from h-64
-    medium: "h-96 sm:h-[450px] lg:h-[500px]", // Increased significantly
-    large: "h-[450px] sm:h-[520px] lg:h-[580px]" // Increased significantly
+    small: "h-80",
+    medium: "h-96",
+    large: "h-[448px]"
   };
-
-  const cardClasses = cn(
-    "group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl",
-    "transition-all duration-500 cursor-pointer border border-gray-200 dark:border-gray-800",
-    "hover:-translate-y-2 hover:scale-[1.02]", // More pronounced hover effect
-    sizeClasses[size]
-  );
 
   return (
     <motion.article
-      className={cardClasses}
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ y: -8 }} // More hover movement
+      className={cn(
+        "group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border",
+        "hover:shadow-xl hover:border-toyota-red/20 transition-all duration-500 cursor-pointer",
+        sizeClasses[size]
+      )}
+      whileHover={{ y: -8 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={() => onExpand(data)}
@@ -75,11 +65,8 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
       {/* Featured Badge */}
       {data.featured && (
         <div className="absolute top-4 left-4 z-20">
-          <div 
-            className="px-3 py-2 rounded-full text-sm font-medium text-white backdrop-blur-sm"
-            style={{ backgroundColor: `${TOYOTA_RED}E6` }}
-          >
-            <Star className="w-4 h-4 inline mr-2" />
+          <div className="px-3 py-1.5 bg-toyota-red text-white text-sm font-medium rounded-full flex items-center gap-2 shadow-lg">
+            <Star className="w-4 h-4" />
             Featured
           </div>
         </div>
@@ -87,19 +74,19 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
 
       {/* Experience Type Badge */}
       <div className="absolute top-4 right-4 z-20">
-        <div className="bg-black/60 backdrop-blur-sm rounded-full p-3 text-white">
+        <div className="p-2.5 bg-background/90 backdrop-blur-sm border border-border rounded-full text-foreground shadow-lg">
           <ExperienceTypeIcon type={data.experienceType} className="w-5 h-5" />
         </div>
       </div>
 
-      {/* Main Image - bigger proportion */}
-      <div className="relative h-3/5 overflow-hidden">
+      {/* Image Container */}
+      <div className="relative h-3/5 overflow-hidden bg-muted">
         <img
           src={data.media.primaryImage}
           alt={data.title}
           className={cn(
             "w-full h-full object-cover transition-all duration-700",
-            imageLoaded ? "opacity-100" : "opacity-0",
+            imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105",
             "group-hover:scale-110"
           )}
           onLoad={() => setImageLoaded(true)}
@@ -108,91 +95,78 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
         
         {/* Loading placeholder */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse" />
+          <div className="absolute inset-0 bg-muted animate-pulse" />
         )}
 
-        {/* Overlay gradient */}
+        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-        {/* Duration badge for video content */}
+        {/* Duration Badge */}
         {data.duration && (
           <div className="absolute bottom-4 right-4">
-            <div className="bg-black/80 backdrop-blur-sm rounded-full px-3 py-2 text-white text-sm flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-background/90 backdrop-blur-sm border border-border rounded-full text-foreground text-sm flex items-center gap-2 shadow-lg">
               <Clock className="w-4 h-4" />
               {data.duration}
             </div>
           </div>
         )}
 
-        {/* Hover overlay */}
+        {/* Hover Overlay */}
         <motion.div
-          className="absolute inset-0 bg-black/20"
+          className="absolute inset-0 bg-toyota-red/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: isHovered ? 1 : 0 }}
           transition={{ duration: 0.3 }}
         />
       </div>
 
-      {/* Content Area - optimized layout */}
-      <div className="relative h-2/5 p-6 flex flex-col justify-between">
-        {/* Tags */}
-        {data.tags && data.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {data.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 text-sm rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Title and Subtitle */}
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">
-            {data.title}
-          </h3>
-          {data.subtitle && (
-            <p className="text-base text-gray-600 dark:text-gray-400 line-clamp-1">
-              {data.subtitle}
-            </p>
+      {/* Content Area */}
+      <div className="relative h-2/5 p-6 flex flex-col">
+        {/* Category Tags */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="px-2.5 py-1 text-xs font-medium bg-muted text-muted-foreground rounded-full">
+            {data.scene}
+          </span>
+          {data.tags && data.tags.length > 0 && (
+            <span className="px-2.5 py-1 text-xs font-medium bg-muted text-muted-foreground rounded-full">
+              {data.tags[0]}
+            </span>
           )}
         </div>
 
-        {/* Description */}
-        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 mb-4 flex-1">
-          {data.description}
-        </p>
+        {/* Title & Subtitle */}
+        <div className="mb-3 flex-1">
+          <h3 className="text-xl font-bold text-foreground line-clamp-2 mb-1 leading-tight">
+            {data.title}
+          </h3>
+          {data.subtitle && (
+            <p className="text-base text-muted-foreground line-clamp-1 mb-2">
+              {data.subtitle}
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            {data.description}
+          </p>
+        </div>
 
-        {/* Bottom section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <span className="capitalize">{data.scene}</span>
+        {/* Action Button */}
+        <motion.div
+          className="flex items-center justify-between"
+          animate={{
+            y: isHovered ? -2 : 0
+          }}
+        >
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {data.difficulty && (
-              <>
-                <span>•</span>
-                <span className="capitalize">{data.difficulty}</span>
-              </>
+              <span className="capitalize">{data.difficulty}</span>
             )}
           </div>
 
-          <motion.div
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
-            style={{ 
-              backgroundColor: isHovered ? TOYOTA_RED : 'rgba(255,255,255,0.1)',
-              color: isHovered ? 'white' : TOYOTA_RED 
-            }}
-            animate={{
-              backgroundColor: isHovered ? TOYOTA_RED : 'rgba(235,10,30,0.1)',
-              color: isHovered ? 'white' : TOYOTA_RED
-            }}
-          >
-            <ExperienceTypeIcon type={data.experienceType} className="w-4 h-4" />
+          <div className="flex items-center gap-2 px-4 py-2 bg-toyota-red text-white rounded-full text-sm font-medium shadow-lg">
             <span>Explore</span>
-          </motion.div>
-        </div>
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </motion.div>
       </div>
     </motion.article>
   );

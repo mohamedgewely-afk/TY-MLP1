@@ -1,16 +1,14 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { Sparkles } from "lucide-react";
-import { EnhancedSceneData, FilterOptions, ViewPreferences, SceneCategory, ExperienceType } from "@/types/gallery";
-import { ENHANCED_GALLERY_DATA, CATEGORY_DESCRIPTIONS } from "@/data/enhanced-gallery-data";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Grid3X3, LayoutGrid, SlidersHorizontal } from "lucide-react";
+import { EnhancedSceneData, FilterOptions, ViewPreferences } from "@/types/gallery";
+import { ENHANCED_GALLERY_DATA } from "@/data/enhanced-gallery-data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import EnhancedFilterBar from "./gallery/EnhancedFilterBar";
 import ResponsiveGalleryLayout from "./gallery/ResponsiveGalleryLayout";
 import ExpandedSceneOverlay from "./gallery/ExpandedSceneOverlay";
 import { cn } from "@/lib/utils";
-
-const TOYOTA_RED = "#EB0A1E";
 
 interface EnhancedVehicleGalleryProps {
   experiences?: EnhancedSceneData[];
@@ -26,9 +24,7 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
   onAskToyota
 }) => {
   const isMobile = useIsMobile();
-  const prefersReduced = useReducedMotion();
   
-  // State management
   const [filters, setFilters] = useState<FilterOptions>({
     categories: [],
     experienceTypes: [],
@@ -36,21 +32,20 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
     sortBy: 'featured'
   });
 
-  // Default to carousel layout for better desktop experience
   const [viewPrefs, setViewPrefs] = useState<ViewPreferences>({
-    layout: 'carousel', // Default to carousel
-    cardSize: 'medium', // Better default size
-    showPreviews: false
+    layout: isMobile ? 'grid' : 'carousel',
+    cardSize: 'medium',
+    showPreviews: true
   });
 
   const [selectedExperience, setSelectedExperience] = useState<EnhancedSceneData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update card size based on screen size
+  // Update layout based on screen size
   useEffect(() => {
     setViewPrefs(prev => ({
       ...prev,
-      cardSize: isMobile ? 'medium' : 'medium'
+      layout: isMobile ? 'grid' : prev.layout
     }));
   }, [isMobile]);
 
@@ -58,17 +53,14 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
   const filteredExperiences = useMemo(() => {
     let filtered = [...experiences];
 
-    // Apply category filters
     if (filters.categories.length > 0) {
       filtered = filtered.filter(exp => filters.categories.includes(exp.scene));
     }
 
-    // Apply experience type filters
     if (filters.experienceTypes.length > 0) {
       filtered = filtered.filter(exp => filters.experienceTypes.includes(exp.experienceType));
     }
 
-    // Apply search filter
     if (filters.searchTerm.trim()) {
       const searchLower = filters.searchTerm.toLowerCase();
       filtered = filtered.filter(exp =>
@@ -79,7 +71,6 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
       );
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'featured':
@@ -98,7 +89,14 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
     return filtered;
   }, [experiences, filters]);
 
-  // Navigation handlers for expanded view
+  const handleExperienceExpand = useCallback((experience: EnhancedSceneData) => {
+    setSelectedExperience(experience);
+  }, []);
+
+  const handleCloseExpanded = useCallback(() => {
+    setSelectedExperience(null);
+  }, []);
+
   const openNext = useCallback(() => {
     if (!selectedExperience) return;
     const currentIndex = filteredExperiences.findIndex(exp => exp.id === selectedExperience.id);
@@ -113,127 +111,111 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
     setSelectedExperience(filteredExperiences[prevIndex]);
   }, [selectedExperience, filteredExperiences]);
 
-  // Handlers
-  const handleExperienceExpand = useCallback((experience: EnhancedSceneData) => {
-    setSelectedExperience(experience);
-  }, []);
-
-  const handleCloseExpanded = useCallback(() => {
-    setSelectedExperience(null);
-  }, []);
-
   return (
     <section
-      className="relative w-full min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800"
+      className="relative w-full bg-background"
       dir={rtl ? "rtl" : "ltr"}
       lang={locale}
-      aria-label="Toyota Land Cruiser Experience Gallery"
     >
-      {/* Header */}
-      <div className="relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, ${TOYOTA_RED} 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-
-        <div className="toyota-container relative py-12 lg:py-16">
+      {/* Modern Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
+        <div className="absolute inset-0 bg-grid-small-black/[0.02] bg-[length:20px_20px]" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-8"
+            className="text-center"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${TOYOTA_RED}15` }}>
-                <Sparkles className="w-6 h-6" style={{ color: TOYOTA_RED }} />
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-toyota-red/10 rounded-full blur-xl" />
+                <div className="relative w-16 h-16 bg-gradient-to-br from-toyota-red to-toyota-red/80 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
               </div>
             </div>
-            
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Land Cruiser Experiences
+
+            {/* Title */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              Experience Gallery
             </h1>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-6">
-              Discover the Land Cruiser through immersive experiences that showcase its legendary capability, 
-              refined luxury, and innovative technology.
+            
+            {/* Subtitle */}
+            <p className="text-xl sm:text-2xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed">
+              Discover every angle, feature, and capability through immersive experiences
             </p>
 
             {/* Stats */}
-            <div className="flex items-center justify-center gap-8 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TOYOTA_RED }} />
-                <span>{experiences.length} Experiences</span>
+                <div className="w-2 h-2 bg-toyota-red rounded-full" />
+                <span className="font-medium">{experiences.length} Experiences</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TOYOTA_RED }} />
-                <span>8 Categories</span>
+                <div className="w-2 h-2 bg-toyota-red rounded-full" />
+                <span className="font-medium">Multiple Categories</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TOYOTA_RED }} />
-                <span>6 Experience Types</span>
+                <div className="w-2 h-2 bg-toyota-red rounded-full" />
+                <span className="font-medium">Interactive Tours</span>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <EnhancedFilterBar
-        filters={filters}
-        viewPrefs={viewPrefs}
-        onFiltersChange={setFilters}
-        onViewPrefsChange={setViewPrefs}
-        totalResults={filteredExperiences.length}
-        isSticky={true}
-      />
+      {/* Enhanced Filter Bar */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <EnhancedFilterBar
+          filters={filters}
+          viewPrefs={viewPrefs}
+          onFiltersChange={setFilters}
+          onViewPrefsChange={setViewPrefs}
+          totalResults={filteredExperiences.length}
+        />
+      </div>
 
       {/* Gallery Content */}
-      <div className="toyota-container py-8 lg:py-12">
-        <motion.div
-          layout
-          className={cn(
-            "transition-all duration-300",
-            viewPrefs.layout === 'carousel' && "overflow-hidden"
-          )}
-        >
-          <ResponsiveGalleryLayout
-            experiences={filteredExperiences}
-            viewPrefs={viewPrefs}
-            onExperienceExpand={handleExperienceExpand}
-            isLoading={isLoading}
-          />
-        </motion.div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <ResponsiveGalleryLayout
+          experiences={filteredExperiences}
+          viewPrefs={viewPrefs}
+          onExperienceExpand={handleExperienceExpand}
+          isLoading={isLoading}
+        />
 
-        {/* Load More (for future pagination) */}
+        {/* Results Summary */}
         {filteredExperiences.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center mt-12"
+            className="text-center mt-16"
           >
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Showing all {filteredExperiences.length} experience{filteredExperiences.length !== 1 ? 's' : ''}
+            <p className="text-muted-foreground">
+              Showing {filteredExperiences.length} experience{filteredExperiences.length !== 1 ? 's' : ''}
             </p>
           </motion.div>
         )}
       </div>
 
-      {/* Expanded Experience Overlay */}
-      {selectedExperience && (
-        <ExpandedSceneOverlay
-          key={selectedExperience.id}
-          experience={selectedExperience}
-          onClose={handleCloseExpanded}
-          onNext={openNext}
-          onPrev={openPrev}
-          onAskToyota={onAskToyota}
-          prefersReduced={prefersReduced}
-          rtl={rtl}
-          locale={locale}
-        />
-      )}
+      {/* Expanded Experience Modal */}
+      <AnimatePresence mode="wait">
+        {selectedExperience && (
+          <ExpandedSceneOverlay
+            key={selectedExperience.id}
+            experience={selectedExperience}
+            onClose={handleCloseExpanded}
+            onNext={openNext}
+            onPrev={openPrev}
+            onAskToyota={onAskToyota}
+            rtl={rtl}
+            locale={locale}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 };
