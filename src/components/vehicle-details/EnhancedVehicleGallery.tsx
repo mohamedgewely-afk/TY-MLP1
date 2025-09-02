@@ -40,9 +40,8 @@ function pickCover(exp: any): string | undefined {
     exp?.coverImage ||
     exp?.thumbnail ||
     exp?.image ||
-    exp?.images?.[0]?.src ||
-    exp?.images?.[0] ||
-    exp?.media?.find?.((m: any) => m.url)?.url ||
+    exp?.media?.primaryImage ||
+    exp?.media?.gallery?.[0] ||
     undefined
   );
 }
@@ -287,9 +286,11 @@ function ExpandedOverlay({
   }, [open, onClose, onNext, onPrev, rtl]);
 
   if (!open || !exp) return null;
-  const images: string[] = (exp.images?.map((i: any) => i?.src ?? i) ?? []).filter(Boolean);
-  const cover = pickCover(exp) ?? images[0];
-  const gallery = images.length ? images : [cover].filter(Boolean) as string[];
+  
+  // Fix: Use media.gallery instead of images
+  const gallery = exp.media.gallery || [];
+  const cover = pickCover(exp) ?? gallery[0];
+  const allImages = gallery.length ? gallery : [cover].filter(Boolean) as string[];
 
   return (
     <AnimatePresence>
@@ -335,7 +336,6 @@ function ExpandedOverlay({
             </div>
           </div>
 
-          {/* Media + thumbs */}
           <div className="relative bg-black/5">
             <SafeImage src={cover} alt={exp.title} className="aspect-[16/9] w-full" />
             {onPrev && (
@@ -359,22 +359,17 @@ function ExpandedOverlay({
               </button>
             )}
 
-            {gallery.length > 1 && (
+            {allImages.length > 1 && (
               <div className="no-scrollbar -mx-2 mt-2 flex gap-2 overflow-x-auto px-2 pb-2">
-                {gallery.map((src, i) => (
+                {allImages.map((src, i) => (
                   <button
                     key={src + i}
                     className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg border"
                     onClick={(e) => {
                       e.preventDefault();
-                      // naive swap by reordering array (kept simple for inline)
-                      const idx = i;
-                      const head = gallery[idx];
-                      if (head) {
-                        const img = (e.currentTarget.parentElement?.previousElementSibling as HTMLElement) // SafeImage wrapper
-                          ?.querySelector("img") as HTMLImageElement | null;
-                        if (img) img.src = head;
-                      }
+                      const img = (e.currentTarget.parentElement?.previousElementSibling as HTMLElement)
+                        ?.querySelector("img") as HTMLImageElement | null;
+                      if (img && src) img.src = src;
                     }}
                   >
                     <img src={src} alt="thumbnail" className="h-full w-full object-cover" />
@@ -384,7 +379,6 @@ function ExpandedOverlay({
             )}
           </div>
 
-          {/* Details */}
           <div className="grid gap-4 p-4 sm:grid-cols-3 sm:gap-6">
             <div className="sm:col-span-2">
               {exp.description && <p className="text-sm text-muted-foreground">{exp.description}</p>}
@@ -399,20 +393,13 @@ function ExpandedOverlay({
               ) : null}
             </div>
             <div className="flex items-end justify-start gap-2 sm:justify-end">
-              <a
-                href={(exp as any).testDriveUrl || "#"}
-                target={((exp as any).testDriveUrl && "_blank") || undefined}
-                rel={((exp as any).testDriveUrl && "noreferrer") || undefined}
-                onClick={(e) => {
-                  if (!(exp as any).testDriveUrl) {
-                    e.preventDefault();
-                    onTestDrive?.();
-                  }
-                }}
+              <button
+                type="button"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent sm:w-auto"
+                onClick={onTestDrive}
               >
                 <Car size={16} /> Book a Test Drive
-              </a>
+              </button>
               <button
                 type="button"
                 className="inline-flex w-full items-center justify-center rounded-lg border px-3 py-2 text-sm hover:bg-accent sm:w-auto"
