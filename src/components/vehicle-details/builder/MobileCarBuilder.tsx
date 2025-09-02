@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft, RotateCcw } from "lucide-react";
+import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
-import { useDeviceInfo } from "@/hooks/use-device-info";
-import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
-import MobileProgress from "./MobileProgress";
+import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
 import MobileStepContent from "./MobileStepContent";
+import MobileProgress from "./MobileProgress";
 import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
+import { useSwipeable } from "@/hooks/use-swipeable";
+import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
 
 interface BuilderConfig {
   modelYear: string;
@@ -30,7 +31,7 @@ interface MobileCarBuilderProps {
   goNext: () => void;
   onClose: () => void;
   onReset: () => void;
-  deviceCategory: string;
+  deviceCategory: DeviceCategory;
 }
 
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
@@ -45,80 +46,140 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   goNext,
   onClose,
   onReset,
-  deviceCategory
+  deviceCategory,
 }) => {
-  const backRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const resetRef = useRef<HTMLButtonElement>(null);
+  const { containerPadding, buttonSize, cardSpacing, textSize, mobilePadding, touchTarget } =
+    useResponsiveSize();
+
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const resetButtonRef = useRef<HTMLButtonElement>(null);
+  const exitButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (backRef.current)
-      addLuxuryHapticToButton(backRef.current, { type: "luxuryPress", onPress: true });
-    if (closeRef.current)
-      addLuxuryHapticToButton(closeRef.current, { type: "luxuryPress", onPress: true });
-    if (resetRef.current)
-      addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true });
+    const map = [
+      { ref: backButtonRef, type: "luxuryPress" },
+      { ref: closeButtonRef, type: "luxuryPress" },
+      { ref: resetButtonRef, type: "premiumError" },
+      { ref: exitButtonRef, type: "luxuryPress" },
+    ];
+    map.forEach(({ ref, type }) => {
+      if (ref.current) {
+        addLuxuryHapticToButton(ref.current, {
+          type,
+          onPress: true,
+          onHover: false,
+        });
+      }
+    });
   }, []);
 
-  const handleBack = useCallback(() => {
+  const getCurrentVehicleImage = useCallback(() => {
+    const exteriorColors = [
+      {
+        name: "Pearl White",
+        image:
+          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+      },
+      {
+        name: "Midnight Black",
+        image:
+          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+      },
+      {
+        name: "Silver Metallic",
+        image:
+          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
+      },
+      {
+        name: "Deep Blue",
+        image:
+          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+      },
+      {
+        name: "Ruby Red",
+        image:
+          "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+      },
+    ];
+    const colorData = exteriorColors.find((c) => c.name === config.exteriorColor);
+    return colorData?.image || exteriorColors[0].image;
+  }, [config.exteriorColor]);
+
+  const swipeableRef = useSwipeable<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (step === 1 && step < 4) {
+        contextualHaptic.swipeNavigation();
+        goNext();
+      }
+    },
+    onSwipeRight: () => {
+      if (step === 1 && step > 1) {
+        contextualHaptic.swipeNavigation();
+        goBack();
+      } else if (step === 1) {
+        onClose();
+      }
+    },
+    threshold: 80,
+    preventDefaultTouchmoveEvent: false,
+  });
+
+  const handleBackClick = useCallback(() => {
     contextualHaptic.stepProgress();
     step > 1 ? goBack() : onClose();
   }, [step, goBack, onClose]);
 
-  const handleReset = useCallback(() => {
+  const handleResetClick = useCallback(() => {
     contextualHaptic.resetAction();
     onReset();
   }, [onReset]);
 
-  const getImage = useCallback(() => {
-    const map = {
-      "Pearl White": "https://...white.jpg",
-      "Midnight Black": "https://...black.jpg",
-      // Add your real URLs
-    };
-    return map[config.exteriorColor] || map["Pearl White"];
-  }, [config.exteriorColor]);
-
-  const price = useMemo(() => calculateTotalPrice(), [calculateTotalPrice]);
+  const handleExitClick = useCallback(() => {
+    contextualHaptic.exitAction();
+    onClose();
+  }, [onClose]);
 
   return (
     <motion.div
-      className="flex flex-col w-full min-h-screen bg-background"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      ref={swipeableRef}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="relative w-full min-h-screen bg-gradient-to-br from-background via-background to-muted/5 overflow-y-auto flex flex-col"
     >
-      <header className="flex items-center justify-between p-4 border-b border-border">
-        <button ref={step > 1 ? backRef : closeRef} onClick={handleBack}>
-          {step > 1 ? <ArrowLeft /> : <X />}
-        </button>
-        <h1 className="text-sm font-semibold">
-          Step {step} of 4: Build Your <span className="text-primary">{vehicle.name}</span>
-        </h1>
-        <button ref={resetRef} onClick={handleReset}>
-          <RotateCcw />
-        </button>
-      </header>
-
-      <div className="relative w-full h-48">
-        <motion.img
-          src={getImage()}
-          alt="Vehicle Preview"
-          className="w-full h-full object-cover"
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        />
-        <div className="absolute bottom-2 left-2 right-2 bg-background/80 p-3 rounded-xl text-xs shadow">
-          <div className="font-bold text-lg text-primary">AED {price.toLocaleString()}</div>
-          <div className="text-muted-foreground">{config.modelYear} {vehicle.name} • {config.grade}</div>
+      {/* Header */}
+      <div className="z-30 flex items-center justify-between bg-background/95 px-3 py-2 border-b">
+        <div className="flex gap-2">
+          <button ref={step > 1 ? backButtonRef : closeButtonRef} onClick={handleBackClick}><ArrowLeft className="h-5 w-5" /></button>
+          <button ref={resetButtonRef} onClick={handleResetClick}><RotateCcw className="h-5 w-5" /></button>
         </div>
+        <h1 className="text-sm font-semibold">Build Your {vehicle.name}</h1>
+        <button ref={exitButtonRef} onClick={handleExitClick}><LogOut className="h-5 w-5" /></button>
       </div>
 
-      <MobileProgress currentStep={step} totalSteps={4} />
-      <ChoiceCollector config={config} step={step} />
+      {/* Vehicle Image */}
+      <div className="relative w-full h-40 bg-muted/10 border-b">
+        <img
+          src={getCurrentVehicleImage()}
+          alt="Vehicle"
+          className="w-full h-full object-contain"
+          loading="lazy"
+        />
+      </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Progress */}
+      <div className="bg-background/95 border-b">
+        <MobileProgress currentStep={step} totalSteps={4} />
+      </div>
+
+      {/* Choices */}
+      <div className="px-3 py-2 bg-background/95 border-b">
+        <ChoiceCollector config={config} step={step} />
+      </div>
+
+      {/* Step Content */}
+      <div className="flex-1 overflow-auto px-2 py-2">
         <AnimatePresence mode="wait">
           <MobileStepContent
             key={step}
@@ -130,18 +191,22 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             handlePayment={handlePayment}
             goNext={goNext}
             deviceCategory={deviceCategory}
+            onReset={onReset}
           />
         </AnimatePresence>
       </div>
 
-      <MobileSummary
-        config={config}
-        totalPrice={price}
-        step={step}
-        reserveAmount={2000}
-        deviceCategory={deviceCategory}
-        showPaymentButton={step !== 4}
-      />
+      {/* Summary */}
+      <div className="bg-background/98 border-t px-3 py-2">
+        <MobileSummary
+          config={config}
+          totalPrice={calculateTotalPrice()}
+          step={step}
+          reserveAmount={2000}
+          deviceCategory={deviceCategory}
+          showPaymentButton={step !== 4}
+        />
+      </div>
     </motion.div>
   );
 };
