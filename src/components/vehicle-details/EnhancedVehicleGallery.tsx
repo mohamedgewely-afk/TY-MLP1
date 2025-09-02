@@ -7,10 +7,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 /** ───────────────────────────────────────────────────────────────────────────
- *  TOYOTA Gallery — mobile carousel, desktop grid, rich overlay
- *  - Keeps your data shape (`media.primaryImage`, `media.gallery[]`)
- *  - Fixes empty overlay + duplicate buttons + non-functional UX
- *  - Strong brand accents + clear hierarchy
+ *  Toyota Gallery — mobile carousel, desktop grid, rich overlay
+ *  - Uses your data shape: media.primaryImage + media.gallery[]
+ *  - Minimal filters: Search + Category chips + Reset
+ *  - One primary CTA in overlay (Book a Test Drive)
  *  - a11y: focus trap, Esc/Arrows, RTL-aware, reduced motion
  *  ───────────────────────────────────────────────────────────────────────── */
 
@@ -20,7 +20,7 @@ type SortKey = "featured" | "alphabetical";
 interface FilterOptions { categories: string[]; searchTerm: string; sortBy: SortKey; }
 interface ViewPreferences { layout: "grid" | "carousel"; }
 
-interface Props {
+interface EnhancedVehicleGalleryProps {
   experiences?: EnhancedSceneData[];
   locale?: "en" | "ar";
   rtl?: boolean;
@@ -29,7 +29,14 @@ interface Props {
 
 /* ------------------------------- Helpers -------------------------------- */
 const pickCover = (exp: any): string | undefined =>
-  exp?.media?.primaryImage || exp?.coverImage || exp?.thumbnail || exp?.image || exp?.media?.gallery?.[0] || undefined;
+  exp?.media?.primaryImage ||
+  exp?.coverImage ||
+  exp?.thumbnail ||
+  exp?.image ||
+  exp?.media?.hero ||
+  exp?.media?.images?.[0] ||
+  exp?.media?.gallery?.[0] ||
+  undefined;
 
 const uniq = (arr: (string | undefined | null)[]) =>
   Array.from(new Set(arr.filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
@@ -37,20 +44,17 @@ const uniq = (arr: (string | undefined | null)[]) =>
 const DEFAULT_FILTERS: FilterOptions = { categories: [], searchTerm: "", sortBy: "featured" };
 const DEFAULT_VIEW: ViewPreferences = { layout: "carousel" };
 
-/* ------------------------------- a11y ----------------------------------- */
+/* -------------------------------- a11y ---------------------------------- */
 function useFocusTrap(enabled: boolean, ref: React.RefObject<HTMLElement>) {
   useEffect(() => {
     if (!enabled || !ref.current) return;
     const node = ref.current;
     const get = () =>
-      Array.from(
-        node.querySelectorAll<HTMLElement>("a,button,input,textarea,select,[tabindex]:not([tabindex='-1'])")
-      ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
-
+      Array.from(node.querySelectorAll<HTMLElement>("a,button,input,textarea,select,[tabindex]:not([tabindex='-1'])"))
+        .filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
-      const els = get();
-      if (!els.length) return;
+      const els = get(); if (!els.length) return;
       const first = els[0], last = els[els.length - 1];
       const active = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
@@ -59,13 +63,12 @@ function useFocusTrap(enabled: boolean, ref: React.RefObject<HTMLElement>) {
         if (active === last) { first.focus(); e.preventDefault(); }
       }
     };
-
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [enabled, ref]);
 }
 
-/* ------------------------------- SafeImage ------------------------------ */
+/* ------------------------------ SafeImage ------------------------------- */
 function SafeImage({ src, alt, className }: { src?: string; alt: string; className?: string }) {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState(false);
@@ -91,7 +94,7 @@ function SafeImage({ src, alt, className }: { src?: string; alt: string; classNa
   );
 }
 
-/* ------------------------------- FilterBar ------------------------------ */
+/* ------------------------------ FilterBar ------------------------------- */
 function FilterBar({
   filters, onFiltersChange, categories, total, view, onViewChange,
 }: {
@@ -103,7 +106,6 @@ function FilterBar({
   onViewChange: (u: ViewPreferences | ((p: ViewPreferences) => ViewPreferences)) => void;
 }) {
   const update = (patch: Partial<FilterOptions>) => onFiltersChange((p) => ({ ...p, ...patch }));
-
   const toggleCategory = (value: string) =>
     onFiltersChange((p) => {
       const set = new Set(p.categories);
@@ -125,7 +127,6 @@ function FilterBar({
             />
           </label>
 
-          {/* Layout toggle ≥ sm */}
           <div className="hidden items-center gap-1 sm:flex" role="group" aria-label="Layout">
             <button
               type="button"
@@ -161,7 +162,6 @@ function FilterBar({
           </button>
         </div>
 
-        {/* Scrollable chips (mobile-first) */}
         {categories.length > 0 && (
           <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory items-center gap-2 overflow-x-auto px-1 pb-1">
             {categories.map((c) => {
@@ -202,7 +202,6 @@ function ExperienceCard({ exp, onOpen }: { exp: EnhancedSceneData; onOpen: (e: E
       <button type="button" onClick={() => onOpen(exp)} aria-labelledby={titleId} className="block w-full text-left">
         <div className="relative">
           <SafeImage src={cover} alt={exp?.title ?? "Experience"} className="aspect-[16/10] w-full" />
-          {/* Toyota red beam + dark fade for readability */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/65 to-transparent" />
           <div className="pointer-events-none absolute left-0 top-0 h-full w-1 bg-[var(--toyota-red,#EB0A1E)]" />
         </div>
@@ -210,9 +209,7 @@ function ExperienceCard({ exp, onOpen }: { exp: EnhancedSceneData; onOpen: (e: E
           <h3 id={titleId} className="line-clamp-1 text-base font-semibold tracking-tight">
             {exp.title}
           </h3>
-          {exp.description && (
-            <p className="line-clamp-2 text-sm text-muted-foreground">{exp.description}</p>
-          )}
+          {exp.description && <p className="line-clamp-2 text-sm text-muted-foreground">{exp.description}</p>}
           <div className="mt-2 flex flex-wrap gap-1">
             {exp.scene && (
               <span className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{exp.scene}</span>
@@ -245,7 +242,6 @@ function ExpandedOverlay({
   const ref = useRef<HTMLDivElement>(null);
   useFocusTrap(open, ref);
 
-  // index for gallery inside the selected experience
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
@@ -263,7 +259,11 @@ function ExpandedOverlay({
 
   if (!open || !exp) return null;
 
-  const gallery: string[] = (exp.media?.gallery ?? []).filter(Boolean);
+  const gallery: string[] = (
+    exp?.media?.gallery ??
+    exp?.media?.images ??
+    []
+  ).filter(Boolean);
   const cover = pickCover(exp) ?? gallery[0];
   const images = (gallery.length ? gallery : [cover]).filter(Boolean) as string[];
 
@@ -306,7 +306,6 @@ function ExpandedOverlay({
             {/* Media area */}
             <div className="relative bg-black/5 sm:col-span-1 sm:row-span-2">
               <SafeImage src={images[activeIdx]} alt={exp.title} className="aspect-[16/9] w-full" />
-              {/* Prev/Next (only when provided) */}
               {onPrev && (
                 <button
                   type="button"
@@ -328,7 +327,6 @@ function ExpandedOverlay({
                 </button>
               )}
 
-              {/* Thumbnails */}
               {images.length > 1 && (
                 <div className="no-scrollbar -mx-2 mt-2 flex gap-2 overflow-x-auto px-2 pb-2 sm:mx-0 sm:mt-3 sm:px-3">
                   {images.map((src, i) => (
@@ -346,18 +344,6 @@ function ExpandedOverlay({
                   ))}
                 </div>
               )}
-
-              {/* Dots (desktop) */}
-              {images.length > 1 && (
-                <div className="pointer-events-none absolute bottom-3 left-1/2 hidden -translate-x-1/2 gap-1 sm:flex">
-                  {images.map((_, i) => (
-                    <span
-                      key={i}
-                      className={cn("h-1.5 w-1.5 rounded-full bg-white/50", i === activeIdx && "bg-white")}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Info pane */}
@@ -372,14 +358,11 @@ function ExpandedOverlay({
                   ))}
                 </div>
               ) : null}
-
-              {/* Optional spec grid: render only if present */}
               {Array.isArray((exp as any).specs) && (exp as any).specs.length > 0 && (
                 <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
                   {(exp as any).specs.slice(0, 6).map((s: string, idx: number) => <li key={idx}>{s}</li>)}
                 </ul>
               )}
-
               <div className="mt-auto" />
             </div>
 
@@ -414,7 +397,7 @@ function ExpandedOverlay({
 }
 
 /* -------------------------------- Main ---------------------------------- */
-const EnhancedVehicleGallery: React.FC<Props> = ({
+const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
   experiences = ENHANCED_GALLERY_DATA,
   locale = "en",
   rtl = false,
@@ -428,7 +411,7 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
   const [selected, setSelected] = useState<EnhancedSceneData | null>(null);
   const [expanded, setExpanded] = useState(false);
 
-  // Policy: default carousel on mobile, grid on desktop; don't fight user choice
+  // mobile = carousel, desktop = grid (don’t fight user choice after mount)
   useEffect(() => {
     setView((p) => {
       const desired = isMobile ? "carousel" : "grid";
@@ -436,10 +419,8 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
     });
   }, [isMobile]);
 
-  // Facets
   const categories = useMemo(() => uniq(experiences.map((e) => e.scene)), [experiences]);
 
-  // Filter + sort
   const list = useMemo(() => {
     let l = Array.isArray(experiences) ? [...experiences] : [];
     if (filters.categories.length) {
@@ -460,7 +441,6 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
     return l;
   }, [experiences, filters]);
 
-  // Keep overlay selection in sync with filters
   useEffect(() => {
     if (!expanded || !selected) return;
     const exists = list.some((e) => e.id === selected.id);
@@ -487,13 +467,13 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
 
   return (
     <section
-      className="relative w-full bg-background"
+      className="relative w-full bg-background isolate"
       dir={rtl ? "rtl" : "ltr"}
       lang={locale}
       aria-label="Experience Gallery"
       style={{ ["--toyota-red" as any]: TOYOTA_RED }}
     >
-      {/* Hero bar with brand accent */}
+      {/* Hero */}
       <div className="relative border-b">
         <div className="h-1 w-full bg-[var(--toyota-red,#EB0A1E)]" />
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
@@ -527,7 +507,7 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         {has ? (
           <>
-            {/* MOBILE CAROUSEL */}
+            {/* Mobile carousel */}
             {view.layout === "carousel" && (
               <>
                 <div className="-mx-4 overflow-x-auto px-4">
@@ -539,16 +519,15 @@ const EnhancedVehicleGallery: React.FC<Props> = ({
                     ))}
                   </div>
                 </div>
-                {/* Dots for carousel pages (approximate) */}
                 <div className="mt-2 flex justify-center gap-1 sm:hidden">
-                  {Array.from({ length: Math.max(1, Math.ceil(list.length)) }).slice(0, 6).map((_, i) => (
+                  {Array.from({ length: Math.min(6, Math.max(1, list.length)) }).map((_, i) => (
                     <span key={i} className="h-1.5 w-1.5 rounded-full bg-foreground/20" />
                   ))}
                 </div>
               </>
             )}
 
-            {/* DESKTOP GRID */}
+            {/* Desktop grid */}
             {view.layout === "grid" && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {list.map((exp) => (
