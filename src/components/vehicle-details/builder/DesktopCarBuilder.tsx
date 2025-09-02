@@ -59,19 +59,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const resetButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const addHaptics = (ref: React.RefObject<HTMLButtonElement>, type: string) => {
-      if (ref.current) {
-        addLuxuryHapticToButton(ref.current, {
-          type,
-          onPress: true,
-          onHover: true
-        });
-      }
-    };
-    addHaptics(backButtonRef, "luxuryPress");
-    addHaptics(closeButtonRef, "luxuryPress");
-    addHaptics(resetButtonRef, "premiumError");
-  }, []);
+  const addHaptics = (
+    ref: React.RefObject<HTMLButtonElement>,
+    type: LuxuryHapticType
+  ) => {
+    if (ref.current) {
+      addLuxuryHapticToButton(ref.current, {
+        type,
+        onPress: true,
+        onHover: true
+      });
+    }
+  };
+
+  addHaptics(backButtonRef, "luxuryPress");
+  addHaptics(closeButtonRef, "luxuryPress");
+  addHaptics(resetButtonRef, "premiumError");
+}, []);
 
   const panelWidths = {
     laptop: { left: "w-[65%]", right: "w-[35%]" },
