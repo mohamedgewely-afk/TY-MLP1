@@ -285,12 +285,21 @@ function ExpandedOverlay({
   const ref = useRef<HTMLDivElement>(null);
   useFocusTrap(open, ref);
 
+  // index for pagination dots (based on gallery)
+  const [activeIdx, setActiveIdx] = useState(0);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === (rtl ? "ArrowLeft" : "ArrowRight")) onNext?.();
-      if (e.key === (rtl ? "ArrowRight" : "ArrowLeft")) onPrev?.();
+      if (e.key === (rtl ? "ArrowLeft" : "ArrowRight")) {
+        onNext?.();
+        setActiveIdx(0);
+      }
+      if (e.key === (rtl ? "ArrowRight" : "ArrowLeft")) {
+        onPrev?.();
+        setActiveIdx(0);
+      }
     };
     window.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
@@ -305,16 +314,170 @@ function ExpandedOverlay({
 
   const gallery: string[] = (exp.media?.gallery ?? []).filter(Boolean);
   const cover = pickCover(exp) ?? gallery[0];
-  const images = gallery.length ? gallery : [cover].filter(Boolean) as string[];
+  const images = (gallery.length ? gallery : [cover]).filter(Boolean) as string[];
 
   return (
     <AnimatePresence>
       <motion.div className="fixed inset-0 z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        {/* Scrim */}
         <div className="absolute inset-0 bg-black/70" onClick={onClose} aria-hidden="true" />
+
+        {/* Dialog */}
         <motion.div
           role="dialog"
           aria-modal="true"
           aria-label={exp.title}
+          ref={ref}
+          className="absolute inset-0 m-auto flex h-[92vh] w-full max-w-[1100px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl"
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.18 }}
+        >
+          {/* Header – keep actions clean (Close only) */}
+          <div className="flex items-center justify-between gap-2 border-b p-3 sm:p-4">
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-semibold tracking-tight sm:text-lg">{exp.title}</h3>
+              {exp.scene && <p className="truncate text-xs text-muted-foreground">{exp.scene}</p>}
+            </div>
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border hover:bg-accent focus-visible:ring-2 focus-visible:ring-[var(--toyota-red,#EB0A1E)]"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Content area: media left/top, info right/bottom */}
+          <div className="grid h-full grid-rows-[auto_1fr_auto] sm:grid-cols-[1fr_360px] sm:grid-rows-[auto_1fr]">
+            {/* Media + thumbs */}
+            <div className="relative bg-black/5 sm:col-span-1 sm:row-span-2">
+              <SafeImage src={images[activeIdx]} alt={exp.title} className="aspect-[16/9] w-full rounded-none" rounded={false} />
+
+              {/* Prev/Next only when provided */}
+              {onPrev && (
+                <button
+                  type="button"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background focus-visible:ring-2 focus-visible:ring-[var(--toyota-red,#EB0A1E)]"
+                  onClick={() => {
+                    onPrev();
+                    setActiveIdx(0);
+                  }}
+                  aria-label="Previous"
+                >
+                  <ChevronLeft />
+                </button>
+              )}
+              {onNext && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background focus-visible:ring-2 focus-visible:ring-[var(--toyota-red,#EB0A1E)]"
+                  onClick={() => {
+                    onNext();
+                    setActiveIdx(0);
+                  }}
+                  aria-label="Next"
+                >
+                  <ChevronRight />
+                </button>
+              )}
+
+              {/* Thumbnails */}
+              {images.length > 1 && (
+                <div className="no-scrollbar -mx-2 mt-2 flex gap-2 overflow-x-auto px-2 pb-2 sm:mx-0 sm:mt-3 sm:px-3">
+                  {images.map((src, i) => (
+                    <button
+                      key={src + i}
+                      className={cn(
+                        "relative h-16 w-28 shrink-0 overflow-hidden rounded-md border",
+                        i === activeIdx && "ring-2 ring-[var(--toyota-red,#EB0A1E)]"
+                      )}
+                      onClick={() => setActiveIdx(i)}
+                      aria-current={i === activeIdx}
+                    >
+                      <img src={src} alt={`thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Dots */}
+              {images.length > 1 && (
+                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 hidden gap-1 sm:flex">
+                  {images.map((_, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full bg-white/50",
+                        i === activeIdx && "bg-white"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Info panel */}
+            <div className="flex flex-col gap-3 border-t p-4 sm:col-start-2 sm:row-span-2 sm:border-l sm:border-t-0 sm:p-5">
+              {exp.description && (
+                <p className="text-sm leading-relaxed text-muted-foreground">{exp.description}</p>
+              )}
+              {exp.tags?.length ? (
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {exp.tags.map((t: string) => (
+                    <span key={t} className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              {/* Optional spec list (renders only if present) */}
+              {Array.isArray((exp as any).specs) && (exp as any).specs.length > 0 && (
+                <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
+                  {(exp as any).specs.slice(0, 6).map((s: string, idx: number) => (
+                    <li key={idx}>{s}</li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="mt-auto" />
+            </div>
+
+            {/* Sticky action bar – SINGLE primary CTA to avoid duplicates */}
+            <div className="sticky bottom-0 col-span-full border-t bg-background/95 p-3 backdrop-blur sm:col-span-2 sm:p-4">
+              <div className="flex w-full items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm hover:bg-accent"
+                  onClick={onClose}
+                >
+                  Close
+                </button>
+                <a
+                  href={(exp as any).testDriveUrl || "#"}
+                  target={((exp as any).testDriveUrl && "_blank") || undefined}
+                  rel={((exp as any).testDriveUrl && "noreferrer") || undefined}
+                  onClick={(e) => {
+                    if (!(exp as any).testDriveUrl) {
+                      e.preventDefault();
+                      onTestDrive?.();
+                    }
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--toyota-red,#EB0A1E)] bg-[var(--toyota-red,#EB0A1E)] px-4 py-2 text-sm font-medium text-white hover:brightness-95"
+                >
+                  <Car size={16} /> Book a Test Drive
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
           ref={ref}
           className="absolute inset-0 m-auto flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl"
           initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
