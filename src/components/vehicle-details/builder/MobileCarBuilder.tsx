@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, ArrowLeft, RotateCcw, LogOut } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory, useResponsiveSize } from "@/hooks/use-device-info";
@@ -9,16 +9,25 @@ import MobileSummary from "./MobileSummary";
 import ChoiceCollector from "./ChoiceCollector";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { contextualHaptic, addLuxuryHapticToButton } from "@/utils/haptic";
+import type { BuilderConfig } from "../CarBuilder";
 
-/** Types */
-interface BuilderConfig {
-  modelYear: string;
-  engine: string;
-  grade: string;
-  exteriorColor: string; // label or canonical
-  interiorColor: string;
-  accessories: string[];
-}
+/** Normalize + DAM map (canonical keys) */
+const normalizeColor = (s = "") =>
+  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
+
+const EXTERIOR_IMG: Record<string, string> = {
+  "pearl white":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+  "midnight black":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+  "silver metallic":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
+  // add your other color URLs when available
+};
+
+const FIRST_DAM = EXTERIOR_IMG["pearl white"] || Object.values(EXTERIOR_IMG)[0];
+const LOCAL_FALLBACK = "/images/vehicles/generic.png";
+
 interface MobileCarBuilderProps {
   vehicle: VehicleModel;
   step: number;
@@ -34,44 +43,15 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-/** Normalization + DAM map */
-const normalizeColor = (s = "") =>
-  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
+const MobileCarBuilder: React.FC<MobileCarBuilderProps> = (props) => {
+  const {
+    vehicle, step, config, setConfig, showConfirmation, calculateTotalPrice,
+    handlePayment, goBack, goNext, onClose, onReset, deviceCategory,
+  } = props;
 
-const exteriorColorImageMap: Record<string, string> = {
-  "pearl white":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-  "midnight black":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-  "silver metallic":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-  "deep blue":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/2a7a2a80-3c8f-4b20-bb3b-0c33b8b92a23/renditions/0fb2f3ae-1b0f-4a19-9a5a-9b7d3b116b2d?binary=true&mformat=true",
-  "ruby red":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/0a8f9a6a-82db-4b52-9e75-f5c3b1f3a111/renditions/5a2c2e15-5f4a-4b46-9f0f-5b22f996bd01?binary=true&mformat=true",
-};
-
-const FIRST_DAM_FALLBACK = exteriorColorImageMap["pearl white"] || Object.values(exteriorColorImageMap)[0];
-const LOCAL_GENERIC_FALLBACK = "/images/vehicles/generic.png";
-
-/** Motion (subtle/premium) */
-const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.25 } }, exit: { opacity: 0, transition: { duration: 0.18 } } };
-
-const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
-  vehicle,
-  step,
-  config,
-  setConfig,
-  showConfirmation,
-  calculateTotalPrice,
-  handlePayment,
-  goBack,
-  goNext,
-  onClose,
-  onReset,
-  deviceCategory,
-}) => {
+  const prefersReducedMotion = useReducedMotion();
   const { touchTarget } = useResponsiveSize();
+
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
@@ -94,39 +74,37 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     preventDefaultTouchmoveEvent: false,
   });
 
-  const handleBackClick = () => { contextualHaptic.stepProgress(); step > 1 ? goBack() : onClose(); };
-  const handleResetClick = () => { contextualHaptic.resetAction(); onReset(); };
-  const handleExitClick = () => { contextualHaptic.exitAction(); onClose(); };
-
-  const stageHeight = {
-    smallMobile: "h-[44vh]",
-    standardMobile: "h-[45vh]",
-    largeMobile: "h-[46vh]",
-    extraLargeMobile: "h-[47vh]",
-    tablet: "h-[48vh]",
-  }[deviceCategory] || "h-[45vh]";
+  const stageH = {
+    smallMobile: "h-[44svh]",
+    standardMobile: "h-[45svh]",
+    largeMobile: "h-[46svh]",
+    extraLargeMobile: "h-[47svh]",
+    tablet: "h-[50svh]",
+  }[deviceCategory] || "h-[45svh]";
 
   const buttonClass =
     `${touchTarget} rounded-xl bg-background border border-border/50 hover:border-primary/40 transition-all duration-150 flex items-center justify-center shadow-sm hover:shadow p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`;
 
   const colorKey = normalizeColor(config.exteriorColor);
-  const vehicleImage = exteriorColorImageMap[colorKey] || FIRST_DAM_FALLBACK;
+  const vehicleImage = EXTERIOR_IMG[colorKey] || FIRST_DAM;
+
+  const fade = { duration: prefersReducedMotion ? 0 : 0.24 };
 
   return (
     <motion.div
       ref={swipeableRef}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="relative w-full min-h-screen bg-background overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: fade }}
+      exit={{ opacity: 0, transition: fade }}
+      className="relative w-full min-h-[100svh] bg-background overflow-hidden"
+      aria-label="Mobile vehicle builder"
     >
-      {/* Top toolbar */}
+      {/* Top bar */}
       <div className="relative z-30 flex items-center justify-between bg-background border-b border-border/20 px-2 py-1">
         <div className="flex items-center gap-1.5">
           <button
             ref={step > 1 ? backButtonRef : closeButtonRef}
-            onClick={handleBackClick}
+            onClick={() => (step > 1 ? (contextualHaptic.stepProgress(), goBack()) : onClose())}
             className={buttonClass}
             aria-label={step > 1 ? "Go back" : "Close builder"}
           >
@@ -134,7 +112,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </button>
           <button
             ref={resetButtonRef}
-            onClick={handleResetClick}
+            onClick={() => { contextualHaptic.resetAction(); onReset(); }}
             className={buttonClass}
             aria-label="Reset configuration"
           >
@@ -149,7 +127,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
         <button
           ref={exitButtonRef}
-          onClick={handleExitClick}
+          onClick={() => { contextualHaptic.exitAction(); onClose(); }}
           className={buttonClass}
           aria-label="Exit builder"
         >
@@ -158,42 +136,38 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       </div>
 
       {/* Cinematic Stage */}
-      <section className={`relative ${stageHeight} w-full bg-black flex items-center justify-center`}>
-        {/* ambient radial glow */}
+      <section className={`relative ${stageH} w-full bg-black flex items-center justify-center`}>
+        {/* Ambient glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full opacity-25 blur-3xl bg-[radial-gradient(ellipse_at_center,theme(colors.primary/25),transparent_60%)]" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full opacity-20 blur-3xl bg-[radial-gradient(ellipse_at_center,theme(colors.primary/25),transparent_60%)]" />
         </div>
-
         <img
           src={vehicleImage}
           alt="Vehicle Preview"
           className="relative z-10 w-full h-full object-contain"
           loading="lazy"
           onError={(e) => {
-            if (e.currentTarget.src.indexOf(LOCAL_GENERIC_FALLBACK) === -1) {
-              e.currentTarget.src = LOCAL_GENERIC_FALLBACK;
-            }
+            if (!e.currentTarget.src.includes(LOCAL_FALLBACK)) e.currentTarget.src = LOCAL_FALLBACK;
           }}
         />
       </section>
 
-      {/* Bottom Sheet */}
-      <section className="fixed bottom-0 left-0 right-0 z-40">
-        <div className="mx-auto w-full rounded-t-3xl bg-background border-t border-border/20 shadow-2xl">
-          {/* drag handle look */}
+      {/* Bottom sheet (sticky, with internal scroll) */}
+      <section className="relative z-40 -mt-2">
+        <div
+          className="mx-auto w-full rounded-t-3xl bg-background border-t border-border/20 shadow-xl"
+          style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
+        >
           <div className="pt-2 flex justify-center">
             <div className="h-1.5 w-10 rounded-full bg-muted" />
           </div>
-
           <div className="sticky top-0 z-10 bg-background/95 border-b border-border/10">
             <MobileProgress currentStep={step} totalSteps={4} />
           </div>
-
-          <div className="max-h-[52vh] overflow-y-auto">
+          <div className="max-h-[52svh] overflow-y-auto">
             <div className="px-3 py-2 border-b border-border/10">
               <ChoiceCollector config={config} step={step} />
             </div>
-
             <div className="px-3 py-2">
               <AnimatePresence mode="wait">
                 <MobileStepContent
@@ -210,7 +184,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 />
               </AnimatePresence>
             </div>
-
             <div className="px-3 py-2 border-t border-border/20">
               <MobileSummary
                 config={config}

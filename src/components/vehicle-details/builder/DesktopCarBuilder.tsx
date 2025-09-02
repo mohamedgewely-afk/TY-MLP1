@@ -1,24 +1,36 @@
 import React, { useEffect, useRef, Suspense } from "react";
-import { motion, AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
+import { motion, AnimatePresence, LazyMotion, domAnimation, useReducedMotion } from "framer-motion";
 import { X, ArrowLeft, RotateCcw } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
+import MobileStepContent from "./MobileStepContent";
+import MobileProgress from "./MobileProgress";
+import MobileSummary from "./MobileSummary";
+import ChoiceCollector from "./ChoiceCollector";
+import CollapsibleSpecs from "./CollapsibleSpecs";
+import type { BuilderConfig } from "../CarBuilder";
 
-const MobileStepContent = React.lazy(() => import("./MobileStepContent"));
-const MobileProgress = React.lazy(() => import("./MobileProgress"));
-const MobileSummary = React.lazy(() => import("./MobileSummary"));
-const ChoiceCollector = React.lazy(() => import("./ChoiceCollector"));
-const CollapsibleSpecs = React.lazy(() => import("./CollapsibleSpecs"));
+/** Normalize + DAM map */
+const normalizeColor = (s = "") =>
+  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
 
-interface BuilderConfig {
-  modelYear: string;
-  engine: string;
-  grade: string;
-  exteriorColor: string; // label or canonical
-  interiorColor: string;
-  accessories: string[];
-}
+const EXTERIOR_IMG: Record<string, string> = {
+  "pearl white":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+  "midnight black":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+  "silver metallic":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
+  "deep blue":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/2a7a2a80-3c8f-4b20-bb3b-0c33b8b92a23/renditions/0fb2f3ae-1b0f-4a19-9a5a-9b7d3b116b2d?binary=true&mformat=true",
+  "ruby red":
+    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/0a8f9a6a-82db-4b52-9e75-f5c3b1f3a111/renditions/5a2c2e15-5f4a-4b46-9f0f-5b22f996bd01?binary=true&mformat=true",
+};
+
+const FIRST_DAM = EXTERIOR_IMG["pearl white"] || Object.values(EXTERIOR_IMG)[0];
+const LOCAL_FALLBACK = "/images/vehicles/generic.jpg";
+
 interface DesktopCarBuilderProps {
   vehicle: VehicleModel;
   step: number;
@@ -33,40 +45,13 @@ interface DesktopCarBuilderProps {
   onReset: () => void;
 }
 
-/** Normalize + DAM map */
-const normalizeColor = (s = "") =>
-  s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
-
-const exteriorColorImageMap: Record<string, string> = {
-  "pearl white":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-  "midnight black":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-  "silver metallic":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-  "deep blue":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/2a7a2a80-3c8f-4b20-bb3b-0c33b8b92a23/renditions/0fb2f3ae-1b0f-4a19-9a5a-9b7d3b116b2d?binary=true&mformat=true",
-  "ruby red":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/0a8f9a6a-82db-4b52-9e75-f5c3b1f3a111/renditions/5a2c2e15-5f4a-4b46-9f0f-5b22f996bd01?binary=true&mformat=true",
-};
-
-const FIRST_DAM_FALLBACK = exteriorColorImageMap["pearl white"] || Object.values(exteriorColorImageMap)[0];
-const LOCAL_GENERIC_FALLBACK = "/images/vehicles/generic.jpg";
-
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
-  vehicle,
-  step,
-  config,
-  setConfig,
-  showConfirmation,
-  calculateTotalPrice,
-  handlePayment,
-  goBack,
-  goNext,
-  onClose,
-  onReset,
+  vehicle, step, config, setConfig, showConfirmation,
+  calculateTotalPrice, handlePayment, goBack, goNext, onClose, onReset,
 }) => {
   const { deviceCategory } = useDeviceInfo();
+  const prefersReducedMotion = useReducedMotion();
+
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
@@ -101,30 +86,25 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       default: "text-4xl",
     }[deviceCategory] || "text-4xl";
 
-  const handleBackClick = () => {
-    contextualHaptic.stepProgress();
-    step > 1 ? goBack() : onClose();
-  };
-  const handleResetClick = () => {
-    contextualHaptic.resetAction();
-    onReset();
-  };
+  const t = { duration: prefersReducedMotion ? 0 : 0.3 };
+
+  const handleBackClick = () => { contextualHaptic.stepProgress(); step > 1 ? goBack() : onClose(); };
+  const handleResetClick = () => { contextualHaptic.resetAction(); onReset(); };
 
   const key = normalizeColor(config.exteriorColor);
-  const imgSrc = exteriorColorImageMap[key] || FIRST_DAM_FALLBACK;
+  const imgSrc = EXTERIOR_IMG[key] || FIRST_DAM;
 
   return (
     <LazyMotion features={domAnimation} strict>
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
+        animate={{ opacity: 1, transition: t }}
+        exit={{ opacity: 0, transition: t }}
         className="relative h-full w-full bg-background overflow-hidden flex"
       >
         {/* Left: Cinematic Stage */}
         <div className={`${widths.left} relative h-full overflow-hidden`}>
-          {/* Header toolbar */}
+          {/* Toolbar */}
           <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between ${pad} bg-background/90 backdrop-blur-md border-b border-border/20`}>
             <div className="flex items-center gap-6">
               <button
@@ -150,7 +130,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <div className="w-32" />
           </div>
 
-          {/* Ambient + Image */}
+          {/* Ambient + Hero */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] rounded-full opacity-25 blur-3xl bg-[radial-gradient(ellipse_at_center,theme(colors.primary/20),transparent_60%)]" />
           </div>
@@ -162,13 +142,11 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               className="w-full h-full object-contain"
               loading="lazy"
               onError={(e) => {
-                if (e.currentTarget.src.indexOf(LOCAL_GENERIC_FALLBACK) === -1) {
-                  e.currentTarget.src = LOCAL_GENERIC_FALLBACK;
-                }
+                if (!e.currentTarget.src.includes(LOCAL_FALLBACK)) e.currentTarget.src = LOCAL_FALLBACK;
               }}
             />
 
-            {/* Minimal info chip, non-obscuring */}
+            {/* Minimal info chip */}
             <div className="absolute bottom-12 left-12 right-12 z-20 max-w-xl">
               <div className="bg-background/92 rounded-3xl px-8 py-6 border border-border/20 shadow">
                 <h3 className="text-3xl font-bold mb-1">
@@ -193,12 +171,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         {/* Right: Configurator Panel */}
         <div className={`${widths.right} h-full flex flex-col bg-background border-l border-border/20`}>
           <Suspense fallback={<div className="p-6">Loading…</div>}>
-            {/* Sticky progress */}
             <div className="sticky top-0 z-20 bg-background/95 border-b border-border/20">
               <MobileProgress currentStep={step} totalSteps={4} />
             </div>
 
-            {/* Choices & optional specs */}
             <div className="px-8 py-6 border-b border-border/10">
               <ChoiceCollector config={config} step={step} />
               {step > 3 && config.modelYear && config.grade && (
@@ -208,7 +184,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               )}
             </div>
 
-            {/* Step Content */}
             <div className="flex-1 overflow-y-auto">
               <div className="px-8 py-6">
                 <AnimatePresence mode="wait">
@@ -227,8 +202,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="border-top border-border/20">
+            <div className="border-t border-border/20">
               <MobileSummary
                 config={config}
                 totalPrice={calculateTotalPrice()}
