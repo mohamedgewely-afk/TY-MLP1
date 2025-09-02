@@ -1,12 +1,3 @@
-✅ Got it! I’ll now rewrite the `CarBuilder` component with:
-
-- Fully upgraded UI (based on lovable.dev design principles)
-- Enhanced accessibility, animation, and layout polish
-- **No changes to business logic** — all features will work identically
-
-Here's your upgraded `CarBuilder.tsx`:
-
-```tsx
 import React, { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
