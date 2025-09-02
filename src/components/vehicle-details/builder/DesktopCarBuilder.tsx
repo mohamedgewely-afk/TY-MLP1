@@ -44,6 +44,9 @@ const exteriorColorImageMap: Record<string, string> = {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
 };
 
+const DEFAULT_GENERIC_IMAGE = "/images/vehicles/generic.jpg";
+const FIRST_DAM_FALLBACK = Object.values(exteriorColorImageMap)[0] ?? DEFAULT_GENERIC_IMAGE;
+
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   vehicle,
   step,
@@ -127,9 +130,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     onReset();
   };
 
+  /** Fallback chain: color match → first DAM image → local generic */
+  const imgSrc = exteriorColorImageMap[config.exteriorColor] ?? FIRST_DAM_FALLBACK;
+
   const reserveAmount = 5000;
-  const fallbackImage = vehicle.heroImage || "/images/vehicles/generic.jpg";
-  const imgSrc = exteriorColorImageMap[config.exteriorColor] || fallbackImage;
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -176,7 +180,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {
-                if (e.currentTarget.src !== fallbackImage) e.currentTarget.src = fallbackImage;
+                if (e.currentTarget.src !== DEFAULT_GENERIC_IMAGE) {
+                  e.currentTarget.src = DEFAULT_GENERIC_IMAGE;
+                }
               }}
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/20" />
@@ -196,7 +202,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   Exterior
                 </p>
                 <div className="flex justify-between items-end">
-                  <div className="text-4xl font-bold text-primary">AED {calculateTotalPrice().toLocaleString()}</div>
+                  <div className="text-4xl font-bold text-primary">
+                    AED {calculateTotalPrice().toLocaleString()}
+                  </div>
                   <div className="text-right text-muted-foreground">
                     <div className="text-sm">From</div>
                     <div className="text-lg font-semibold">AED 2,850/mo</div>
@@ -242,7 +250,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 config={config}
                 totalPrice={calculateTotalPrice()}
                 step={step}
-                reserveAmount={reserveAmount}
+                reserveAmount={5000}
                 deviceCategory={deviceCategory}
                 showPaymentButton={step !== 4}
               />
