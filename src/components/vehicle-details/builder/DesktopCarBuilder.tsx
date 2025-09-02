@@ -33,7 +33,7 @@ interface DesktopCarBuilderProps {
   onReset: () => void;
 }
 
-/** ——— image map & normalization ——— */
+/** Normalization + DAM map */
 const normalizeColor = (s = "") =>
   s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -44,13 +44,10 @@ const exteriorColorImageMap: Record<string, string> = {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
   "silver metallic":
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-  "deep blue":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/2a7a2a80-3c8f-4b20-bb3b-0c33b8b92a23/renditions/0fb2f3ae-1b0f-4a19-9a5a-9b7d3b116b2d?binary=true&mformat=true",
-  "ruby red":
-    "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/0a8f9a6a-82db-4b52-9e75-f5c3b1f3a111/renditions/5a2c2e15-5f4a-4b46-9f0f-5b22f996bd01?binary=true&mformat=true",
 };
 
-const FIRST_DAM_FALLBACK = exteriorColorImageMap["pearl white"] || Object.values(exteriorColorImageMap)[0];
+const FIRST_DAM_FALLBACK =
+  exteriorColorImageMap["pearl white"] || Object.values(exteriorColorImageMap)[0];
 const LOCAL_GENERIC_FALLBACK = "/images/vehicles/generic.jpg";
 
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
@@ -82,10 +79,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   const panelWidths =
     {
-      laptop: { left: "w-[65%]", right: "w-[35%]" },
+      laptop: { left: "w-[62%]", right: "w-[38%]" },
       largeDesktop: { left: "w-[60%]", right: "w-[40%]" },
-      default: { left: "w-[70%]", right: "w-[30%]" },
-    }[deviceCategory] || { left: "w-[70%]", right: "w-[30%]" };
+      default: { left: "w-[65%]", right: "w-[35%]" },
+    }[deviceCategory] || { left: "w-[65%]", right: "w-[35%]" };
 
   const headerPadding =
     {
@@ -101,26 +98,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       default: "text-4xl",
     }[deviceCategory] || "text-4xl";
 
-  const vehicleInfoPadding =
+  const cardPadding =
     {
       laptop: "p-6",
-      largeDesktop: "p-10",
-      default: "p-8",
-    }[deviceCategory] || "p-8";
-
-  const vehicleInfoPosition =
-    {
-      laptop: "bottom-8 left-8 right-8",
-      largeDesktop: "bottom-16 left-16 right-16",
-      default: "bottom-12 left-12 right-12",
-    }[deviceCategory] || "bottom-12 left-12 right-12";
-
-  const rightPanelPadding =
-    {
-      laptop: "px-6 py-6",
-      largeDesktop: "px-12 py-10",
-      default: "px-10 py-8",
-    }[deviceCategory] || "px-10 py-8";
+      largeDesktop: "p-8",
+      default: "p-7",
+    }[deviceCategory] || "p-7";
 
   const handleBackClick = () => {
     contextualHaptic.stepProgress();
@@ -131,7 +114,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     onReset();
   };
 
-  // derive image src from current selection and keep it across steps
   const key = normalizeColor(config.exteriorColor);
   const imgSrc = exteriorColorImageMap[key] || FIRST_DAM_FALLBACK;
 
@@ -141,19 +123,20 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         initial={{ opacity: 0, scale: 0.99 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.32 }}
+        transition={{ duration: 0.3 }}
         className="relative h-full w-full bg-background overflow-hidden flex"
       >
-        {/* Left visual panel */}
+        {/* Left: Cinematic Stage */}
         <div className={`${panelWidths.left} relative h-full overflow-hidden`}>
+          {/* Toolbar */}
           <div
-            className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between ${headerPadding} bg-background border-b border-border/20`}
+            className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between ${headerPadding} bg-background/90 backdrop-blur-md border-b border-border/20`}
           >
             <div className="flex items-center gap-6">
               <button
                 ref={step > 1 ? backButtonRef : closeButtonRef}
                 onClick={handleBackClick}
-                className="group p-4 rounded-2xl bg-background border border-border/50 hover:border-primary/30 hover:bg-background shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="group p-4 rounded-2xl bg-background border border-border/50 hover:border-primary/30 shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label={step > 1 ? "Go back" : "Close builder"}
               >
                 {step > 1 ? <ArrowLeft /> : <X />}
@@ -161,7 +144,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               <button
                 ref={resetButtonRef}
                 onClick={handleResetClick}
-                className="group p-4 rounded-2xl bg-background border border-border/50 hover:border-destructive/30 hover:bg-background shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+                className="group p-4 rounded-2xl bg-background border border-border/50 hover:border-destructive/30 shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
                 aria-label="Reset configuration"
               >
                 <RotateCcw />
@@ -173,11 +156,17 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             <div className="w-32" />
           </div>
 
-          <div className="relative w-full h-full bg-muted/10">
+          {/* Ambient glow behind the car */}
+          <div className="absolute inset-0">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] rounded-full opacity-25 blur-3xl bg-[radial-gradient(ellipse_at_center,theme(colors.primary/20),transparent_55%)]" />
+          </div>
+
+          {/* Vehicle Stage */}
+          <div className="relative w-full h-full bg-gradient-to-b from-muted/10 via-background to-background">
             <img
               src={imgSrc}
               alt="Vehicle Preview"
-              className="w-full h-full object-contain"  // important: no cropping on color step
+              className="w-full h-full object-contain"
               loading="lazy"
               onError={(e) => {
                 if (e.currentTarget.src !== window.location.origin + LOCAL_GENERIC_FALLBACK) {
@@ -185,17 +174,18 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 }
               }}
             />
-            {/* removed the heavy overlay so the car is fully visible */}
-            <div className={`absolute ${vehicleInfoPosition} z-20`}>
-              <div className={`bg-background/92 rounded-3xl ${vehicleInfoPadding} border border-border/20 max-w-lg shadow`}>
+
+            {/* Info Card (minimal, non-obscuring) */}
+            <div className="absolute bottom-12 left-12 right-12 z-20 max-w-xl">
+              <div className={`bg-background/92 rounded-3xl ${cardPadding} border border-border/20 shadow`}>
                 <h3 className="text-3xl font-bold mb-1">
                   {config.modelYear} {vehicle.name}
                 </h3>
                 <div className="text-lg text-muted-foreground mb-1">
                   {config.grade || "—"} · {config.engine}
                 </div>
-                <p className="text-muted-foreground mb-4">
-                  {key.split(" ").map((w) => (w ? w[0].toUpperCase() + w.slice(1) : "")).join(" ")} Exterior
+                <p className="text-muted-foreground mb-4 capitalize">
+                  {key} exterior
                 </p>
                 <div className="flex justify-between items-end">
                   <div className="text-4xl font-bold text-primary">
@@ -206,25 +196,32 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                     <div className="text-lg font-semibold">AED 2,850/mo</div>
                   </div>
                 </div>
-                <div className="mt-4 h-px bg-border" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right workflow panel */}
+        {/* Right: Configurator Panel */}
         <div className={`${panelWidths.right} h-full flex flex-col bg-background border-l border-border/20`}>
           <Suspense fallback={<div className="p-6">Loading…</div>}>
-            <div className={`${rightPanelPadding} border-b border-border/20`}>
+            {/* Sticky Progress */}
+            <div className="sticky top-0 z-20 bg-background/95 border-b border-border/20">
               <MobileProgress currentStep={step} totalSteps={4} />
             </div>
 
+            {/* Choices */}
+            <div className={`px-8 py-6 border-b border-border/10`}>
+              <ChoiceCollector config={config} step={step} />
+              {step > 3 && config.modelYear && config.grade && (
+                <div className="mt-4">
+                  <CollapsibleSpecs config={config} />
+                </div>
+              )}
+            </div>
+
+            {/* Step Content */}
             <div className="flex-1 overflow-y-auto">
-              <div className={`${rightPanelPadding} border-b border-border/10`}>
-                <ChoiceCollector config={config} step={step} />
-                {step > 3 && config.modelYear && config.grade && <CollapsibleSpecs config={config} />}
-              </div>
-              <div className="flex-1">
+              <div className="px-8 py-6">
                 <AnimatePresence mode="wait">
                   <MobileStepContent
                     key={step}
@@ -241,6 +238,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               </div>
             </div>
 
+            {/* Summary (anchored) */}
             <div className="border-t border-border/20">
               <MobileSummary
                 config={config}

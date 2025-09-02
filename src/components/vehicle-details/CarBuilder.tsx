@@ -31,20 +31,22 @@ interface CarBuilderProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
 interface BuilderConfig {
   modelYear: string;
   engine: string;
   grade: string;
-  exteriorColor: string; // can be label or canonical; we normalize when rendering
+  exteriorColor: string; // label or canonical; normalized in builders
   interiorColor: string;
   accessories: string[];
 }
 
+/** Keep defaults; we normalize downstream so labels like "Pearl White" are fine */
 const DEFAULT_CONFIG: BuilderConfig = {
   modelYear: "2025",
   engine: "3.5L V6",
   grade: "",
-  exteriorColor: "Pearl White", // keep your original label; we normalize in builders
+  exteriorColor: "Pearl White",
   interiorColor: "",
   accessories: [],
 };
@@ -79,10 +81,14 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
+  /** Pricing logic unchanged; we only normalize exterior color for price matching */
   const calculateTotalPrice = useCallback(() => {
+    const normalize = (s = "") =>
+      s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
+
     let basePrice = vehicle.price;
-    const enginePricing = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 };
-    const gradePricing = { Base: 0, SE: 2000, XLE: 4000, Limited: 6000, Platinum: 10000 };
+    const enginePricing = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 } as Record<string, number>;
+    const gradePricing = { Base: 0, SE: 2000, XLE: 4000, Limited: 6000, Platinum: 10000 } as Record<string, number>;
     const exteriorPricing = {
       "pearl white": 0,
       "midnight black": 500,
@@ -90,8 +96,8 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       "deep blue": 400,
       "ruby red": 600,
     } as Record<string, number>;
-    const interiorPricing = { "Black Leather": 0, "Beige Leather": 800, "Gray Fabric": -500 };
-    const accessories = {
+    const interiorPricing = { "Black Leather": 0, "Beige Leather": 800, "Gray Fabric": -500 } as Record<string, number>;
+    const accessoriesPrice = {
       "Premium Sound System": 1200,
       Sunroof: 800,
       "Navigation System": 600,
@@ -100,25 +106,22 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       "Alloy Wheels": 900,
     } as Record<string, number>;
 
-    const normalize = (s = "") =>
-      s.replace(/exterior|interior/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
-
     const enginePrice = enginePricing[config.engine] || 0;
     const gradePrice = gradePricing[config.grade] || 0;
     const exteriorPrice = exteriorPricing[normalize(config.exteriorColor)] || 0;
     const interiorPrice = interiorPricing[config.interiorColor] || 0;
-    const accessoriesPrice = (config.accessories || []).reduce(
-      (sum, name) => sum + (accessories[name] || 0),
+    const accessoriesSum = (config.accessories || []).reduce(
+      (sum, name) => sum + (accessoriesPrice[name] || 0),
       0
     );
 
-    return basePrice + enginePrice + gradePrice + exteriorPrice + interiorPrice + accessoriesPrice;
+    return basePrice + enginePrice + gradePrice + exteriorPrice + interiorPrice + accessoriesSum;
   }, [config, vehicle.price]);
 
   const handlePayment = useCallback(() => {
     toast({ title: "Processing payment", description: "One moment..." });
     setTimeout(() => {
-      toast({ title: "Order confirmed!", description: "Your configuration is saved." });
+      toast({ title: "Order confirmed!", description: "Your configuration has been saved." });
       setShowConfirmation(true);
     }, 1000);
   }, [toast]);
@@ -188,7 +191,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
-          <MobileDialogContent>
+          <MobileDialogContent className="p-0">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
               <DialogDescription>
@@ -202,7 +205,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </MobileDialog>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-[95vw] h-[95vh] w-full p-0 overflow-hidden">
+          <DialogContent className="max-w-[96vw] h-[96vh] w-full p-0 overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
               <DialogDescription>
