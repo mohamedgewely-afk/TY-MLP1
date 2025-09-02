@@ -261,7 +261,7 @@ function ExperienceCard({ exp, onOpen }: { exp: EnhancedSceneData; onOpen: (e: E
   );
 }
 
-/* ----------------- Overlay (MOBILE BOTTOM SHEET / DESKTOP DIALOG) ------------------ */
+/* ----------------- Overlay (MOBILE BOTTOM SHEET / DESKTOP DIALOG) — FIXED ------------------ */
 function ExpandedOverlay({
   open, onClose, exp, onPrev, onNext, onTestDrive, rtl,
 }: {
@@ -277,13 +277,10 @@ function ExpandedOverlay({
   const sheetRef = useRef<HTMLDivElement>(null);
   useFocusTrap(open, sheetRef);
 
-  const isDesktop = typeof window !== "undefined" ? window.matchMedia("(min-width: 640px)").matches : false;
-
-  // Media state
   const [activeIdx, setActiveIdx] = useState(0);
   const mediaRef = useRef<HTMLDivElement>(null);
 
-  // Lock scroll + keys
+  // body lock + keys
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -297,7 +294,7 @@ function ExpandedOverlay({
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [open, onClose, onNext, onPrev, rtl]);
 
-  // Swipe between experiences
+  // swipe (changes experience)
   useEffect(() => {
     const el = mediaRef.current;
     if (!el) return;
@@ -316,156 +313,136 @@ function ExpandedOverlay({
   const images = getGallery(exp);
   const hotspots = (exp as any)?.hotspots as Hotspot[] | undefined;
 
+  // media image element that truly fills the available column height
+  const MediaImage = ({ src, alt }: { src: string; alt: string }) => (
+    <img
+      src={src}
+      alt={alt}
+      className="block max-h-full max-w-full object-contain"
+      draggable={false}
+      loading="lazy"
+    />
+  );
+
   return (
     <AnimatePresence>
       <motion.div className="fixed inset-0 z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        {/* Backdrop */}
         <div className="absolute inset-0 bg-black/75" onClick={onClose} aria-hidden="true" />
 
-        {/* Desktop: centered dialog */}
-        {isDesktop ? (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            ref={sheetRef}
-            className="absolute inset-0 m-auto flex h-[92vh] w-full max-w-[1100px] overflow-hidden rounded-2xl border bg-background shadow-2xl"
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
-          >
-            {/* LEFT: media */}
-            <div className="relative flex-1 border-r" ref={mediaRef}>
-              <div className="relative mx-auto max-h-[75vh] w-full">
-                <SafeImage src={images[activeIdx]} alt={exp.title} className="mx-auto w-full max-h-[72vh]" contain />
+        {/* Desktop dialog (split) */}
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          ref={sheetRef}
+          className="absolute inset-0 m-auto flex h-[92vh] w-full max-w-[1100px] overflow-hidden rounded-2xl border bg-background shadow-2xl"
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.18 }}
+        >
+          {/* LEFT: MEDIA COLUMN — now true full height, dark canvas, centered media */}
+          <div ref={mediaRef} className="relative flex-1 bg-black/90">
+            {/* Arrows (experience nav) */}
+            {onPrev && (
+              <button
+                type="button"
+                className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background focus-visible:ring-2 focus-visible:ring-[var(--toyota-red,#EB0A1E)]"
+                onClick={() => { onPrev(); setActiveIdx(0); }}
+                aria-label="Previous experience"
+              >
+                <ChevronLeft />
+              </button>
+            )}
+            {onNext && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background focus-visible:ring-2 focus-visible:ring-[var(--toyota-red,#EB0A1E)]"
+                onClick={() => { onNext(); setActiveIdx(0); }}
+                aria-label="Next experience"
+              >
+                <ChevronRight />
+              </button>
+            )}
+
+            {/* Centered media area fills the column */}
+            <div className="grid h-full place-items-center p-4">
+              <div className="relative h-full w-full">
+                <div className="absolute inset-0 grid place-items-center">
+                  <MediaImage src={images[activeIdx]} alt={exp.title} />
+                </div>
+                {/* Hotspots */}
                 {hotspots?.length ? <HotspotLayer hotspots={hotspots} /> : null}
-                {images.length > 1 && (
-                  <>
+              </div>
+            </div>
+
+            {/* Thumbnail strip to visually use the bottom area */}
+            {images.length > 1 && (
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60">
+                <div className="no-scrollbar flex gap-2 overflow-x-auto p-3">
+                  {images.map((src, idx) => (
                     <button
-                      type="button"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background"
-                      onClick={() => setActiveIdx((i) => (i - 1 + images.length) % images.length)}
-                      aria-label="Previous image"
-                    ><ChevronLeft /></button>
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-background/80 p-2 backdrop-blur hover:bg-background"
-                      onClick={() => setActiveIdx((i) => (i + 1) % images.length)}
-                      aria-label="Next image"
-                    ><ChevronRight /></button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                      {images.map((_, i) => (
-                        <button key={i} onClick={() => setActiveIdx(i)} aria-label={`Go to image ${i + 1}`} className={cn("h-1.5 w-1.5 rounded-full", i === activeIdx ? "bg-[var(--toyota-red,#EB0A1E)]" : "bg-foreground/30")} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* RIGHT: info + header + CTA */}
-            <div className="flex w-[360px] min-w-[320px] flex-col">
-              <div className="flex items-center justify-between gap-2 border-b p-3">
-                <div className="min-w-0">
-                  <h3 className="truncate text-base font-semibold">{exp.title}</h3>
-                  {exp.scene && <p className="truncate text-xs text-muted-foreground">{exp.scene}</p>}
-                </div>
-                <button className="inline-flex h-9 w-9 items-center justify-center rounded-lg border hover:bg-accent" onClick={onClose} aria-label="Close"><X size={18} /></button>
-              </div>
-
-              <div className="min-h-0 flex-1 overflow-auto p-4">
-                {exp.description && <p className="text-sm leading-relaxed text-muted-foreground">{exp.description}</p>}
-                {exp.tags?.length ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {exp.tags.map((t: string) => <span key={t} className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{t}</span>)}
-                  </div>
-                ) : null}
-                {Array.isArray((exp as any).specs) && (exp as any).specs.length > 0 && (
-                  <ul className="mt-4 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
-                    {(exp as any).specs.slice(0, 8).map((s: string, i: number) => <li key={i}>{s}</li>)}
-                  </ul>
-                )}
-                {!Array.isArray((exp as any).specs) && (exp as any).specs && typeof (exp as any).specs === "object" && (
-                  <div className="mt-4 space-y-2">
-                    {Object.entries((exp as any).specs).slice(0, 8).map(([k, v]) => (
-                      <div key={k} className="flex justify-between gap-3 border-b py-2 text-sm">
-                        <span className="text-muted-foreground">{k}</span><span className="font-medium">{String(v)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t p-3">
-                <div className="flex justify-end gap-2">
-                  <button className="rounded-lg border px-3 py-2 text-sm hover:bg-accent" onClick={onClose}>Close</button>
-                  <a
-                    href={(exp as any).testDriveUrl || "#"}
-                    target={((exp as any).testDriveUrl && "_blank") || undefined}
-                    rel={((exp as any).testDriveUrl && "noreferrer") || undefined}
-                    onClick={(e) => { if (!(exp as any).testDriveUrl && onTestDrive) { e.preventDefault(); onTestDrive(exp); } }}
-                    className="rounded-lg border border-[var(--toyota-red,#EB0A1E)] bg-[var(--toyota-red,#EB0A1E)] px-4 py-2 text-sm font-medium text-white hover:brightness-95"
-                  >
-                    <Car className="mr-2 inline h-4 w-4" /> Book a Test Drive
-                  </a>
+                      key={src + idx}
+                      onClick={() => setActiveIdx(idx)}
+                      aria-label={`Preview image ${idx + 1}`}
+                      className={cn(
+                        "h-16 w-28 shrink-0 overflow-hidden rounded border",
+                        idx === activeIdx ? "border-[var(--toyota-red,#EB0A1E)]" : "border-white/20"
+                      )}
+                    >
+                      <img src={src} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
-          </motion.div>
-        ) : (
-          /* Mobile: bottom sheet */
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            ref={sheetRef}
-            className="absolute inset-x-0 bottom-0 mx-auto flex h-[90vh] w-full max-w-none flex-col overflow-hidden rounded-t-3xl border bg-background shadow-2xl"
-            initial={reduceMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 1 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 1 }}
-            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
-          >
-            {/* grabber + header */}
-            <div className="relative border-b p-3">
-              <div className="absolute left-1/2 top-1 h-1.5 w-12 -translate-x-1/2 rounded-full bg-foreground/20" />
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <h3 className="truncate text-base font-semibold">{exp.title}</h3>
-                  {exp.scene && <p className="truncate text-xs text-muted-foreground">{exp.scene}</p>}
-                </div>
-                <button className="inline-flex h-9 w-9 items-center justify-center rounded-lg border hover:bg-accent" onClick={onClose} aria-label="Close"><X size={18} /></button>
+            )}
+          </div>
+
+          {/* RIGHT: INFO COLUMN */}
+          <div className="flex w-[360px] min-w-[320px] flex-col bg-background">
+            <div className="flex items-center justify-between gap-2 border-b p-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold">{exp.title}</h3>
+                {exp.scene && <p className="truncate text-xs text-muted-foreground">{exp.scene}</p>}
               </div>
+              <button
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border hover:bg-accent"
+                onClick={onClose}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            {/* media */}
-            <div className="relative flex-1 overflow-hidden" ref={mediaRef}>
-              <div className="relative mx-auto max-h-[52vh] w-full">
-                <SafeImage src={images[activeIdx]} alt={exp.title} className="mx-auto w-full max-h-[50vh]" contain />
-                {hotspots?.length ? <HotspotLayer hotspots={hotspots} /> : null}
-                {images.length > 1 && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {images.map((_, i) => (
-                      <button key={i} onClick={() => setActiveIdx(i)} aria-label={`Go to image ${i + 1}`} className={cn("h-1.5 w-1.5 rounded-full", i === activeIdx ? "bg-[var(--toyota-red,#EB0A1E)]" : "bg-foreground/30")} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* info + CTA */}
-            <div className="max-h-[36vh] min-h-[24vh] overflow-auto border-t p-4">
+            <div className="min-h-0 flex-1 overflow-auto p-4">
               {exp.description && <p className="text-sm leading-relaxed text-muted-foreground">{exp.description}</p>}
               {exp.tags?.length ? (
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {exp.tags.map((t: string) => <span key={t} className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{t}</span>)}
+                  {exp.tags.map((t: string) => (
+                    <span key={t} className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{t}</span>
+                  ))}
                 </div>
               ) : null}
+
               {Array.isArray((exp as any).specs) && (exp as any).specs.length > 0 && (
                 <ul className="mt-4 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
                   {(exp as any).specs.slice(0, 8).map((s: string, i: number) => <li key={i}>{s}</li>)}
                 </ul>
               )}
+              {!Array.isArray((exp as any).specs) && (exp as any).specs && typeof (exp as any).specs === "object" && (
+                <div className="mt-4 space-y-2">
+                  {Object.entries((exp as any).specs).slice(0, 8).map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3 border-b py-2 text-sm">
+                      <span className="text-muted-foreground">{k}</span>
+                      <span className="font-medium">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-              <div className="mt-4 flex justify-end gap-2">
+            {/* Single CTA */}
+            <div className="border-t p-3">
+              <div className="flex justify-end gap-2">
                 <button className="rounded-lg border px-3 py-2 text-sm hover:bg-accent" onClick={onClose}>Close</button>
                 <a
                   href={(exp as any).testDriveUrl || "#"}
@@ -478,8 +455,8 @@ function ExpandedOverlay({
                 </a>
               </div>
             </div>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
