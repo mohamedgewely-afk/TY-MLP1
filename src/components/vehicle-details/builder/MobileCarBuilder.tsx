@@ -34,7 +34,7 @@ interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
-/** ===== Shared helpers ===== */
+/** ===== Helpers ===== */
 const toLabel = (key = "") =>
   key
     .split(" ")
@@ -51,6 +51,9 @@ const exteriorColorImageMap: Record<string, string> = {
     "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
 };
 
+const DEFAULT_GENERIC_IMAGE = "/images/vehicles/generic.png";
+const FIRST_DAM_FALLBACK = Object.values(exteriorColorImageMap)[0] ?? DEFAULT_GENERIC_IMAGE;
+
 const headerVariants = {
   hidden: { y: -12, opacity: 0 },
   visible: { y: 0, opacity: 1, transition: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] } },
@@ -66,7 +69,9 @@ const contentVariants = {
 const containerVariants = {
   hidden: { opacity: 0, scale: 0.98, y: 4 },
   visible: {
-    opacity: 1, scale: 1, y: 0,
+    opacity: 1,
+    scale: 1,
+    y: 0,
     transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94], staggerChildren: 0.08 },
   },
   exit: { opacity: 0, scale: 0.98, y: -6, transition: { duration: 0.24 } },
@@ -105,15 +110,36 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   }, []);
 
   const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => { if (step >= 1 && step < 4) { contextualHaptic.swipeNavigation(); goNext(); } },
-    onSwipeRight: () => { if (step > 1) { contextualHaptic.swipeNavigation(); goBack(); } else { onClose(); } },
+    onSwipeLeft: () => {
+      if (step >= 1 && step < 4) {
+        contextualHaptic.swipeNavigation();
+        goNext();
+      }
+    },
+    onSwipeRight: () => {
+      if (step > 1) {
+        contextualHaptic.swipeNavigation();
+        goBack();
+      } else {
+        onClose();
+      }
+    },
     threshold: 80,
     preventDefaultTouchmoveEvent: false,
   });
 
-  const handleBackClick = () => { contextualHaptic.stepProgress(); step > 1 ? goBack() : onClose(); };
-  const handleResetClick = () => { contextualHaptic.resetAction(); onReset(); };
-  const handleExitClick = () => { contextualHaptic.exitAction(); onClose(); };
+  const handleBackClick = () => {
+    contextualHaptic.stepProgress();
+    step > 1 ? goBack() : onClose();
+  };
+  const handleResetClick = () => {
+    contextualHaptic.resetAction();
+    onReset();
+  };
+  const handleExitClick = () => {
+    contextualHaptic.exitAction();
+    onClose();
+  };
 
   const imageHeight = {
     smallMobile: "h-28",
@@ -123,11 +149,11 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     tablet: "h-44",
   }[deviceCategory] || "h-32";
 
-  const fallbackImage = vehicle.heroImage || "/images/vehicles/generic.png";
-  const vehicleImage = exteriorColorImageMap[config.exteriorColor] || fallbackImage;
-
   const buttonClass =
     `${touchTarget} rounded-xl bg-background/90 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover:bg-background/95 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`;
+
+  /** Fallback chain: color match → first DAM image → local generic */
+  const vehicleImage = exteriorColorImageMap[config.exteriorColor] ?? FIRST_DAM_FALLBACK;
 
   return (
     <motion.div
@@ -169,12 +195,12 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <p className="text-[8px] text-muted-foreground font-medium leading-none">Step {step} of 4</p>
         </motion.div>
         <motion.button
-          ref={exitButtonRef}
-          onClick={handleExitClick}
-          className={buttonClass}
-          aria-label="Exit builder"
-        >
-          <LogOut className="h-4 w-4" />
+            ref={exitButtonRef}
+            onClick={handleExitClick}
+            className={buttonClass}
+            aria-label="Exit builder"
+          >
+            <LogOut className="h-4 w-4" />
         </motion.button>
       </motion.div>
 
@@ -190,7 +216,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           className="w-full h-full object-contain object-center"
           loading="lazy"
           onError={(e) => {
-            if (e.currentTarget.src !== fallbackImage) e.currentTarget.src = fallbackImage;
+            if (e.currentTarget.src !== DEFAULT_GENERIC_IMAGE) {
+              e.currentTarget.src = DEFAULT_GENERIC_IMAGE;
+            }
           }}
         />
         <motion.div className="absolute bottom-2 left-2 right-2 z-20">
@@ -202,12 +230,19 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 </h3>
                 <div className="flex items-center gap-1.5 text-muted-foreground mb-0.5 text-[8px]">
                   <span>{config.grade || "—"}</span>
-                  {config.grade && <><div className="w-0.5 h-0.5 bg-muted-foreground rounded-full" /><span>{config.engine}</span></>}
+                  {config.grade && (
+                    <>
+                      <div className="w-0.5 h-0.5 bg-muted-foreground rounded-full" />
+                      <span>{config.engine}</span>
+                    </>
+                  )}
                 </div>
                 <p className="text-muted-foreground text-[10px]">{toLabel(config.exteriorColor)} Exterior</p>
               </div>
               <div className="text-right ml-2">
-                <div className="text-sm font-bold text-primary mb-0.5">AED {calculateTotalPrice().toLocaleString()}</div>
+                <div className="text-sm font-bold text-primary mb-0.5">
+                  AED {calculateTotalPrice().toLocaleString()}
+                </div>
                 <div className="text-xs text-muted-foreground">From AED 2,850/mo</div>
               </div>
             </div>
