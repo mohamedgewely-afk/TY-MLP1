@@ -1,14 +1,14 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Grid3X3, LayoutGrid, SlidersHorizontal } from "lucide-react";
-import { EnhancedSceneData, FilterOptions, ViewPreferences } from "@/types/gallery";
+import { Sparkles } from "lucide-react";
+import { EnhancedSceneData } from "@/types/gallery";
 import { ENHANCED_GALLERY_DATA } from "@/data/enhanced-gallery-data";
+import { useGalleryStore } from "@/stores/gallery-store";
 import { useIsMobile } from "@/hooks/use-mobile";
-import EnhancedFilterBar from "./gallery/EnhancedFilterBar";
-import ResponsiveGalleryLayout from "./gallery/ResponsiveGalleryLayout";
-import ExpandedSceneOverlay from "./gallery/ExpandedSceneOverlay";
-import { cn } from "@/lib/utils";
+import ModernFilterBar from "./gallery/ModernFilterBar";
+import ModernGalleryLayout from "./gallery/ModernGalleryLayout";
+import ModernExpandedOverlay from "./gallery/ModernExpandedOverlay";
 
 interface EnhancedVehicleGalleryProps {
   experiences?: EnhancedSceneData[];
@@ -25,28 +25,23 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  const [filters, setFilters] = useState<FilterOptions>({
-    categories: [],
-    experienceTypes: [],
-    searchTerm: '',
-    sortBy: 'featured'
-  });
-
-  const [viewPrefs, setViewPrefs] = useState<ViewPreferences>({
-    layout: isMobile ? 'grid' : 'carousel',
-    cardSize: 'medium',
-    showPreviews: true
-  });
-
-  const [selectedExperience, setSelectedExperience] = useState<EnhancedSceneData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    selectedExperience,
+    isExpanded,
+    filters,
+    viewPrefs,
+    setSelectedExperience,
+    setIsExpanded,
+    setFilters,
+    setViewPrefs
+  } = useGalleryStore();
 
   // Update layout based on screen size
   useEffect(() => {
-    setViewPrefs(prev => ({
-      ...prev,
-      layout: isMobile ? 'grid' : prev.layout
-    }));
+    setViewPrefs({
+      ...viewPrefs,
+      layout: 'grid' // Always use grid for better mobile experience
+    });
   }, [isMobile]);
 
   // Filter and sort experiences
@@ -91,25 +86,27 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
 
   const handleExperienceExpand = useCallback((experience: EnhancedSceneData) => {
     setSelectedExperience(experience);
-  }, []);
+    setIsExpanded(true);
+  }, [setSelectedExperience, setIsExpanded]);
 
   const handleCloseExpanded = useCallback(() => {
+    setIsExpanded(false);
     setSelectedExperience(null);
-  }, []);
+  }, [setIsExpanded, setSelectedExperience]);
 
   const openNext = useCallback(() => {
     if (!selectedExperience) return;
     const currentIndex = filteredExperiences.findIndex(exp => exp.id === selectedExperience.id);
     const nextIndex = (currentIndex + 1) % filteredExperiences.length;
     setSelectedExperience(filteredExperiences[nextIndex]);
-  }, [selectedExperience, filteredExperiences]);
+  }, [selectedExperience, filteredExperiences, setSelectedExperience]);
 
   const openPrev = useCallback(() => {
     if (!selectedExperience) return;
     const currentIndex = filteredExperiences.findIndex(exp => exp.id === selectedExperience.id);
     const prevIndex = (currentIndex - 1 + filteredExperiences.length) % filteredExperiences.length;
     setSelectedExperience(filteredExperiences[prevIndex]);
-  }, [selectedExperience, filteredExperiences]);
+  }, [selectedExperience, filteredExperiences, setSelectedExperience]);
 
   return (
     <section
@@ -118,48 +115,55 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
       lang={locale}
     >
       {/* Modern Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="absolute inset-0 bg-grid-small-black/[0.02] bg-[length:20px_20px]" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
+        <div className="absolute inset-0 bg-grid-small-black/[0.02]" />
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
             className="text-center"
           >
             {/* Icon */}
-            <div className="flex justify-center mb-6">
+            <motion.div 
+              className="flex justify-center mb-6"
+              animate={{ 
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
               <div className="relative">
-                <div className="absolute inset-0 bg-toyota-red/10 rounded-full blur-xl" />
-                <div className="relative w-16 h-16 bg-gradient-to-br from-toyota-red to-toyota-red/80 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-8 h-8 text-white" />
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl" />
+                <div className="relative w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-primary-foreground" />
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
               Experience Gallery
             </h1>
             
             {/* Subtitle */}
-            <p className="text-xl sm:text-2xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
               Discover every angle, feature, and capability through immersive experiences
             </p>
 
             {/* Stats */}
-            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-toyota-red rounded-full" />
+                <div className="w-2 h-2 bg-primary rounded-full" />
                 <span className="font-medium">{experiences.length} Experiences</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-toyota-red rounded-full" />
-                <span className="font-medium">Multiple Categories</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-toyota-red rounded-full" />
+                <div className="w-2 h-2 bg-primary rounded-full" />
                 <span className="font-medium">Interactive Tours</span>
               </div>
             </div>
@@ -167,24 +171,21 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Filter Bar */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <EnhancedFilterBar
-          filters={filters}
-          viewPrefs={viewPrefs}
-          onFiltersChange={setFilters}
-          onViewPrefsChange={setViewPrefs}
-          totalResults={filteredExperiences.length}
-        />
-      </div>
+      {/* Filter Bar */}
+      <ModernFilterBar
+        filters={filters}
+        viewPrefs={viewPrefs}
+        onFiltersChange={setFilters}
+        onViewPrefsChange={setViewPrefs}
+        totalResults={filteredExperiences.length}
+      />
 
       {/* Gallery Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <ResponsiveGalleryLayout
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <ModernGalleryLayout
           experiences={filteredExperiences}
           viewPrefs={viewPrefs}
           onExperienceExpand={handleExperienceExpand}
-          isLoading={isLoading}
         />
 
         {/* Results Summary */}
@@ -192,7 +193,7 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center mt-16"
+            className="text-center mt-12"
           >
             <p className="text-muted-foreground">
               Showing {filteredExperiences.length} experience{filteredExperiences.length !== 1 ? 's' : ''}
@@ -203,16 +204,14 @@ const EnhancedVehicleGallery: React.FC<EnhancedVehicleGalleryProps> = ({
 
       {/* Expanded Experience Modal */}
       <AnimatePresence mode="wait">
-        {selectedExperience && (
-          <ExpandedSceneOverlay
+        {isExpanded && selectedExperience && (
+          <ModernExpandedOverlay
             key={selectedExperience.id}
             experience={selectedExperience}
             onClose={handleCloseExpanded}
             onNext={openNext}
             onPrev={openPrev}
             onAskToyota={onAskToyota}
-            rtl={rtl}
-            locale={locale}
           />
         )}
       </AnimatePresence>
