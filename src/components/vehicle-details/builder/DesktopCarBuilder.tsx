@@ -61,7 +61,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   useEffect(() => {
   const addHaptics = (
     ref: React.RefObject<HTMLButtonElement>,
-    type: LuxuryHapticType
+    type: "luxuryPress" | "premiumError"
   ) => {
     if (ref.current) {
       addLuxuryHapticToButton(ref.current, {
