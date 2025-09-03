@@ -5,7 +5,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 
-// Keep in sync with Desktop type
+/* ---------- Types ---------- */
 export type StockStatus = "no-stock" | "pipeline" | "available";
 
 export interface MobileBuilderConfig {
@@ -20,8 +20,8 @@ export interface MobileBuilderConfig {
 
 export interface MobileCarBuilderProps {
   vehicle: VehicleModel;
-  step: number;             // 1: Year+Engine, 2: Grade+Colors+Stock, 3: Confirmation (only if stock ≠ no-stock)
-  totalSteps: number;       // 2 or 3 (parent decides based on stock)
+  step: number;                   // 1: Year+Engine, 2: Grade+Colors+Stock, 3: Confirmation (only if stock ≠ no-stock)
+  totalSteps: number;             // 2 or 3 (parent decides based on stock)
   config: MobileBuilderConfig;
   setConfig: React.Dispatch<React.SetStateAction<MobileBuilderConfig>>;
   showConfirmation: boolean;
@@ -34,31 +34,72 @@ export interface MobileCarBuilderProps {
   deviceCategory: DeviceCategory;
 }
 
+/* ---------- Data ---------- */
 const YEARS = ["2024", "2025", "2026"];
 const ENGINES = ["3.5L V6", "4.0L V6", "2.5L Hybrid"];
 
 const COLORS = [
-  { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#f5f5f5" },
-  { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#101010" },
-  { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", swatch: "#c7c9cc" },
-  { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#0c3c74" },
-  { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#8a1111" },
+  {
+    name: "Pearl White",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    swatch: "#f5f5f5",
+  },
+  {
+    name: "Midnight Black",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+    swatch: "#101010",
+  },
+  {
+    name: "Silver Metallic",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
+    swatch: "#c7c9cc",
+  },
+  {
+    name: "Deep Blue",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    swatch: "#0c3c74",
+  },
+  {
+    name: "Ruby Red",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+    swatch: "#8a1111",
+  },
 ];
 
-// ---- Haptic helper (compat with your API) ----
+const GRADES = ["Base", "SE", "XLE", "Limited", "Platinum"];
+const INTERIORS = ["Black Leather", "Beige Leather", "Gray Fabric"];
+
+/* ---------- Grade-specific color availability ---------- */
+const GRADE_COLOR_MAP: Record<string, string[]> = {
+  Base: ["Pearl White", "Silver Metallic"],
+  SE: ["Pearl White", "Midnight Black", "Silver Metallic"],
+  XLE: ["Pearl White", "Midnight Black", "Silver Metallic", "Deep Blue"],
+  Limited: ["Pearl White", "Midnight Black", "Silver Metallic", "Ruby Red"],
+  Platinum: ["Pearl White", "Midnight Black", "Deep Blue", "Ruby Red"],
+};
+const allowedColorsFor = (grade: string) => GRADE_COLOR_MAP[grade] ?? COLORS.map((c) => c.name);
+
+/* ---------- Haptics ---------- */
 const hapticSelect = () => {
   if (typeof contextualHaptic.selectionChange === "function") contextualHaptic.selectionChange();
   else if (typeof contextualHaptic.buttonPress === "function") contextualHaptic.buttonPress();
 };
 
-// ---- Stock evaluator (replace with API if you have one) ----
+/* ---------- Stock evaluator ---------- */
 const computeStock = (grade: string, exterior: string, interior: string): StockStatus => {
   if (!grade || !exterior || !interior) return "pipeline";
+  if (!allowedColorsFor(grade).includes(exterior)) return "no-stock";
   if (grade === "Platinum" && exterior === "Ruby Red" && interior === "Beige Leather") return "no-stock";
   if (exterior === "Deep Blue" || interior === "Gray Fabric") return "pipeline";
   return "available";
 };
 
+/* ---------- Component ---------- */
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   vehicle,
   step,
@@ -78,7 +119,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const exitRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
+    [backRef, closeRef, exitRef].forEach(
+      (r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true })
+    );
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true });
   }, []);
 
@@ -87,6 +130,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     return f.image;
   }, [config.exteriorColor]);
 
+  // preload
   useEffect(() => {
     COLORS.forEach((c) => {
       const img = new Image();
@@ -96,31 +140,55 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     });
   }, []);
 
-  // ---- setters (keep stock synced) ----
-  const setYear = useCallback((y: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
-  }, [setConfig]);
+  /* ---- setters (keep stock synced) ---- */
+  const setYear = useCallback(
+    (y: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setEngine = useCallback((e: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, engine: e, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
-  }, [setConfig]);
+  const setEngine = useCallback(
+    (e: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, engine: e, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setGrade = useCallback((g: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, grade: g, stockStatus: computeStock(g, c.exteriorColor, c.interiorColor) }));
-  }, [setConfig]);
+  const setGrade = useCallback(
+    (g: string) => {
+      hapticSelect();
+      setConfig((c) => {
+        const allowed = allowedColorsFor(g);
+        const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
+        return {
+          ...c,
+          grade: g,
+          exteriorColor: nextExterior,
+          stockStatus: computeStock(g, nextExterior, c.interiorColor),
+        };
+      });
+    },
+    [setConfig]
+  );
 
-  const setColor = useCallback((name: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
-  }, [setConfig]);
+  const setColor = useCallback(
+    (name: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setInterior = useCallback((i: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, interiorColor: i, stockStatus: computeStock(c.grade, c.exteriorColor, i) }));
-  }, [setConfig]);
+  const setInterior = useCallback(
+    (i: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, interiorColor: i, stockStatus: computeStock(c.grade, c.exteriorColor, i) }));
+    },
+    [setConfig]
+  );
 
   const readyStep1 = Boolean(config.modelYear && config.engine);
   const readyStep2 = Boolean(config.grade && config.exteriorColor && config.interiorColor);
@@ -133,11 +201,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     if (step === 2) {
       if (!readyStep2) return;
       if (config.stockStatus === "no-stock") {
-        // register interest path ends here
-        handlePayment();
+        handlePayment(); // end flow here
         return;
       }
-      goNext(); // go to confirmation
+      goNext();
       return;
     }
     if (step === 3) {
@@ -165,17 +232,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       animate={{ opacity: 1 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/90 backdrop-blur">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="flex items-center gap-1.5">
           <button
             ref={step > 1 ? backRef : closeRef}
             onClick={() => (step > 1 ? goBack() : onClose())}
             className="rounded-xl border p-2.5"
             aria-label={step > 1 ? "Back" : "Close"}
+            type="button"
           >
             {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </button>
-          <button ref={resetRef} onClick={onReset} className="rounded-xl border p-2.5" aria-label="Reset">
+          <button ref={resetRef} onClick={onReset} className="rounded-xl border p-2.5" aria-label="Reset" type="button">
             <RotateCcw className="h-4 w-4" />
           </button>
         </div>
@@ -187,13 +255,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             {step}/{totalSteps}
           </div>
         </div>
-        <button ref={exitRef} onClick={onClose} className="rounded-xl border p-2.5" aria-label="Exit">
+        <button ref={exitRef} onClick={onClose} className="rounded-xl border p-2.5" aria-label="Exit" type="button">
           <LogOut className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Hero */}
-      <div className="relative w-full h-40 border-b border-border/10">
+      {/* Hero (bigger, nothing overlaying) */}
+      <div className="relative w-full h-64 md:h-72 border-b border-border/10 bg-background">
         <motion.img
           key={activeImg + "-" + config.grade + "-" + config.modelYear}
           src={activeImg}
@@ -204,8 +272,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           transition={{ type: "spring", stiffness: 240, damping: 24 }}
           decoding="async"
           loading="eager"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+          }}
         />
-        <div className="absolute bottom-2 left-2 right-2 px-3 py-2 rounded-2xl backdrop-blur-xl border border-white/10 bg-background/80">
+      </div>
+
+      {/* Summary under hero (no overlay) */}
+      <div className="px-3 pt-2">
+        <div className="px-3 py-2 rounded-2xl border border-border/10 bg-background/90">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-xs font-bold truncate">
@@ -241,12 +316,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                       "rounded-full border px-3 py-1.5 text-xs " +
                       (config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/60")
                     }
+                    type="button"
                   >
                     {y}
                   </button>
                 ))}
               </div>
             </div>
+
             <div>
               <div className="text-sm font-semibold mb-2">Engine</div>
               <div className="flex items-center gap-2">
@@ -258,6 +335,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                       "rounded-full border px-3 py-1.5 text-xs " +
                       (config.engine === e ? "border-primary/60 bg-primary/5" : "border-border/60")
                     }
+                    type="button"
                   >
                     {e}
                   </button>
@@ -273,7 +351,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             <div>
               <div className="text-sm font-semibold mb-2">Grade</div>
               <div className="grid grid-cols-2 gap-2">
-                {["Base", "SE", "XLE", "Limited", "Platinum"].map((g) => (
+                {GRADES.map((g) => (
                   <button
                     key={g}
                     onClick={() => setGrade(g)}
@@ -281,6 +359,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                       "rounded-xl border px-3 py-2 text-left text-sm " +
                       (config.grade === g ? "border-primary/60 bg-primary/5" : "border-border/60")
                     }
+                    type="button"
                   >
                     <span className="font-semibold">{g}</span>
                     {config.grade === g && <CheckCircle2 className="h-4 w-4 text-primary inline ml-1" />}
@@ -292,27 +371,37 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
             <div>
               <div className="text-sm font-semibold mb-2">Exterior Colors</div>
               <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.name}
-                    onClick={() => setColor(c.name)}
-                    className={
-                      "shrink-0 w-11 h-11 rounded-full border relative " +
-                      (config.exteriorColor === c.name ? "border-primary ring-2 ring-primary/30" : "border-border/60")
-                    }
-                    aria-label={c.name}
-                  >
-                    <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
-                    <span className="sr-only">{c.name}</span>
-                  </button>
-                ))}
+                {COLORS.map((c) => {
+                  const allowed = allowedColorsFor(config.grade);
+                  const isAllowed = !config.grade || allowed.includes(c.name);
+                  const isActive = config.exteriorColor === c.name;
+                  return (
+                    <button
+                      key={c.name}
+                      onClick={() => isAllowed && setColor(c.name)}
+                      disabled={!isAllowed}
+                      className={
+                        "shrink-0 w-11 h-11 rounded-full border relative " +
+                        (isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60") +
+                        (!isAllowed ? " opacity-40 cursor-not-allowed" : "")
+                      }
+                      aria-label={c.name}
+                      aria-disabled={!isAllowed}
+                      title={!isAllowed ? `Not available for ${config.grade || "this grade"}` : c.name}
+                      type="button"
+                    >
+                      <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
+                      <span className="sr-only">{c.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div>
               <div className="text-sm font-semibold mb-2">Interior</div>
               <div className="grid grid-cols-3 gap-2">
-                {["Black Leather", "Beige Leather", "Gray Fabric"].map((i) => (
+                {INTERIORS.map((i) => (
                   <button
                     key={i}
                     onClick={() => setInterior(i)}
@@ -320,6 +409,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                       "rounded-xl border p-2 " +
                       (config.interiorColor === i ? "border-primary/60 bg-primary/5" : "border-border/60")
                     }
+                    type="button"
                   >
                     <div className="h-12 rounded-lg bg-gradient-to-br from-muted/20 to-muted" />
                     <div className="mt-1 text-[11px] font-medium">{i}</div>
@@ -328,15 +418,20 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
 
-            {/* Stock */}
             <div>
               <div className="text-sm font-semibold mb-2">Stock</div>
               <StockBadge status={config.stockStatus} />
+              {config.grade &&
+                !allowedColorsFor(config.grade).includes(config.exteriorColor) && (
+                  <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">
+                    Selected exterior isn’t available for {config.grade}. We switched to an available option.
+                  </p>
+                )}
             </div>
           </>
         )}
 
-        {/* Step 3: Confirmation (only when totalSteps === 3) */}
+        {/* Step 3: Confirmation */}
         {step === 3 && (
           <div className="space-y-2">
             {[
@@ -363,16 +458,19 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         )}
       </div>
 
-      {/* Footer CTA */}
-      <div className="border-t border-border/10 px-3 py-3">
+      {/* Footer CTA: safe-area aware & always tappable */}
+      <div className="border-t border-border/10 px-3 py-3 pb-[max(env(safe-area-inset-bottom),0px)] sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-base font-black">AED {calculateTotalPrice().toLocaleString()}</div>
             <div className="text-[11px] text-muted-foreground">Taxes extra</div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={goBack} className="rounded-xl border px-3 py-2 text-sm">Back</button>
+            <button type="button" onClick={goBack} className="rounded-xl border px-3 py-2 text-sm">
+              Back
+            </button>
             <button
+              type="button"
               onClick={onContinue}
               disabled={disablePrimary}
               className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-50"

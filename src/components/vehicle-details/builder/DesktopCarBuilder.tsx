@@ -59,6 +59,17 @@ const INTERIORS = [
   { name: "Gray Fabric", sample: "linear-gradient(135deg,#9aa0a6,#7e848a)" },
 ];
 
+/** Grade-specific allowed colors (inventory simulation) */
+const GRADE_COLOR_MAP: Record<string, string[]> = {
+  Base: ["Pearl White", "Silver Metallic"],
+  SE: ["Pearl White", "Midnight Black", "Silver Metallic"],
+  XLE: ["Pearl White", "Midnight Black", "Silver Metallic", "Deep Blue"],
+  Limited: ["Pearl White", "Midnight Black", "Silver Metallic", "Ruby Red"],
+  Platinum: ["Pearl White", "Midnight Black", "Deep Blue", "Ruby Red"],
+};
+const allowedColorsFor = (grade: string) =>
+  GRADE_COLOR_MAP[grade] ?? EXTERIOR_IMAGES.map((c) => c.name);
+
 const spring = { type: "spring", stiffness: 320, damping: 32, mass: 1.05 } as const;
 
 /* Haptic compat */
@@ -67,9 +78,11 @@ const hapticSelect = () => {
   else if (typeof contextualHaptic.buttonPress === "function") contextualHaptic.buttonPress();
 };
 
-/* Simple stock evaluator (replace with API if you have one) */
+/* Stock evaluator (grade-color aware) */
 const computeStock = (grade: string, exterior: string, interior: string): StockStatus => {
-  if (!grade || !exterior || !interior) return "pipeline"; // incomplete → treat as pipeline
+  if (!grade || !exterior || !interior) return "pipeline";
+  const allowed = allowedColorsFor(grade);
+  if (!allowed.includes(exterior)) return "no-stock";
   if (grade === "Platinum" && exterior === "Ruby Red" && interior === "Beige Leather") return "no-stock";
   if (exterior === "Deep Blue" || interior === "Gray Fabric") return "pipeline";
   return "available";
@@ -113,7 +126,16 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   const setGrade = useCallback((g: string) => {
     hapticSelect();
-    setConfig((c) => ({ ...c, grade: g, stockStatus: computeStock(g, c.exteriorColor, c.interiorColor) }));
+    setConfig((c) => {
+      const allowed = allowedColorsFor(g);
+      const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
+      return {
+        ...c,
+        grade: g,
+        exteriorColor: nextExterior,
+        stockStatus: computeStock(g, nextExterior, c.interiorColor),
+      };
+    });
   }, [setConfig]);
 
   const setColor = useCallback((name: string) => {
@@ -153,22 +175,24 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   return (
     <motion.div className="relative h-full w-full bg-gradient-to-br from-background via-muted/3 to-background overflow-hidden flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Visual theater */}
-      <div className={`${panel.left} h-full relative overflow-hidden`}>
+      <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
         <motion.img
           key={heroKey}
           src={colorObj.image}
           alt={`${config.exteriorColor} ${vehicle.name}`}
-          className="w-full h-full object-cover"
-          initial={{ opacity: 0, scale: 1.06 }}
+          className="w-full h-full object-contain"
+          initial={{ opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={spring}
           decoding="async"
           loading="eager"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
         />
 
         {/* Info card */}
-        <div className="absolute bottom-8 left-8 right-8 z-20">
-          <div className="max-w-2xl rounded-3xl border border-white/10 backdrop-blur-xl p-8 shadow-2xl" style={{ background: "linear-gradient(135deg, hsl(var(--background)/0.94) 0%, hsl(var(--background)/0.86) 100%)" }}>
+        <div className="absolute bottom-8 left-8 right-8 z-20 pointer-events-none">
+          <div className="max-w-2xl rounded-3xl border border-white/10 backdrop-blur-xl p-8 shadow-2xl pointer-events-auto"
+               style={{ background: "linear-gradient(135deg, hsl(var(--background)/0.94) 0%, hsl(var(--background)/0.86) 100%)" }}>
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <h2 className="text-4xl font-black tracking-tight truncate">{config.modelYear} {vehicle.name}</h2>
@@ -203,7 +227,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       </div>
 
       {/* Right configuration panel */}
-      <div className={`${panel.right} h-full flex flex-col border-l border-border/10 bg-gradient-to-b from-background/98 to-background`}>
+      <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10 bg-gradient-to-b from-background/98 to-background`}>
         <div className="p-6 border-b border-border/10">
           <StepDots current={step} total={totalSteps} />
         </div>
@@ -246,9 +270,27 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
               <Section title="Exterior" subtitle="Tap a color to preview instantly">
                 <div className="flex flex-wrap gap-3">
-                  {EXTERIOR_IMAGES.map((c) => (
-                    <ColorSwatch key={c.name} color={c.swatch} label={c.name} active={config.exteriorColor === c.name} onClick={() => setColor(c.name)} />
-                  ))}
+                  {EXTERIOR_IMAGES.map((c) => {
+                    const allowed = allowedColorsFor(config.grade);
+                    const isAllowed = !config.grade || allowed.includes(c.name);
+                    const isActive = config.exteriorColor === c.name;
+                    return (
+                      <button
+                        key={c.name}
+                        onClick={() => isAllowed && setColor(c.name)}
+                        disabled={!isAllowed}
+                        className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary
+                          ${isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"}
+                          ${!isAllowed ? "opacity-40 cursor-not-allowed" : ""}`}
+                        aria-label={c.name}
+                        aria-disabled={!isAllowed}
+                        title={!isAllowed ? `Not available for ${config.grade || "this grade"}` : c.name}
+                      >
+                        <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
+                        <span className="sr-only">{c.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </Section>
 
@@ -265,6 +307,11 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
               <Section title="Stock" subtitle="Availability depends on color and interior">
                 <StockPill status={config.stockStatus} />
+                {config.grade && !allowedColorsFor(config.grade).includes(config.exteriorColor) && (
+                  <p className="text-xs text-amber-600 dark:text-amber-300 mt-2">
+                    Selected exterior isn’t available for {config.grade}. Please choose a different color.
+                  </p>
+                )}
               </Section>
             </>
           )}
@@ -334,6 +381,7 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
     className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
       selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
     }`}
+    type="button"
   >
     <div className="aspect-[16/10] w-full overflow-hidden">
       <motion.img src={image} alt={label} className="w-full h-full object-cover" initial={{ scale: 1.04 }} whileHover={{ scale: 1.08 }} transition={{ type: "spring", stiffness: 180, damping: 16 }} loading="lazy" decoding="async" />
@@ -345,13 +393,6 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
       </div>
       {caption && <div className="text-xs text-muted-foreground">{caption}</div>}
     </div>
-  </button>
-);
-
-const ColorSwatch: React.FC<{ color: string; label: string; active?: boolean; onClick?: () => void }> = ({ color, label, active, onClick }) => (
-  <button onClick={onClick} className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"}`} aria-label={label}>
-    <span className="absolute inset-0 rounded-full" style={{ background: color }} />
-    <span className="sr-only">{label}</span>
   </button>
 );
 
