@@ -148,20 +148,27 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     setConfig(value);
   }, []);
 
-  // Show loading state until device detection completes
+  // Show loading state until device detection completes with premium Toyota branding
   if (!isInitialized) {
     const LoadingDialog = isMobile ? MobileDialog : Dialog;
     const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
     
     return (
       <LoadingDialog open={isOpen} onOpenChange={onClose}>
-        <LoadingContent className={isMobile ? "" : "max-w-full max-h-full h-screen w-screen p-0 border-0 bg-background overflow-hidden"}>
+        <LoadingContent className={isMobile ? "" : "max-w-full max-h-full h-screen w-screen p-0 border-0 bg-gradient-to-br from-background via-muted/5 to-background overflow-hidden"}>
           <VisuallyHidden>
-            <DialogTitle>Loading Car Builder</DialogTitle>
-            <DialogDescription>Please wait while we initialize the car builder.</DialogDescription>
+            <DialogTitle>Loading Toyota Car Builder</DialogTitle>
+            <DialogDescription>Please wait while we initialize your premium Toyota experience.</DialogDescription>
           </VisuallyHidden>
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex flex-col items-center justify-center h-full space-y-6">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-2 border-muted border-t-primary"></div>
+              <div className="absolute inset-0 animate-pulse rounded-full h-12 w-12 border border-primary/20"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">Toyota Car Builder</h3>
+              <p className="text-sm text-muted-foreground">Preparing your premium experience...</p>
+            </div>
           </div>
         </LoadingContent>
       </LoadingDialog>
