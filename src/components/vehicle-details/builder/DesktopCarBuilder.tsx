@@ -5,6 +5,14 @@ import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 
+const hapticSelect = () => {
+  if (typeof contextualHaptic.selectionChange === "function") {
+    contextualHaptic.selectionChange();
+  } else if (typeof contextualHaptic.buttonPress === "function") {
+    contextualHaptic.buttonPress();
+  }
+};
+
 export interface BuilderConfig {
   modelYear: string;
   engine: string;
@@ -140,27 +148,27 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   }, []);
 
   const setColor = useCallback((name: string) => {
-    contextualHaptic.selection();
+    hapticSelect();
     setConfig((c) => ({ ...c, exteriorColor: name }));
   }, [setConfig]);
 
   const setEngine = useCallback((name: string) => {
-    contextualHaptic.selection();
+    hapticSelect();
     setConfig((c) => ({ ...c, engine: name }));
   }, [setConfig]);
 
   const setGrade = useCallback((name: string) => {
-    contextualHaptic.selection();
+    hapticSelect();
     setConfig((c) => ({ ...c, grade: name }));
   }, [setConfig]);
 
   const setInterior = useCallback((name: string) => {
-    contextualHaptic.selection();
+    hapticSelect();
     setConfig((c) => ({ ...c, interiorColor: name }));
   }, [setConfig]);
 
   const toggleAccessory = useCallback((name: string) => {
-    contextualHaptic.selection();
+    hapticSelect();
     setConfig((c) => {
       const on = c.accessories.includes(name);
       return { ...c, accessories: on ? c.accessories.filter((a) => a !== name) : [...c.accessories, name] };

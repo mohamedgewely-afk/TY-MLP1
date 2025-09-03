@@ -5,6 +5,15 @@ import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 
+const hapticSelect = () => {
+  if (typeof contextualHaptic.selectionChange === "function") {
+    contextualHaptic.selectionChange();
+  } else if (typeof contextualHaptic.buttonPress === "function") {
+    contextualHaptic.buttonPress();
+  }
+};
+
+
 export interface MobileBuilderConfig {
   modelYear: string;
   engine: string;
@@ -99,10 +108,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     });
   }, []);
 
-  const setColor = useCallback((name: string) => {
-    contextualHaptic.selection();
-    setConfig((c) => ({ ...c, exteriorColor: name }));
-  }, [setConfig]);
+ const setColor = useCallback((name: string) => {
+  hapticSelect();
+  setConfig((c) => ({ ...c, exteriorColor: name }));
+}, [setConfig]);
 
   return (
     <motion.div
