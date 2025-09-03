@@ -100,6 +100,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
+  /* ---------- Loading (device info) ---------- */
   if (!isInitialized) {
     const LoadingDialog = isMobile ? MobileDialog : Dialog;
     const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
@@ -125,6 +126,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     );
   }
 
+  /* ---------- Content ---------- */
   const content = (
     <AnimatePresence mode="wait">
       {isMobile ? (
@@ -167,6 +169,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <>
+      {/* Reset dialog */}
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -182,6 +185,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Main */}
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>

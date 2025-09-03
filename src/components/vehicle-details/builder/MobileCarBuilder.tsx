@@ -4,13 +4,7 @@ import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as Ima
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /* ---------- Types ---------- */
 export type StockStatus = "no-stock" | "pipeline" | "available";
@@ -61,12 +55,12 @@ const INTERIORS = [
 ];
 
 const ACCESSORIES = [
-  { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin." },
-  { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide." },
-  { name: "Navigation System", price: 600, desc: "Built-in maps, voice guidance, live traffic." },
-  { name: "Heated Seats", price: 400, desc: "Front-row seat heating with 3 levels." },
-  { name: "Backup Camera", price: 300, desc: "Wide-angle rear camera with dynamic guidelines." },
-  { name: "Alloy Wheels", price: 900, desc: "Lightweight alloy wheels." },
+  { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin.", image: "" },
+  { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide.", image: "" },
+  { name: "Navigation System", price: 600, desc: "Built-in maps, voice guidance, live traffic.", image: "" },
+  { name: "Heated Seats", price: 400, desc: "Front-row seat heating with 3 levels.", image: "" },
+  { name: "Backup Camera", price: 300, desc: "Wide-angle rear camera with dynamic guidelines.", image: "" },
+  { name: "Alloy Wheels", price: 900, desc: "Lightweight alloy wheels.", image: "" },
 ] as const;
 
 /* ---------- Grade-specific color availability ---------- */
@@ -117,6 +111,8 @@ const computeStock = (grade: string, exterior: string, interior: string): StockS
   return "available";
 };
 
+type SubStage = "grade" | "exterior" | "interior" | "accessories";
+
 const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   vehicle,
   step,
@@ -137,18 +133,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoItem, setInfoItem] = useState<(typeof ACCESSORIES)[number] | null>(null);
-  const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
+  const [subStage, setSubStage] = useState<SubStage>("exterior");
 
   useEffect(() => {
     [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true });
   }, []);
 
-  const exteriorObj = useMemo(() => {
-    const f = COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0];
-    return f;
-  }, [config.exteriorColor]);
-
+  const exteriorObj = useMemo(() => COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0], [config.exteriorColor]);
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
 
   useEffect(() => {
@@ -156,7 +148,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     INTERIORS.filter(i => i.img).forEach(({ img }) => { const im = new Image(); im.src = img!; });
   }, []);
 
-  // ---- setters (keep stock synced) ----
+  // Reset subStage by step
+  useEffect(() => {
+    if (step === 1) setSubStage("exterior");
+    if (step === 2) setSubStage(config.interiorColor ? "accessories" : (config.grade ? "exterior" : "grade"));
+    if (step === 3) setSubStage("exterior");
+  }, [step, config.interiorColor, config.grade]);
+
+  // ---- setters (keep stock synced + subStage) ----
   const setYear = useCallback((y: string) => {
     hapticSelect();
     setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
@@ -169,6 +168,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const setGrade = useCallback((g: string) => {
     hapticSelect();
+    setSubStage("grade");
     setConfig((c) => {
       const allowed = allowedColorsFor(g);
       const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
@@ -178,17 +178,19 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const setColor = useCallback((name: string) => {
     hapticSelect();
+    setSubStage("exterior");
     setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
   }, [setConfig]);
 
   const setInterior = useCallback((i: string) => {
     hapticSelect();
+    setSubStage("interior");
     setConfig((c) => ({ ...c, interiorColor: i, stockStatus: computeStock(c.grade, c.exteriorColor, i) }));
-    setHeroMode("interior");
   }, [setConfig]);
 
   const toggleAccessory = useCallback((name: string) => {
     hapticSelect();
+    setSubStage("accessories");
     setConfig((c) => {
       const exists = c.accessories.includes(name);
       const accessories = exists ? c.accessories.filter((a) => a !== name) : [...c.accessories, name];
@@ -219,15 +221,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   };
 
   const primaryText =
-    step === 1
-      ? "Continue"
-      : step === 2
-      ? config.stockStatus === "no-stock"
-        ? "Register your interest"
-        : "Continue"
-      : config.stockStatus === "pipeline"
-      ? "Reserve now"
-      : "Buy now";
+    step === 1 ? "Continue"
+      : step === 2 ? (config.stockStatus === "no-stock" ? "Register your interest" : "Continue")
+      : (config.stockStatus === "pipeline" ? "Reserve now" : "Buy now");
 
   const disablePrimary = (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
@@ -236,21 +232,26 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const monthly5 = emi(total, 5);
   const reserve = reserveAmount(config.stockStatus);
 
-  /* Allowed colors list (hide non-allowed) */
   const visibleExteriorColors = useMemo(() => {
     if (!config.grade) return [];
     const allowed = allowedColorsFor(config.grade);
     return COLORS.filter((c) => allowed.includes(c.name));
   }, [config.grade]);
 
+  // Hero image (context-driven)
+  const heroSrc = useMemo(() => {
+    if (subStage === "grade") {
+      const g = config.grade || "Base";
+      return GRADE_IMAGES[g] || COLORS[0].image;
+    }
+    if (subStage === "interior") return interiorObj?.img || exteriorObj.image;
+    return exteriorObj.image;
+  }, [subStage, config.grade, exteriorObj.image, interiorObj?.img]);
+
   return (
-    <motion.div
-      className="relative w-full min-h-screen flex flex-col bg-gradient-to-b from-background via-muted/10 to-background"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <motion.div className="relative w-full min-h-screen flex flex-col bg-background" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-1.5">
           <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="rounded-xl border p-2.5" aria-label={step > 1 ? "Back" : "Close"} type="button">
             {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
@@ -268,31 +269,15 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </button>
       </div>
 
-      {/* Mode toggle */}
-      <div className="px-3 pt-2">
-        <div className="inline-flex border rounded-full bg-background/90 backdrop-blur p-1">
-          {(["exterior","interior"] as const).map(m => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setHeroMode(m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border ${heroMode===m ? "bg-primary text-primary-foreground border-primary" : "border-transparent"}`}
-            >
-              {m === "exterior" ? "Exterior" : "Interior"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Hero (dynamic by mode; height responsive so footer is always visible) */}
-      <div className="relative w-full h-60 md:h-72 border-b border-border/10 bg-background">
+      {/* Hero (adaptive height so CTA is always visible, no overlay) */}
+      <div className="relative w-full h-[34vh] sm:h-[38vh] border-b border-border/10 bg-background">
         <motion.img
-          key={`${heroMode}-${exteriorObj.image}-${interiorObj?.img ?? "no-int"}`}
-          src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
-          alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
+          key={`${heroSrc}-${config.grade}-${config.modelYear}-${subStage}`}
+          src={heroSrc}
+          alt={`${vehicle.name} preview`}
           className="absolute inset-0 w-full h-full object-contain"
-          initial={{ opacity: 0, scale: 1.0 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ type: "spring", stiffness: 240, damping: 24 }}
           decoding="async"
           loading="eager"
@@ -300,7 +285,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         />
       </div>
 
-      {/* Summary under hero */}
+      {/* Summary strip */}
       <div className="px-3 pt-2">
         <div className="px-3 py-2 rounded-2xl border border-border/10 bg-background/90">
           <div className="flex items-center justify-between gap-2">
@@ -318,7 +303,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Steps */}
+      {/* Scrollable steps */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
         {/* Step 1: Year + Engine + Finance */}
         {step === 1 && (
@@ -333,7 +318,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 ))}
               </div>
             </div>
-
             <div>
               <div className="text-sm font-semibold mb-2">Engine</div>
               <div className="flex items-center gap-2">
@@ -344,7 +328,6 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 ))}
               </div>
             </div>
-
             {/* Finance */}
             <div className="grid grid-cols-2 gap-2">
               <FinancePill label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Secure today" : "Refundable"} />
@@ -353,7 +336,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </>
         )}
 
-        {/* Step 2: Progressive Grade → Exterior (filtered) → Interior → Accessories → Stock */}
+        {/* Step 2: Progressive Grade → Exterior → Interior → Accessories → Stock */}
         {step === 2 && (
           <>
             {/* Grade (static images) */}
@@ -421,38 +404,38 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             ) : null}
 
-            {/* Accessories */}
+            {/* Accessories (stacked for readability on mobile) */}
             {config.grade && config.exteriorColor && config.interiorColor ? (
-              <div>
-                <div className="text-sm font-semibold mb-2">Accessories</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {ACCESSORIES.map((a) => {
-                    const selected = config.accessories.includes(a.name);
-                    return (
-                      <div key={a.name} className={"rounded-xl border p-2 flex items-start gap-2 " + (selected ? "border-primary bg-primary/5" : "border-border/60")}>
-                        <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
-                          {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                        </button>
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-semibold truncate">{a.name}</div>
-                          <div className="text-[11px] text-muted-foreground">AED {a.price.toLocaleString()}</div>
-                          <button type="button" onClick={() => { setInfoItem(a); setInfoOpen(true); }} className="mt-1 inline-flex items-center gap-1 text-[11px] text-primary">
-                            <CircleHelp className="w-3 h-3" /> Learn more
+              <>
+                <div>
+                  <div className="text-sm font-semibold mb-2">Accessories</div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {ACCESSORIES.map((a) => {
+                      const selected = config.accessories.includes(a.name);
+                      return (
+                        <div key={a.name} className={"rounded-xl border p-3 flex items-start gap-3 " + (selected ? "border-primary bg-primary/5" : "border-border/60")}>
+                          <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
+                            {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
                           </button>
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-semibold truncate">{a.name}</div>
+                            <div className="text-[11px] text-muted-foreground">AED {a.price.toLocaleString()}</div>
+                            <button type="button" onClick={() => { setInfoItem(a); setInfoOpen(true); }} className="mt-1 inline-flex items-center gap-1 text-[11px] text-primary">
+                              <CircleHelp className="w-3 h-3" /> Learn more
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ) : null}
 
-            {/* Stock */}
-            {config.grade && config.exteriorColor && config.interiorColor ? (
-              <div>
-                <div className="text-sm font-semibold mb-2">Stock</div>
-                <StockBadge status={config.stockStatus} />
-              </div>
+                {/* Stock */}
+                <div>
+                  <div className="text-sm font-semibold mb-2">Stock</div>
+                  <StockBadge status={config.stockStatus} />
+                </div>
+              </>
             ) : null}
           </>
         )}
@@ -462,22 +445,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           <div className="space-y-3">
             {/* Previews */}
             <div className="grid grid-cols-1 gap-3">
-              <div className="rounded-2xl border overflow-hidden">
-                <div className="aspect-[16/9] bg-muted">
-                  <img src={exteriorObj.image} alt={config.exteriorColor} className="w-full h-full object-contain" />
-                </div>
-                <div className="px-3 py-2 text-sm font-semibold">Exterior: {config.exteriorColor}</div>
-              </div>
-              <div className="rounded-2xl border overflow-hidden">
-                <div className="aspect-[16/9] bg-muted">
-                  {interiorObj?.img ? (
-                    <img src={interiorObj.img} alt={config.interiorColor} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-6 h-6" /></div>
-                  )}
-                </div>
-                <div className="px-3 py-2 text-sm font-semibold">Interior: {config.interiorColor}</div>
-              </div>
+              <PreviewCard label={`Exterior: ${config.exteriorColor}`} img={exteriorObj.image} mode="contain" />
+              <PreviewCard label={`Interior: ${config.interiorColor}`} img={interiorObj?.img || ""} mode="cover" />
             </div>
 
             {[
@@ -507,12 +476,14 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         )}
       </div>
 
-      {/* Footer CTA */}
+      {/* Sticky Footer CTA */}
       <div className="border-t border-border/10 px-3 py-3 pb-[max(env(safe-area-inset-bottom),0px)] sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-base font-black">AED {total.toLocaleString()}</div>
-            <div className="text-[11px] text-muted-foreground">Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo</div>
+            <div className="text-[11px] text-muted-foreground">
+              Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={goBack} className="rounded-xl border px-3 py-2 text-sm">Back</button>
@@ -523,7 +494,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Accessory info dialog (uses current exterior as hero image) */}
+      {/* Accessory info dialog (with image fallback to exterior) */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
         <DialogContent>
           <DialogHeader>
@@ -532,7 +503,11 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </DialogHeader>
           <div className="rounded-xl overflow-hidden border mb-3">
             <div className="aspect-[16/9] bg-muted">
-              <img src={exteriorObj.image} alt="Accessory visual" className="w-full h-full object-cover" />
+              <img
+                src={infoItem?.image || exteriorObj.image}
+                alt="Accessory visual"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <div className="text-sm">{infoItem?.desc}</div>
@@ -561,6 +536,19 @@ const FinancePill: React.FC<{ label: string; value: string; hint?: string }> = (
     <div className="text-[11px] text-muted-foreground">{label}</div>
     <div className="text-sm font-bold">{value}</div>
     {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+  </div>
+);
+
+const PreviewCard: React.FC<{ label: string; img: string; mode: "cover" | "contain" }> = ({ label, img, mode }) => (
+  <div className="rounded-2xl border overflow-hidden">
+    <div className="aspect-[16/9] bg-muted">
+      {img ? (
+        <img src={img} alt={label} className={`w-full h-full object-${mode}`} />
+      ) : (
+        <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-6 h-6" /></div>
+      )}
+    </div>
+    <div className="px-3 py-2 text-sm font-semibold">{label}</div>
   </div>
 );
 
