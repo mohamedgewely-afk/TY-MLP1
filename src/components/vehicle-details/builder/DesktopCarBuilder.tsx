@@ -1,161 +1,462 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, X, RotateCcw, CheckCircle2, Info, Sparkles } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 
-
 export interface BuilderConfig {
-modelYear: string;
-engine: string;
-grade: string;
-exteriorColor: string;
-interiorColor: string;
-accessories: string[];
+  modelYear: string;
+  engine: string;
+  grade: string;
+  exteriorColor: string;
+  interiorColor: string;
+  accessories: string[];
 }
-
 
 export interface DesktopCarBuilderProps {
-vehicle: VehicleModel;
-step: number;
-config: BuilderConfig;
-setConfig: React.Dispatch<React.SetStateAction<BuilderConfig>>;
-showConfirmation: boolean;
-calculateTotalPrice: () => number;
-handlePayment: () => void;
-goBack: () => void;
-goNext: () => void;
-onClose: () => void;
-onReset: () => void;
-/** NEW: allow tablet-optimized variant using the same component to keep only 3 files total */
-variant?: "desktop" | "tablet";
+  vehicle: VehicleModel;
+  step: number;
+  config: BuilderConfig;
+  setConfig: React.Dispatch<React.SetStateAction<BuilderConfig>>;
+  showConfirmation: boolean;
+  calculateTotalPrice: () => number;
+  handlePayment: () => void;
+  goBack: () => void;
+  goNext: () => void;
+  onClose: () => void;
+  onReset: () => void;
+  /** Tablet styling toggle for this component */
+  variant?: "desktop" | "tablet";
 }
 
-
-// color assets – same images preserved
+// Same images preserved
 const EXTERIOR_IMAGES: { name: string; image: string; swatch: string }[] = [
-{
-name: "Pearl White",
-image:
-"https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-swatch: "#f5f5f5",
-},
-{
-name: "Midnight Black",
-image:
-"https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-swatch: "#101010",
-},
-{
-name: "Silver Metallic",
-image:
-"https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
-swatch: "#c7c9cc",
-},
-{
-name: "Deep Blue",
-image:
-"https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-swatch: "#0c3c74",
-},
-{
-name: "Ruby Red",
-image:
-"https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
-swatch: "#8a1111",
-},
+  {
+    name: "Pearl White",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    swatch: "#f5f5f5",
+  },
+  {
+    name: "Midnight Black",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+    swatch: "#101010",
+  },
+  {
+    name: "Silver Metallic",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
+    swatch: "#c7c9cc",
+  },
+  {
+    name: "Deep Blue",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
+    swatch: "#0c3c74",
+  },
+  {
+    name: "Ruby Red",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
+    swatch: "#8a1111",
+  },
 ];
-
 
 const ENGINES = [
-{ name: "3.5L V6", tag: "Gasoline" },
-{ name: "4.0L V6", tag: "Performance" },
-{ name: "2.5L Hybrid", tag: "Hybrid" },
+  { name: "3.5L V6", tag: "Gasoline" },
+  { name: "4.0L V6", tag: "Performance" },
+  { name: "2.5L Hybrid", tag: "Hybrid" },
 ];
 
-
 const GRADES = [
-{ name: "Base", badge: "Everyday Essentials" },
-{ name: "SE", badge: "Sport Enhanced" },
-export default DesktopCarBuilder;
-// ---------- UI bits ----------
-const Section: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
-<section className="px-6 py-5 border-b border-border/10">
-<div className="flex items-start justify-between gap-3">
-<div>
-<h3 className="text-base font-bold leading-tight">{title}</h3>
-{subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-</div>
-<Info className="h-4 w-4 text-muted-foreground/70" />
-</div>
-<div className="mt-4">{children}</div>
-</section>
-);
+  { name: "Base", badge: "Everyday Essentials" },
+  { name: "SE", badge: "Sport Enhanced" },
+  { name: "XLE", badge: "Extra Luxury" },
+  { name: "Limited", badge: "Premium" },
+  { name: "Platinum", badge: "Top of the Line" },
+];
 
+const INTERIORS = [
+  { name: "Black Leather", sample: "linear-gradient(135deg,#121212,#1e1e1e)" },
+  { name: "Beige Leather", sample: "linear-gradient(135deg,#e7dcc7,#d5c5a8)" },
+  { name: "Gray Fabric", sample: "linear-gradient(135deg,#9aa0a6,#7e848a)" },
+];
+
+const ACCESSORIES = [
+  { name: "Premium Sound System", icon: Sparkles },
+  { name: "Sunroof", icon: Sparkles },
+  { name: "Navigation System", icon: Sparkles },
+  { name: "Heated Seats", icon: Sparkles },
+  { name: "Backup Camera", icon: Sparkles },
+  { name: "Alloy Wheels", icon: Sparkles },
+];
+
+const spring = { type: "spring", stiffness: 320, damping: 32, mass: 1.1 } as const;
+
+const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
+  vehicle,
+  step,
+  config,
+  setConfig,
+  showConfirmation,
+  calculateTotalPrice,
+  handlePayment,
+  goBack,
+  goNext,
+  onClose,
+  onReset,
+  variant = "desktop",
+}) => {
+  useDeviceInfo(); // for theme tokens & env – not strictly needed, but aligns with your setup
+
+  const backRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const resetRef = useRef<HTMLButtonElement>(null);
+
+  // Haptics
+  useEffect(() => {
+    [backRef, closeRef].forEach((r) => {
+      if (r.current) addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true, onHover: true });
+    });
+    if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true });
+  }, []);
+
+  // Active image from color
+  const activeImage = useMemo(() => {
+    const found = EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0];
+    return found.image;
+  }, [config.exteriorColor]);
+
+  // Preload images for instant switching
+  useEffect(() => {
+    EXTERIOR_IMAGES.forEach(({ image }) => {
+      const img = new Image();
+      img.src = image;
+      img.decoding = "async";
+      (img as any).loading = "eager";
+    });
+  }, []);
+
+  const setColor = useCallback((name: string) => {
+    contextualHaptic.selection();
+    setConfig((c) => ({ ...c, exteriorColor: name }));
+  }, [setConfig]);
+
+  const setEngine = useCallback((name: string) => {
+    contextualHaptic.selection();
+    setConfig((c) => ({ ...c, engine: name }));
+  }, [setConfig]);
+
+  const setGrade = useCallback((name: string) => {
+    contextualHaptic.selection();
+    setConfig((c) => ({ ...c, grade: name }));
+  }, [setConfig]);
+
+  const setInterior = useCallback((name: string) => {
+    contextualHaptic.selection();
+    setConfig((c) => ({ ...c, interiorColor: name }));
+  }, [setConfig]);
+
+  const toggleAccessory = useCallback((name: string) => {
+    contextualHaptic.selection();
+    setConfig((c) => {
+      const on = c.accessories.includes(name);
+      return { ...c, accessories: on ? c.accessories.filter((a) => a !== name) : [...c.accessories, name] };
+    });
+  }, [setConfig]);
+
+  const handleBackClick = useCallback(() => {
+    contextualHaptic.stepProgress();
+    if (step > 1) goBack();
+    else onClose();
+  }, [step, goBack, onClose]);
+
+  const panel = variant === "tablet" ? { left: "w-[58%]", right: "w-[42%]" } : { left: "w-[62%]", right: "w-[38%]" };
+
+  return (
+    <motion.div
+      className="relative h-full w-full bg-gradient-to-br from-background via-muted/3 to-background overflow-hidden flex"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {/* Visual Theater */}
+      <div className={`${panel.left} h-full relative overflow-hidden`}>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/0 to-background/10 pointer-events-none" />
+
+        <motion.img
+          key={activeImage}
+          src={activeImage}
+          alt={`${config.exteriorColor} ${vehicle.name}`}
+          className="w-full h-full object-cover"
+          initial={{ opacity: 0, scale: 1.06 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={spring}
+          decoding="async"
+          loading="eager"
+        />
+
+        {/* Info card */}
+        <motion.div
+          className="absolute bottom-8 left-8 right-8 z-20"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 240, damping: 24 }}
+        >
+          <div
+            className="max-w-2xl rounded-3xl border border-white/10 backdrop-blur-xl p-8 shadow-2xl"
+            style={{ background: "linear-gradient(135deg, hsl(var(--background)/0.94) 0%, hsl(var(--background)/0.86) 100%)" }}
+          >
+            <div className="flex items-start justify-between gap-6">
+              <div className="min-w-0">
+                <h2 className="text-4xl font-black tracking-tight truncate">
+                  {config.modelYear} {vehicle.name}
+                </h2>
+                <p className="mt-2 text-muted-foreground font-medium truncate">
+                  {config.grade || "Select Grade"} · {config.engine} · {config.exteriorColor} Exterior
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-black text-primary leading-none">AED {calculateTotalPrice().toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Starting from</div>
+              </div>
+            </div>
+            <div className="mt-6 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+          </div>
+        </motion.div>
+
+        {/* Header */}
+        <div
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-8 backdrop-blur-xl border-b border-border/10"
+          style={{ background: "linear-gradient(180deg,hsl(var(--background)/0.98),hsl(var(--background)/0.86))" }}
+        >
+          <div className="flex items-center gap-3">
+            <motion.button
+              ref={step > 1 ? backRef : closeRef}
+              onClick={handleBackClick}
+              className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-primary/50 transition shadow-lg"
+              whileTap={{ scale: 0.96 }}
+              aria-label={step > 1 ? "Back" : "Close"}
+            >
+              {step > 1 ? <ArrowLeft className="h-6 w-6" /> : <X className="h-6 w-6" />}
+            </motion.button>
+            <motion.button
+              ref={resetRef}
+              onClick={() => {
+                contextualHaptic.resetAction();
+                onReset();
+              }}
+              className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-destructive/50 transition shadow-lg"
+              whileTap={{ scale: 0.96 }}
+              aria-label="Reset configuration"
+            >
+              <RotateCcw className="h-6 w-6" />
+            </motion.button>
+          </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-black tracking-tight">
+              Build Your <span className="text-primary">{vehicle.name}</span>
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">Crafted with Toyota precision.</p>
+          </div>
+          <div className="w-32" />
+        </div>
+      </div>
+
+      {/* Config panel */}
+      <div className={`${panel.right} h-full flex flex-col border-l border-border/10 bg-gradient-to-b from-background/98 to-background`}>
+        <div className="p-6 border-b border-border/10">
+          <StepDots current={step} total={4} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto scroll-smooth will-change-transform">
+          {/* Step 1 – Grade */}
+          <Section title="Choose Your Grade" subtitle="Tailor performance and comfort">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+              {GRADES.map((g) => (
+                <SelectableCard
+                  key={g.name}
+                  selected={config.grade === g.name}
+                  onClick={() => setGrade(g.name)}
+                  image={activeImage}
+                  label={g.name}
+                  caption={g.badge}
+                />
+              ))}
+            </div>
+          </Section>
+
+          {/* Step 2 – Engine */}
+          <Section title="Powertrain" subtitle="Efficient, capable, or both">
+            <div className="grid grid-cols-3 gap-3">
+              {ENGINES.map((e) => (
+                <button
+                  key={e.name}
+                  onClick={() => setEngine(e.name)}
+                  className={`group rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    config.engine === e.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+                  }`}
+                >
+                  <div className="text-sm font-semibold leading-tight">{e.name}</div>
+                  <div className="text-xs text-muted-foreground">{e.tag}</div>
+                </button>
+              ))}
+            </div>
+          </Section>
+
+          {/* Step 3 – Exterior colors */}
+          <Section title="Exterior" subtitle="Tap a color to preview instantly">
+            <div className="flex flex-wrap gap-3">
+              {EXTERIOR_IMAGES.map((c) => (
+                <ColorSwatch
+                  key={c.name}
+                  color={c.swatch}
+                  label={c.name}
+                  active={config.exteriorColor === c.name}
+                  onClick={() => setColor(c.name)}
+                />
+              ))}
+            </div>
+          </Section>
+
+          {/* Step 4 – Interior */}
+          <Section title="Interior" subtitle="Choose your cabin finish">
+            <div className="grid grid-cols-3 gap-3">
+              {INTERIORS.map((i) => (
+                <button
+                  key={i.name}
+                  onClick={() => setInterior(i.name)}
+                  className={`rounded-2xl border p-3 transition group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+                  }`}
+                >
+                  <div className="h-16 w-full rounded-xl" style={{ background: i.sample }} />
+                  <div className="mt-2 text-sm font-semibold leading-tight">{i.name}</div>
+                </button>
+              ))}
+            </div>
+          </Section>
+
+          {/* Accessories */}
+          <Section title="Accessories" subtitle="Personalize your drive">
+            <div className="flex flex-wrap gap-2">
+              {ACCESSORIES.map((a) => {
+                const Icon = a.icon;
+                const on = config.accessories.includes(a.name);
+                return (
+                  <button
+                    key={a.name}
+                    onClick={() => toggleAccessory(a.name)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      on ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+                    }`}
+                    aria-pressed={on}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {a.name}
+                    {on && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
+          </Section>
+        </div>
+
+        {/* Summary Footer */}
+        <div className="border-t border-border/10 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xl font-black">AED {calculateTotalPrice().toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">Estimated total · Taxes extra</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">
+                Back
+              </button>
+              <button
+                onClick={goNext}
+                className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 transition"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* UI bits */
+const Section: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
+  <section className="px-6 py-5 border-b border-border/10">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <h3 className="text-base font-bold leading-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      </div>
+      <Info className="h-4 w-4 text-muted-foreground/70" />
+    </div>
+    <div className="mt-4">{children}</div>
+  </section>
+);
 
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
-<div className="flex items-center gap-2">
-{Array.from({ length: total }).map((_, i) => (
-<div
-key={i}
-className={`h-2 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`}
-/>
-))}
-</div>
+  <div className="flex items-center gap-2">
+    {Array.from({ length: total }).map((_, i) => (
+      <div key={i} className={`h-2 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`} />
+    ))}
+  </div>
 );
 
-
-const SelectableCard: React.FC<{
-selected?: boolean;
-onClick?: () => void;
-image: string;
-label: string;
-caption?: string;
-}> = ({ selected, onClick, image, label, caption }) => (
-<button
-onClick={onClick}
-className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
-${selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}
->
-<div className="aspect-[16/10] w-full overflow-hidden">
-<motion.img
-src={image}
-alt={label}
-className="w-full h-full object-cover"
-initial={{ scale: 1.04 }}
-whileHover={{ scale: 1.08 }}
-transition={{ type: "spring", stiffness: 180, damping: 16 }}
-loading="lazy"
-decoding="async"
-/>
-</div>
-<div className="p-3">
-<div className="text-sm font-semibold leading-tight flex items-center gap-2">
-{label}
-{selected && <CheckCircle2 className="h-4 w-4 text-primary" />}
-</div>
-{caption && <div className="text-xs text-muted-foreground">{caption}</div>}
-</div>
-</button>
+const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image: string; label: string; caption?: string }> = ({
+  selected,
+  onClick,
+  image,
+  label,
+  caption,
+}) => (
+  <button
+    onClick={onClick}
+    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+    }`}
+  >
+    <div className="aspect-[16/10] w-full overflow-hidden">
+      <motion.img
+        src={image}
+        alt={label}
+        className="w-full h-full object-cover"
+        initial={{ scale: 1.04 }}
+        whileHover={{ scale: 1.08 }}
+        transition={{ type: "spring", stiffness: 180, damping: 16 }}
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <div className="p-3">
+      <div className="text-sm font-semibold leading-tight flex items-center gap-2">
+        {label}
+        {selected && <CheckCircle2 className="h-4 w-4 text-primary" />}
+      </div>
+      {caption && <div className="text-xs text-muted-foreground">{caption}</div>}
+    </div>
+  </button>
 );
 
-
-const ColorSwatch: React.FC<{
-color: string;
-label: string;
-active?: boolean;
-onClick?: () => void;
-onHover?: () => void;
-}> = ({ color, label, active, onClick, onHover }) => (
-<button
-onMouseEnter={onHover}
-onClick={onClick}
-className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary
-${active ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"}`}
-aria-label={label}
->
-<span className="absolute inset-0 rounded-full" style={{ background: color }} />
-<span className="sr-only">{label}</span>
-</button>
+const ColorSwatch: React.FC<{ color: string; label: string; active?: boolean; onClick?: () => void }> = ({ color, label, active, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      active ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"
+    }`}
+    aria-label={label}
+  >
+    <span className="absolute inset-0 rounded-full" style={{ background: color }} />
+    <span className="sr-only">{label}</span>
+  </button>
 );
+
+export default DesktopCarBuilder;
