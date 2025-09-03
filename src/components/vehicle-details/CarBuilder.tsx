@@ -59,13 +59,10 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     const gradePricing: Record<string, number> = { Base: 0, SE: 2000, XLE: 4000, Limited: 6000, Platinum: 10000 };
     const exteriorPricing: Record<string, number> = { "Pearl White": 0, "Midnight Black": 500, "Silver Metallic": 300, "Deep Blue": 400, "Ruby Red": 600 };
     const interiorPricing: Record<string, number> = { "Black Leather": 0, "Beige Leather": 800, "Gray Fabric": -500 };
-
-    // Keep names aligned with ACCESSORIES in both builders
     const accessoriesPricing: Record<string, number> = {
       "Premium Sound System": 1200, Sunroof: 800, "Navigation System": 600,
       "Heated Seats": 400, "Backup Camera": 300, "Alloy Wheels": 900,
     };
-
     base += enginePricing[config.engine] ?? 0;
     base += gradePricing[config.grade] ?? 0;
     base += exteriorPricing[config.exteriorColor] ?? 0;
@@ -103,7 +100,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
-  /* ---------- Loading (device info) ---------- */
   if (!isInitialized) {
     const LoadingDialog = isMobile ? MobileDialog : Dialog;
     const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
@@ -129,7 +125,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     );
   }
 
-  /* ---------- Content ---------- */
   const content = (
     <AnimatePresence mode="wait">
       {isMobile ? (
@@ -172,7 +167,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <>
-      {/* Reset dialog */}
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -188,13 +182,12 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Main */}
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, colors, interior, accessories and availability.</DialogDescription>
+              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
             </VisuallyHidden>
             {content}
           </MobileDialogContent>
@@ -204,7 +197,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           <DialogContent className="max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh] p-0 border-0 bg-background overflow-hidden">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, colors, interior, accessories and availability.</DialogDescription>
+              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
             </VisuallyHidden>
             {content}
           </DialogContent>

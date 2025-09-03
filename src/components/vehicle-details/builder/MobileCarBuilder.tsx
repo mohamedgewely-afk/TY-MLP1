@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, X, RotateCcw, CheckCircle2, LogOut, CircleHelp } from "lucide-react";
+import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as ImageIcon } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
@@ -27,8 +27,8 @@ export interface MobileBuilderConfig {
 
 export interface MobileCarBuilderProps {
   vehicle: VehicleModel;
-  step: number;             // 1: Year+Engine, 2: Grade+Colors+Stock, 3: Confirmation (only if stock ≠ no-stock)
-  totalSteps: number;       // 2 or 3 (parent decides based on stock)
+  step: number;
+  totalSteps: number;
   config: MobileBuilderConfig;
   setConfig: React.Dispatch<React.SetStateAction<MobileBuilderConfig>>;
   showConfirmation: boolean;
@@ -60,7 +60,6 @@ const INTERIORS = [
   { name: "Gray Fabric", img: "" },
 ];
 
-// Accessories
 const ACCESSORIES = [
   { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin." },
   { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide." },
@@ -138,24 +137,23 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoItem, setInfoItem] = useState<(typeof ACCESSORIES)[number] | null>(null);
+  const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
 
   useEffect(() => {
     [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true });
   }, []);
 
-  const activeImg = useMemo(() => {
+  const exteriorObj = useMemo(() => {
     const f = COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0];
-    return f.image;
+    return f;
   }, [config.exteriorColor]);
 
+  const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
+
   useEffect(() => {
-    COLORS.forEach((c) => {
-      const img = new Image();
-      img.src = c.image;
-      img.decoding = "async";
-      (img as any).loading = "eager";
-    });
+    COLORS.forEach((c) => { const img = new Image(); img.src = c.image; });
+    INTERIORS.filter(i => i.img).forEach(({ img }) => { const im = new Image(); im.src = img!; });
   }, []);
 
   // ---- setters (keep stock synced) ----
@@ -186,6 +184,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const setInterior = useCallback((i: string) => {
     hapticSelect();
     setConfig((c) => ({ ...c, interiorColor: i, stockStatus: computeStock(c.grade, c.exteriorColor, i) }));
+    setHeroMode("interior");
   }, [setConfig]);
 
   const toggleAccessory = useCallback((name: string) => {
@@ -237,6 +236,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const monthly5 = emi(total, 5);
   const reserve = reserveAmount(config.stockStatus);
 
+  /* Allowed colors list (hide non-allowed) */
+  const visibleExteriorColors = useMemo(() => {
+    if (!config.grade) return [];
+    const allowed = allowedColorsFor(config.grade);
+    return COLORS.filter((c) => allowed.includes(c.name));
+  }, [config.grade]);
+
   return (
     <motion.div
       className="relative w-full min-h-screen flex flex-col bg-gradient-to-b from-background via-muted/10 to-background"
@@ -246,13 +252,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="flex items-center gap-1.5">
-          <button
-            ref={step > 1 ? backRef : closeRef}
-            onClick={() => (step > 1 ? goBack() : onClose())}
-            className="rounded-xl border p-2.5"
-            aria-label={step > 1 ? "Back" : "Close"}
-            type="button"
-          >
+          <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="rounded-xl border p-2.5" aria-label={step > 1 ? "Back" : "Close"} type="button">
             {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </button>
           <button ref={resetRef} onClick={onReset} className="rounded-xl border p-2.5" aria-label="Reset" type="button">
@@ -260,33 +260,43 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </button>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold leading-none">
-            Build Your <span className="text-primary">{vehicle.name}</span>
-          </div>
-          <div className="text-[10px] text-muted-foreground mt-1">
-            {step}/{totalSteps}
-          </div>
+          <div className="text-sm font-bold leading-none">Build Your <span className="text-primary">{vehicle.name}</span></div>
+          <div className="text-[10px] text-muted-foreground mt-1">{step}/{totalSteps}</div>
         </div>
         <button ref={exitRef} onClick={onClose} className="rounded-xl border p-2.5" aria-label="Exit" type="button">
           <LogOut className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Hero (bigger, nothing overlaying) */}
-      <div className="relative w-full h-64 md:h-72 border-b border-border/10 bg-background">
+      {/* Mode toggle */}
+      <div className="px-3 pt-2">
+        <div className="inline-flex border rounded-full bg-background/90 backdrop-blur p-1">
+          {(["exterior","interior"] as const).map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setHeroMode(m)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border ${heroMode===m ? "bg-primary text-primary-foreground border-primary" : "border-transparent"}`}
+            >
+              {m === "exterior" ? "Exterior" : "Interior"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero (dynamic by mode; height responsive so footer is always visible) */}
+      <div className="relative w-full h-60 md:h-72 border-b border-border/10 bg-background">
         <motion.img
-          key={activeImg + "-" + config.grade + "-" + config.modelYear}
-          src={activeImg}
-          alt={config.exteriorColor + " " + vehicle.name}
+          key={`${heroMode}-${exteriorObj.image}-${interiorObj?.img ?? "no-int"}`}
+          src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
+          alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
           className="absolute inset-0 w-full h-full object-contain"
-          initial={{ opacity: 0, scale: 1.04 }}
+          initial={{ opacity: 0, scale: 1.0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 240, damping: 24 }}
           decoding="async"
           loading="eager"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-          }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
         />
       </div>
 
@@ -295,17 +305,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         <div className="px-3 py-2 rounded-2xl border border-border/10 bg-background/90">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-xs font-bold truncate">
-                {config.modelYear} {vehicle.name}
-              </div>
+              <div className="text-xs font-bold truncate">{config.modelYear} {vehicle.name}</div>
               <div className="text-[11px] text-muted-foreground truncate">
                 {(config.grade || "Select Grade") + " · " + (config.engine || "Choose Engine")}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-black text-primary leading-none">
-                AED {total.toLocaleString()}
-              </div>
+              <div className="text-sm font-black text-primary leading-none">AED {total.toLocaleString()}</div>
               <div className="text-[10px] text-muted-foreground">Est. total</div>
             </div>
           </div>
@@ -321,33 +327,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               <div className="text-sm font-semibold mb-2">Model Year</div>
               <div className="flex items-center gap-2">
                 {YEARS.map((y) => (
-                  <button
-                    key={y}
-                    onClick={() => setYear(y)}
-                    className={
-                      "rounded-full border px-3 py-1.5 text-xs " +
-                      (config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/60")
-                    }
-                    type="button"
-                  >
+                  <button key={y} onClick={() => setYear(y)} className={"rounded-full border px-3 py-1.5 text-xs " + (config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
                     {y}
                   </button>
                 ))}
               </div>
             </div>
+
             <div>
               <div className="text-sm font-semibold mb-2">Engine</div>
               <div className="flex items-center gap-2">
                 {ENGINES.map((e) => (
-                  <button
-                    key={e}
-                    onClick={() => setEngine(e)}
-                    className={
-                      "rounded-full border px-3 py-1.5 text-xs " +
-                      (config.engine === e ? "border-primary/60 bg-primary/5" : "border-border/60")
-                    }
-                    type="button"
-                  >
+                  <button key={e} onClick={() => setEngine(e)} className={"rounded-full border px-3 py-1.5 text-xs " + (config.engine === e ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
                     {e}
                   </button>
                 ))}
@@ -362,22 +353,17 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </>
         )}
 
-        {/* Step 2: Progressive Grade → Exterior → Interior → Accessories → Stock */}
+        {/* Step 2: Progressive Grade → Exterior (filtered) → Interior → Accessories → Stock */}
         {step === 2 && (
           <>
-            {/* Grade (with static images) */}
+            {/* Grade (static images) */}
             <div>
               <div className="text-sm font-semibold mb-2">Grade</div>
               <div className="grid grid-cols-2 gap-2">
                 {GRADES.map((g) => {
                   const active = config.grade === g;
                   return (
-                    <button
-                      key={g}
-                      onClick={() => setGrade(g)}
-                      type="button"
-                      className={"rounded-xl border text-left " + (active ? "border-primary/60 bg-primary/5" : "border-border/60")}
-                    >
+                    <button key={g} onClick={() => setGrade(g)} type="button" className={"rounded-xl border text-left " + (active ? "border-primary/60 bg-primary/5" : "border-border/60")}>
                       <div className="aspect-[16/10] w-full rounded-t-xl overflow-hidden bg-muted">
                         <img src={GRADE_IMAGES[g]} alt={g} className="w-full h-full object-cover" loading="lazy" />
                       </div>
@@ -391,28 +377,22 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
 
-            {/* Exterior */}
-            {config.grade ? (
-              <div>
-                <div className="text-sm font-semibold mb-2">Exterior Colors</div>
+            {/* Exterior (only allowed colors shown) */}
+            <div>
+              <div className="text-sm font-semibold mb-2">Exterior Colors</div>
+              {!config.grade ? (
+                <div className="text-xs text-muted-foreground">Select a grade to view colors.</div>
+              ) : (
                 <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                  {COLORS.map((c) => {
-                    const allowed = allowedColorsFor(config.grade);
-                    const isAllowed = allowed.includes(c.name);
+                  {visibleExteriorColors.map((c) => {
                     const isActive = config.exteriorColor === c.name;
                     return (
                       <button
                         key={c.name}
-                        onClick={() => isAllowed && setColor(c.name)}
-                        disabled={!isAllowed}
-                        className={
-                          "shrink-0 w-11 h-11 rounded-full border relative " +
-                          (isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60") +
-                          (!isAllowed ? " opacity-40 cursor-not-allowed" : "")
-                        }
+                        onClick={() => setColor(c.name)}
+                        className={"shrink-0 w-11 h-11 rounded-full border relative " + (isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60")}
                         aria-label={c.name}
-                        aria-disabled={!isAllowed}
-                        title={!isAllowed ? `Not available for ${config.grade}` : c.name}
+                        title={c.name}
                         type="button"
                       >
                         <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
@@ -421,8 +401,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                     );
                   })}
                 </div>
-              </div>
-            ) : null}
+              )}
+            </div>
 
             {/* Interior */}
             {config.grade && config.exteriorColor ? (
@@ -430,14 +410,9 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 <div className="text-sm font-semibold mb-2">Interior</div>
                 <div className="grid grid-cols-3 gap-2">
                   {INTERIORS.map((i) => (
-                    <button
-                      key={i.name}
-                      onClick={() => setInterior(i.name)}
-                      className={"rounded-xl border p-2 " + (config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/60")}
-                      type="button"
-                    >
+                    <button key={i.name} onClick={() => setInterior(i.name)} className={"rounded-xl border p-2 " + (config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
                       <div className="h-16 rounded-lg overflow-hidden bg-muted">
-                        {i.img ? <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600" />}
+                        {i.img ? <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-5 h-5" /></div>}
                       </div>
                       <div className="mt-1 text-[11px] font-medium">{i.name}</div>
                     </button>
@@ -482,15 +457,33 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </>
         )}
 
-        {/* Step 3: Confirmation */}
+        {/* Step 3: Confirmation with images */}
         {step === 3 && (
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* Previews */}
+            <div className="grid grid-cols-1 gap-3">
+              <div className="rounded-2xl border overflow-hidden">
+                <div className="aspect-[16/9] bg-muted">
+                  <img src={exteriorObj.image} alt={config.exteriorColor} className="w-full h-full object-contain" />
+                </div>
+                <div className="px-3 py-2 text-sm font-semibold">Exterior: {config.exteriorColor}</div>
+              </div>
+              <div className="rounded-2xl border overflow-hidden">
+                <div className="aspect-[16/9] bg-muted">
+                  {interiorObj?.img ? (
+                    <img src={interiorObj.img} alt={config.interiorColor} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-6 h-6" /></div>
+                  )}
+                </div>
+                <div className="px-3 py-2 text-sm font-semibold">Interior: {config.interiorColor}</div>
+              </div>
+            </div>
+
             {[
               ["Year", config.modelYear],
               ["Engine", config.engine],
               ["Grade", config.grade],
-              ["Exterior", config.exteriorColor],
-              ["Interior", config.interiorColor],
               ["Accessories", config.accessories.length ? config.accessories.join(", ") : "None"],
               [
                 "Availability",
@@ -506,6 +499,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                 <span className="text-sm font-semibold">{value as string}</span>
               </div>
             ))}
+
             <div className="text-[12px] text-muted-foreground pt-1">
               Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo (20% down, 3.49% APR)
             </div>
@@ -522,25 +516,25 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={goBack} className="rounded-xl border px-3 py-2 text-sm">Back</button>
-            <button
-              type="button"
-              onClick={onContinue}
-              disabled={disablePrimary}
-              className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-50"
-            >
+            <button type="button" onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-50">
               {primaryText}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Accessory info dialog */}
+      {/* Accessory info dialog (uses current exterior as hero image) */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{infoItem?.name}</DialogTitle>
             <DialogDescription>Details & specifications</DialogDescription>
           </DialogHeader>
+          <div className="rounded-xl overflow-hidden border mb-3">
+            <div className="aspect-[16/9] bg-muted">
+              <img src={exteriorObj.image} alt="Accessory visual" className="w-full h-full object-cover" />
+            </div>
+          </div>
           <div className="text-sm">{infoItem?.desc}</div>
           <div className="text-sm font-semibold mt-2">Price: AED {infoItem ? infoItem.price.toLocaleString() : 0}</div>
         </DialogContent>
@@ -559,7 +553,7 @@ const StockBadge: React.FC<{ status: StockStatus }> = ({ status }) => {
       ? " border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10"
       : " border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10";
   const label = status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline stock" : "Available";
-  return <span className={base + cls}>{label}</span>;
+  return <span className={base + " " + cls}>{label}</span>;
 };
 
 const FinancePill: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
