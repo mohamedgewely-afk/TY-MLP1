@@ -1,11 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, X, RotateCcw, CheckCircle2, Info, CircleHelp, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, X, RotateCcw, CheckCircle2, Info } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-/* ---------- Types ---------- */
 export type StockStatus = "no-stock" | "pipeline" | "available";
 
 export interface BuilderConfig {
@@ -20,8 +18,8 @@ export interface BuilderConfig {
 
 export interface DesktopCarBuilderProps {
   vehicle: VehicleModel;
-  step: number;
-  totalSteps: number;
+  step: number;                // 1 or 2 or 3 (3 only if stock ≠ no-stock)
+  totalSteps: number;          // 2 when no-stock, 3 otherwise (parent passes)
   config: BuilderConfig;
   setConfig: React.Dispatch<React.SetStateAction<BuilderConfig>>;
   showConfirmation: boolean;
@@ -34,7 +32,7 @@ export interface DesktopCarBuilderProps {
   variant?: "desktop" | "tablet";
 }
 
-/* ---------- Static Data ---------- */
+/* Data */
 const YEARS = ["2024", "2025", "2026"];
 const ENGINES = [
   { name: "3.5L V6", tag: "Gasoline" },
@@ -48,33 +46,20 @@ const GRADES = [
   { name: "Limited", badge: "Premium" },
   { name: "Platinum", badge: "Top of the Line" },
 ];
-
-const EXTERIOR_IMAGES = [
+const EXTERIOR_IMAGES: { name: string; image: string; swatch: string }[] = [
   { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#f5f5f5" },
   { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#101010" },
   { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", swatch: "#c7c9cc" },
   { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#0c3c74" },
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#8a1111" },
 ];
-
-// Interior images (provided)
 const INTERIORS = [
-  { name: "Black Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/4046322b-9927-490d-b88a-3c18e7b590f3/renditions/c1fbcc4b-eac8-4440-af33-866cf99a0c93?binary=true" },
-  { name: "Beige Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/09d2d87f-cf9c-45ca-babb-53d872f8858e/renditions/9fc0d676-3a74-4b78-b56d-aff36dc710c1?binary=true" },
-  { name: "Gray Fabric", img: "" }, // fallback
+  { name: "Black Leather", sample: "linear-gradient(135deg,#121212,#1e1e1e)" },
+  { name: "Beige Leather", sample: "linear-gradient(135deg,#e7dcc7,#d5c5a8)" },
+  { name: "Gray Fabric", sample: "linear-gradient(135deg,#9aa0a6,#7e848a)" },
 ];
 
-// Accessories with optional images (fallback to exterior when empty)
-const ACCESSORIES = [
-  { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin.", image: "" },
-  { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide.", image: "" },
-  { name: "Navigation System", price: 600, desc: "Built-in maps, voice guidance, live traffic.", image: "" },
-  { name: "Heated Seats", price: 400, desc: "Front-row seat heating with 3 levels.", image: "" },
-  { name: "Backup Camera", price: 300, desc: "Wide-angle rear camera with dynamic guidelines.", image: "" },
-  { name: "Alloy Wheels", price: 900, desc: "Lightweight alloy wheels for style and handling.", image: "" },
-] as const;
-
-// grade → available colors (strict)
+/** Grade-specific allowed colors (inventory simulation) */
 const GRADE_COLOR_MAP: Record<string, string[]> = {
   Base: ["Pearl White", "Silver Metallic"],
   SE: ["Pearl White", "Midnight Black", "Silver Metallic"],
@@ -85,30 +70,7 @@ const GRADE_COLOR_MAP: Record<string, string[]> = {
 const allowedColorsFor = (grade: string) =>
   GRADE_COLOR_MAP[grade] ?? EXTERIOR_IMAGES.map((c) => c.name);
 
-// static grade images (don’t depend on current color)
-const GRADE_IMAGES: Record<string, string> = {
-  Base: EXTERIOR_IMAGES[0].image,
-  SE: EXTERIOR_IMAGES[1].image,
-  XLE: EXTERIOR_IMAGES[2].image,
-  Limited: EXTERIOR_IMAGES[3].image,
-  Platinum: EXTERIOR_IMAGES[4].image,
-};
-
-const spring = { type: "spring", stiffness: 300, damping: 28, mass: 1 } as const;
-
-/* Finance */
-const APR = 0.0349;
-const DOWN_PCT = 0.2;
-const reserveAmount = (status: StockStatus) => (status === "available" ? 2000 : 5000);
-const emi = (price: number, years: number) => {
-  const down = price * DOWN_PCT;
-  const principal = Math.max(price - down, 0);
-  const r = APR / 12;
-  const n = years * 12;
-  if (principal <= 0) return 0;
-  const m = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-  return Math.round(m);
-};
+const spring = { type: "spring", stiffness: 320, damping: 32, mass: 1.05 } as const;
 
 /* Haptic compat */
 const hapticSelect = () => {
@@ -116,16 +78,15 @@ const hapticSelect = () => {
   else if (typeof contextualHaptic.buttonPress === "function") contextualHaptic.buttonPress();
 };
 
-/* Stock evaluator */
+/* Stock evaluator (grade-color aware) */
 const computeStock = (grade: string, exterior: string, interior: string): StockStatus => {
   if (!grade || !exterior || !interior) return "pipeline";
-  if (!allowedColorsFor(grade).includes(exterior)) return "no-stock";
+  const allowed = allowedColorsFor(grade);
+  if (!allowed.includes(exterior)) return "no-stock";
   if (grade === "Platinum" && exterior === "Ruby Red" && interior === "Beige Leather") return "no-stock";
   if (exterior === "Deep Blue" || interior === "Gray Fabric") return "pipeline";
   return "available";
 };
-
-type SubStage = "grade" | "exterior" | "interior" | "accessories";
 
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   vehicle, step, totalSteps, config, setConfig,
@@ -136,39 +97,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const closeRef = useRef<HTMLButtonElement>(null);
   const resetRef = useRef<HTMLButtonElement>(null);
 
-  const [infoOpen, setInfoOpen] = useState(false);
-  const [infoItem, setInfoItem] = useState<typeof ACCESSORIES[number] | null>(null);
-
-  // What section the user interacted with last (drives hero)
-  const [subStage, setSubStage] = useState<SubStage>("exterior");
-
   useEffect(() => {
     [backRef, closeRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true, onHover: true }));
-    if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true }));
+    if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true 
   }, []);
 
-  // Reset subStage when step changes
-  useEffect(() => {
-    if (step === 1) setSubStage("exterior");
-    if (step === 2) setSubStage(config.interiorColor ? "accessories" : (config.grade ? "exterior" : "grade"));
-    if (step === 3) setSubStage("exterior");
-  }, [step, config.interiorColor, config.grade]);
-
-  const exteriorObj = useMemo(
+  const colorObj = useMemo(
     () => EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0],
     [config.exteriorColor]
   );
-  const interiorObj = useMemo(
-    () => INTERIORS.find((i) => i.name === config.interiorColor),
-    [config.interiorColor]
-  );
+  const heroKey = `${colorObj.image}-${config.grade}-${config.modelYear}`;
 
+  // preload
   useEffect(() => {
-    EXTERIOR_IMAGES.forEach(({ image }) => { const i = new Image(); i.src = image; });
-    INTERIORS.filter(i => i.img).forEach(({ img }) => { const im = new Image(); im.src = img!; });
+    EXTERIOR_IMAGES.forEach(({ image }) => { const i = new Image(); i.src = image; i.decoding = "async"; (i as any).loading = "eager"; });
   }, []);
 
-  /* Setters (sync stock + subStage) */
+  /* setters keep stock in sync */
   const setYear = useCallback((y: string) => {
     hapticSelect();
     setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
@@ -181,34 +126,26 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   const setGrade = useCallback((g: string) => {
     hapticSelect();
-    setSubStage("grade");
     setConfig((c) => {
       const allowed = allowedColorsFor(g);
       const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
-      return { ...c, grade: g, exteriorColor: nextExterior, stockStatus: computeStock(g, nextExterior, c.interiorColor) };
+      return {
+        ...c,
+        grade: g,
+        exteriorColor: nextExterior,
+        stockStatus: computeStock(g, nextExterior, c.interiorColor),
+      };
     });
   }, [setConfig]);
 
   const setColor = useCallback((name: string) => {
     hapticSelect();
-    setSubStage("exterior");
     setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
   }, [setConfig]);
 
   const setInterior = useCallback((name: string) => {
     hapticSelect();
-    setSubStage("interior");
     setConfig((c) => ({ ...c, interiorColor: name, stockStatus: computeStock(c.grade, c.exteriorColor, name) }));
-  }, [setConfig]);
-
-  const toggleAccessory = useCallback((name: string) => {
-    hapticSelect();
-    setSubStage("accessories");
-    setConfig((c) => {
-      const exists = c.accessories.includes(name);
-      const accessories = exists ? c.accessories.filter((a) => a !== name) : [...c.accessories, name];
-      return { ...c, accessories };
-    });
   }, [setConfig]);
 
   /* CTA logic */
@@ -219,10 +156,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     if (step === 1) return readyStep1 && goNext();
     if (step === 2) {
       if (!readyStep2) return;
-      if (config.stockStatus === "no-stock") return handlePayment();
-      return goNext();
+      if (config.stockStatus === "no-stock") return handlePayment(); // register interest
+      return goNext(); // go to confirmation
     }
-    if (step === 3) return handlePayment();
+    if (step === 3) return handlePayment(); // reserve/buy
   };
 
   const primaryText =
@@ -230,270 +167,191 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     step === 2 ? (config.stockStatus === "no-stock" ? "Register your interest" : "Continue") :
     config.stockStatus === "pipeline" ? "Reserve now" : "Buy now";
 
-  const disablePrimary = (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
+  const disablePrimary =
+    (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
-  const panel = variant === "tablet" ? { left: "w-[55%]", right: "w-[45%]" } : { left: "w-[55%]", right: "w-[45%]" };
-
-  const total = calculateTotalPrice();
-  const monthly3 = emi(total, 3);
-  const monthly5 = emi(total, 5);
-  const reserve = reserveAmount(config.stockStatus);
-
-  // Visible colors (strict)
-  const visibleExteriorColors = useMemo(() => {
-    if (!config.grade) return [];
-    const allowed = allowedColorsFor(config.grade);
-    return EXTERIOR_IMAGES.filter((c) => allowed.includes(c.name));
-  }, [config.grade]);
-
-  // Decide hero image by subStage (no toggle; context-driven)
-  const heroSrc = useMemo(() => {
-    if (subStage === "grade") {
-      const g = config.grade || "Base";
-      return GRADE_IMAGES[g] || EXTERIOR_IMAGES[0].image;
-    }
-    if (subStage === "interior") {
-      return interiorObj?.img || exteriorObj.image;
-    }
-    // exterior + accessories -> show exterior
-    return exteriorObj.image;
-  }, [subStage, config.grade, exteriorObj.image, interiorObj?.img]);
-
-  const heroKey = `${heroSrc}-${config.grade}-${config.modelYear}-${subStage}`;
+  const panel = variant === "tablet" ? { left: "w-[58%]", right: "w-[42%]" } : { left: "w-[62%]", right: "w-[38%]" };
 
   return (
-    <motion.div className="relative h-full w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      {/* LEFT: Visual theater (contained so right panel CTA is always visible) */}
-      <div className={`${panel.left} h-full min-h-0 relative overflow-hidden bg-muted`}>
+    <motion.div className="relative h-full w-full bg-gradient-to-br from-background via-muted/3 to-background overflow-hidden flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {/* Visual theater */}
+      <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
         <motion.img
           key={heroKey}
-          src={heroSrc}
-          alt={`${vehicle.name} preview`}
+          src={colorObj.image}
+          alt={`${config.exteriorColor} ${vehicle.name}`}
           className="w-full h-full object-contain"
-          initial={{ opacity: 0.0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 1.02 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={spring}
           decoding="async"
           loading="eager"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
         />
-      </div>
 
-      {/* RIGHT: Configuration panel */}
-      <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10`}>
+        {/* Info card */}
+        <div className="absolute bottom-8 left-8 right-8 z-20 pointer-events-none">
+          <div className="max-w-2xl rounded-3xl border border-white/10 backdrop-blur-xl p-8 shadow-2xl pointer-events-auto"
+               style={{ background: "linear-gradient(135deg, hsl(var(--background)/0.94) 0%, hsl(var(--background)/0.86) 100%)" }}>
+            <div className="flex items-start justify-between gap-6">
+              <div className="min-w-0">
+                <h2 className="text-4xl font-black tracking-tight truncate">{config.modelYear} {vehicle.name}</h2>
+                <p className="mt-2 text-muted-foreground font-medium truncate">
+                  {(config.grade || "Select Grade")} · {(config.engine || "Choose Engine")} · {config.exteriorColor} Exterior
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-black text-primary leading-none">AED {calculateTotalPrice().toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Estimated total</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Header controls */}
-        <div className="flex items-center justify-between p-4 border-b border-border/10 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 z-10">
-          <div className="flex items-center gap-2">
-            <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="p-3 rounded-xl border hover:bg-muted" aria-label={step > 1 ? "Back" : "Close"} type="button">
-              {step > 1 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+        <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-8 backdrop-blur-xl border-b border-border/10" style={{ background: "linear-gradient(180deg,hsl(var(--background)/0.98),hsl(var(--background)/0.86))" }}>
+          <div className="flex items-center gap-3">
+            <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-primary/50 transition shadow-lg" aria-label={step > 1 ? "Back" : "Close"}>
+              {step > 1 ? <ArrowLeft className="h-6 w-6" /> : <X className="h-6 w-6" />}
             </button>
-            <button ref={resetRef} onClick={onReset} className="p-3 rounded-xl border hover:bg-muted" aria-label="Reset" type="button">
-              <RotateCcw className="h-5 w-5" />
+            <button ref={resetRef} onClick={onReset} className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-destructive/50 transition shadow-lg" aria-label="Reset">
+              <RotateCcw className="h-6 w-6" />
             </button>
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
-            <div className="text-[11px] text-muted-foreground mt-0.5"><StepDots current={step} total={totalSteps} /></div>
+            <h1 className="text-3xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+            <p className="text-xs text-muted-foreground mt-1">Crafted with Toyota precision.</p>
           </div>
-          <div className="w-24" />
+          <div className="w-32" />
+        </div>
+      </div>
+
+      {/* Right configuration panel */}
+      <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10 bg-gradient-to-b from-background/98 to-background`}>
+        <div className="p-6 border-b border-border/10">
+          <StepDots current={step} total={totalSteps} />
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
-          {/* STEP 1 */}
+          {/* STEP 1: Year + Engine */}
           {step === 1 && (
-            <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin">
-              <CompactSegmented label="Model Year" options={YEARS} value={config.modelYear} onChange={setYear} />
-              <div className="mt-4" />
-              <CompactSegmented label="Engine" options={ENGINES.map((e) => e.name)} value={config.engine} onChange={setEngine} meta={(o) => ENGINES.find((e) => e.name === o)?.tag} />
-              {/* Finance quick view */}
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} />
-                <FinanceCard label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR · up to 5y" />
-              </div>
-            </Section>
-          )}
-
-          {/* STEP 2: Progressive */}
-          {step === 2 && (
             <>
-              {/* Grade */}
-              <Section title="Grade" subtitle="Select trim level">
-                <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-                  {GRADES.map((g) => (
-                    <SelectableCard
-                      key={g.name}
-                      selected={config.grade === g.name}
-                      onClick={() => setGrade(g.name)}
-                      image={GRADE_IMAGES[g.name]}
-                      label={g.name}
-                      caption={g.badge}
-                    />
+              <Section title="Model Year" subtitle="Choose your preferred year">
+                <div className="grid grid-cols-3 gap-3">
+                  {YEARS.map((y) => (
+                    <button key={y} onClick={() => setYear(y)} className={`rounded-2xl border px-4 py-3 font-semibold ${config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>{y}</button>
                   ))}
                 </div>
               </Section>
 
-              {/* Exterior (only when grade chosen) */}
-              <Section title="Exterior" subtitle={config.grade ? "Choose a color available for your grade" : "Select a grade to view colors"}>
-                {!config.grade ? (
-                  <div className="text-xs text-muted-foreground">Choose a grade above.</div>
-                ) : (
-                  <div className="flex flex-wrap gap-3">
-                    {visibleExteriorColors.map((c) => {
-                      const active = config.exteriorColor === c.name;
-                      return (
-                        <button
-                          key={c.name}
-                          onClick={() => setColor(c.name)}
-                          type="button"
-                          className={`relative w-11 h-11 rounded-full border outline-none focus-visible:ring-2 ${active ? "border-primary ring-primary/30" : "border-border/60 hover:border-border"}`}
-                          title={c.name}
-                          aria-label={c.name}
-                        >
-                          <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
-                          <span className="sr-only">{c.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+              <Section title="Powertrain" subtitle="Efficient, capable, or both">
+                <div className="grid grid-cols-3 gap-3">
+                  {ENGINES.map((e) => (
+                    <button key={e.name} onClick={() => setEngine(e.name)} className={`rounded-2xl border px-4 py-3 text-left ${config.engine === e.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>
+                      <div className="text-sm font-semibold">{e.name}</div>
+                      <div className="text-xs text-muted-foreground">{e.tag}</div>
+                    </button>
+                  ))}
+                </div>
               </Section>
-
-              {/* Interior (after exterior) */}
-              {config.grade && config.exteriorColor ? (
-                <Section title="Interior" subtitle="Choose your cabin finish">
-                  <div className="grid grid-cols-3 gap-3">
-                    {INTERIORS.map((i) => (
-                      <button
-                        key={i.name}
-                        onClick={() => setInterior(i.name)}
-                        type="button"
-                        className={`rounded-2xl border p-2 text-left ${config.interiorColor === i.name ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
-                      >
-                        <div className="h-20 w-full rounded-xl overflow-hidden bg-muted">
-                          {i.img ? (
-                            <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
-                          ) : (
-                            <div className="w-full h-full grid place-items-center text-muted-foreground">
-                              <ImageIcon className="w-5 h-5" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-2 text-sm font-semibold">{i.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </Section>
-              ) : null}
-
-              {/* Accessories (after interior) */}
-              {config.grade && config.exteriorColor && config.interiorColor ? (
-                <>
-                  <Section title="Accessories" subtitle="Personalize your ride">
-                    <div className="grid grid-cols-2 gap-3">
-                      {ACCESSORIES.map((a) => {
-                        const selected = config.accessories.includes(a.name);
-                        return (
-                          <div key={a.name} className={`rounded-xl border p-3 flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border/60"}`}>
-                            <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
-                              {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                            </button>
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold truncate">{a.name}</div>
-                              <div className="text-xs text-muted-foreground">AED {a.price.toLocaleString()}</div>
-                              <button
-                                type="button"
-                                onClick={() => { setInfoItem(a); setInfoOpen(true); }}
-                                className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                              >
-                                <CircleHelp className="w-3 h-3" /> Learn more
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Section>
-
-                  <Section title="Stock" subtitle="Availability depends on color and interior">
-                    <StockPill status={config.stockStatus} />
-                  </Section>
-                </>
-              ) : null}
             </>
           )}
 
-          {/* STEP 3: Confirmation with images */}
+          {/* STEP 2: Grade + Colors + Stock */}
+          {step === 2 && (
+            <>
+              <Section title="Grade" subtitle="Select trim level">
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                  {GRADES.map((g) => (
+                    <SelectableCard key={g.name} selected={config.grade === g.name} onClick={() => setGrade(g.name)} image={colorObj.image} label={g.name} caption={g.badge} />
+                  ))}
+                </div>
+              </Section>
+
+              <Section title="Exterior" subtitle="Tap a color to preview instantly">
+                <div className="flex flex-wrap gap-3">
+                  {EXTERIOR_IMAGES.map((c) => {
+                    const allowed = allowedColorsFor(config.grade);
+                    const isAllowed = !config.grade || allowed.includes(c.name);
+                    const isActive = config.exteriorColor === c.name;
+                    return (
+                      <button
+                        key={c.name}
+                        onClick={() => isAllowed && setColor(c.name)}
+                        disabled={!isAllowed}
+                        className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary
+                          ${isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"}
+                          ${!isAllowed ? "opacity-40 cursor-not-allowed" : ""}`}
+                        aria-label={c.name}
+                        aria-disabled={!isAllowed}
+                        title={!isAllowed ? `Not available for ${config.grade || "this grade"}` : c.name}
+                      >
+                        <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
+                        <span className="sr-only">{c.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+
+              <Section title="Interior" subtitle="Choose your cabin finish">
+                <div className="grid grid-cols-3 gap-3">
+                  {INTERIORS.map((i) => (
+                    <button key={i.name} onClick={() => setInterior(i.name)} className={`rounded-2xl border p-3 ${config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>
+                      <div className="h-16 w-full rounded-xl" style={{ background: i.sample }} />
+                      <div className="mt-2 text-sm font-semibold">{i.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </Section>
+
+              <Section title="Stock" subtitle="Availability depends on color and interior">
+                <StockPill status={config.stockStatus} />
+                {config.grade && !allowedColorsFor(config.grade).includes(config.exteriorColor) && (
+                  <p className="text-xs text-amber-600 dark:text-amber-300 mt-2">
+                    Selected exterior isn’t available for {config.grade}. Please choose a different color.
+                  </p>
+                )}
+              </Section>
+            </>
+          )}
+
+          {/* STEP 3: Confirmation (only if stock ≠ no-stock) */}
           {step === 3 && (
             <Section title="Confirm your configuration" subtitle="Review and place your order">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Exterior preview */}
-                <PreviewCard label={`Exterior: ${config.exteriorColor}`} img={exteriorObj.image} mode="contain" />
-                {/* Interior preview */}
-                <PreviewCard label={`Interior: ${config.interiorColor}`} img={interiorObj?.img || ""} mode="cover" />
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 mt-4">
+              <div className="grid grid-cols-1 gap-4">
                 <SummaryRow label="Year" value={config.modelYear} />
                 <SummaryRow label="Engine" value={config.engine} />
                 <SummaryRow label="Grade" value={config.grade} />
-                <SummaryRow label="Accessories" value={(config.accessories.length ? config.accessories.join(", ") : "None")} />
+                <SummaryRow label="Exterior" value={config.exteriorColor} />
+                <SummaryRow label="Interior" value={config.interiorColor} />
                 <SummaryRow label="Availability" value={<StockPill status={config.stockStatus} compact />} />
-              </div>
-
-              <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                <div>Total: <span className="font-semibold text-foreground">AED {total.toLocaleString()}</span></div>
-                <div>Reserve: <span className="font-semibold text-foreground">AED {reserve.toLocaleString()}</span></div>
-                <div>EMI from: <span className="font-semibold text-foreground">AED {Math.min(monthly3, monthly5).toLocaleString()}/mo</span> <span className="text-xs">(20% down, 3.49% APR)</span></div>
+                <div className="mt-2 text-sm text-muted-foreground">Total: <span className="font-semibold text-foreground">AED {calculateTotalPrice().toLocaleString()}</span></div>
               </div>
             </Section>
           )}
         </div>
 
-        {/* Sticky footer CTA (always visible) */}
-        <div className="border-t border-border/10 p-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 z-10">
+        <div className="border-t border-border/10 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xl font-black">AED {total.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">
-                Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
-              </div>
+              <div className="text-xl font-black">AED {calculateTotalPrice().toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">Estimated total · Taxes extra</div>
             </div>
             <div className="flex items-center gap-3">
-              <button type="button" onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">Back</button>
-              <button type="button" onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition">
+              <button onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">Back</button>
+              <button onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition">
                 {primaryText}
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Accessory info dialog (uses accessory image or exterior fallback) */}
-      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{infoItem?.name}</DialogTitle>
-            <DialogDescription>Details & specifications</DialogDescription>
-          </DialogHeader>
-          <div className="rounded-xl overflow-hidden border mb-3">
-            <div className="aspect-[16/9] bg-muted">
-              <img
-                src={infoItem?.image || exteriorObj.image}
-                alt="Accessory visual"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <div className="text-sm">{infoItem?.desc}</div>
-          <div className="text-sm font-semibold mt-2">Price: AED {infoItem ? infoItem.price.toLocaleString() : 0}</div>
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 };
 
-/* ---------- UI bits ---------- */
+/* UI bits */
 const Section: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
   <section className="px-6 py-5 border-b border-border/10">
     <div className="flex items-start justify-between gap-3">
@@ -507,44 +365,10 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
   </section>
 );
 
-const CompactSegmented: React.FC<{
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-  meta?: (opt: string) => string | undefined;
-}> = ({ label, options, value, onChange, meta }) => (
-  <div>
-    <div className="text-xs font-semibold mb-2">{label}</div>
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={`rounded-full border px-3 py-1.5 text-sm ${value === opt ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}
-          aria-pressed={value === opt}
-        >
-          <span className="font-medium">{opt}</span>
-          {meta?.(opt) && <span className="ml-2 text-xs text-muted-foreground">{meta(opt)}</span>}
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
-const FinanceCard: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl border border-border/60 p-3">
-    <div className="text-[11px] text-muted-foreground">{label}</div>
-    <div className="text-lg font-bold">{value}</div>
-    {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
-  </div>
-);
-
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
-  <div className="flex items-center gap-1.5">
+  <div className="flex items-center gap-2">
     {Array.from({ length: total }).map((_, i) => (
-      <div key={i} className={`h-1.5 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`} />
+      <div key={i} className={`h-2 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`} />
     ))}
   </div>
 );
@@ -554,10 +378,12 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
 }) => (
   <button
     onClick={onClick}
+    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+    }`}
     type="button"
-    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}
   >
-    <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
+    <div className="aspect-[16/10] w-full overflow-hidden">
       <motion.img src={image} alt={label} className="w-full h-full object-cover" initial={{ scale: 1.04 }} whileHover={{ scale: 1.08 }} transition={{ type: "spring", stiffness: 180, damping: 16 }} loading="lazy" decoding="async" />
     </div>
     <div className="p-3">
@@ -584,19 +410,6 @@ const SummaryRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label
   <div className="flex items-center justify-between border rounded-xl px-3 py-2">
     <span className="text-sm text-muted-foreground">{label}</span>
     <span className="text-sm font-semibold">{value}</span>
-  </div>
-);
-
-const PreviewCard: React.FC<{ label: string; img: string; mode: "cover" | "contain" }> = ({ label, img, mode }) => (
-  <div className="rounded-2xl border overflow-hidden">
-    <div className="aspect-[16/9] bg-muted">
-      {img ? (
-        <img src={img} alt={label} className={`w-full h-full object-${mode}`} />
-      ) : (
-        <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-6 h-6" /></div>
-      )}
-    </div>
-    <div className="px-3 py-2 text-sm font-semibold">{label}</div>
   </div>
 );
 
