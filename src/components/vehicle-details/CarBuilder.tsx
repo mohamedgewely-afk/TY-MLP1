@@ -27,11 +27,12 @@ export interface CarBuilderProps {
 
 const DEFAULT_CONFIG: DesktopBuilderConfig = {
   modelYear: "2025",
-  engine: "3.5L V6",
+  engine: "",
   grade: "",
   exteriorColor: "Pearl White",
   interiorColor: "",
   accessories: [],
+  stockStatus: "pipeline",
 };
 
 const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => {
@@ -67,15 +68,17 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
   }, [config, vehicle.price]);
 
   const handlePayment = useCallback(() => {
-    toast({ title: "Processing Payment...", description: "Please wait while we process your order." });
+    toast({ title: "Processing...", description: "We’re handling your request." });
     setTimeout(() => {
       setShowConfirmation(true);
-      toast({ title: "Order Confirmed!", description: "Your vehicle configuration has been saved and order placed." });
-    }, 1200);
-  }, [toast]);
+      const action =
+        config.stockStatus === "no-stock" ? "interest registered" : config.stockStatus === "pipeline" ? "reservation placed" : "purchase initiated";
+      toast({ title: "Success", description: `Your ${action}.` });
+    }, 800);
+  }, [toast, config.stockStatus]);
 
   const goBack = useCallback(() => setStep((s) => Math.max(1, s - 1)), []);
-  const goNext = useCallback(() => setStep((s) => Math.min(4, s + 1)), []);
+  const goNext = useCallback(() => setStep((s) => Math.min(6, s + 1)), []); // 6 steps: Year, Engine, Grade, Exterior, Interior, Accessories
 
   const handleReset = useCallback(async () => {
     if (isResetting) return;
@@ -91,7 +94,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     }
   }, [isResetting, toast]);
 
-  // Loading gate for device info
   if (!isInitialized) {
     const LoadingDialog = isMobile ? MobileDialog : Dialog;
     const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
@@ -162,9 +164,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reset your vehicle configuration? This will clear all selections and return to step one.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure you want to reset your configuration? This will clear all selections and return to step one.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
@@ -182,7 +182,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Main dialog */}
+      {/* Main Dialog */}
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>
