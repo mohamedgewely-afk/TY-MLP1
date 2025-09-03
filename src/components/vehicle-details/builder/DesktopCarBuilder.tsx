@@ -1,9 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, X, RotateCcw, CheckCircle2, Info } from "lucide-react";
+import { ArrowLeft, X, RotateCcw, CheckCircle2, Info, CircleHelp } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
+/* ---------- Types ---------- */
 export type StockStatus = "no-stock" | "pipeline" | "available";
 
 export interface BuilderConfig {
@@ -32,7 +40,7 @@ export interface DesktopCarBuilderProps {
   variant?: "desktop" | "tablet";
 }
 
-/* Data */
+/* ---------- Data ---------- */
 const YEARS = ["2024", "2025", "2026"];
 const ENGINES = [
   { name: "3.5L V6", tag: "Gasoline" },
@@ -53,13 +61,29 @@ const EXTERIOR_IMAGES: { name: string; image: string; swatch: string }[] = [
   { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#0c3c74" },
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#8a1111" },
 ];
+
+// Interior images (per your URLs)
 const INTERIORS = [
-  { name: "Black Leather", sample: "linear-gradient(135deg,#121212,#1e1e1e)" },
-  { name: "Beige Leather", sample: "linear-gradient(135deg,#e7dcc7,#d5c5a8)" },
-  { name: "Gray Fabric", sample: "linear-gradient(135deg,#9aa0a6,#7e848a)" },
+  { name: "Black Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/4046322b-9927-490d-b88a-3c18e7b590f3/renditions/c1fbcc4b-eac8-4440-af33-866cf99a0c93?binary=true" },
+  { name: "Beige Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/09d2d87f-cf9c-45ca-babb-53d872f8858e/renditions/9fc0d676-3a74-4b78-b56d-aff36dc710c1?binary=true" },
+  { name: "Gray Fabric", img: "" }, // fallback gradient in UI
 ];
 
-/** Grade-specific allowed colors (inventory simulation) */
+// Accessories (names must match pricing in parent calculator)
+const ACCESSORIES = [
+  {
+    name: "Premium Sound System",
+    price: 1200,
+    desc: "Upgraded speakers and amplifier tuned for the cabin. Richer lows, crisp highs.",
+  },
+  { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide." },
+  { name: "Navigation System", price: 600, desc: "Built-in maps, voice guidance, live traffic." },
+  { name: "Heated Seats", price: 400, desc: "Front-row seat heating with 3 levels." },
+  { name: "Backup Camera", price: 300, desc: "Wide-angle rear camera with dynamic guidelines." },
+  { name: "Alloy Wheels", price: 900, desc: "Lightweight alloys for improved style and handling." },
+] as const;
+
+// grade → available colors
 const GRADE_COLOR_MAP: Record<string, string[]> = {
   Base: ["Pearl White", "Silver Metallic"],
   SE: ["Pearl White", "Midnight Black", "Silver Metallic"],
@@ -70,6 +94,15 @@ const GRADE_COLOR_MAP: Record<string, string[]> = {
 const allowedColorsFor = (grade: string) =>
   GRADE_COLOR_MAP[grade] ?? EXTERIOR_IMAGES.map((c) => c.name);
 
+// static images per grade (won’t change with selected exterior)
+const GRADE_IMAGES: Record<string, string> = {
+  Base: EXTERIOR_IMAGES[0].image,
+  SE: EXTERIOR_IMAGES[1].image,
+  XLE: EXTERIOR_IMAGES[2].image,
+  Limited: EXTERIOR_IMAGES[3].image,
+  Platinum: EXTERIOR_IMAGES[4].image,
+};
+
 const spring = { type: "spring", stiffness: 320, damping: 32, mass: 1.05 } as const;
 
 /* Haptic compat */
@@ -78,11 +111,24 @@ const hapticSelect = () => {
   else if (typeof contextualHaptic.buttonPress === "function") contextualHaptic.buttonPress();
 };
 
-/* Stock evaluator (grade-color aware) */
+/* Finance helpers */
+const APR = 0.0349; // 3.49% annual
+const DOWN_PCT = 0.2; // 20%
+const reserveAmount = (status: StockStatus) => (status === "available" ? 2000 : 5000);
+const emi = (price: number, years: number) => {
+  const down = price * DOWN_PCT;
+  const principal = Math.max(price - down, 0);
+  const r = APR / 12;
+  const n = years * 12;
+  if (principal <= 0) return 0;
+  const m = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  return Math.round(m);
+};
+
+/* Simple stock evaluator */
 const computeStock = (grade: string, exterior: string, interior: string): StockStatus => {
-  if (!grade || !exterior || !interior) return "pipeline";
-  const allowed = allowedColorsFor(grade);
-  if (!allowed.includes(exterior)) return "no-stock";
+  if (!grade || !exterior || !interior) return "pipeline"; // incomplete → treat as pipeline
+  if (!allowedColorsFor(grade).includes(exterior)) return "no-stock";
   if (grade === "Platinum" && exterior === "Ruby Red" && interior === "Beige Leather") return "no-stock";
   if (exterior === "Deep Blue" || interior === "Gray Fabric") return "pipeline";
   return "available";
@@ -96,6 +142,10 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const backRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const resetRef = useRef<HTMLButtonElement>(null);
+
+  // Accessories info dialog
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [infoItem, setInfoItem] = useState<typeof ACCESSORIES[number] | null>(null);
 
   useEffect(() => {
     [backRef, closeRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true, onHover: true }));
@@ -129,12 +179,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     setConfig((c) => {
       const allowed = allowedColorsFor(g);
       const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
-      return {
-        ...c,
-        grade: g,
-        exteriorColor: nextExterior,
-        stockStatus: computeStock(g, nextExterior, c.interiorColor),
-      };
+      return { ...c, grade: g, exteriorColor: nextExterior, stockStatus: computeStock(g, nextExterior, c.interiorColor) };
     });
   }, [setConfig]);
 
@@ -146,6 +191,15 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const setInterior = useCallback((name: string) => {
     hapticSelect();
     setConfig((c) => ({ ...c, interiorColor: name, stockStatus: computeStock(c.grade, c.exteriorColor, name) }));
+  }, [setConfig]);
+
+  const toggleAccessory = useCallback((name: string) => {
+    hapticSelect();
+    setConfig((c) => {
+      const exists = c.accessories.includes(name);
+      const accessories = exists ? c.accessories.filter((a) => a !== name) : [...c.accessories, name];
+      return { ...c, accessories };
+    });
   }, [setConfig]);
 
   /* CTA logic */
@@ -172,8 +226,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   const panel = variant === "tablet" ? { left: "w-[58%]", right: "w-[42%]" } : { left: "w-[62%]", right: "w-[38%]" };
 
+  const total = calculateTotalPrice();
+  const monthly3 = emi(total, 3);
+  const monthly5 = emi(total, 5);
+  const reserve = reserveAmount(config.stockStatus);
+
   return (
-    <motion.div className="relative h-full w-full bg-gradient-to-br from-background via-muted/3 to-background overflow-hidden flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="relative h-full w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Visual theater */}
       <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
         <motion.img
@@ -188,165 +247,217 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           loading="eager"
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
         />
-
-        {/* Info card */}
-        <div className="absolute bottom-8 left-8 right-8 z-20 pointer-events-none">
-          <div className="max-w-2xl rounded-3xl border border-white/10 backdrop-blur-xl p-8 shadow-2xl pointer-events-auto"
-               style={{ background: "linear-gradient(135deg, hsl(var(--background)/0.94) 0%, hsl(var(--background)/0.86) 100%)" }}>
-            <div className="flex items-start justify-between gap-6">
-              <div className="min-w-0">
-                <h2 className="text-4xl font-black tracking-tight truncate">{config.modelYear} {vehicle.name}</h2>
-                <p className="mt-2 text-muted-foreground font-medium truncate">
-                  {(config.grade || "Select Grade")} · {(config.engine || "Choose Engine")} · {config.exteriorColor} Exterior
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-black text-primary leading-none">AED {calculateTotalPrice().toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Estimated total</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Header controls */}
-        <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-8 backdrop-blur-xl border-b border-border/10" style={{ background: "linear-gradient(180deg,hsl(var(--background)/0.98),hsl(var(--background)/0.86))" }}>
-          <div className="flex items-center gap-3">
-            <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-primary/50 transition shadow-lg" aria-label={step > 1 ? "Back" : "Close"}>
-              {step > 1 ? <ArrowLeft className="h-6 w-6" /> : <X className="h-6 w-6" />}
-            </button>
-            <button ref={resetRef} onClick={onReset} className="p-4 rounded-2xl bg-background/90 border border-border/30 hover:border-destructive/50 transition shadow-lg" aria-label="Reset">
-              <RotateCcw className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="text-center">
-            <h1 className="text-3xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
-            <p className="text-xs text-muted-foreground mt-1">Crafted with Toyota precision.</p>
-          </div>
-          <div className="w-32" />
-        </div>
       </div>
 
       {/* Right configuration panel */}
       <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10 bg-gradient-to-b from-background/98 to-background`}>
-        <div className="p-6 border-b border-border/10">
-          <StepDots current={step} total={totalSteps} />
+        {/* Header controls */}
+        <div className="flex items-center justify-between p-4 border-b border-border/10">
+          <div className="flex items-center gap-2">
+            <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="p-3 rounded-xl border hover:bg-muted" aria-label={step > 1 ? "Back" : "Close"} type="button">
+              {step > 1 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            </button>
+            <button ref={resetRef} onClick={onReset} className="p-3 rounded-xl border hover:bg-muted" aria-label="Reset" type="button">
+              <RotateCcw className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+            <div className="text-[11px] text-muted-foreground mt-0.5"><StepDots current={step} total={totalSteps} /></div>
+          </div>
+          <div className="w-24" />
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {/* STEP 1: Year + Engine */}
+          {/* STEP 1: Year + Engine + Finance */}
           {step === 1 && (
             <>
-              <Section title="Model Year" subtitle="Choose your preferred year">
-                <div className="grid grid-cols-3 gap-3">
-                  {YEARS.map((y) => (
-                    <button key={y} onClick={() => setYear(y)} className={`rounded-2xl border px-4 py-3 font-semibold ${config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>{y}</button>
-                  ))}
+              <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <div className="text-xs font-semibold mb-2">Model Year</div>
+                    <div className="flex flex-wrap gap-2">
+                      {YEARS.map((y) => (
+                        <button key={y} onClick={() => setYear(y)} type="button" className={`rounded-full border px-3 py-1.5 text-sm ${config.modelYear === y ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}>{y}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold mb-2">Engine</div>
+                    <div className="flex flex-wrap gap-2">
+                      {ENGINES.map((e) => (
+                        <button key={e.name} onClick={() => setEngine(e.name)} type="button" className={`rounded-full border px-3 py-1.5 text-sm ${config.engine === e.name ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}>
+                          <span className="font-medium">{e.name}</span>
+                          <span className="ml-2 text-xs text-muted-foreground">{e.tag}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </Section>
 
-              <Section title="Powertrain" subtitle="Efficient, capable, or both">
-                <div className="grid grid-cols-3 gap-3">
-                  {ENGINES.map((e) => (
-                    <button key={e.name} onClick={() => setEngine(e.name)} className={`rounded-2xl border px-4 py-3 text-left ${config.engine === e.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>
-                      <div className="text-sm font-semibold">{e.name}</div>
-                      <div className="text-xs text-muted-foreground">{e.tag}</div>
-                    </button>
-                  ))}
+                {/* Finance quick view */}
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} />
+                  <FinanceCard label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR · 5y" />
                 </div>
               </Section>
             </>
           )}
 
-          {/* STEP 2: Grade + Colors + Stock */}
+          {/* STEP 2: Progressive Grade → Exterior → Interior → Accessories → Stock */}
           {step === 2 && (
             <>
+              {/* Grade */}
               <Section title="Grade" subtitle="Select trim level">
                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
                   {GRADES.map((g) => (
-                    <SelectableCard key={g.name} selected={config.grade === g.name} onClick={() => setGrade(g.name)} image={colorObj.image} label={g.name} caption={g.badge} />
+                    <SelectableCard
+                      key={g.name}
+                      selected={config.grade === g.name}
+                      onClick={() => setGrade(g.name)}
+                      image={GRADE_IMAGES[g.name]}
+                      label={g.name}
+                      caption={g.badge}
+                    />
                   ))}
                 </div>
               </Section>
 
-              <Section title="Exterior" subtitle="Tap a color to preview instantly">
-                <div className="flex flex-wrap gap-3">
-                  {EXTERIOR_IMAGES.map((c) => {
-                    const allowed = allowedColorsFor(config.grade);
-                    const isAllowed = !config.grade || allowed.includes(c.name);
-                    const isActive = config.exteriorColor === c.name;
-                    return (
-                      <button
-                        key={c.name}
-                        onClick={() => isAllowed && setColor(c.name)}
-                        disabled={!isAllowed}
-                        className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary
-                          ${isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"}
-                          ${!isAllowed ? "opacity-40 cursor-not-allowed" : ""}`}
-                        aria-label={c.name}
-                        aria-disabled={!isAllowed}
-                        title={!isAllowed ? `Not available for ${config.grade || "this grade"}` : c.name}
-                      >
-                        <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
-                        <span className="sr-only">{c.name}</span>
+              {/* Exterior (only after grade) */}
+              {config.grade ? (
+                <Section title="Exterior" subtitle="Tap a color to preview">
+                  <div className="flex flex-wrap gap-3">
+                    {EXTERIOR_IMAGES.map((c) => {
+                      const allowed = allowedColorsFor(config.grade);
+                      const isAllowed = allowed.includes(c.name);
+                      const isActive = config.exteriorColor === c.name;
+                      return (
+                        <button key={c.name} onClick={() => isAllowed && setColor(c.name)} disabled={!isAllowed} type="button"
+                          className={`relative w-11 h-11 rounded-full border outline-none focus-visible:ring-2 ${isActive ? "border-primary ring-primary/30" : "border-border/60 hover:border-border"} ${!isAllowed ? "opacity-40 cursor-not-allowed" : ""}`}
+                          title={!isAllowed ? `Not available for ${config.grade}` : c.name} aria-label={c.name}>
+                          <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
+                          <span className="sr-only">{c.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Section>
+              ) : (
+                <Section title="Exterior" subtitle="Select a grade to view available colors">
+                  <div className="text-xs text-muted-foreground">Choose a grade above.</div>
+                </Section>
+              )}
+
+              {/* Interior (only after exterior) */}
+              {config.grade && config.exteriorColor ? (
+                <Section title="Interior" subtitle="Choose your cabin finish">
+                  <div className="grid grid-cols-3 gap-3">
+                    {INTERIORS.map((i) => (
+                      <button key={i.name} onClick={() => setInterior(i.name)} type="button"
+                        className={`rounded-2xl border p-2 text-left ${config.interiorColor === i.name ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}>
+                        <div className="h-20 w-full rounded-xl overflow-hidden bg-muted">
+                          {i.img ? (
+                            <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600" />
+                          )}
+                        </div>
+                        <div className="mt-2 text-sm font-semibold">{i.name}</div>
                       </button>
-                    );
-                  })}
-                </div>
-              </Section>
+                    ))}
+                  </div>
+                </Section>
+              ) : null}
 
-              <Section title="Interior" subtitle="Choose your cabin finish">
-                <div className="grid grid-cols-3 gap-3">
-                  {INTERIORS.map((i) => (
-                    <button key={i.name} onClick={() => setInterior(i.name)} className={`rounded-2xl border p-3 ${config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}>
-                      <div className="h-16 w-full rounded-xl" style={{ background: i.sample }} />
-                      <div className="mt-2 text-sm font-semibold">{i.name}</div>
-                    </button>
-                  ))}
-                </div>
-              </Section>
+              {/* Accessories (only after interior) */}
+              {config.grade && config.exteriorColor && config.interiorColor ? (
+                <Section title="Accessories" subtitle="Personalize your ride">
+                  <div className="grid grid-cols-2 gap-3">
+                    {ACCESSORIES.map((a) => {
+                      const selected = config.accessories.includes(a.name);
+                      return (
+                        <div key={a.name} className={`rounded-xl border p-3 flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border/60"}`}>
+                          <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
+                            {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                          </button>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold truncate">{a.name}</div>
+                            <div className="text-xs text-muted-foreground">AED {a.price.toLocaleString()}</div>
+                            <button
+                              type="button"
+                              onClick={() => { setInfoItem(a); setInfoOpen(true); }}
+                              className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                            >
+                              <CircleHelp className="w-3 h-3" /> Learn more
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Section>
+              ) : null}
 
-              <Section title="Stock" subtitle="Availability depends on color and interior">
-                <StockPill status={config.stockStatus} />
-                {config.grade && !allowedColorsFor(config.grade).includes(config.exteriorColor) && (
-                  <p className="text-xs text-amber-600 dark:text-amber-300 mt-2">
-                    Selected exterior isn’t available for {config.grade}. Please choose a different color.
-                  </p>
-                )}
-              </Section>
+              {/* Stock (after interior) */}
+              {config.grade && config.exteriorColor && config.interiorColor ? (
+                <Section title="Stock" subtitle="Availability depends on color and interior">
+                  <StockPill status={config.stockStatus} />
+                </Section>
+              ) : null}
             </>
           )}
 
           {/* STEP 3: Confirmation (only if stock ≠ no-stock) */}
           {step === 3 && (
             <Section title="Confirm your configuration" subtitle="Review and place your order">
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 <SummaryRow label="Year" value={config.modelYear} />
                 <SummaryRow label="Engine" value={config.engine} />
                 <SummaryRow label="Grade" value={config.grade} />
                 <SummaryRow label="Exterior" value={config.exteriorColor} />
                 <SummaryRow label="Interior" value={config.interiorColor} />
+                <SummaryRow label="Accessories" value={(config.accessories.length ? config.accessories.join(", ") : "None")} />
                 <SummaryRow label="Availability" value={<StockPill status={config.stockStatus} compact />} />
-                <div className="mt-2 text-sm text-muted-foreground">Total: <span className="font-semibold text-foreground">AED {calculateTotalPrice().toLocaleString()}</span></div>
+                <div className="mt-1 text-sm text-muted-foreground space-y-1">
+                  <div>Total: <span className="font-semibold text-foreground">AED {total.toLocaleString()}</span></div>
+                  <div>Reserve: <span className="font-semibold text-foreground">AED {reserve.toLocaleString()}</span></div>
+                  <div>EMI from: <span className="font-semibold text-foreground">AED {Math.min(monthly3, monthly5).toLocaleString()}/mo</span> <span className="text-xs">(20% down, 3.49% APR)</span></div>
+                </div>
               </div>
             </Section>
           )}
         </div>
 
+        {/* Footer CTA */}
         <div className="border-t border-border/10 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xl font-black">AED {calculateTotalPrice().toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">Estimated total · Taxes extra</div>
+              <div className="text-xl font-black">AED {total.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">
+                Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">Back</button>
-              <button onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition">
+              <button type="button" onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">Back</button>
+              <button type="button" onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition">
                 {primaryText}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Accessory info dialog */}
+      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{infoItem?.name}</DialogTitle>
+            <DialogDescription>Details & specifications</DialogDescription>
+          </DialogHeader>
+          <div className="text-sm">{infoItem?.desc}</div>
+          <div className="text-sm font-semibold mt-2">Price: AED {infoItem ? infoItem.price.toLocaleString() : 0}</div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
@@ -365,10 +476,18 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
   </section>
 );
 
+const FinanceCard: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
+  <div className="rounded-2xl border border-border/60 p-3">
+    <div className="text-[11px] text-muted-foreground">{label}</div>
+    <div className="text-lg font-bold">{value}</div>
+    {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
+  </div>
+);
+
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-1.5">
     {Array.from({ length: total }).map((_, i) => (
-      <div key={i} className={`h-2 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`} />
+      <div key={i} className={`h-1.5 rounded-full transition-all ${i + 1 <= current ? "bg-primary w-8" : "bg-muted-foreground/30 w-3"}`} />
     ))}
   </div>
 );
@@ -378,12 +497,12 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
 }) => (
   <button
     onClick={onClick}
+    type="button"
     className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
       selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
     }`}
-    type="button"
   >
-    <div className="aspect-[16/10] w-full overflow-hidden">
+    <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
       <motion.img src={image} alt={label} className="w-full h-full object-cover" initial={{ scale: 1.04 }} whileHover={{ scale: 1.08 }} transition={{ type: "spring", stiffness: 180, damping: 16 }} loading="lazy" decoding="async" />
     </div>
     <div className="p-3">
@@ -393,6 +512,13 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
       </div>
       {caption && <div className="text-xs text-muted-foreground">{caption}</div>}
     </div>
+  </button>
+);
+
+const ColorSwatch: React.FC<{ color: string; label: string; active?: boolean; onClick?: () => void; disabled?: boolean }> = ({ color, label, active, onClick, disabled }) => (
+  <button disabled={disabled} onClick={onClick} type="button" className={`relative w-11 h-11 rounded-full border transition outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary ring-2 ring-primary/30" : "border-border/60 hover:border-border"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`} aria-label={label}>
+    <span className="absolute inset-0 rounded-full" style={{ background: color }} />
+    <span className="sr-only">{label}</span>
   </button>
 );
 
