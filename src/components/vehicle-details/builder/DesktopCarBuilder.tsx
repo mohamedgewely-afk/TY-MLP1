@@ -423,20 +423,21 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <CompactSegmented
-        label="Model Year"
-        options={YEARS}
-        value={config.modelYear}
-        onChange={setYear}
-        /* ADD THIS */ size="xl"
-      />
-      <CompactSegmented
-        label="Engine"
-        options={ENGINES.map((e) => e.name)}
-        value={config.engine}
-        onChange={setEngine}
-        meta={(name) => ENGINES.find((e) => e.name === name)?.tag}
-        /* ADD THIS */ size="xl"
-      />
+  label="Model Year"
+  options={YEARS}
+  value={config.modelYear}
+  onChange={setYear}
+  size="xl"
+/>
+
+<CompactSegmented
+  label="Engine"
+  options={ENGINES.map((e) => e.name)}
+  value={config.engine}
+  onChange={setEngine}
+  meta={(name) => ENGINES.find((e) => e.name === name)?.tag}
+  size="xl"
+/>
     </div>
             </Section>
           )}
