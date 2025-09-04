@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as ImageIcon } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
@@ -140,6 +140,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   totalSteps,
   config,
   setConfig,
+  showConfirmation,
   calculateTotalPrice,
   handlePayment,
   goBack,
@@ -155,8 +156,12 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoItem, setInfoItem] = useState<(typeof ACCESSORIES)[number] | null>(null);
   const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
-  const [exteriorView, setExteriorView] = useState<"photo" | "spin">("photo"); // NEW: sub-toggle
+  const [exteriorView, setExteriorView] = useState<"photo" | "spin">("photo"); // sub-toggle
   const [imageLoadedKey, setImageLoadedKey] = useState<string>("");
+
+  // Reset flow control
+  const [confirmResetOpen, setConfirmResetOpen] = useState<boolean>(false);
+  const resettingRef = useRef(false);
 
   useEffect(() => {
     [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
@@ -166,17 +171,30 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const exteriorObj = useMemo(() => COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0], [config.exteriorColor]);
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
 
-  // Preload stills
+  // Preload stills (gated during reset)
   useEffect(() => {
+    if (resettingRef.current) return;
     COLORS.forEach((c) => { const img = new Image(); img.src = c.image; });
     INTERIORS.filter((i) => i.img).forEach(({ img }) => { const im = new Image(); if (img) im.src = img; });
   }, []);
 
-  // Preload spin frames when exterior mode is active
+  // Preload spin frames when exterior mode is active (gated during reset)
   const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
   useEffect(() => {
+    if (resettingRef.current) return;
     if (heroMode !== "exterior") return;
-    currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+    // Defer a tick to keep main-thread responsive on low-end devices
+    const id = (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(() => {
+          currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+        })
+      : setTimeout(() => {
+          currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+        }, 0);
+    return () => {
+      if ((window as any).cancelIdleCallback && typeof id === "number") (window as any).cancelIdleCallback(id);
+      else clearTimeout(id as any);
+    };
   }, [currentSpinFrames, heroMode]);
 
   // Reset sub-toggle when leaving exterior
@@ -226,6 +244,24 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       return { ...c, accessories };
     });
   }, [setConfig]);
+
+  // Safe reset flow
+  const handleResetSafe = useCallback(() => {
+    if (resettingRef.current) return;
+    resettingRef.current = true;
+    setInfoOpen(false);
+    setHeroMode("exterior");
+    setExteriorView("photo");
+    setImageLoadedKey("");
+
+    startTransition(() => {
+      onReset();
+    });
+
+    setTimeout(() => {
+      resettingRef.current = false;
+    }, 0);
+  }, [onReset]);
 
   const readyStep1 = Boolean(config.modelYear && config.engine);
   const readyStep2 = Boolean(config.grade && config.exteriorColor && config.interiorColor);
@@ -284,7 +320,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </button>
           <button
             ref={resetRef}
-            onClick={onReset}
+            onClick={() => (showConfirmation ? setConfirmResetOpen(true) : handleResetSafe())}
             className="rounded-xl border border-border/60 p-2.5 hover:bg-muted/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] touch-manipulation text-destructive"
             aria-label="Reset Configuration"
             type="button"
@@ -365,7 +401,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               />
             ) : (
               <motion.img
-                key={`${heroKey}-photo`}
+                key={`${heroKey}-photo`
+                }
                 src={exteriorObj.image}
                 alt={`${config.exteriorColor} ${vehicle.name}`}
                 className="w-full h-full object-contain p-3"
@@ -690,6 +727,34 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Reset confirmation (mobile parity with desktop) */}
+      <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset your build?</DialogTitle>
+            <DialogDescription>
+              This will clear your selections (year, engine, grade, colors and accessories).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setConfirmResetOpen(false)}
+              className="rounded-xl border border-border/60 px-4 py-2 text-sm hover:bg-muted/50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => { setConfirmResetOpen(false); handleResetSafe(); }}
+              className="rounded-xl bg-destructive text-destructive-foreground px-4 py-2 text-sm hover:bg-destructive/90"
+            >
+              Reset
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Accessory info dialog */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
