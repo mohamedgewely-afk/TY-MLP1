@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Search,
   Car,
@@ -174,6 +174,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const deviceInfo = useOptimizedDeviceInfo();
   const { toast } = useToast();
   const navigationState = useNavigationState();
+const location = useLocation();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -224,7 +225,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   useEffect(() => {
     navigationState.resetNavigation();
-  }, [window.location.pathname]);
+  }, [location.pathname]);
 
   const filteredVehicles = useMemo(() => 
     vehicles
