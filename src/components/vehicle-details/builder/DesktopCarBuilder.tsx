@@ -755,14 +755,14 @@ const CompactSegmented: React.FC<{
     sm: { px: "px-3", py: "py-1.5", text: "text-sm", radius: "rounded-full", minH: "min-h-[36px]" },
     md: { px: "px-4", py: "py-2",   text: "text-base", radius: "rounded-full", minH: "min-h-[40px]" },
     lg: { px: "px-5", py: "py-2.5", text: "text-lg", radius: "rounded-full", minH: "min-h-[48px]" },
-    xl: { px: "px-6", py: "py-3",   text: "text-xl", radius: "rounded-2xl",  minH: "min-h-[56px]" },
+    xl: { px: "px-6", py: "py-3",   text: "text-xl",  radius: "rounded-2xl",  minH: "min-h-[56px]" },
   } as const;
   const sz = sizeMap[size];
 
   return (
     <div>
       <div className={`mb-2 font-bold ${size === "xl" ? "text-base" : "text-sm"}`}>{label}</div>
-      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={label}>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
         {options.map((opt) => {
           const active = value === opt;
           return (
@@ -771,10 +771,10 @@ const CompactSegmented: React.FC<{
               type="button"
               onClick={() => onChange(opt)}
               className={`
-  transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border
-  ${sz.px} ${sz.py} ${sz.text} ${sz.radius} ${sz.minH}
-  ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}
-`}
+                transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border
+                ${sz.px} ${sz.py} ${sz.text} ${sz.radius} ${sz.minH}
+                ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}
+              `}
               aria-pressed={active}
               role="radio"
               aria-checked={active}
