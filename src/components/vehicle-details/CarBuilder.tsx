@@ -67,8 +67,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
     roots.forEach((r) => {
       if (!isInsidePortal(r)) {
-        // @ts-expect-error inert may not exist in TS lib but is widely supported
-        r.inert = true;
+        (r as unknown as { inert?: boolean }).inert = true;
         r.setAttribute("aria-hidden", "true");
       }
     });
@@ -82,8 +81,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
       document.body.style.overflow = prevOverflow;
       document.removeEventListener("keydown", onKey);
       roots.forEach((r) => {
-        // @ts-expect-error inert may not exist in TS lib
-        r.inert = false;
+        (r as unknown as { inert?: boolean }).inert = false;
         r.removeAttribute("aria-hidden");
       });
     };
@@ -173,21 +171,21 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     <AnimatePresence mode="wait">
       {isMobile ? (
         <MobileCarBuilder
-          key="mobile"
-          vehicle={vehicle}
-          step={step}
-          totalSteps={totalSteps}
-          config={config as MobileBuilderConfig}
-          setConfig={setConfig as React.Dispatch<React.SetStateAction<MobileBuilderConfig>>}
-          showConfirmation={showConfirmation}
-          calculateTotalPrice={calculateTotalPrice}
-          handlePayment={handlePayment}
-          goBack={goBack}
-          goNext={goNext}
-          onClose={onClose}
-          onReset={() => setShowResetDialog(true)}
-          deviceCategory={deviceCategory}
-        />
+  key="mobile"
+  vehicle={vehicle}
+  step={step}
+  totalSteps={totalSteps}
+  config={config as MobileBuilderConfig}
+  setConfig={setConfig as React.Dispatch<React.SetStateAction<MobileBuilderConfig>>}
+  showConfirmation={showConfirmation}
+  calculateTotalPrice={calculateTotalPrice}
+  handlePayment={handlePayment}
+  goBack={goBack}
+  goNext={goNext}
+  onClose={onClose}
+  onReset={() => setShowResetDialog(true)}
+  isMobile={isMobile}
+/>
       ) : (
         <DesktopCarBuilder
           key={isTablet ? "tablet" : "desktop"}

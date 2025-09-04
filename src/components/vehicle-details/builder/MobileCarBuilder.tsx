@@ -31,7 +31,7 @@ export interface MobileCarBuilderProps {
   goNext: () => void;
   onClose: () => void;
   onReset: () => void;
-  deviceCategory: DeviceCategory; // used to tune spin sensitivity on mobile
+  isMobile: boolean;
 }
 
 /* ---------- Data ---------- */
@@ -229,19 +229,21 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       });
     };
 
-    let timeoutId: number | null = null;
-    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+let idleId: number | null = null;
 
-    if ("requestIdleCallback" in window) {
-      idleId = (window as any).requestIdleCallback(preload);
-    } else {
-      timeoutId = window.setTimeout(preload, 0);
-    }
+if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+  idleId = (window as any).requestIdleCallback(preload) as number;
+} else {
+  timeoutId = setTimeout(preload, 0);
+}
 
-    return () => {
-      if (idleId != null && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(idleId);
-      if (timeoutId != null) clearTimeout(timeoutId);
-    };
+return () => {
+  if (typeof window !== "undefined" && idleId != null && "cancelIdleCallback" in window) {
+    (window as any).cancelIdleCallback(idleId);
+  }
+  if (timeoutId != null) clearTimeout(timeoutId);
+};
   }, [currentSpinFrames, heroMode]);
 
   // Reset sub-toggle when leaving exterior
@@ -348,7 +350,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   }, [config.grade]);
 
   // Spin sensitivity tuning by device category
-  const spinSensitivityMultiplier = deviceCategory === "mobile" ? 1.2 : 1;
+  const spinSensitivityMultiplier = isMobile ? 1.2 : 1;
 
   return (
     <motion.div
