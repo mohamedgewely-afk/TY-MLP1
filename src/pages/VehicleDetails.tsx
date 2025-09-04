@@ -31,10 +31,7 @@ const VehicleSpecs = createLazyComponent(
 );
 
 const VehicleGallery = createLazyComponent(
-  () =>
-    import("@/components/vehicle-details/VehicleGallery").then((m: any) => ({
-      default: m.VehicleGallery ?? m.default,
-    }))
+  () => import("@/components/vehicle-details/VehicleGallery")
 );
 
 const VehicleFeatures = createLazyComponent(
