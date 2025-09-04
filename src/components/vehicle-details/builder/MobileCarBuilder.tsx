@@ -170,6 +170,8 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   // Reset flow control
   const [confirmResetOpen, setConfirmResetOpen] = useState<boolean>(false);
   const resettingRef = useRef(false);
+  const [isResetting, setIsResetting] = useState(false); // NEW: render-level gate
+  const cancelResumeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
@@ -181,30 +183,31 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   // Preload *only current* still; avoid preloading all colors on mobile
   useEffect(() => {
-    if (resettingRef.current) return;
+    if (resettingRef.current || isResetting) return;
     const img = new Image();
-    img.decoding = "async" as any;
-    img.loading = "lazy" as any;
+    (img as any).decoding = "async";
+    (img as any).loading = "lazy";
     img.src = exteriorObj.image;
-    if (interiorObj?.img) { const im = new Image(); im.decoding = "async" as any; im.loading = "lazy" as any; im.src = interiorObj.img; }
-  }, [exteriorObj.image, interiorObj?.img]);
+    if (interiorObj?.img) { const im = new Image(); (im as any).decoding = "async"; (im as any).loading = "lazy"; im.src = interiorObj.img; }
+  }, [exteriorObj.image, interiorObj?.img, isResetting]);
 
-  // Preload spin frames for current color (idle; gated during reset)
+  // Preload spin frames only when user actually opens 360 view (idle; gated during reset)
   const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
   useEffect(() => {
-    if (resettingRef.current || heroMode !== "exterior") return;
+    if (resettingRef.current || isResetting) return;
+    if (heroMode !== "exterior" || exteriorView !== "spin") return;
     const id = (window as any).requestIdleCallback
       ? (window as any).requestIdleCallback(() => {
           currentSpinFrames.forEach((src) => { const im = new Image(); (im as any).decoding = "async"; (im as any).loading = "lazy"; im.src = src; });
-        })
+        }, { timeout: 1500 })
       : setTimeout(() => {
           currentSpinFrames.forEach((src) => { const im = new Image(); (im as any).decoding = "async"; (im as any).loading = "lazy"; im.src = src; });
-        }, 0);
+        }, 250);
     return () => {
       if ((window as any).cancelIdleCallback && typeof id === "number") (window as any).cancelIdleCallback(id);
       else clearTimeout(id as any);
     };
-  }, [currentSpinFrames, heroMode]);
+  }, [currentSpinFrames, heroMode, exteriorView, isResetting]);
 
   // Reset sub-toggle when leaving exterior
   useEffect(() => {
@@ -254,23 +257,46 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     });
   }, [setConfig]);
 
+  // Helper: schedule resuming heavy work after idle / short delay
+  const scheduleResume = useCallback(() => {
+    if (cancelResumeRef.current) { cancelResumeRef.current(); cancelResumeRef.current = null; }
+    if ((window as any).requestIdleCallback) {
+      const id = (window as any).requestIdleCallback(() => {
+        resettingRef.current = false;
+        setIsResetting(false);
+      }, { timeout: 1200 });
+      cancelResumeRef.current = () => (window as any).cancelIdleCallback(id);
+    } else {
+      const t = setTimeout(() => {
+        resettingRef.current = false;
+        setIsResetting(false);
+      }, 700);
+      cancelResumeRef.current = () => clearTimeout(t as any);
+    }
+  }, []);
+
   // Safe reset flow (always confirmed on mobile)
   const handleResetSafe = useCallback(() => {
     if (resettingRef.current) return;
     resettingRef.current = true;
+    setIsResetting(true); // gate render/effects
+
+    // Close light UI and reduce work
     setInfoOpen(false);
     setHeroMode("exterior");
     setExteriorView("photo");
     setImageLoadedKey("");
 
     startTransition(() => {
-      onReset();
+      onReset(); // parent resets step + config
     });
 
-    setTimeout(() => {
-      resettingRef.current = false;
-    }, 0);
-  }, [onReset]);
+    // Resume preloading/render work on idle/timeout
+    scheduleResume();
+  }, [onReset, scheduleResume]);
+
+  // Clean up any scheduled resume when unmounting
+  useEffect(() => () => { if (cancelResumeRef.current) cancelResumeRef.current(); }, []);
 
   const readyStep1 = Boolean(config.modelYear && config.engine);
   const readyStep2 = Boolean(config.grade && config.exteriorColor && config.interiorColor);
@@ -341,20 +367,25 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       {/* Hero Section (shorter) */}
       <div className="relative w-full bg-gradient-to-b from-muted/20 to-background border-b border-border/20 overflow-hidden">
         <div className="relative w-full h-56 sm:h-64 md:h-72 flex items-center justify-center">
-          {!imageLoadedKey || imageLoadedKey !== heroKey ? (<div className="absolute inset-0 m-3 rounded-xl bg-muted/20 animate-pulse" aria-hidden />) : null}
+          {/* Skeleton while image swaps OR while we are in reset cool-off */}
+          {(!imageLoadedKey || imageLoadedKey !== heroKey || isResetting) && (
+            <div className="absolute inset-0 m-3 rounded-xl bg-muted/20 animate-pulse" aria-hidden />
+          )}
 
-          {heroMode === "exterior" ? (
-            exteriorView === "spin" ? (
-              <SpinViewer key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`} frames={currentSpinFrames} fallbackStill={exteriorObj.image} className="w-full h-full object-contain p-3 select-none" alt={`${config.exteriorColor} ${vehicle.name}`} onFirstFrameLoad={() => setImageLoadedKey(heroKey)} />
+          {!isResetting && (
+            heroMode === "exterior" ? (
+              exteriorView === "spin" ? (
+                <SpinViewer key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`} frames={currentSpinFrames} fallbackStill={exteriorObj.image} className="w-full h-full object-contain p-3 select-none" alt={`${config.exteriorColor} ${vehicle.name}`} onFirstFrameLoad={() => setImageLoadedKey(heroKey)} />
+              ) : (
+                <motion.img key={`${heroKey}-photo`} src={exteriorObj.image} alt={`${config.exteriorColor} ${vehicle.name}`} className="w-full h-full object-contain p-3" initial={{ opacity: 0, scale: 0.98, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 240, damping: 24, duration: 0.45 }} decoding="async" loading="lazy" fetchpriority="low" onLoad={() => setImageLoadedKey(heroKey)} onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
+              )
             ) : (
-              <motion.img key={`${heroKey}-photo`} src={exteriorObj.image} alt={`${config.exteriorColor} ${vehicle.name}`} className="w-full h-full object-contain p-3" initial={{ opacity: 0, scale: 0.98, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 260, damping: 26, duration: 0.5 }} decoding="async" loading="lazy" onLoad={() => setImageLoadedKey(heroKey)} onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
+              <motion.img key={`${heroKey}-interior`} src={interiorObj?.img || exteriorObj.image} alt={`${config.interiorColor} ${vehicle.name}`} className="w-full h-full object-contain p-3" initial={{ opacity: 0, scale: 0.98, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 240, damping: 24, duration: 0.45 }} decoding="async" loading="lazy" fetchpriority="low" onLoad={() => setImageLoadedKey(heroKey)} onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
             )
-          ) : (
-            <motion.img key={`${heroKey}-interior`} src={interiorObj?.img || exteriorObj.image} alt={`${config.interiorColor} ${vehicle.name}`} className="w-full h-full object-contain p-3" initial={{ opacity: 0, scale: 0.98, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 260, damping: 26, duration: 0.5 }} decoding="async" loading="lazy" onLoad={() => setImageLoadedKey(heroKey)} onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
           )}
         </div>
 
-        {heroMode === "interior" && config.interiorColor && (
+        {heroMode === "interior" && config.interiorColor && !isResetting && (
           <div className="absolute bottom-3 left-3 bg-background/95 backdrop-blur-sm border border-border/40 rounded-lg px-2.5 py-1.5 shadow-sm">
             <span className="text-[11px] font-medium">{config.interiorColor}</span>
           </div>
