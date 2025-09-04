@@ -322,6 +322,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 ) : (
   <motion.img
     key={heroKey}
+    /* heroMode is already 'interior' in this branch — don't re-check it */
     src={interiorObj?.img || exteriorObj.image}
     alt={`${config.interiorColor} ${vehicle.name}`}
     className="w-full h-full object-contain p-6 md:p-8"
