@@ -419,15 +419,25 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         <div className="flex-1 overflow-y-auto scroll-pb-[220px] scroll-pt-2">
           {/* STEP 1 */}
           {step === 1 && (
-            <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CompactSegmented label="Model Year" options={YEARS} value={config.modelYear} onChange={setYear} />
-                <CompactSegmented label="Engine" options={ENGINES.map((e) => e.name)} value={config.engine} onChange={setEngine} meta={(name) => ENGINES.find((e) => e.name === name)?.tag} />
-              </div>
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} large />
-                <FinanceCard label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR · up to 5y" large />
-              </div>
+            {step === 1 && (
+  <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <CompactSegmented
+        label="Model Year"
+        options={YEARS}
+        value={config.modelYear}
+        onChange={setYear}
+        /* ADD THIS */ size="xl"
+      />
+      <CompactSegmented
+        label="Engine"
+        options={ENGINES.map((e) => e.name)}
+        value={config.engine}
+        onChange={setEngine}
+        meta={(name) => ENGINES.find((e) => e.name === name)?.tag}
+        /* ADD THIS */ size="xl"
+      />
+    </div>
             </Section>
           )}
 
@@ -733,30 +743,55 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
   </section>
 );
 
-const CompactSegmented: React.FC<{ label: string; options: string[]; value: string; onChange: (v: string) => void; meta?: (opt: string) => string | undefined; }> = ({ label, options, value, onChange, meta }) => (
-  <div>
-    <div className="text-sm font-bold mb-2">{label}</div>
-    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
-      {options.map((opt) => {
-        const active = value === opt;
-        return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => onChange(opt)}
-            className={`rounded-full border px-4 py-2 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}
-            aria-pressed={active}
-            role="radio"
-            aria-checked={active}
-          >
-            <span className="font-medium">{opt}</span>
-            {meta?.(opt) && <span className="ml-2 text-sm text-muted-foreground">{meta(opt)}</span>}
-          </button>
-        );
-      })}
+const CompactSegmented: React.FC<{
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+  meta?: (opt: string) => string | undefined;
+  size?: "sm" | "md" | "lg" | "xl";
+}> = ({ label, options, value, onChange, meta, size = "md" }) => {
+  const sizeMap = {
+    sm: { px: "px-3", py: "py-1.5", text: "text-sm", radius: "rounded-full", minH: "min-h-[36px]" },
+    md: { px: "px-4", py: "py-2",   text: "text-base", radius: "rounded-full", minH: "min-h-[40px]" },
+    lg: { px: "px-5", py: "py-2.5", text: "text-lg", radius: "rounded-full", minH: "min-h-[48px]" },
+    xl: { px: "px-6", py: "py-3",   text: "text-xl", radius: "rounded-2xl",  minH: "min-h-[56px]" },
+  } as const;
+  const sz = sizeMap[size];
+
+  return (
+    <div>
+      <div className={`mb-2 font-bold ${size === "xl" ? "text-base" : "text-sm"}`}>{label}</div>
+      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={label}>
+        {options.map((opt) => {
+          const active = value === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange(opt)}
+              className={[
+                "transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border",
+                sz.px, sz.py, sz.text, sz.radius, sz.minH,
+                active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"
+              ].join(" ")}
+              aria-pressed={active}
+              role="radio"
+              aria-checked={active}
+            >
+              <span className="font-medium">{opt}</span>
+              {meta?.(opt) && (
+                <span className={`ml-2 text-muted-foreground ${size === "xl" ? "text-base" : "text-sm"}`}>
+                  {meta(opt)}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const FinanceCard: React.FC<{ label: string; value: string; hint?: string; large?: boolean }> = ({ label, value, hint, large }) => (
   <div className={`rounded-2xl border border-border/60 p-4 ${large ? "min-h-[96px]" : ""}`}>
