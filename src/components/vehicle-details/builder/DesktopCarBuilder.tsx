@@ -1,9 +1,9 @@
-// DesktopCarBuilder.tsx — clean, compile-safe full rewrite with requested fixes + 360° exterior spin
-// - Step 1 white space fixed (balanced panel widths + bigger controls)
-// - Accessories never hidden (independent scroller + large scroll padding)
-// - Stock section moved directly under Interior
-// - A11y & perf polish
-// - NEW: Exterior hero supports 360° spin from static angle images (drag / wheel / arrows / autoplay)
+// DesktopCarBuilder.tsx — end‑to‑end with 360° exterior spin (no autoplay) + Photo/360 sub‑toggle
+// - Keeps original UI/UX/CX (panels, header, finance, accessories, etc.)
+// - 360 viewer shows ONLY when: Mode=Exterior AND sub‑toggle=“360”
+// - Default is Exterior → Photo (still image)
+// - No autoplay. Manual interactions only (drag / wheel / arrow keys)
+// - Fixes TS2367 by avoiding cross‑literal comparisons inside narrowed branches
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -95,7 +95,7 @@ const GRADE_IMAGES: Record<string, string> = {
 };
 
 /* ---------- NEW: Spin frames per exterior color (wired with your sample links) ---------- */
-// Helper: if later your DAM follows a pattern like angle-001.jpg → angle-036.jpg, use buildFrames()
+// If your DAM is sequential, you can use buildFrames() later.
 const pad = (n: number, width = 3) => n.toString().padStart(width, "0");
 const buildFrames = (
   base: string,
@@ -114,7 +114,7 @@ const buildFrames = (
     return `${base}/${prefix}${pad(idx, padWidth)}.${ext}${query}`;
   });
 
-// Manual frames for the provided sample (Pearl White)
+// Sample set from your provided URLs (Pearl White)
 const PEARL_WHITE_FRAMES: string[] = [
   "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f89996df-2223-47bc-b673-b213a50cc5e3.720",
   "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f0a94ef4-133b-408a-aae2-224e0348574e.720",
@@ -123,9 +123,6 @@ const PEARL_WHITE_FRAMES: string[] = [
   "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/3834e0d5-2f50-4f01-af58-23cbf763ae37.720",
 ];
 
-// Final map consumed by the viewer. For now, reuse your sample frames for all colors
-// so everything works out of the box. Replace each array later with real per-color frames.
-// (If a color’s array is empty, the viewer automatically falls back to the still hero.)
 const SPIN_SETS: Record<string, string[]> = {
   "Pearl White": PEARL_WHITE_FRAMES,
   "Midnight Black": PEARL_WHITE_FRAMES,
@@ -133,6 +130,7 @@ const SPIN_SETS: Record<string, string[]> = {
   "Deep Blue": PEARL_WHITE_FRAMES,
   "Ruby Red": PEARL_WHITE_FRAMES,
 };
+
 /* ---------- Finance & helpers ---------- */
 const APR = 0.0349;
 const DOWN_PCT = 0.2;
@@ -183,6 +181,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
   const [imageLoadedKey, setImageLoadedKey] = useState<string>("");
 
+  // NEW: Photo/360 sub-toggle (exterior only)
+  const [exteriorView, setExteriorView] = useState<"photo" | "spin">("photo");
+
   useEffect(() => {
     [backRef, closeRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true, onHover: true }));
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true });
@@ -190,20 +191,25 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
   const exteriorObj = useMemo(() => EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0], [config.exteriorColor]);
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
-  const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}`;
+  const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}-${exteriorView}`;
 
-  // Preload current exterior still + all interiors
+  // Preload stills
   useEffect(() => {
     EXTERIOR_IMAGES.forEach(({ image }) => { const i = new Image(); i.src = image; });
     INTERIORS.filter((i) => i.img).forEach(({ img }) => { const im = new Image(); if (img) im.src = img; });
   }, []);
 
-  // NEW: Preload spin frames for current color when exterior mode is active
+  // Preload spin frames for current color when Exterior is active
   const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
   useEffect(() => {
     if (heroMode !== "exterior") return;
     currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
   }, [currentSpinFrames, heroMode]);
+
+  // Reset sub-toggle to Photo when leaving Exterior
+  useEffect(() => {
+    if (heroMode !== "exterior" && exteriorView !== "photo") setExteriorView("photo");
+  }, [heroMode, exteriorView]);
 
   // setters
   const setYear = useCallback((y: string) => {
@@ -287,7 +293,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     <motion.div className="relative h-screen w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Visual theater */}
       <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
-        {/* Mode Toggle */}
+        {/* Mode Toggle + Exterior sub-toggle */}
         <div className="absolute top-6 left-6 z-20 border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm px-2 py-1.5 flex items-center gap-1 shadow-sm">
           {(["exterior", "interior"] as const).map((m) => (
             <button
@@ -301,6 +307,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               {m === "exterior" ? "Exterior" : "Interior"}
             </button>
           ))}
+
+          {/* Only render the Photo/360 toggle when Exterior is active */}
+          {heroMode === "exterior" && (
+            <div className="ml-2 flex items-center gap-1 pl-2 border-l border-border/30">
+              {(["photo", "spin"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setExteriorView(v)}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${exteriorView === v ? "bg-muted/80 border border-border/50" : "hover:bg-muted/50"}`}
+                  aria-pressed={exteriorView === v}
+                >
+                  {v === "photo" ? "Photo" : "360"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Main Image / Spin Viewer */}
@@ -310,31 +333,47 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           ) : null}
 
           {heroMode === "exterior" ? (
-  <SpinViewer
-    key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
-    frames={currentSpinFrames}
-    fallbackStill={exteriorObj.image}
-    className="w-full h-full object-contain p-6 md:p-8 select-none"
-    alt={`${config.exteriorColor} ${vehicle.name}`}
-    onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
-    prefersReducedMotion={!!prefersReducedMotion}
-  />
-) : (
-  <motion.img
-    key={heroKey}
-    /* heroMode is already 'interior' in this branch — don't re-check it */
-    src={interiorObj?.img || exteriorObj.image}
-    alt={`${config.interiorColor} ${vehicle.name}`}
-    className="w-full h-full object-contain p-6 md:p-8"
-    initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
-    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-    transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
-    decoding="async"
-    loading="eager"
-    onLoad={() => setImageLoadedKey(heroKey)}
-    onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-  />
-)}
+            exteriorView === "spin" ? (
+              <SpinViewer
+                key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
+                frames={currentSpinFrames}
+                fallbackStill={exteriorObj.image}
+                className="w-full h-full object-contain p-6 md:p-8 select-none"
+                alt={`${config.exteriorColor} ${vehicle.name}`}
+                onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
+                prefersReducedMotion={!!prefersReducedMotion}
+              />
+            ) : (
+              <motion.img
+                key={`${heroKey}-photo`}
+                src={exteriorObj.image}
+                alt={`${config.exteriorColor} ${vehicle.name}`}
+                className="w-full h-full object-contain p-6 md:p-8"
+                initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+                transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
+                decoding="async"
+                loading="eager"
+                onLoad={() => setImageLoadedKey(heroKey)}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+              />
+            )
+          ) : (
+            <motion.img
+              key={`${heroKey}-interior`}
+              src={interiorObj?.img || exteriorObj.image}
+              alt={`${config.interiorColor} ${vehicle.name}`}
+              className="w-full h-full object-contain p-6 md:p-8"
+              initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
+              decoding="async"
+              loading="eager"
+              onLoad={() => setImageLoadedKey(heroKey)}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+            />
+          )}
+        </div>
 
         {heroMode === "interior" && config.interiorColor && (
           <div className="absolute bottom-6 left-6 z-20 rounded-2xl border border-border/40 bg-background/95 backdrop-blur-sm px-4 py-2.5 shadow-sm">
@@ -566,43 +605,33 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   );
 };
 
-/* ---------- NEW: SpinViewer (no 3D) ---------- */
+/* ---------- SpinViewer (manual only: drag / wheel / arrows; NO autoplay) ---------- */
 interface SpinViewerProps {
-  frames: string[]; // ordered, clockwise
-  fallbackStill: string; // used if no frames
+  frames: string[]; // ordered
+  fallbackStill: string;
   className?: string;
   alt?: string;
   onFirstFrameLoad?: () => void;
   prefersReducedMotion?: boolean;
 }
 
-const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, className, alt, onFirstFrameLoad, prefersReducedMotion }) => {
+const SpinViewer: React.FC<SpinViewerProps> = ({
+  frames,
+  fallbackStill,
+  className,
+  alt,
+  onFirstFrameLoad,
+}) => {
   const hasFrames = frames && frames.length > 0;
   const [index, setIndex] = useState(0);
-  const [isInteracting, setIsInteracting] = useState(false);
   const startXRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sensitivity: lower = faster spin per pixel
-  const SENS = 6; // px per frame
-  const AUTOPLAY_MS = 100; // frame duration during autoplay
-  const AUTOPLAY_IDLE_DELAY = 1600; // resume autoplay after this idle time
-  const idleTimer = useRef<number | null>(null);
-  const autoplayTimer = useRef<number | null>(null);
-
-  // First frame load handshake for skeleton
-  const firstLoadRef = useRef(false);
-  const handleFirstLoad = () => {
-    if (!firstLoadRef.current) {
-      firstLoadRef.current = true;
-      onFirstFrameLoad?.();
-    }
-  };
+  const SENS = 6; // pixels per frame
 
   const clampIndex = useCallback((i: number) => {
     if (!hasFrames) return 0;
     const len = frames.length;
-    // proper modulo for negatives
     return ((i % len) + len) % len;
   }, [frames, hasFrames]);
 
@@ -610,12 +639,18 @@ const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, classNam
     setIndex((cur) => clampIndex(cur + delta));
   }, [clampIndex]);
 
-  // Pointer handlers
+  const firstLoadedRef = useRef(false);
+  const onFirstLoad = () => {
+    if (!firstLoadedRef.current) {
+      firstLoadedRef.current = true;
+      onFirstFrameLoad?.();
+    }
+  };
+
+  // Drag
   const onPointerDown = (e: React.PointerEvent) => {
     (e.target as Element).setPointerCapture?.(e.pointerId);
     startXRef.current = e.clientX;
-    setIsInteracting(true);
-    stopAutoplay();
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (startXRef.current == null) return;
@@ -629,18 +664,14 @@ const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, classNam
   const onPointerUp = (e: React.PointerEvent) => {
     (e.target as Element).releasePointerCapture?.(e.pointerId);
     startXRef.current = null;
-    setIsInteracting(false);
-    scheduleAutoplay();
   };
 
-  // Wheel support (horizontal or vertical)
+  // Wheel
   const onWheel = (e: React.WheelEvent) => {
     if (!hasFrames) return;
     e.preventDefault();
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     step(delta > 0 ? 1 : -1);
-    stopAutoplay();
-    scheduleAutoplay();
   };
 
   // Keyboard arrows
@@ -648,44 +679,19 @@ const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, classNam
     const el = containerRef.current;
     if (!el) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") { step(1); stopAutoplay(); scheduleAutoplay(); }
-      if (e.key === "ArrowLeft") { step(-1); stopAutoplay(); scheduleAutoplay(); }
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
   }, [step]);
 
-  // Autoplay when idle (unless reduced motion)
-  const stopAutoplay = () => {
-    if (autoplayTimer.current) window.clearInterval(autoplayTimer.current);
-    autoplayTimer.current = null;
-    if (idleTimer.current) window.clearTimeout(idleTimer.current);
-    idleTimer.current = null;
-  };
-  const startAutoplay = () => {
-    if (prefersReducedMotion) return;
-    stopAutoplay();
-    autoplayTimer.current = window.setInterval(() => setIndex((i) => clampIndex(i + 1)), AUTOPLAY_MS);
-  };
-  const scheduleAutoplay = () => {
-    if (prefersReducedMotion) return;
-    if (idleTimer.current) window.clearTimeout(idleTimer.current);
-    idleTimer.current = window.setTimeout(() => startAutoplay(), AUTOPLAY_IDLE_DELAY);
-  };
-
-  useEffect(() => {
-    // start autoplay on mount if frames exist
-    if (hasFrames) scheduleAutoplay();
-    return stopAutoplay;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasFrames]);
-
-  // Reset index on color/frames change
+  // Reset on frames change
   useEffect(() => { setIndex(0); }, [frames]);
 
   if (!hasFrames) {
     return (
-      <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={handleFirstLoad} />
+      <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} />
     );
   }
 
@@ -707,7 +713,7 @@ const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, classNam
         alt={alt}
         className={className}
         draggable={false}
-        onLoad={handleFirstLoad}
+        onLoad={onFirstLoad}
       />
     </div>
   );
