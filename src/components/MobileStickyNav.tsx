@@ -625,20 +625,20 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     isGR ? GR_BTN_SURFACE : ""
   )}
   onClick={() => handleSectionToggle("models")}
-  aria-expanded={activeSection === "models"}
+  aria-expanded={isActiveSection("models")}
 >
   <Car className="h-4 w-4 mr-2" />
   Browse Models
 </Button>
 
-  <Button
+                    <Button
   className={cn(
     "h-12 text-left justify-start",
     getTouchTargetSize(),
     isGR ? GR_BTN_SURFACE : ""
   )}
   onClick={() => handleSectionToggle("search")}
-  aria-expanded={activeSection === "search"}
+  aria-expanded={isActiveSection("search")}
 >
   <Search className="h-4 w-4 mr-2" />
   Find Vehicle
