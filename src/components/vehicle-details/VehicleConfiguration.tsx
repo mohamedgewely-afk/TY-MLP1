@@ -216,19 +216,19 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   }, [grades, selectedGrade]);
 
   const handleEngineChange = useCallback(
-    async (engineName: string) => {
-      if (engineName === selectedEngine) return;
-      setIsGradeLoading(true);
-      setSelectedEngine(engineName);
-      setSelectedGrade(0);
-      setCompareSet([]); // reset on engine switch
-      setAnimationKey((prev) => prev + 1);
-      await new Promise((r) => setTimeout(r, performanceConfig.animations.duration * 1000));
-      setIsGradeLoading(false);
-      contextualHaptic.selectionChange();
-    },
-    [selectedEngine, performanceConfig.animulations?.duration, performanceConfig.animations.duration]
-  );
+  async (engineName: string) => {
+    if (engineName === selectedEngine) return;
+    setIsGradeLoading(true);
+    setSelectedEngine(engineName);
+    setSelectedGrade(0);
+    setCompareSet([]); // reset on engine switch
+    setAnimationKey((prev) => prev + 1);
+    await new Promise((r) => setTimeout(r, performanceConfig.animations.duration * 1000));
+    setIsGradeLoading(false);
+    contextualHaptic.selectionChange();
+  },
+  [selectedEngine, performanceConfig.animations.duration]
+);
 
   const handleGradeChange = useCallback(
     (gradeIndex: number) => {
