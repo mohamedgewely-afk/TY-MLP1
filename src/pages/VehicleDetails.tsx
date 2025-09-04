@@ -24,12 +24,6 @@ import { useWebVitalsOptimized, useMemoryPressure } from "@/utils/performance-we
 import { createLazyComponent, preloadOnFastNetwork } from "@/utils/lazy-components";
 import { cn } from "@/lib/utils";
 
-// const VehicleGallery = createLazyComponent(
-//   () => import("@/components/vehicle-details/VehicleGallery")
-// );
-// preloadOnFastNetwork(() => import("@/components/vehicle-details/VehicleGallery"));
-const VehicleGallery: React.FC = () => null;
-
 // Lazy load heavy components with intelligent preloading
 const VehicleSpecs = createLazyComponent(
   () => import("@/components/vehicle-details/VehicleSpecs"),
