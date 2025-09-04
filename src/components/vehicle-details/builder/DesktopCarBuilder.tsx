@@ -770,11 +770,11 @@ const CompactSegmented: React.FC<{
               key={opt}
               type="button"
               onClick={() => onChange(opt)}
-              className={[
-                "transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border",
-                sz.px, sz.py, sz.text, sz.radius, sz.minH,
-                active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"
-              ].join(" ")}
+              className={`
+  transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border
+  ${sz.px} ${sz.py} ${sz.text} ${sz.radius} ${sz.minH}
+  ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}
+`}
               aria-pressed={active}
               role="radio"
               aria-checked={active}
