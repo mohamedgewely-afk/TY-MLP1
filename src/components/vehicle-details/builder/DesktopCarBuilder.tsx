@@ -1,8 +1,9 @@
-// DesktopCarBuilder.tsx — clean, compile-safe full rewrite with requested fixes
+// DesktopCarBuilder.tsx — clean, compile-safe full rewrite with requested fixes + 360° exterior spin
 // - Step 1 white space fixed (balanced panel widths + bigger controls)
 // - Accessories never hidden (independent scroller + large scroll padding)
 // - Stock section moved directly under Interior
 // - A11y & perf polish
+// - NEW: Exterior hero supports 360° spin from static angle images (drag / wheel / arrows / autoplay)
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -93,6 +94,45 @@ const GRADE_IMAGES: Record<string, string> = {
   Platinum: EXTERIOR_IMAGES[4].image,
 };
 
+/* ---------- NEW: Spin frames per exterior color (wired with your sample links) ---------- */
+// Helper: if later your DAM follows a pattern like angle-001.jpg → angle-036.jpg, use buildFrames()
+const pad = (n: number, width = 3) => n.toString().padStart(width, "0");
+const buildFrames = (
+  base: string,
+  count: number,
+  {
+    prefix = "angle-",
+    start = 1,
+    step = 1,
+    padWidth = 3,
+    ext = "jpg",
+    query = "",
+  }: { prefix?: string; start?: number; step?: number; padWidth?: number; ext?: string; query?: string } = {}
+) =>
+  Array.from({ length: count }, (_, i) => {
+    const idx = start + i * step;
+    return `${base}/${prefix}${pad(idx, padWidth)}.${ext}${query}`;
+  });
+
+// Manual frames for the provided sample (Pearl White)
+const PEARL_WHITE_FRAMES: string[] = [
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f89996df-2223-47bc-b673-b213a50cc5e3.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f0a94ef4-133b-408a-aae2-224e0348574e.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/3834e0d5-2f50-4f01-af58-23cbf763ae37.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/af5a96ed-370a-419c-aedf-db4ff7fc786f.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/3834e0d5-2f50-4f01-af58-23cbf763ae37.720",
+];
+
+// Final map consumed by the viewer. For now, reuse your sample frames for all colors
+// so everything works out of the box. Replace each array later with real per-color frames.
+// (If a color’s array is empty, the viewer automatically falls back to the still hero.)
+const SPIN_SETS: Record<string, string[]> = {
+  "Pearl White": PEARL_WHITE_FRAMES,
+  "Midnight Black": PEARL_WHITE_FRAMES,
+  "Silver Metallic": PEARL_WHITE_FRAMES,
+  "Deep Blue": PEARL_WHITE_FRAMES,
+  "Ruby Red": PEARL_WHITE_FRAMES,
+};
 /* ---------- Finance & helpers ---------- */
 const APR = 0.0349;
 const DOWN_PCT = 0.2;
@@ -152,10 +192,18 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
   const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}`;
 
+  // Preload current exterior still + all interiors
   useEffect(() => {
     EXTERIOR_IMAGES.forEach(({ image }) => { const i = new Image(); i.src = image; });
     INTERIORS.filter((i) => i.img).forEach(({ img }) => { const im = new Image(); if (img) im.src = img; });
   }, []);
+
+  // NEW: Preload spin frames for current color when exterior mode is active
+  const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
+  useEffect(() => {
+    if (heroMode !== "exterior") return;
+    currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+  }, [currentSpinFrames, heroMode]);
 
   // setters
   const setYear = useCallback((y: string) => {
@@ -255,24 +303,37 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           ))}
         </div>
 
-        {/* Main Image */}
+        {/* Main Image / Spin Viewer */}
         <div className="relative w-full h-full bg-gradient-to-b from-muted/20 to-background/50 flex items-center justify-center">
           {!imageLoadedKey || imageLoadedKey !== heroKey ? (
             <div className="absolute inset-0 m-8 rounded-2xl bg-muted/20 animate-pulse" aria-hidden />
           ) : null}
-          <motion.img
-            key={heroKey}
-            src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
-            alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-            className="w-full h-full object-contain p-6 md:p-8"
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
-            animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-            transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
-            decoding="async"
-            loading="eager"
-            onLoad={() => setImageLoadedKey(heroKey)}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-          />
+
+          {heroMode === "exterior" ? (
+            <SpinViewer
+              key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
+              frames={currentSpinFrames}
+              fallbackStill={exteriorObj.image}
+              className="w-full h-full object-contain p-6 md:p-8 select-none"
+              alt={`${config.exteriorColor} ${vehicle.name}`}
+              onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
+              prefersReducedMotion={!!prefersReducedMotion}
+            />
+          ) : (
+            <motion.img
+              key={heroKey}
+              src={heroMode === "interior" ? (interiorObj?.img || exteriorObj.image) : exteriorObj.image}
+              alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
+              className="w-full h-full object-contain p-6 md:p-8"
+              initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
+              decoding="async"
+              loading="eager"
+              onLoad={() => setImageLoadedKey(heroKey)}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+            />
+          )}
         </div>
 
         {heroMode === "interior" && config.interiorColor && (
@@ -502,6 +563,153 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         </DialogContent>
       </Dialog>
     </motion.div>
+  );
+};
+
+/* ---------- NEW: SpinViewer (no 3D) ---------- */
+interface SpinViewerProps {
+  frames: string[]; // ordered, clockwise
+  fallbackStill: string; // used if no frames
+  className?: string;
+  alt?: string;
+  onFirstFrameLoad?: () => void;
+  prefersReducedMotion?: boolean;
+}
+
+const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, className, alt, onFirstFrameLoad, prefersReducedMotion }) => {
+  const hasFrames = frames && frames.length > 0;
+  const [index, setIndex] = useState(0);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const startXRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sensitivity: lower = faster spin per pixel
+  const SENS = 6; // px per frame
+  const AUTOPLAY_MS = 100; // frame duration during autoplay
+  const AUTOPLAY_IDLE_DELAY = 1600; // resume autoplay after this idle time
+  const idleTimer = useRef<number | null>(null);
+  const autoplayTimer = useRef<number | null>(null);
+
+  // First frame load handshake for skeleton
+  const firstLoadRef = useRef(false);
+  const handleFirstLoad = () => {
+    if (!firstLoadRef.current) {
+      firstLoadRef.current = true;
+      onFirstFrameLoad?.();
+    }
+  };
+
+  const clampIndex = useCallback((i: number) => {
+    if (!hasFrames) return 0;
+    const len = frames.length;
+    // proper modulo for negatives
+    return ((i % len) + len) % len;
+  }, [frames, hasFrames]);
+
+  const step = useCallback((delta: number) => {
+    setIndex((cur) => clampIndex(cur + delta));
+  }, [clampIndex]);
+
+  // Pointer handlers
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    startXRef.current = e.clientX;
+    setIsInteracting(true);
+    stopAutoplay();
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (startXRef.current == null) return;
+    const dx = e.clientX - startXRef.current;
+    if (Math.abs(dx) >= SENS) {
+      const framesDelta = Math.trunc(dx / SENS);
+      step(framesDelta);
+      startXRef.current = e.clientX;
+    }
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    (e.target as Element).releasePointerCapture?.(e.pointerId);
+    startXRef.current = null;
+    setIsInteracting(false);
+    scheduleAutoplay();
+  };
+
+  // Wheel support (horizontal or vertical)
+  const onWheel = (e: React.WheelEvent) => {
+    if (!hasFrames) return;
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    step(delta > 0 ? 1 : -1);
+    stopAutoplay();
+    scheduleAutoplay();
+  };
+
+  // Keyboard arrows
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") { step(1); stopAutoplay(); scheduleAutoplay(); }
+      if (e.key === "ArrowLeft") { step(-1); stopAutoplay(); scheduleAutoplay(); }
+    };
+    el.addEventListener("keydown", onKey);
+    return () => el.removeEventListener("keydown", onKey);
+  }, [step]);
+
+  // Autoplay when idle (unless reduced motion)
+  const stopAutoplay = () => {
+    if (autoplayTimer.current) window.clearInterval(autoplayTimer.current);
+    autoplayTimer.current = null;
+    if (idleTimer.current) window.clearTimeout(idleTimer.current);
+    idleTimer.current = null;
+  };
+  const startAutoplay = () => {
+    if (prefersReducedMotion) return;
+    stopAutoplay();
+    autoplayTimer.current = window.setInterval(() => setIndex((i) => clampIndex(i + 1)), AUTOPLAY_MS);
+  };
+  const scheduleAutoplay = () => {
+    if (prefersReducedMotion) return;
+    if (idleTimer.current) window.clearTimeout(idleTimer.current);
+    idleTimer.current = window.setTimeout(() => startAutoplay(), AUTOPLAY_IDLE_DELAY);
+  };
+
+  useEffect(() => {
+    // start autoplay on mount if frames exist
+    if (hasFrames) scheduleAutoplay();
+    return stopAutoplay;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasFrames]);
+
+  // Reset index on color/frames change
+  useEffect(() => { setIndex(0); }, [frames]);
+
+  if (!hasFrames) {
+    return (
+      <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={handleFirstLoad} />
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full outline-none"
+      role="img"
+      aria-label={alt}
+      tabIndex={0}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onWheel={onWheel}
+    >
+      <img
+        src={frames[index]}
+        alt={alt}
+        className={className}
+        draggable={false}
+        onLoad={handleFirstLoad}
+      />
+    </div>
   );
 };
 
