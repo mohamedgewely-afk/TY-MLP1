@@ -1,5 +1,14 @@
+// DesktopCarBuilder — full rewritten TSX with fixes applied
+// - Bigger chips & typography (Step 1)
+// - Two-column layout to reduce white space
+// - Responsive Accessories grid (2/3/4 cols) + scroll padding so nothing is hidden by sticky footer
+// - Better image loading skeleton (no permanent overlay)
+// - A11y improvements (roles, aria-pressed/checked, focus-visible)
+// - Small perf tweaks (memoize finance numbers, preloading)
+// - Retains all existing features & props
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, X, RotateCcw, CheckCircle2, Info, CircleHelp, Image as ImageIcon } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
@@ -138,12 +147,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const backRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const resetRef = useRef<HTMLButtonElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoItem, setInfoItem] = useState<typeof ACCESSORIES[number] | null>(null);
 
   // hero mode: "exterior" | "interior"
   const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
+  const [imageLoadedKey, setImageLoadedKey] = useState<string>("");
 
   useEffect(() => {
     [backRef, closeRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true, onHover: true }));
@@ -227,25 +238,30 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const disablePrimary =
     (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
-  const panel = variant === "tablet" ? { left: "w-[56%]", right: "w-[44%]" } : { left: "w-[58%]", right: "w-[42%]" };
+  // Dynamic panel widths: keep elegant balance; step 1 right panel is slightly narrower
+  const panel = variant === "tablet"
+    ? (step === 1 ? { left: "w-[60%]", right: "w-[40%]" } : { left: "w-[56%]", right: "w-[44%]" })
+    : (step === 1 ? { left: "w-[62%]", right: "w-[38%]" } : { left: "w-[58%]", right: "w-[42%]" });
 
   const total = calculateTotalPrice();
-  const monthly3 = emi(total, 3);
-  const monthly5 = emi(total, 5);
-  const reserve = reserveAmount(config.stockStatus);
+  const { monthly3, monthly5, reserve } = useMemo(() => ({
+    monthly3: emi(total, 3),
+    monthly5: emi(total, 5),
+    reserve: reserveAmount(config.stockStatus),
+  }), [total, config.stockStatus]);
 
   /* Allowed colors list (hide non-allowed) */
   const visibleExteriorColors = useMemo(() => {
-    if (!config.grade) return [];
+    if (!config.grade) return [] as typeof EXTERIOR_IMAGES;
     const allowed = allowedColorsFor(config.grade);
     return EXTERIOR_IMAGES.filter((c) => allowed.includes(c.name));
   }, [config.grade]);
 
   return (
     <motion.div className="relative h-full w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      {/* Visual theater (kept slightly smaller to keep CTAs always in view) */}
+      {/* Visual theater */}
       <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
-        {/* Enhanced Mode Toggle */}
+        {/* Mode Toggle */}
         <div className="absolute top-6 left-6 z-20 border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm px-2 py-1.5 flex items-center gap-1 shadow-sm">
           {(["exterior","interior"] as const).map(m => (
             <button
@@ -257,42 +273,38 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" 
                   : "border border-transparent hover:bg-muted/50"
               }`}
+              role="tab"
+              aria-selected={heroMode === m}
             >
               {m === "exterior" ? "Exterior" : "Interior"}
             </button>
           ))}
         </div>
 
-        {/* Enhanced Image Display */}
+        {/* Image Display with proper loading skeleton */}
         <div className="relative w-full h-full bg-gradient-to-b from-muted/20 to-background/50 flex items-center justify-center">
+          {!imageLoadedKey || imageLoadedKey !== heroKey ? (
+            <div className="absolute inset-0 m-8 rounded-2xl bg-muted/20 animate-pulse" aria-hidden />
+          ) : null}
           <motion.img
             key={heroKey}
             src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
             alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
             className="w-full h-full object-contain p-8"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30,
-              duration: 0.7
-            }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+            animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+            transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
             decoding="async"
             loading="eager"
+            onLoad={() => setImageLoadedKey(heroKey)}
             onError={(e) => { 
               (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
               console.warn("Failed to load vehicle image");
             }}
           />
-          
-          {/* Loading indicator */}
-          <div className="absolute inset-0 bg-muted/10 animate-pulse rounded-2xl m-8 flex items-center justify-center">
-            <div className="w-16 h-16 border-3 border-primary/20 border-t-primary rounded-full animate-spin opacity-40" />
-          </div>
         </div>
 
-        {/* Enhanced Selection Badge */}
+        {/* Selection Badge */}
         {heroMode === "interior" && config.interiorColor && (
           <div className="absolute bottom-6 left-6 z-20 rounded-2xl border border-border/40 bg-background/95 backdrop-blur-sm px-4 py-2.5 shadow-sm">
             <span className="text-sm font-medium">{config.interiorColor}</span>
@@ -301,9 +313,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
       </div>
 
       {/* Right configuration panel */}
-      <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10`}>
-        {/* Enhanced Desktop Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border/20">
+      <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10`}> 
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border/20">
           <div className="flex items-center gap-3">
             <button 
               ref={step > 1 ? backRef : closeRef} 
@@ -333,11 +345,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           <div className="w-32" />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {/* STEP 1: Compact Year + Engine + Finance */}
+        {/* Scrollable content with bottom scroll padding so sticky footer doesn't cover */}
+        <div className="flex-1 overflow-y-auto scroll-pb-[164px]"> 
+          {/* STEP 1: Larger chips + two-column layout + finance card sizing */}
           {step === 1 && (
-            <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin">
-              <div className="grid grid-cols-1 gap-4">
+            <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CompactSegmented
                   label="Model Year"
                   options={YEARS}
@@ -354,14 +367,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               </div>
 
               {/* Finance quick view */}
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} />
-                <FinanceCard label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR · up to 5y" />
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} large />
+                <FinanceCard label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR · up to 5y" large />
               </div>
             </Section>
           )}
 
-          {/* STEP 2: Progressive Grade → Exterior (filtered) → Interior → Accessories → Stock */}
+          {/* STEP 2: Grade → Exterior (filtered) → Interior → Accessories → Stock */}
           {step === 2 && (
             <>
               {/* Grade */}
@@ -385,13 +398,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 {!config.grade ? (
                   <div className="text-xs text-muted-foreground">Choose a grade above.</div>
                 ) : (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Exterior color">
                     {visibleExteriorColors.map((c) => {
                       const isActive = config.exteriorColor === c.name;
                       return (
                         <button key={c.name} onClick={() => setColor(c.name)} type="button"
-                          className={`relative w-11 h-11 rounded-full border outline-none focus-visible:ring-2 ${isActive ? "border-primary ring-primary/30" : "border-border/60 hover:border-border"}`}
-                          title={c.name} aria-label={c.name}>
+                          className={`relative w-12 h-12 rounded-full border outline-none focus-visible:ring-2 ${isActive ? "border-primary ring-primary/30" : "border-border/60 hover:border-border"}`}
+                          title={c.name} aria-label={c.name} role="radio" aria-checked={isActive}>
                           <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
                           <span className="sr-only">{c.name}</span>
                         </button>
@@ -405,21 +418,24 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               {config.grade && config.exteriorColor ? (
                 <Section title="Interior" subtitle="Choose your cabin finish">
                   <div className="grid grid-cols-3 gap-3">
-                    {INTERIORS.map((i) => (
-                      <button key={i.name} onClick={() => setInterior(i.name)} type="button"
-                        className={`rounded-2xl border p-2 text-left ${config.interiorColor === i.name ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}>
-                        <div className="h-20 w-full rounded-xl overflow-hidden bg-muted">
-                          {i.img ? (
-                            <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
-                          ) : (
-                            <div className="w-full h-full grid place-items-center text-muted-foreground">
-                              <ImageIcon className="w-5 h-5" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-2 text-sm font-semibold">{i.name}</div>
-                      </button>
-                    ))}
+                    {INTERIORS.map((i) => {
+                      const selected = config.interiorColor === i.name;
+                      return (
+                        <button key={i.name} onClick={() => setInterior(i.name)} type="button"
+                          className={`rounded-2xl border p-2 text-left transition focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}>
+                          <div className="h-24 w-full rounded-xl overflow-hidden bg-muted">
+                            {i.img ? (
+                              <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
+                            ) : (
+                              <div className="w-full h-full grid place-items-center text-muted-foreground">
+                                <ImageIcon className="w-5 h-5" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-2 text-sm font-semibold truncate">{i.name}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </Section>
               ) : null}
@@ -427,12 +443,17 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               {/* Accessories */}
               {config.grade && config.exteriorColor && config.interiorColor ? (
                 <Section title="Accessories" subtitle="Personalize your ride">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4">
                     {ACCESSORIES.map((a) => {
                       const selected = config.accessories.includes(a.name);
                       return (
-                        <div key={a.name} className={`rounded-xl border p-3 flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border/60"}`}>
-                          <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
+                        <motion.div
+                          key={a.name}
+                          className={`rounded-xl border p-3 flex items-start gap-3 transition-all ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
+                          animate={{ scale: selected ? 1.02 : 1 }}
+                          transition={spring}
+                        >
+                          <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center" aria-pressed={selected} aria-label={`Toggle ${a.name}`}>
                             {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
                           </button>
                           <div className="min-w-0">
@@ -446,7 +467,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                               <CircleHelp className="w-3 h-3" /> Learn more
                             </button>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -542,12 +563,12 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 };
 
 /* UI bits */
-const Section: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
-  <section className="px-6 py-5 border-b border-border/10">
+const Section: React.FC<{ title: string; subtitle?: string; children: React.ReactNode; dense?: boolean }> = ({ title, subtitle, children, dense }) => (
+  <section className={`px-6 ${dense ? "py-6" : "py-8"} border-b border-border/10`}>
     <div className="flex items-start justify-between gap-3">
       <div>
-        <h3 className="text-base font-bold leading-tight">{title}</h3>
-        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        <h3 className="text-lg font-bold leading-tight">{title}</h3>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       <Info className="h-4 w-4 text-muted-foreground/70" />
     </div>
@@ -563,28 +584,33 @@ const CompactSegmented: React.FC<{
   meta?: (opt: string) => string | undefined;
 }> = ({ label, options, value, onChange, meta }) => (
   <div>
-    <div className="text-xs font-semibold mb-2">{label}</div>
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={`rounded-full border px-3 py-1.5 text-sm ${value === opt ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}
-          aria-pressed={value === opt}
-        >
-          <span className="font-medium">{opt}</span>
-          {meta?.(opt) && <span className="ml-2 text-xs text-muted-foreground">{meta(opt)}</span>}
-        </button>
-      ))}
+    <div className="text-sm font-bold mb-2">{label}</div>
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            className={`rounded-full border px-4 py-2 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}
+            aria-pressed={active}
+            role="radio"
+            aria-checked={active}
+          >
+            <span className="font-medium">{opt}</span>
+            {meta?.(opt) && <span className="ml-2 text-sm text-muted-foreground">{meta(opt)}</span>}
+          </button>
+        );
+      })}
     </div>
   </div>
 );
 
-const FinanceCard: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl border border-border/60 p-3">
+const FinanceCard: React.FC<{ label: string; value: string; hint?: string; large?: boolean }> = ({ label, value, hint, large }) => (
+  <div className={`rounded-2xl border border-border/60 p-4 ${large ? "min-h-[96px]" : ""}`}>
     <div className="text-[11px] text-muted-foreground">{label}</div>
-    <div className="text-lg font-bold">{value}</div>
+    <div className="text-xl font-bold leading-tight">{value}</div>
     {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
   </div>
 );
