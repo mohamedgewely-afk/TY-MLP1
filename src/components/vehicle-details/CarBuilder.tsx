@@ -53,6 +53,42 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     if (config.stockStatus === "no-stock" && step > 2) setStep(2);
   }, [config.stockStatus, step]);
 
+  // HARD fullscreen focus: inert + aria-hidden for app roots, body scroll-lock
+  useEffect(() => {
+    if (!isOpen || typeof document === "undefined") return;
+
+    const roots = Array.from(document.querySelectorAll<HTMLElement>("#root, main, #__next"));
+    const portals = Array.from(document.querySelectorAll<HTMLElement>("[data-builder-portal='true']"));
+
+    const isInsidePortal = (el: HTMLElement) => portals.some((p) => p.contains(el));
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // scroll lock
+
+    roots.forEach((r) => {
+      if (!isInsidePortal(r)) {
+        // @ts-expect-error inert may not exist in TS lib but is widely supported
+        r.inert = true;
+        r.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey, { passive: true });
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+      roots.forEach((r) => {
+        // @ts-expect-error inert may not exist in TS lib
+        r.inert = false;
+        r.removeAttribute("aria-hidden");
+      });
+    };
+  }, [isOpen, onClose]);
+
   const calculateTotalPrice = useCallback(() => {
     let base = vehicle.price;
     const enginePricing: Record<string, number> = { "3.5L V6": 0, "4.0L V6": 5000, "2.5L Hybrid": 3000 };
@@ -105,7 +141,15 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     const LoadingContent = isMobile ? MobileDialogContent : DialogContent;
     return (
       <LoadingDialog open={isOpen} onOpenChange={onClose}>
-        <LoadingContent className={isMobile ? "" : "max-w-full max-h-full h-screen w-screen p-0 border-0 bg-gradient-to-br from-background via-muted/5 to-background overflow-hidden"}>
+        <LoadingContent
+          data-builder-portal="true"
+          className={
+            isMobile
+              ? "fixed inset-0 z-[2147483647] m-0 p-0 w-screen h-screen max-w-none max-h-none rounded-none border-0 bg-background overflow-hidden"
+              : "fixed inset-0 z-[2147483647] m-0 p-0 w-screen h-screen max-w-none max-h-none rounded-none border-0 bg-gradient-to-br from-background via-muted/5 to-background overflow-hidden"
+          }
+          style={{ overscrollBehavior: "none" }}
+        >
           <VisuallyHidden>
             <DialogTitle>Loading Toyota Car Builder</DialogTitle>
             <DialogDescription>Preparing your premium experience...</DialogDescription>
@@ -169,25 +213,32 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
     <>
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
-          <MobileDialogContent>
+          <MobileDialogContent
+            data-builder-portal="true"
+            className="fixed inset-0 z-[2147483647] m-0 p-0 w-screen h-screen max-w-none max-h-none rounded-none border-0 bg-background overflow-hidden"
+            style={{ overscrollBehavior: "none" }}
+          >
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
+              <DialogDescription>
+                Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.
+              </DialogDescription>
             </VisuallyHidden>
+
             {content}
-            
+
             {/* Mobile Reset Dialog - inside MobileDialog to fix z-index */}
             <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-              <AlertDialogContent className="max-w-[85vw] rounded-2xl">
+              <AlertDialogContent className="max-w-[85vw] rounded-2xl z-[2147483647]">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-lg">Reset Configuration</AlertDialogTitle>
                   <AlertDialogDescription className="text-sm">Clear all selections and return to step one?</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-3">
                   <AlertDialogCancel disabled={isResetting} className="min-h-[48px] flex-1">Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleReset} 
-                    disabled={isResetting} 
+                  <AlertDialogAction
+                    onClick={handleReset}
+                    disabled={isResetting}
                     className="min-h-[48px] flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     {isResetting ? (
@@ -203,27 +254,33 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
           </MobileDialogContent>
         </MobileDialog>
       ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-[98vw] max-h-[98vh] w-[98vw] h-[98vh] p-0 border-0 bg-background overflow-hidden rounded-2xl">
+        <Dialog open={isOpen} onOpenChange={onClose} modal>
+          <DialogContent
+            data-builder-portal="true"
+            className="fixed inset-0 z-[2147483647] m-0 p-0 w-screen h-screen max-w-none max-h-none rounded-none border-0 bg-background overflow-hidden"
+            style={{ overscrollBehavior: "none" }}
+          >
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
-              <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
+              <DialogDescription>
+                Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.
+              </DialogDescription>
             </VisuallyHidden>
             {content}
           </DialogContent>
-          
+
           {/* Desktop Reset Dialog - outside main dialog to avoid nesting issues */}
           <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-            <AlertDialogContent className="max-w-md">
+            <AlertDialogContent className="max-w-md z-[2147483647]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
                 <AlertDialogDescription>Clear all selections and return to step one?</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={handleReset} 
-                  disabled={isResetting} 
+                <AlertDialogAction
+                  onClick={handleReset}
+                  disabled={isResetting}
                   className="min-h-[44px] min-w-[44px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   {isResetting ? (
