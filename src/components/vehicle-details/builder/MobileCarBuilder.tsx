@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, startTransiti
 import { motion } from "framer-motion";
 import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as ImageIcon } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
-import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 
 /* ---------- Types ---------- */
@@ -172,7 +171,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   goNext,
   onClose,
   onReset,
-  deviceCategory,
+  isMobile,         // ← ADD THIS
 }) => {
   const backRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
