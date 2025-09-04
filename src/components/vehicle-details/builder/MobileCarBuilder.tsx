@@ -88,6 +88,23 @@ const GRADE_IMAGES: Record<string, string> = {
   Platinum: COLORS[4].image,
 };
 
+/* ---------- NEW: Spin frames per exterior color (wired with your sample links) ---------- */
+const PEARL_WHITE_FRAMES: string[] = [
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f89996df-2223-47bc-b673-b213a50cc5e3.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/f0a94ef4-133b-408a-aae2-224e0348574e.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/3834e0d5-2f50-4f01-af58-23cbf763ae37.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/af5a96ed-370a-419c-aedf-db4ff7fc786f.720",
+  "https://cdn.photo-motion.com/images/PudmJIAS-FhZOSpV/bae8922a-affa-4bf7-9f7b-440b088fa4d9/3834e0d5-2f50-4f01-af58-23cbf763ae37.720",
+];
+
+const SPIN_SETS: Record<string, string[]> = {
+  "Pearl White": PEARL_WHITE_FRAMES,
+  "Midnight Black": PEARL_WHITE_FRAMES,
+  "Silver Metallic": PEARL_WHITE_FRAMES,
+  "Deep Blue": PEARL_WHITE_FRAMES,
+  "Ruby Red": PEARL_WHITE_FRAMES,
+};
+
 /* ---------- Haptics ---------- */
 const hapticSelect = () => {
   if (typeof contextualHaptic.selectionChange === "function") contextualHaptic.selectionChange();
@@ -138,23 +155,37 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoItem, setInfoItem] = useState<(typeof ACCESSORIES)[number] | null>(null);
   const [heroMode, setHeroMode] = useState<"exterior" | "interior">("exterior");
+  const [exteriorView, setExteriorView] = useState<"photo" | "spin">("photo"); // NEW: sub-toggle
+  const [imageLoadedKey, setImageLoadedKey] = useState<string>("");
 
   useEffect(() => {
     [backRef, closeRef, exitRef].forEach((r) => r.current && addLuxuryHapticToButton(r.current, { type: "luxuryPress", onPress: true }));
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true });
   }, []);
 
-  const exteriorObj = useMemo(() => {
-    const f = COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0];
-    return f;
-  }, [config.exteriorColor]);
-
+  const exteriorObj = useMemo(() => COLORS.find((c) => c.name === config.exteriorColor) || COLORS[0], [config.exteriorColor]);
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
 
+  // Preload stills
   useEffect(() => {
     COLORS.forEach((c) => { const img = new Image(); img.src = c.image; });
-    INTERIORS.filter(i => i.img).forEach(({ img }) => { const im = new Image(); im.src = img!; });
+    INTERIORS.filter((i) => i.img).forEach(({ img }) => { const im = new Image(); if (img) im.src = img; });
   }, []);
+
+  // Preload spin frames when exterior mode is active
+  const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
+  useEffect(() => {
+    if (heroMode !== "exterior") return;
+    currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+  }, [currentSpinFrames, heroMode]);
+
+  // Reset sub-toggle when leaving exterior
+  useEffect(() => {
+    if (heroMode !== "exterior" && exteriorView !== "photo") setExteriorView("photo");
+  }, [heroMode, exteriorView]);
+
+  // Unique key for skeleton/transition
+  const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}-${exteriorView}`;
 
   // ---- setters (keep stock synced) ----
   const setYear = useCallback((y: string) => {
@@ -206,28 +237,18 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
     }
     if (step === 2) {
       if (!readyStep2) return;
-      if (config.stockStatus === "no-stock") {
-        handlePayment();
-        return;
-      }
+      if (config.stockStatus === "no-stock") { handlePayment(); return; }
       goNext();
       return;
     }
-    if (step === 3) {
-      handlePayment();
-    }
+    if (step === 3) { handlePayment(); }
   };
 
-  const primaryText =
-    step === 1
-      ? "Continue"
-      : step === 2
-      ? config.stockStatus === "no-stock"
-        ? "Register your interest"
-        : "Continue"
-      : config.stockStatus === "pipeline"
-      ? "Reserve now"
-      : "Buy now";
+  const primaryText = step === 1
+    ? "Continue"
+    : step === 2
+    ? (config.stockStatus === "no-stock" ? "Register your interest" : "Continue")
+    : (config.stockStatus === "pipeline" ? "Reserve now" : "Buy now");
 
   const disablePrimary = (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
@@ -238,130 +259,164 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 
   /* Allowed colors list (hide non-allowed) */
   const visibleExteriorColors = useMemo(() => {
-    if (!config.grade) return [];
+    if (!config.grade) return [] as typeof COLORS;
     const allowed = allowedColorsFor(config.grade);
     return COLORS.filter((c) => allowed.includes(c.name));
   }, [config.grade]);
 
   return (
     <motion.div
-      className="relative w-full min-h-screen flex flex-col bg-gradient-to-b from-background via-muted/10 to-background"
+      className="relative w-full min-h-screen flex flex-col bg-background"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Header - Enhanced Mobile */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/20 sticky top-0 z-30 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 safe-area-inset-top">
+      {/* Header - Compact for more vertical space */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 sticky top-0 z-30 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-2">
-          <button 
-            ref={step > 1 ? backRef : closeRef} 
-            onClick={() => (step > 1 ? goBack() : onClose())} 
-            className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation" 
-            aria-label={step > 1 ? "Back" : "Close"} 
+          <button
+            ref={step > 1 ? backRef : closeRef}
+            onClick={() => (step > 1 ? goBack() : onClose())}
+            className="rounded-xl border border-border/60 p-2.5 hover:bg-muted/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] touch-manipulation"
+            aria-label={step > 1 ? "Back" : "Close"}
             type="button"
           >
-            {step > 1 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </button>
-          <button 
-            ref={resetRef} 
-            onClick={onReset} 
-            className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation text-destructive" 
-            aria-label="Reset Configuration" 
+          <button
+            ref={resetRef}
+            onClick={onReset}
+            className="rounded-xl border border-border/60 p-2.5 hover:bg-muted/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] touch-manipulation text-destructive"
+            aria-label="Reset Configuration"
             type="button"
           >
-            <RotateCcw className="h-5 w-5" />
+            <RotateCcw className="h-4 w-4" />
           </button>
         </div>
-        <div className="text-center">
-          <div className="text-base font-bold leading-tight">Build Your <span className="text-primary">{vehicle.name}</span></div>
-          <div className="text-xs text-muted-foreground mt-0.5">Step {step} of {totalSteps}</div>
+        <div className="text-center select-none">
+          <div className="text-sm font-bold leading-none">Build <span className="text-primary">{vehicle.name}</span></div>
+          <div className="text-[10px] text-muted-foreground mt-0.5 leading-none">Step {step} of {totalSteps}</div>
         </div>
-        <button 
-          ref={exitRef} 
-          onClick={onClose} 
-          className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation" 
-          aria-label="Exit Builder" 
+        <button
+          ref={exitRef}
+          onClick={onClose}
+          className="rounded-xl border border-border/60 p-2.5 hover:bg-muted/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] touch-manipulation"
+          aria-label="Exit Builder"
           type="button"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Enhanced Mode Toggle */}
-      <div className="px-4 pt-3">
+      {/* Mode Toggle + Photo/360 sub-toggle */}
+      <div className="px-3 pt-2">
         <div className="inline-flex border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm p-1 shadow-sm">
           {(["exterior","interior"] as const).map(m => (
             <button
               key={m}
               type="button"
               onClick={() => setHeroMode(m)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] touch-manipulation ${
-                heroMode === m 
-                  ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" 
+              className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all min-h-[36px] touch-manipulation ${
+                heroMode === m
+                  ? "bg-primary text-primary-foreground shadow-sm border border-primary/20"
                   : "border border-transparent hover:bg-muted/30 active:scale-95"
               }`}
+              aria-pressed={heroMode === m}
             >
               {m === "exterior" ? "Exterior" : "Interior"}
             </button>
           ))}
+
+          {heroMode === "exterior" && (
+            <div className="ml-1 flex items-center gap-1 pl-2 border-l border-border/30">
+              {(["photo", "spin"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setExteriorView(v)}
+                  className={`px-2.5 py-2 rounded-xl text-[11px] font-medium transition-all min-h-[36px] ${
+                    exteriorView === v ? "bg-muted/80 border border-border/50" : "hover:bg-muted/40"
+                  }`}
+                  aria-pressed={exteriorView === v}
+                >
+                  {v === "photo" ? "Photo" : "360"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Enhanced Hero Section */}
-      <div className="relative w-full bg-gradient-to-b from-muted/30 to-background border-b border-border/20 overflow-hidden">
-        <div className="relative w-full h-64 sm:h-72 md:h-80 flex items-center justify-center">
-          <motion.img
-            key={`${heroMode}-${exteriorObj.image}-${interiorObj?.img ?? "no-int"}`}
-            src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
-            alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-            className="w-full h-full object-contain p-4"
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 280, 
-              damping: 28,
-              duration: 0.6
-            }}
-            decoding="async"
-            loading="eager"
-            onError={(e) => { 
-              (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-              console.warn("Failed to load vehicle image");
-            }}
-          />
-          
-          {/* Loading placeholder */}
-          <div className="absolute inset-0 bg-muted/20 animate-pulse rounded-xl m-4 flex items-center justify-center">
-            <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin opacity-30" />
-          </div>
+      {/* Hero Section (shorter to prioritize steps) */}
+      <div className="relative w-full bg-gradient-to-b from-muted/20 to-background border-b border-border/20 overflow-hidden">
+        <div className="relative w-full h-56 sm:h-64 md:h-72 flex items-center justify-center">
+          {!imageLoadedKey || imageLoadedKey !== heroKey ? (
+            <div className="absolute inset-0 m-3 rounded-xl bg-muted/20 animate-pulse" aria-hidden />
+          ) : null}
+
+          {heroMode === "exterior" ? (
+            exteriorView === "spin" ? (
+              <SpinViewer
+                key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
+                frames={currentSpinFrames}
+                fallbackStill={exteriorObj.image}
+                className="w-full h-full object-contain p-3 select-none"
+                alt={`${config.exteriorColor} ${vehicle.name}`}
+                onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
+              />
+            ) : (
+              <motion.img
+                key={`${heroKey}-photo`}
+                src={exteriorObj.image}
+                alt={`${config.exteriorColor} ${vehicle.name}`}
+                className="w-full h-full object-contain p-3"
+                initial={{ opacity: 0, scale: 0.98, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 26, duration: 0.5 }}
+                decoding="async"
+                loading="eager"
+                onLoad={() => setImageLoadedKey(heroKey)}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+              />
+            )
+          ) : (
+            <motion.img
+              key={`${heroKey}-interior`}
+              src={interiorObj?.img || exteriorObj.image}
+              alt={`${config.interiorColor} ${vehicle.name}`}
+              className="w-full h-full object-contain p-3"
+              initial={{ opacity: 0, scale: 0.98, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 26, duration: 0.5 }}
+              decoding="async"
+              loading="eager"
+              onLoad={() => setImageLoadedKey(heroKey)}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+            />
+          )}
         </div>
-        
-        {/* Current selection badge */}
+
         {heroMode === "interior" && config.interiorColor && (
-          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm border border-border/40 rounded-xl px-3 py-2 shadow-sm">
-            <span className="text-xs font-medium">{config.interiorColor}</span>
+          <div className="absolute bottom-3 left-3 bg-background/95 backdrop-blur-sm border border-border/40 rounded-lg px-2.5 py-1.5 shadow-sm">
+            <span className="text-[11px] font-medium">{config.interiorColor}</span>
           </div>
         )}
       </div>
 
-      {/* Enhanced Summary Card */}
-      <div className="px-4 pt-4">
-        <div className="px-4 py-3 rounded-2xl border border-border/20 bg-background/95 backdrop-blur-sm shadow-sm">
+      {/* Summary Card (compact) */}
+      <div className="px-3 pt-3">
+        <div className="px-3 py-2.5 rounded-2xl border border-border/20 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold truncate text-foreground">{config.modelYear} {vehicle.name}</div>
-              <div className="text-xs text-muted-foreground truncate mt-0.5">
+              <div className="text-sm font-bold truncate text-foreground">{config.modelYear || "Year"} {vehicle.name}</div>
+              <div className="text-[11px] text-muted-foreground truncate mt-0.5">
                 {(config.grade || "Select Grade")} • {(config.engine || "Choose Engine")}
               </div>
               {config.exteriorColor && (
-                <div className="text-xs text-primary/80 truncate mt-0.5">
-                  {config.exteriorColor}
-                </div>
+                <div className="text-[11px] text-primary/80 truncate mt-0.5">{config.exteriorColor}</div>
               )}
             </div>
             <div className="text-right">
-              <div className="text-lg font-black text-primary leading-tight">AED {total.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">Estimated total</div>
+              <div className="text-base font-black text-primary leading-tight">AED {total.toLocaleString()}</div>
               <StockBadge status={config.stockStatus} compact />
             </div>
           </div>
@@ -372,105 +427,81 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
         {/* Step 1: Year + Engine + Finance */}
         {step === 1 && (
-          <>
-            <div className="space-y-4">
-              <div>
-                <div className="text-base font-semibold mb-3 text-foreground">Model Year</div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {YEARS.map((y) => (
-                    <button 
-                      key={y} 
-                      onClick={() => setYear(y)} 
-                      className={`rounded-2xl border px-4 py-3 text-sm font-medium transition-all min-h-[48px] min-w-[80px] touch-manipulation ${
-                        config.modelYear === y 
-                          ? "border-primary bg-primary/10 text-primary" 
-                          : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-95"
-                      }`} 
-                      type="button"
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-base font-semibold mb-3 text-foreground">Engine</div>
-                <div className="space-y-2">
-                  {ENGINES.map((e) => (
-                    <button 
-                      key={e} 
-                      onClick={() => setEngine(e)} 
-                      className={`w-full rounded-2xl border p-4 text-left transition-all min-h-[56px] touch-manipulation ${
-                        config.engine === e 
-                          ? "border-primary bg-primary/10" 
-                          : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-[0.98]"
-                      }`} 
-                      type="button"
-                    >
-                      <div className="text-sm font-medium">{e}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {e.includes("Hybrid") ? "Fuel efficient hybrid technology" : 
-                         e.includes("4.0L") ? "Enhanced performance engine" : "Standard gasoline engine"}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Enhanced Finance Section */}
-              <div>
-                <div className="text-base font-semibold mb-3 text-foreground">Financing Options</div>
-                <div className="grid grid-cols-1 gap-3">
-                  <FinancePill 
-                    label="Reserve Amount" 
-                    value={`AED ${reserve.toLocaleString()}`} 
-                    hint={config.stockStatus === "available" ? "Secure your vehicle today" : "Fully refundable pre-order"} 
-                  />
-                  <FinancePill 
-                    label="Monthly EMI from" 
-                    value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/month`} 
-                    hint="20% down payment • 3.49% APR • Up to 5 years" 
-                  />
-                </div>
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm font-semibold mb-2 text-foreground">Model Year</div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {YEARS.map((y) => (
+                  <button
+                    key={y}
+                    onClick={() => setYear(y)}
+                    className={`rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-all min-h-[40px] min-w-[72px] touch-manipulation ${
+                      config.modelYear === y ? "border-primary bg-primary/10 text-primary" : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-95"
+                    }`}
+                    type="button"
+                  >
+                    {y}
+                  </button>
+                ))}
               </div>
             </div>
-          </>
+
+            <div>
+              <div className="text-sm font-semibold mb-2 text-foreground">Engine</div>
+              <div className="space-y-2">
+                {ENGINES.map((e) => (
+                  <button
+                    key={e}
+                    onClick={() => setEngine(e)}
+                    className={`w-full rounded-xl border p-3.5 text-left transition-all min-h-[48px] touch-manipulation ${
+                      config.engine === e ? "border-primary bg-primary/10" : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-[0.98]"
+                    }`}
+                    type="button"
+                  >
+                    <div className="text-[13px] font-medium">{e}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {e.includes("Hybrid") ? "Fuel efficient hybrid technology" : e.includes("4.0L") ? "Enhanced performance engine" : "Standard gasoline engine"}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Finance */}
+            <div className="grid grid-cols-1 gap-2">
+              <FinancePill label="Reserve Amount" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Secure your vehicle today" : "Fully refundable pre-order"} />
+              <FinancePill label="Monthly EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/month`} hint="20% down • 3.49% APR • Up to 5 years" />
+            </div>
+          </div>
         )}
 
-        {/* Step 2: Progressive Grade → Exterior (filtered) → Interior → Accessories → Stock */}
+        {/* Step 2 */}
         {step === 2 && (
           <>
-            {/* Enhanced Grade Selection */}
-            <div className="space-y-4">
-              <div className="text-base font-semibold text-foreground">Grade Selection</div>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
+              <div className="text-sm font-semibold text-foreground">Grade Selection</div>
+              <div className="grid grid-cols-2 gap-2.5">
                 {GRADES.map((g) => {
                   const active = config.grade === g;
                   return (
-                    <button 
-                      key={g} 
-                      onClick={() => setGrade(g)} 
-                      type="button" 
-                      className={`rounded-2xl border text-left transition-all touch-manipulation active:scale-[0.98] ${
-                        active 
-                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
-                          : "border-border/60 hover:border-border hover:bg-muted/30"
+                    <button
+                      key={g}
+                      onClick={() => setGrade(g)}
+                      type="button"
+                      className={`rounded-xl border text-left transition-all touch-manipulation active:scale-[0.98] ${
+                        active ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" : "border-border/60 hover:border-border hover:bg-muted/30"
                       }`}
                     >
-                      <div className="aspect-[16/10] w-full rounded-t-2xl overflow-hidden bg-muted/50">
+                      <div className="aspect-[16/10] w-full rounded-t-xl overflow-hidden bg-muted/50">
                         <img src={GRADE_IMAGES[g]} alt={g} className="w-full h-full object-cover" loading="lazy" />
                       </div>
-                      <div className="px-3 py-3">
+                      <div className="px-3 py-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold">{g}</span>
+                          <span className="text-[13px] font-semibold">{g}</span>
                           {active && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {g === "Base" ? "Essential features" :
-                           g === "SE" ? "Sport enhanced" :
-                           g === "XLE" ? "Extra luxury" :
-                           g === "Limited" ? "Premium comfort" : "Top of the line"}
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          {g === "Base" ? "Essential features" : g === "SE" ? "Sport enhanced" : g === "XLE" ? "Extra luxury" : g === "Limited" ? "Premium comfort" : "Top of the line"}
                         </div>
                       </div>
                     </button>
@@ -479,38 +510,32 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Exterior Colors */}
-            <div className="space-y-4">
-              <div className="text-base font-semibold text-foreground">Exterior Colors</div>
+            {/* Exterior Colors */}
+            <div className="space-y-3">
+              <div className="text-sm font-semibold text-foreground">Exterior Colors</div>
               {!config.grade ? (
-                <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-2xl text-center">
-                  Select a grade to view available colors
-                </div>
+                <div className="text-[12px] text-muted-foreground p-3 bg-muted/30 rounded-xl text-center">Select a grade to view available colors</div>
               ) : (
-                <div className="space-y-3">
-                  <div className="text-sm text-muted-foreground">
-                    {visibleExteriorColors.length} colors available for {config.grade}
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
+                <>
+                  <div className="text-[12px] text-muted-foreground">{visibleExteriorColors.length} colors available for {config.grade}</div>
+                  <div className="grid grid-cols-3 gap-2.5">
                     {visibleExteriorColors.map((c) => {
                       const isActive = config.exteriorColor === c.name;
                       return (
                         <button
                           key={c.name}
                           onClick={() => setColor(c.name)}
-                          className={`relative rounded-2xl border p-3 text-center transition-all touch-manipulation active:scale-95 ${
-                            isActive 
-                              ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
-                              : "border-border/60 hover:border-border hover:bg-muted/30"
+                          className={`relative rounded-xl border p-2.5 text-center transition-all touch-manipulation active:scale-95 ${
+                            isActive ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" : "border-border/60 hover:border-border hover:bg-muted/30"
                           }`}
                           aria-label={c.name}
                           title={c.name}
                           type="button"
                         >
-                          <div className="w-8 h-8 rounded-full mx-auto mb-2 border border-border/40" style={{ background: c.swatch }} />
-                          <div className="text-xs font-medium truncate">{c.name}</div>
+                          <div className="w-7 h-7 rounded-full mx-auto mb-1.5 border border-border/40" style={{ background: c.swatch }} />
+                          <div className="text-[11px] font-medium truncate">{c.name}</div>
                           {isActive && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-primary rounded-full flex items-center justify-center">
                               <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
                             </div>
                           )}
@@ -518,36 +543,45 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                       );
                     })}
                   </div>
-                </div>
+                </>
               )}
             </div>
 
             {/* Interior */}
-            {config.grade && config.exteriorColor ? (
+            {config.grade && config.exteriorColor && (
               <div>
-                <div className="text-sm font-semibold mb-2">Interior</div>
+                <div className="text-sm font-semibold mb-1.5">Interior</div>
                 <div className="grid grid-cols-3 gap-2">
                   {INTERIORS.map((i) => (
-                    <button key={i.name} onClick={() => setInterior(i.name)} className={"rounded-xl border p-2 " + (config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
+                    <button
+                      key={i.name}
+                      onClick={() => setInterior(i.name)}
+                      className={`rounded-xl border p-2 ${config.interiorColor === i.name ? "border-primary/60 bg-primary/5" : "border-border/60 hover:border-border"}`}
+                      type="button"
+                    >
                       <div className="h-16 rounded-lg overflow-hidden bg-muted">
-                        {i.img ? <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-5 h-5" /></div>}
+                        {i.img ? (
+                          <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-5 h-5" /></div>
+                        )}
                       </div>
                       <div className="mt-1 text-[11px] font-medium">{i.name}</div>
                     </button>
                   ))}
                 </div>
               </div>
-            ) : null}
+            )}
 
             {/* Accessories */}
-            {config.grade && config.exteriorColor && config.interiorColor ? (
+            {config.grade && config.exteriorColor && config.interiorColor && (
               <div>
-                <div className="text-sm font-semibold mb-2">Accessories</div>
+                <div className="text-sm font-semibold mb-1.5">Accessories</div>
                 <div className="grid grid-cols-2 gap-2">
                   {ACCESSORIES.map((a) => {
                     const selected = config.accessories.includes(a.name);
                     return (
-                      <div key={a.name} className={"rounded-xl border p-2 flex items-start gap-2 " + (selected ? "border-primary bg-primary/5" : "border-border/60")}>
+                      <div key={a.name} className={`rounded-xl border p-2 flex items-start gap-2 ${selected ? "border-primary bg-primary/5" : "border-border/60"}`}>
                         <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center">
                           {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
                         </button>
@@ -563,22 +597,21 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                   })}
                 </div>
               </div>
-            ) : null}
+            )}
 
             {/* Stock */}
-            {config.grade && config.exteriorColor && config.interiorColor ? (
+            {config.grade && config.exteriorColor && config.interiorColor && (
               <div>
-                <div className="text-sm font-semibold mb-2">Stock</div>
+                <div className="text-sm font-semibold mb-1.5">Stock</div>
                 <StockBadge status={config.stockStatus} />
               </div>
-            ) : null}
+            )}
           </>
         )}
 
-        {/* Step 3: Confirmation with images */}
+        {/* Step 3: Confirmation */}
         {step === 3 && (
           <div className="space-y-3">
-            {/* Previews */}
             <div className="grid grid-cols-1 gap-3">
               <div className="rounded-2xl border overflow-hidden">
                 <div className="aspect-[16/9] bg-muted">
@@ -598,7 +631,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
 
-            {[
+            {([
               ["Year", config.modelYear],
               ["Engine", config.engine],
               ["Grade", config.grade],
@@ -611,10 +644,10 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
                   ? "Pipeline stock"
                   : "Available",
               ],
-            ].map(([label, value]) => (
-              <div key={label as string} className="flex items-center justify-between border rounded-xl px-3 py-2">
-                <span className="text-sm text-muted-foreground">{label as string}</span>
-                <span className="text-sm font-semibold">{value as string}</span>
+            ] as const).map(([label, value]) => (
+              <div key={label} className="flex items-center justify-between border rounded-xl px-3 py-2">
+                <span className="text-sm text-muted-foreground">{label}</span>
+                <span className="text-sm font-semibold">{value}</span>
               </div>
             ))}
 
@@ -625,33 +658,31 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         )}
       </div>
 
-      {/* Enhanced Footer CTA */}
-      <div className="border-t border-border/20 px-4 py-4 pb-[max(env(safe-area-inset-bottom),16px)] sticky bottom-0 bg-background/98 backdrop-blur-lg supports-[backdrop-filter]:bg-background/90 shadow-lg">
-        <div className="flex items-center justify-between gap-4">
+      {/* Footer CTA (compact) */}
+      <div className="border-t border-border/20 px-3 py-3 pb-[max(env(safe-area-inset-bottom),14px)] sticky bottom-0 bg-background/98 backdrop-blur-lg supports-[backdrop-filter]:bg-background/90">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xl font-black text-primary">AED {total.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground leading-tight">
+            <div className="text-lg font-black text-primary">AED {total.toLocaleString()}</div>
+            <div className="text-[11px] text-muted-foreground leading-tight">
               Reserve AED {reserve.toLocaleString()} • EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {step > 1 && (
-              <button 
-                type="button" 
-                onClick={goBack} 
-                className="rounded-2xl border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] touch-manipulation"
+              <button
+                type="button"
+                onClick={goBack}
+                className="rounded-xl border border-border/60 px-3.5 py-2.5 text-sm font-medium hover:bg-muted/50 active:scale-95 transition-all min-h-[40px] touch-manipulation"
               >
                 Back
               </button>
             )}
-            <button 
-              type="button" 
-              onClick={onContinue} 
-              disabled={disablePrimary} 
-              className={`rounded-2xl px-6 py-3 text-sm font-semibold transition-all min-h-[48px] min-w-[120px] touch-manipulation ${
-                disablePrimary 
-                  ? "bg-muted text-muted-foreground cursor-not-allowed" 
-                  : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/25"
+            <button
+              type="button"
+              onClick={onContinue}
+              disabled={disablePrimary}
+              className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-all min-h-[40px] min-w-[112px] touch-manipulation ${
+                disablePrimary ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/20"
               }`}
             >
               {primaryText}
@@ -660,7 +691,7 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Accessory info dialog (uses current exterior as hero image) */}
+      {/* Accessory info dialog */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
         <DialogContent>
           <DialogHeader>
@@ -680,26 +711,139 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   );
 };
 
+/* ---------- SpinViewer (manual only: drag / wheel / arrows; NO autoplay) ---------- */
+interface SpinViewerProps {
+  frames: string[]; // ordered
+  fallbackStill: string;
+  className?: string;
+  alt?: string;
+  onFirstFrameLoad?: () => void;
+}
+
+const SpinViewer: React.FC<SpinViewerProps> = ({
+  frames,
+  fallbackStill,
+  className,
+  alt,
+  onFirstFrameLoad,
+}) => {
+  const hasFrames = frames && frames.length > 0;
+  const [index, setIndex] = useState(0);
+  const startXRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const SENS = 6; // pixels per frame
+
+  const clampIndex = useCallback((i: number) => {
+    if (!hasFrames) return 0;
+    const len = frames.length;
+    return ((i % len) + len) % len;
+  }, [frames, hasFrames]);
+
+  const step = useCallback((delta: number) => {
+    setIndex((cur) => clampIndex(cur + delta));
+  }, [clampIndex]);
+
+  const firstLoadedRef = useRef(false);
+  const onFirstLoad = () => {
+    if (!firstLoadedRef.current) {
+      firstLoadedRef.current = true;
+      onFirstFrameLoad?.();
+    }
+  };
+
+  // Drag
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    startXRef.current = e.clientX;
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (startXRef.current == null) return;
+    const dx = e.clientX - startXRef.current;
+    if (Math.abs(dx) >= SENS) {
+      const framesDelta = Math.trunc(dx / SENS);
+      step(framesDelta);
+      startXRef.current = e.clientX;
+    }
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    (e.target as Element).releasePointerCapture?.(e.pointerId);
+    startXRef.current = null;
+  };
+
+  // Wheel (optional on mobile, but supports mobile trackpads)
+  const onWheel = (e: React.WheelEvent) => {
+    if (!hasFrames) return;
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    step(delta > 0 ? 1 : -1);
+  };
+
+  // Keyboard arrows for accessibility
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    el.addEventListener("keydown", onKey);
+    return () => el.removeEventListener("keydown", onKey);
+  }, [step]);
+
+  // Reset on frames change
+  useEffect(() => { setIndex(0); }, [frames]);
+
+  if (!hasFrames) {
+    return (
+      <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} />
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full outline-none"
+      role="img"
+      aria-label={alt}
+      tabIndex={0}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onWheel={onWheel}
+    >
+      <img
+        src={frames[index]}
+        alt={alt}
+        className={className}
+        draggable={false}
+        onLoad={onFirstLoad}
+      />
+    </div>
+  );
+};
+
 /* ---------- Small UI bits ---------- */
 const StockBadge: React.FC<{ status: StockStatus; compact?: boolean }> = ({ status, compact = false }) => {
-  const base = compact ? "inline-block text-xs rounded-full border px-2 py-0.5" : "inline-block text-xs rounded-full border px-3 py-1";
+  const base = compact ? "inline-block text-[10px] rounded-full border px-2 py-0.5" : "inline-block text-xs rounded-full border px-3 py-1";
   const cls =
     status === "no-stock"
       ? " border-destructive/30 text-destructive bg-destructive/10"
       : status === "pipeline"
       ? " border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10"
       : " border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10";
-  const label = compact 
+  const label = compact
     ? (status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline" : "Available")
     : (status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline stock" : "Available");
   return <span className={base + " " + cls}>{label}</span>;
 };
 
 const FinancePill: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl border border-border/40 bg-background/80 backdrop-blur-sm px-4 py-3 shadow-sm">
-    <div className="text-xs font-medium text-muted-foreground">{label}</div>
-    <div className="text-base font-bold text-foreground mt-1">{value}</div>
-    {hint && <div className="text-xs text-muted-foreground mt-1 leading-relaxed">{hint}</div>}
+  <div className="rounded-2xl border border-border/40 bg-background/80 backdrop-blur-sm px-3 py-2.5">
+    <div className="text-[11px] font-medium text-muted-foreground">{label}</div>
+    <div className="text-sm font-bold text-foreground mt-0.5">{value}</div>
+    {hint && <div className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{hint}</div>}
   </div>
 );
 
