@@ -32,8 +32,8 @@ const VehicleSpecs = createLazyComponent(
 
 const VehicleGallery = createLazyComponent(
   () =>
-    import("@/components/vehicle-details/VehicleGallery").then(m => ({
-      default: m.VehicleGallery, // map the named export to default for React.lazy
+    import("@/components/vehicle-details/VehicleGallery").then((m: any) => ({
+      default: m.VehicleGallery ?? m.default,
     }))
 );
 
