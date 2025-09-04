@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Search,
   Car,
@@ -174,8 +174,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const deviceInfo = useOptimizedDeviceInfo();
   const { toast } = useToast();
   const navigationState = useNavigationState();
-  const location = useLocation();
-const activeSection = navigationState.activeSection as string | undefined;
+
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([50000, 200000]);
@@ -223,9 +222,9 @@ const activeSection = navigationState.activeSection as string | undefined;
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  uuseEffect(() => {
-  navigationState.resetNavigation();
-}, [location.pathname]);
+  useEffect(() => {
+    navigationState.resetNavigation();
+  }, [window.location.pathname]);
 
   const filteredVehicles = useMemo(() => 
     vehicles
@@ -620,28 +619,30 @@ const activeSection = navigationState.activeSection as string | undefined;
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button
-                      className={cn(
-                        "h-12 text-left justify-start",
-                        getTouchTargetSize(),
-                        isGR ? GR_BTN_SURFACE : ""
-                      )}
-                      onClick={() => handleSectionToggle("models")}
-                    >
-                      <Car className="h-4 w-4 mr-2" />
-                      Browse Models
-                    </Button>
+  className={cn(
+    "h-12 text-left justify-start",
+    getTouchTargetSize(),
+    isGR ? GR_BTN_SURFACE : ""
+  )}
+  onClick={() => handleSectionToggle("models")}
+  aria-expanded={activeSection === "models"}
+>
+  <Car className="h-4 w-4 mr-2" />
+  Browse Models
+</Button>
 
-                    <Button
-                      className={cn(
-                        "h-12 text-left justify-start",
-                        getTouchTargetSize(),
-                        isGR ? GR_BTN_SURFACE : ""
-                      )}
-                      onClick={() => handleSectionToggle("search")}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Find Vehicle
-                    </Button>
+  <Button
+  className={cn(
+    "h-12 text-left justify-start",
+    getTouchTargetSize(),
+    isGR ? GR_BTN_SURFACE : ""
+  )}
+  onClick={() => handleSectionToggle("search")}
+  aria-expanded={activeSection === "search"}
+>
+  <Search className="h-4 w-4 mr-2" />
+  Find Vehicle
+</Button>
                   </div>
                 </motion.div>
               )}
