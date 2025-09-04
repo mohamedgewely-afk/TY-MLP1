@@ -239,9 +239,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
   // Dynamic panel widths: keep elegant balance; step 1 right panel is slightly narrower
-  const panel = variant === "tablet"
-    ? (step === 1 ? { left: "w-[60%]", right: "w-[40%]" } : { left: "w-[56%]", right: "w-[44%]" })
-    : (step === 1 ? { left: "w-[62%]", right: "w-[38%]" } : { left: "w-[58%]", right: "w-[42%]" });
+  const panel = variant === \"tablet\"
+  ? (step === 1 ? { left: \"w-\[52%\]\", right: \"w-\[48%\]\" } : { left: \"w-\[56%\]\", right: \"w-\[44%\]\" })
+  : (step === 1 ? { left: \"w-\[52%\]\", right: \"w-\[48%\]\" } : { left: \"w-\[58%\]\", right: \"w-\[42%\]\" });
 
   const total = calculateTotalPrice();
   const { monthly3, monthly5, reserve } = useMemo(() => ({
@@ -258,7 +258,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   }, [config.grade]);
 
   return (
-    <motion.div className="relative h-full w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className=\"relative h-screen w-full bg-background flex\" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Visual theater */}
       <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
         {/* Mode Toggle */}
@@ -290,7 +290,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             key={heroKey}
             src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
             alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-            className="w-full h-full object-contain p-8"
+            className=\"w-full h-full object-contain p-6 md:p-8\"
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
             transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
@@ -336,8 +336,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               <RotateCcw className="h-5 w-5" />
             </button>
           </div>
-          <div className="text-center">
-            <h1 className="text-2xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+          <div className=\"text-center\">
+            <h1 className=\"text-2xl md:text-3xl font-black tracking-tight\">Build Your <span className="text-primary">{vehicle.name}</span></h1>
             <div className="text-sm text-muted-foreground mt-1 flex items-center justify-center gap-1">
               <StepDots current={step} total={totalSteps} />
             </div>
@@ -346,7 +346,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         </div>
 
         {/* Scrollable content with bottom scroll padding so sticky footer doesn't cover */}
-        <div className="flex-1 overflow-y-auto scroll-pb-[164px]"> 
+        <div className=\"flex-1 overflow-y-auto scroll-pb-[220px] scroll-pt-2\"> 
           {/* STEP 1: Larger chips + two-column layout + finance card sizing */}
           {step === 1 && (
             <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
@@ -374,7 +374,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </Section>
           )}
 
-          {/* STEP 2: Grade → Exterior (filtered) → Interior → Accessories → Stock */}
+          {/* STEP 2: Grade → Exterior (filtered) → Interior → Stock (moved under Interior) → Accessories */}
           {step === 2 && (
             <>
               {/* Grade */}
@@ -416,23 +416,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
               {/* Interior */}
               {config.grade && config.exteriorColor ? (
-                <Section title="Interior" subtitle="Choose your cabin finish">
-                  <div className="grid grid-cols-3 gap-3">
+                <Section title=\"Interior\" subtitle=\"Choose your cabin finish\">
+                  <div className=\"grid grid-cols-3 gap-3\">
                     {INTERIORS.map((i) => {
                       const selected = config.interiorColor === i.name;
                       return (
-                        <button key={i.name} onClick={() => setInterior(i.name)} type="button"
-                          className={`rounded-2xl border p-2 text-left transition focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}>
-                          <div className="h-24 w-full rounded-xl overflow-hidden bg-muted">
+                        <button key={i.name} onClick={() => setInterior(i.name)} type=\"button\"
+                          className=\{\`rounded-2xl border p-2 text-left transition focus-visible:ring-2 focus-visible:ring-primary \${selected ? \"border-primary bg-primary/5\" : \"border-border/60 hover:border-border\"}\`\}>
+                          <div className=\"h-24 w-full rounded-xl overflow-hidden bg-muted\">
                             {i.img ? (
-                              <img src={i.img} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
+                              <img src={i.img} alt={i.name} className=\"w-full h-full object-cover\" loading=\"lazy\" />
                             ) : (
-                              <div className="w-full h-full grid place-items-center text-muted-foreground">
-                                <ImageIcon className="w-5 h-5" />
+                              <div className=\"w-full h-full grid place-items-center text-muted-foreground\">
+                                <ImageIcon className=\"w-5 h-5\" />
                               </div>
                             )}
                           </div>
-                          <div className="mt-2 text-sm font-semibold truncate">{i.name}</div>
+                          <div className=\"mt-2 text-sm font-semibold truncate\">{i.name}</div>
                         </button>
                       );
                     })}
@@ -440,16 +440,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 </Section>
               ) : null}
 
+              {/* Stock moved directly under Interior */}
+              {config.grade && config.exteriorColor && config.interiorColor ? (
+                <Section title=\"Stock\" subtitle=\"Availability depends on color and interior\">
+                  <StockPill status={config.stockStatus} />
+                </Section>
+              ) : null}
+
               {/* Accessories */}
               {config.grade && config.exteriorColor && config.interiorColor ? (
                 <Section title="Accessories" subtitle="Personalize your ride">
-                  <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4">
+                  <div className=\"grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3\">
                     {ACCESSORIES.map((a) => {
                       const selected = config.accessories.includes(a.name);
                       return (
                         <motion.div
                           key={a.name}
-                          className={`rounded-xl border p-3 flex items-start gap-3 transition-all ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
+                          className={`rounded-xl border p-3 md:p-3.5 flex items-start gap-3 transition-all ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
                           animate={{ scale: selected ? 1.02 : 1 }}
                           transition={spring}
                         >
