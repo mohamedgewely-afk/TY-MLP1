@@ -249,34 +249,56 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/10 sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="flex items-center gap-1.5">
-          <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="rounded-xl border p-2.5" aria-label={step > 1 ? "Back" : "Close"} type="button">
-            {step > 1 ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
+      {/* Header - Enhanced Mobile */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/20 sticky top-0 z-30 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 safe-area-inset-top">
+        <div className="flex items-center gap-2">
+          <button 
+            ref={step > 1 ? backRef : closeRef} 
+            onClick={() => (step > 1 ? goBack() : onClose())} 
+            className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation" 
+            aria-label={step > 1 ? "Back" : "Close"} 
+            type="button"
+          >
+            {step > 1 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
           </button>
-          <button ref={resetRef} onClick={onReset} className="rounded-xl border p-2.5" aria-label="Reset" type="button">
-            <RotateCcw className="h-4 w-4" />
+          <button 
+            ref={resetRef} 
+            onClick={onReset} 
+            className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation text-destructive" 
+            aria-label="Reset Configuration" 
+            type="button"
+          >
+            <RotateCcw className="h-5 w-5" />
           </button>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold leading-none">Build Your <span className="text-primary">{vehicle.name}</span></div>
-          <div className="text-[10px] text-muted-foreground mt-1">{step}/{totalSteps}</div>
+          <div className="text-base font-bold leading-tight">Build Your <span className="text-primary">{vehicle.name}</span></div>
+          <div className="text-xs text-muted-foreground mt-0.5">Step {step} of {totalSteps}</div>
         </div>
-        <button ref={exitRef} onClick={onClose} className="rounded-xl border p-2.5" aria-label="Exit" type="button">
-          <LogOut className="h-4 w-4" />
+        <button 
+          ref={exitRef} 
+          onClick={onClose} 
+          className="rounded-2xl border border-border/60 p-3 hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] min-w-[48px] touch-manipulation" 
+          aria-label="Exit Builder" 
+          type="button"
+        >
+          <LogOut className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Mode toggle */}
-      <div className="px-3 pt-2">
-        <div className="inline-flex border rounded-full bg-background/90 backdrop-blur p-1">
+      {/* Enhanced Mode Toggle */}
+      <div className="px-4 pt-3">
+        <div className="inline-flex border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm p-1 shadow-sm">
           {(["exterior","interior"] as const).map(m => (
             <button
               key={m}
               type="button"
               onClick={() => setHeroMode(m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border ${heroMode===m ? "bg-primary text-primary-foreground border-primary" : "border-transparent"}`}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] touch-manipulation ${
+                heroMode === m 
+                  ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" 
+                  : "border border-transparent hover:bg-muted/30 active:scale-95"
+              }`}
             >
               {m === "exterior" ? "Exterior" : "Interior"}
             </button>
@@ -284,35 +306,63 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Hero (dynamic by mode; height responsive so footer is always visible) */}
-      <div className="relative w-full h-60 md:h-72 border-b border-border/10 bg-background">
-        <motion.img
-          key={`${heroMode}-${exteriorObj.image}-${interiorObj?.img ?? "no-int"}`}
-          src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
-          alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-          className="absolute inset-0 w-full h-full object-contain"
-          initial={{ opacity: 0, scale: 1.0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 240, damping: 24 }}
-          decoding="async"
-          loading="eager"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-        />
+      {/* Enhanced Hero Section */}
+      <div className="relative w-full bg-gradient-to-b from-muted/30 to-background border-b border-border/20 overflow-hidden">
+        <div className="relative w-full h-64 sm:h-72 md:h-80 flex items-center justify-center">
+          <motion.img
+            key={`${heroMode}-${exteriorObj.image}-${interiorObj?.img ?? "no-int"}`}
+            src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
+            alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
+            className="w-full h-full object-contain p-4"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 280, 
+              damping: 28,
+              duration: 0.6
+            }}
+            decoding="async"
+            loading="eager"
+            onError={(e) => { 
+              (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+              console.warn("Failed to load vehicle image");
+            }}
+          />
+          
+          {/* Loading placeholder */}
+          <div className="absolute inset-0 bg-muted/20 animate-pulse rounded-xl m-4 flex items-center justify-center">
+            <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin opacity-30" />
+          </div>
+        </div>
+        
+        {/* Current selection badge */}
+        {heroMode === "interior" && config.interiorColor && (
+          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm border border-border/40 rounded-xl px-3 py-2 shadow-sm">
+            <span className="text-xs font-medium">{config.interiorColor}</span>
+          </div>
+        )}
       </div>
 
-      {/* Summary under hero */}
-      <div className="px-3 pt-2">
-        <div className="px-3 py-2 rounded-2xl border border-border/10 bg-background/90">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-xs font-bold truncate">{config.modelYear} {vehicle.name}</div>
-              <div className="text-[11px] text-muted-foreground truncate">
-                {(config.grade || "Select Grade") + " · " + (config.engine || "Choose Engine")}
+      {/* Enhanced Summary Card */}
+      <div className="px-4 pt-4">
+        <div className="px-4 py-3 rounded-2xl border border-border/20 bg-background/95 backdrop-blur-sm shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold truncate text-foreground">{config.modelYear} {vehicle.name}</div>
+              <div className="text-xs text-muted-foreground truncate mt-0.5">
+                {(config.grade || "Select Grade")} • {(config.engine || "Choose Engine")}
               </div>
+              {config.exteriorColor && (
+                <div className="text-xs text-primary/80 truncate mt-0.5">
+                  {config.exteriorColor}
+                </div>
+              )}
             </div>
             <div className="text-right">
-              <div className="text-sm font-black text-primary leading-none">AED {total.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground">Est. total</div>
+              <div className="text-lg font-black text-primary leading-tight">AED {total.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">Estimated total</div>
+              <StockBadge status={config.stockStatus} compact />
             </div>
           </div>
         </div>
@@ -323,32 +373,67 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         {/* Step 1: Year + Engine + Finance */}
         {step === 1 && (
           <>
-            <div>
-              <div className="text-sm font-semibold mb-2">Model Year</div>
-              <div className="flex items-center gap-2">
-                {YEARS.map((y) => (
-                  <button key={y} onClick={() => setYear(y)} className={"rounded-full border px-3 py-1.5 text-xs " + (config.modelYear === y ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
-                    {y}
-                  </button>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <div className="text-base font-semibold mb-3 text-foreground">Model Year</div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {YEARS.map((y) => (
+                    <button 
+                      key={y} 
+                      onClick={() => setYear(y)} 
+                      className={`rounded-2xl border px-4 py-3 text-sm font-medium transition-all min-h-[48px] min-w-[80px] touch-manipulation ${
+                        config.modelYear === y 
+                          ? "border-primary bg-primary/10 text-primary" 
+                          : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-95"
+                      }`} 
+                      type="button"
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <div className="text-sm font-semibold mb-2">Engine</div>
-              <div className="flex items-center gap-2">
-                {ENGINES.map((e) => (
-                  <button key={e} onClick={() => setEngine(e)} className={"rounded-full border px-3 py-1.5 text-xs " + (config.engine === e ? "border-primary/60 bg-primary/5" : "border-border/60")} type="button">
-                    {e}
-                  </button>
-                ))}
+              <div>
+                <div className="text-base font-semibold mb-3 text-foreground">Engine</div>
+                <div className="space-y-2">
+                  {ENGINES.map((e) => (
+                    <button 
+                      key={e} 
+                      onClick={() => setEngine(e)} 
+                      className={`w-full rounded-2xl border p-4 text-left transition-all min-h-[56px] touch-manipulation ${
+                        config.engine === e 
+                          ? "border-primary bg-primary/10" 
+                          : "border-border/60 hover:border-border hover:bg-muted/30 active:scale-[0.98]"
+                      }`} 
+                      type="button"
+                    >
+                      <div className="text-sm font-medium">{e}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {e.includes("Hybrid") ? "Fuel efficient hybrid technology" : 
+                         e.includes("4.0L") ? "Enhanced performance engine" : "Standard gasoline engine"}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Finance */}
-            <div className="grid grid-cols-2 gap-2">
-              <FinancePill label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Secure today" : "Refundable"} />
-              <FinancePill label="EMI from" value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/mo`} hint="20% down · 3.49% APR" />
+              {/* Enhanced Finance Section */}
+              <div>
+                <div className="text-base font-semibold mb-3 text-foreground">Financing Options</div>
+                <div className="grid grid-cols-1 gap-3">
+                  <FinancePill 
+                    label="Reserve Amount" 
+                    value={`AED ${reserve.toLocaleString()}`} 
+                    hint={config.stockStatus === "available" ? "Secure your vehicle today" : "Fully refundable pre-order"} 
+                  />
+                  <FinancePill 
+                    label="Monthly EMI from" 
+                    value={`AED ${Math.min(monthly3, monthly5).toLocaleString()}/month`} 
+                    hint="20% down payment • 3.49% APR • Up to 5 years" 
+                  />
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -356,20 +441,37 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         {/* Step 2: Progressive Grade → Exterior (filtered) → Interior → Accessories → Stock */}
         {step === 2 && (
           <>
-            {/* Grade (static images) */}
-            <div>
-              <div className="text-sm font-semibold mb-2">Grade</div>
-              <div className="grid grid-cols-2 gap-2">
+            {/* Enhanced Grade Selection */}
+            <div className="space-y-4">
+              <div className="text-base font-semibold text-foreground">Grade Selection</div>
+              <div className="grid grid-cols-2 gap-3">
                 {GRADES.map((g) => {
                   const active = config.grade === g;
                   return (
-                    <button key={g} onClick={() => setGrade(g)} type="button" className={"rounded-xl border text-left " + (active ? "border-primary/60 bg-primary/5" : "border-border/60")}>
-                      <div className="aspect-[16/10] w-full rounded-t-xl overflow-hidden bg-muted">
+                    <button 
+                      key={g} 
+                      onClick={() => setGrade(g)} 
+                      type="button" 
+                      className={`rounded-2xl border text-left transition-all touch-manipulation active:scale-[0.98] ${
+                        active 
+                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
+                          : "border-border/60 hover:border-border hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="aspect-[16/10] w-full rounded-t-2xl overflow-hidden bg-muted/50">
                         <img src={GRADE_IMAGES[g]} alt={g} className="w-full h-full object-cover" loading="lazy" />
                       </div>
-                      <div className="px-3 py-2">
-                        <span className="text-sm font-semibold">{g}</span>
-                        {active && <CheckCircle2 className="h-4 w-4 text-primary inline ml-1" />}
+                      <div className="px-3 py-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold">{g}</span>
+                          {active && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {g === "Base" ? "Essential features" :
+                           g === "SE" ? "Sport enhanced" :
+                           g === "XLE" ? "Extra luxury" :
+                           g === "Limited" ? "Premium comfort" : "Top of the line"}
+                        </div>
                       </div>
                     </button>
                   );
@@ -377,29 +479,45 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
               </div>
             </div>
 
-            {/* Exterior (only allowed colors shown) */}
-            <div>
-              <div className="text-sm font-semibold mb-2">Exterior Colors</div>
+            {/* Enhanced Exterior Colors */}
+            <div className="space-y-4">
+              <div className="text-base font-semibold text-foreground">Exterior Colors</div>
               {!config.grade ? (
-                <div className="text-xs text-muted-foreground">Select a grade to view colors.</div>
+                <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-2xl text-center">
+                  Select a grade to view available colors
+                </div>
               ) : (
-                <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                  {visibleExteriorColors.map((c) => {
-                    const isActive = config.exteriorColor === c.name;
-                    return (
-                      <button
-                        key={c.name}
-                        onClick={() => setColor(c.name)}
-                        className={"shrink-0 w-11 h-11 rounded-full border relative " + (isActive ? "border-primary ring-2 ring-primary/30" : "border-border/60")}
-                        aria-label={c.name}
-                        title={c.name}
-                        type="button"
-                      >
-                        <span className="absolute inset-0 rounded-full" style={{ background: c.swatch }} />
-                        <span className="sr-only">{c.name}</span>
-                      </button>
-                    );
-                  })}
+                <div className="space-y-3">
+                  <div className="text-sm text-muted-foreground">
+                    {visibleExteriorColors.length} colors available for {config.grade}
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {visibleExteriorColors.map((c) => {
+                      const isActive = config.exteriorColor === c.name;
+                      return (
+                        <button
+                          key={c.name}
+                          onClick={() => setColor(c.name)}
+                          className={`relative rounded-2xl border p-3 text-center transition-all touch-manipulation active:scale-95 ${
+                            isActive 
+                              ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
+                              : "border-border/60 hover:border-border hover:bg-muted/30"
+                          }`}
+                          aria-label={c.name}
+                          title={c.name}
+                          type="button"
+                        >
+                          <div className="w-8 h-8 rounded-full mx-auto mb-2 border border-border/40" style={{ background: c.swatch }} />
+                          <div className="text-xs font-medium truncate">{c.name}</div>
+                          {isActive && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                              <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -507,16 +625,35 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
         )}
       </div>
 
-      {/* Footer CTA */}
-      <div className="border-t border-border/10 px-3 py-3 pb-[max(env(safe-area-inset-bottom),0px)] sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-base font-black">AED {total.toLocaleString()}</div>
-            <div className="text-[11px] text-muted-foreground">Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo</div>
+      {/* Enhanced Footer CTA */}
+      <div className="border-t border-border/20 px-4 py-4 pb-[max(env(safe-area-inset-bottom),16px)] sticky bottom-0 bg-background/98 backdrop-blur-lg supports-[backdrop-filter]:bg-background/90 shadow-lg">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-xl font-black text-primary">AED {total.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground leading-tight">
+              Reserve AED {reserve.toLocaleString()} • EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={goBack} className="rounded-xl border px-3 py-2 text-sm">Back</button>
-            <button type="button" onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold disabled:opacity-50">
+          <div className="flex items-center gap-3">
+            {step > 1 && (
+              <button 
+                type="button" 
+                onClick={goBack} 
+                className="rounded-2xl border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/50 active:scale-95 transition-all min-h-[48px] touch-manipulation"
+              >
+                Back
+              </button>
+            )}
+            <button 
+              type="button" 
+              onClick={onContinue} 
+              disabled={disablePrimary} 
+              className={`rounded-2xl px-6 py-3 text-sm font-semibold transition-all min-h-[48px] min-w-[120px] touch-manipulation ${
+                disablePrimary 
+                  ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                  : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/25"
+              }`}
+            >
               {primaryText}
             </button>
           </div>
@@ -544,23 +681,25 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
 };
 
 /* ---------- Small UI bits ---------- */
-const StockBadge: React.FC<{ status: StockStatus }> = ({ status }) => {
-  const base = "inline-block text-xs rounded-full border px-3 py-1";
+const StockBadge: React.FC<{ status: StockStatus; compact?: boolean }> = ({ status, compact = false }) => {
+  const base = compact ? "inline-block text-xs rounded-full border px-2 py-0.5" : "inline-block text-xs rounded-full border px-3 py-1";
   const cls =
     status === "no-stock"
       ? " border-destructive/30 text-destructive bg-destructive/10"
       : status === "pipeline"
       ? " border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10"
       : " border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10";
-  const label = status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline stock" : "Available";
+  const label = compact 
+    ? (status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline" : "Available")
+    : (status === "no-stock" ? "No stock" : status === "pipeline" ? "Pipeline stock" : "Available");
   return <span className={base + " " + cls}>{label}</span>;
 };
 
 const FinancePill: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-xl border px-3 py-2">
-    <div className="text-[11px] text-muted-foreground">{label}</div>
-    <div className="text-sm font-bold">{value}</div>
-    {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+  <div className="rounded-2xl border border-border/40 bg-background/80 backdrop-blur-sm px-4 py-3 shadow-sm">
+    <div className="text-xs font-medium text-muted-foreground">{label}</div>
+    <div className="text-base font-bold text-foreground mt-1">{value}</div>
+    {hint && <div className="text-xs text-muted-foreground mt-1 leading-relaxed">{hint}</div>}
   </div>
 );
 

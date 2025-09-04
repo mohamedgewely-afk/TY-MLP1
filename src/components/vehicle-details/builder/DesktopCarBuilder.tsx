@@ -245,59 +245,92 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     <motion.div className="relative h-full w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Visual theater (kept slightly smaller to keep CTAs always in view) */}
       <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
-        {/* Mode toggle */}
-        <div className="absolute top-4 left-4 z-20 border rounded-full bg-background/90 backdrop-blur px-1.5 py-1 flex items-center gap-1">
+        {/* Enhanced Mode Toggle */}
+        <div className="absolute top-6 left-6 z-20 border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm px-2 py-1.5 flex items-center gap-1 shadow-sm">
           {(["exterior","interior"] as const).map(m => (
             <button
               key={m}
               type="button"
               onClick={() => setHeroMode(m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border ${heroMode===m ? "bg-primary text-primary-foreground border-primary" : "border-transparent hover:bg-muted"}`}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                heroMode === m 
+                  ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" 
+                  : "border border-transparent hover:bg-muted/50"
+              }`}
             >
               {m === "exterior" ? "Exterior" : "Interior"}
             </button>
           ))}
         </div>
 
-        {/* Image */}
-        <motion.img
-          key={heroKey}
-          src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
-          alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-          className="w-full h-full object-contain"
-          initial={{ opacity: 0, scale: 1.0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={spring}
-          decoding="async"
-          loading="eager"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-        />
+        {/* Enhanced Image Display */}
+        <div className="relative w-full h-full bg-gradient-to-b from-muted/20 to-background/50 flex items-center justify-center">
+          <motion.img
+            key={heroKey}
+            src={heroMode === "exterior" ? exteriorObj.image : (interiorObj?.img || exteriorObj.image)}
+            alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
+            className="w-full h-full object-contain p-8"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30,
+              duration: 0.7
+            }}
+            decoding="async"
+            loading="eager"
+            onError={(e) => { 
+              (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+              console.warn("Failed to load vehicle image");
+            }}
+          />
+          
+          {/* Loading indicator */}
+          <div className="absolute inset-0 bg-muted/10 animate-pulse rounded-2xl m-8 flex items-center justify-center">
+            <div className="w-16 h-16 border-3 border-primary/20 border-t-primary rounded-full animate-spin opacity-40" />
+          </div>
+        </div>
 
-        {/* Interior selected badge */}
-        {heroMode === "interior" && (
-          <div className="absolute bottom-4 left-4 z-20 rounded-xl border bg-background/90 px-3 py-1.5 text-xs">
-            {config.interiorColor || "Select interior"}
+        {/* Enhanced Selection Badge */}
+        {heroMode === "interior" && config.interiorColor && (
+          <div className="absolute bottom-6 left-6 z-20 rounded-2xl border border-border/40 bg-background/95 backdrop-blur-sm px-4 py-2.5 shadow-sm">
+            <span className="text-sm font-medium">{config.interiorColor}</span>
           </div>
         )}
       </div>
 
       {/* Right configuration panel */}
       <div className={`${panel.right} h-full min-h-0 flex flex-col border-l border-border/10`}>
-        {/* Header controls */}
-        <div className="flex items-center justify-between p-4 border-b border-border/10">
-          <div className="flex items-center gap-2">
-            <button ref={step > 1 ? backRef : closeRef} onClick={() => (step > 1 ? goBack() : onClose())} className="p-3 rounded-xl border hover:bg-muted" aria-label={step > 1 ? "Back" : "Close"} type="button">
+        {/* Enhanced Desktop Header */}
+        <div className="flex items-center justify-between p-5 border-b border-border/20">
+          <div className="flex items-center gap-3">
+            <button 
+              ref={step > 1 ? backRef : closeRef} 
+              onClick={() => (step > 1 ? goBack() : onClose())} 
+              className="p-3 rounded-2xl border border-border/60 hover:bg-muted/50 transition-all min-h-[48px] min-w-[48px]" 
+              aria-label={step > 1 ? "Back" : "Close"} 
+              type="button"
+            >
               {step > 1 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
             </button>
-            <button ref={resetRef} onClick={onReset} className="p-3 rounded-xl border hover:bg-muted" aria-label="Reset" type="button">
+            <button 
+              ref={resetRef} 
+              onClick={onReset} 
+              className="p-3 rounded-2xl border border-border/60 hover:bg-muted/50 transition-all min-h-[48px] min-w-[48px] text-destructive" 
+              aria-label="Reset Configuration" 
+              type="button"
+            >
               <RotateCcw className="h-5 w-5" />
             </button>
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
-            <div className="text-[11px] text-muted-foreground mt-0.5"><StepDots current={step} total={totalSteps} /></div>
+            <h1 className="text-2xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+            <div className="text-sm text-muted-foreground mt-1 flex items-center justify-center gap-1">
+              <StepDots current={step} total={totalSteps} />
+            </div>
           </div>
-          <div className="w-24" />
+          <div className="w-32" />
         </div>
 
         <div className="flex-1 overflow-y-auto">

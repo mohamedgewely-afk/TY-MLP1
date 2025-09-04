@@ -167,21 +167,6 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
 
   return (
     <>
-      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
-            <AlertDialogDescription>Clear all selections and return to step one?</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReset} disabled={isResetting} className="relative min-h-[44px] min-w-[44px]">
-              {isResetting ? (<><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />Resetting...</>) : "Reset"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {isMobile ? (
         <MobileDialog open={isOpen} onOpenChange={onClose}>
           <MobileDialogContent>
@@ -190,17 +175,67 @@ const CarBuilder: React.FC<CarBuilderProps> = ({ vehicle, isOpen, onClose }) => 
               <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
             </VisuallyHidden>
             {content}
+            
+            {/* Mobile Reset Dialog - inside MobileDialog to fix z-index */}
+            <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+              <AlertDialogContent className="max-w-[85vw] rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-lg">Reset Configuration</AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm">Clear all selections and return to step one?</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="gap-3">
+                  <AlertDialogCancel disabled={isResetting} className="min-h-[48px] flex-1">Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleReset} 
+                    disabled={isResetting} 
+                    className="min-h-[48px] flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isResetting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        Resetting...
+                      </div>
+                    ) : "Reset"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </MobileDialogContent>
         </MobileDialog>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh] p-0 border-0 bg-background overflow-hidden">
+          <DialogContent className="max-w-[98vw] max-h-[98vh] w-[98vw] h-[98vh] p-0 border-0 bg-background overflow-hidden rounded-2xl">
             <VisuallyHidden>
               <DialogTitle>Build Your {vehicle.name}</DialogTitle>
               <DialogDescription>Customize your {vehicle.name} by selecting year, engine, grade, exterior, interior, accessories and availability.</DialogDescription>
             </VisuallyHidden>
             {content}
           </DialogContent>
+          
+          {/* Desktop Reset Dialog - outside main dialog to avoid nesting issues */}
+          <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+            <AlertDialogContent className="max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset Configuration</AlertDialogTitle>
+                <AlertDialogDescription>Clear all selections and return to step one?</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleReset} 
+                  disabled={isResetting} 
+                  className="min-h-[44px] min-w-[44px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isResetting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      Resetting...
+                    </div>
+                  ) : "Reset"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Dialog>
       )}
     </>
