@@ -310,31 +310,30 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           ) : null}
 
           {heroMode === "exterior" ? (
-            <SpinViewer
-              key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
-              frames={currentSpinFrames}
-              fallbackStill={exteriorObj.image}
-              className="w-full h-full object-contain p-6 md:p-8 select-none"
-              alt={`${config.exteriorColor} ${vehicle.name}`}
-              onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
-              prefersReducedMotion={!!prefersReducedMotion}
-            />
-          ) : (
-            <motion.img
-              key={heroKey}
-              src={heroMode === "interior" ? (interiorObj?.img || exteriorObj.image) : exteriorObj.image}
-              alt={`${heroMode === "exterior" ? config.exteriorColor : config.interiorColor} ${vehicle.name}`}
-              className="w-full h-full object-contain p-6 md:p-8"
-              initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
-              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-              transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
-              decoding="async"
-              loading="eager"
-              onLoad={() => setImageLoadedKey(heroKey)}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-            />
-          )}
-        </div>
+  <SpinViewer
+    key={`spin-${config.exteriorColor}-${config.grade}-${config.modelYear}`}
+    frames={currentSpinFrames}
+    fallbackStill={exteriorObj.image}
+    className="w-full h-full object-contain p-6 md:p-8 select-none"
+    alt={`${config.exteriorColor} ${vehicle.name}`}
+    onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
+    prefersReducedMotion={!!prefersReducedMotion}
+  />
+) : (
+  <motion.img
+    key={heroKey}
+    src={interiorObj?.img || exteriorObj.image}
+    alt={`${config.interiorColor} ${vehicle.name}`}
+    className="w-full h-full object-contain p-6 md:p-8"
+    initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+    transition={prefersReducedMotion ? { duration: 0.2 } : { type: "spring", stiffness: 300, damping: 30, duration: 0.7 }}
+    decoding="async"
+    loading="eager"
+    onLoad={() => setImageLoadedKey(heroKey)}
+    onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+  />
+)}
 
         {heroMode === "interior" && config.interiorColor && (
           <div className="absolute bottom-6 left-6 z-20 rounded-2xl border border-border/40 bg-background/95 backdrop-blur-sm px-4 py-2.5 shadow-sm">
