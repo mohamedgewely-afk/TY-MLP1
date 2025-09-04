@@ -24,14 +24,14 @@ export interface MobileCarBuilderProps {
   totalSteps: number;
   config: MobileBuilderConfig;
   setConfig: React.Dispatch<React.SetStateAction<MobileBuilderConfig>>;
+  showConfirmation?: boolean; // optional; we always show confirm on mobile below
   calculateTotalPrice: () => number;
   handlePayment: () => void;
   goBack: () => void;
   goNext: () => void;
   onClose: () => void;
   onReset: () => void;
-  deviceCategory?: DeviceCategory;
-  showConfirmation?: boolean; // ← add this line
+  deviceCategory: DeviceCategory;
 }
 
 /* ---------- Data ---------- */
@@ -148,14 +148,13 @@ const MobileCarBuilder: React.FC<MobileCarBuilderProps> = ({
   totalSteps,
   config,
   setConfig,
+  showConfirmation,
   calculateTotalPrice,
   handlePayment,
   goBack,
   goNext,
   onClose,
   onReset,
-  deviceCategory,
-  showConfirmation: _showConfirmation, // ← accept, but not used
 }) => {
   const backRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);

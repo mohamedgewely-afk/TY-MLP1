@@ -174,8 +174,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const deviceInfo = useOptimizedDeviceInfo();
   const { toast } = useToast();
   const navigationState = useNavigationState();
-const location = useLocation();
-  const isActiveSection = (s: string) => navigationState.activeSection === s;
+
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([50000, 200000]);
@@ -620,22 +619,28 @@ const location = useLocation();
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button
-  ...
-  onClick={() => handleSectionToggle("models")}
-  aria-expanded={isActiveSection("models")}
->
-  <Car className="h-4 w-4 mr-2" />
-  Browse Models
-</Button>
+                      className={cn(
+                        "h-12 text-left justify-start",
+                        getTouchTargetSize(),
+                        isGR ? GR_BTN_SURFACE : ""
+                      )}
+                      onClick={() => handleSectionToggle("models")}
+                    >
+                      <Car className="h-4 w-4 mr-2" />
+                      Browse Models
+                    </Button>
 
                     <Button
-  ...
-  onClick={() => handleSectionToggle("search")}
-  aria-expanded={isActiveSection("search")}
->
-  <Search className="h-4 w-4 mr-2" />
-  Find Vehicle
-</Button>
+                      className={cn(
+                        "h-12 text-left justify-start",
+                        getTouchTargetSize(),
+                        isGR ? GR_BTN_SURFACE : ""
+                      )}
+                      onClick={() => handleSectionToggle("search")}
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Find Vehicle
+                    </Button>
                   </div>
                 </motion.div>
               )}
