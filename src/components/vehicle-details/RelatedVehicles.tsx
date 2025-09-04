@@ -95,10 +95,9 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
           {enhancedVehicles.map((vehicle) => {
   const slug = vehicle.name.toLowerCase().replace(/\s+/g, "-");
   return (
-    <Link
+    <div
       key={vehicle.name}
-      to={`/vehicle/${slug}`}
-      data-card="true"                            // ✅ TS-safe data attribute
+      data-card="true"
       className="
         flex-shrink-0
         w-[85vw] max-w-[520px]
@@ -109,16 +108,16 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
       "
       role="option"
       aria-label={`${vehicle.name} - ${vehicle.category}`}
-      // prefetch="intent"                        // ❌ remove this line
     >
       <div
         className="
           bg-white dark:bg-gray-800 rounded-2xl overflow-hidden
-          shadow-md hover:shadow-xl focus:shadow-xl
-          transition-all duration-300 group
+          shadow-md hover:shadow-xl transition-all duration-300 group
           ring-1 ring-black/5 dark:ring-white/10
+          flex flex-col
         "
       >
+        {/* Image wrapper */}
         <div className="relative w-full aspect-[16/9] bg-gray-50 dark:bg-gray-900">
           <img
             src={vehicle.image}
@@ -128,27 +127,37 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({ currentVehicle }) => 
             className="
               absolute inset-0 w-full h-full object-contain
               transition-transform duration-300 group-hover:scale-[1.02]
-              [image-rendering:-webkit-optimize-contrast]
             "
           />
-          <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-30px_40px_-30px_rgb(0_0_0_/0.25)] rounded-b-2xl" />
         </div>
 
-        <div className="p-5">
+        {/* Text + CTA */}
+        <div className="p-5 flex flex-col flex-grow">
           <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-0.5 line-clamp-1">
             {vehicle.name}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
             {vehicle.category}
           </p>
-          <p className="font-semibold text-toyota-red">
+          <p className="font-semibold text-toyota-red mb-4">
             From AED {vehicle.price.toLocaleString()}
           </p>
+
+          <div className="mt-auto">
+            <Link to={`/vehicle/${slug}`}>
+              <Button
+                className="w-full bg-toyota-red text-white hover:bg-toyota-red/90"
+              >
+                View Model
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 })}
+
         </div>
       </div>
     </div>
