@@ -139,6 +139,7 @@ function usePreloadNeighbors(list: string[], index: number) {
   }, [list, index]);
 }
 
+/** Deep linking: push state on change; read state on load (with clamping) */
 function useDeepLinking(
   selectedMedia: MediaItem | null,
   imageIndex: number,
@@ -163,15 +164,19 @@ function useDeepLinking(
     if (mediaId) {
       const found = mediaItems.find((m) => m.id === mediaId);
       if (found) {
+        const rawIdx = Number(imgIdx);
+        const maxIdx = (found.galleryImages?.length ?? 1) - 1;
+        const safeIdx =
+          Number.isFinite(rawIdx) && rawIdx >= 0 ? Math.min(rawIdx, Math.max(0, maxIdx)) : 0;
         setSelectedMedia(found);
-        setImageIndex(Math.max(0, Math.min(found.galleryImages?.length ? Number(imgIdx) || 0 : 0, (found.galleryImages?.length || 1) - 1)));
+        setImageIndex(safeIdx);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }
 
-/** Maps content sections to image indices bidirectionally */
+/** Maps content sections to image indices (content scroll -> image index) */
 function useContentImageSync(opts: {
   enabled: boolean;
   onSectionInView: (index: number) => void;
@@ -188,7 +193,6 @@ function useContentImageSync(opts: {
     observerRef.current?.disconnect();
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        // pick the most visible section
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
@@ -200,7 +204,7 @@ function useContentImageSync(opts: {
       { rootMargin: "0px 0px -40% 0px", threshold: [0.25, 0.5, 0.75, 1] }
     );
 
-    ids.forEach((id, i) => {
+    ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observerRef.current?.observe(el);
     });
@@ -225,7 +229,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const [isZoomed, setIsZoomed] = useState(false);
 
   // --- Keep your original DAM-based items (unchanged) ---
-  const mediaItems: MediaItem[] = [
+  const mediaItems: Array<MediaItem | undefined> = [
     {
       id: "performance",
       type: "image",
@@ -292,7 +296,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true",
           title: "Dashboard Overview",
           description: "Premium dashboard featuring digital instrument cluster and intuitive control layout",
           contentBlocks: [{ id: "int-0-a", title: "Driver Focused", body: "Controls angled toward the driver for ergonomics." }],
@@ -419,7 +423,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     {
       id: "build-quality",
       type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
       title: "Premium Build Quality",
       description: "Exceptional craftsmanship and attention to detail in every component",
       category: "Quality",
@@ -431,14 +435,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       },
       galleryImages: [
         {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Manufacturing Excellence",
           description:
             "State-of-the-art manufacturing processes ensuring consistent quality and precision in every vehicle",
           contentBlocks: [{ id: "qual-0-a", title: "Automation", body: "Robotic precision with human QA." }],
         },
         {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Material Quality",
           description: "Premium materials for durability, sustainability, and a luxurious feel",
           contentBlocks: [{ id: "qual-1-a", title: "Materials", body: "Corrosion-resistant coatings & sealants." }],
@@ -453,9 +457,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     },
   ];
 
+  // ----- Early bail if no data -----
+  if (!mediaItems || mediaItems.length === 0) {
+    return <div className="p-8 text-center text-muted-foreground">No media available.</div>;
+  }
+
   // ----- Mobile swipe for card carousel -----
   const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => setCurrentIndex((p) => Math.min(p + 1, mediaItems.length - 1)),
+    onSwipeLeft: () => setCurrentIndex((p) => Math.min(p + 1, mediaItems.filter(Boolean).length - 1)),
     onSwipeRight: () => setCurrentIndex((p) => Math.max(p - 1, 0)),
     threshold: 40,
   });
@@ -464,7 +473,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
     setModalImageIndex(0);
-    setIsPlaying(media.type === "video" ? true : false);
+    setIsPlaying(media.type === "video");
   };
   const closeModal = useCallback(() => {
     setSelectedMedia(null);
@@ -511,13 +520,10 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), modalImageIndex);
 
   // ----- Deep linking -----
-  useDeepLinking(selectedMedia, modalImageIndex, setSelectedMedia, setModalImageIndex, mediaItems);
+  useDeepLinking(selectedMedia, modalImageIndex, setSelectedMedia, setModalImageIndex, mediaItems.filter(Boolean) as MediaItem[]);
 
-  // ----- Content ↔ Image synchronization -----
-  const contentPaneRef = useRef<HTMLDivElement>(null);
-
+  // ----- Content ↔ Image synchronization (content scroll drives image) -----
   const contentSections = useMemo(() => {
-    // Build sections: per-image contentBlocks (fallback to media.description)
     if (!selectedMedia) return [];
     const g = selectedMedia.galleryImages;
     if (g?.length) {
@@ -531,7 +537,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         badges: img.badges,
       }));
     }
-    // Fallback single section
     return [
       {
         id: `${selectedMedia.id}-section-0`,
@@ -545,26 +550,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     ];
   }, [selectedMedia]);
 
-  // Map content visibility -> image index
   useContentImageSync({
     enabled: !!selectedMedia,
     onSectionInView: (idx) => setModalImageIndex((prev) => (prev === idx ? prev : idx)),
     getSectionIds: () => contentSections.map((s) => s.id),
   });
 
-  // When image index changes via thumbnails/arrows, smooth-scroll to its section
-  useEffect(() => {
-    if (!selectedMedia) return;
-    const sec = contentSections.find((s) => s.imgIndex === modalImageIndex);
-    if (!sec) return;
-    const el = document.getElementById(sec.id);
-    if (el && contentPaneRef.current) {
-      contentPaneRef.current.scrollTo({
-        top: el.offsetTop - 8,
-        behavior: "smooth",
-      });
-    }
-  }, [modalImageIndex, selectedMedia, contentSections]);
+  // NOTE: NO AUTO-SCROLL from image -> content (removed).
+  // Changing image via arrows/thumbnails DOES NOT scroll the content pane.
 
   // ----- Video controls (YouTube embed) -----
   const toggleMute = () => setIsMuted((m) => !m);
@@ -599,7 +592,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     const link = url.toString();
     try {
       await navigator.clipboard.writeText(link);
-      // Optional: toast if you have one
     } catch {
       // ignore
     }
@@ -626,27 +618,40 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       {/* Mobile carousel */}
       <div className="px-4 md:px-8 pb-8 md:hidden">
         <div ref={swipeableRef} className="relative">
-          <motion.div key={currentIndex} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="w-full">
-            <MediaCard media={mediaItems[currentIndex]} onClick={() => handleMediaClick(mediaItems[currentIndex])} isMobile />
-          </motion.div>
-          <div className="flex justify-center mt-6 space-x-2">
-            {mediaItems.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentIndex(i)}
-                aria-label={`Go to item ${i + 1}`}
-                className={cn("w-3 h-3 rounded-full transition-all", i === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30")}
-              />
-            ))}
-          </div>
+          {(() => {
+            const filtered = mediaItems.filter(Boolean) as MediaItem[];
+            const safeIdx = Math.min(Math.max(0, currentIndex), Math.max(0, filtered.length - 1));
+            const safeCurrentMedia = filtered[safeIdx] ?? null;
+            return (
+              <>
+                <motion.div key={safeIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="w-full">
+                  <MediaCard
+                    media={safeCurrentMedia}
+                    onClick={() => safeCurrentMedia && handleMediaClick(safeCurrentMedia)}
+                    isMobile
+                  />
+                </motion.div>
+                <div className="flex justify-center mt-6 space-x-2">
+                  {filtered.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentIndex(i)}
+                      aria-label={`Go to item ${i + 1}`}
+                      className={cn("w-3 h-3 rounded-full transition-all", i === safeIdx ? "bg-primary scale-125" : "bg-muted-foreground/30")}
+                    />
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
       {/* Desktop grid */}
       <div className="hidden md:block px-4 md:px-8 pb-10">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {mediaItems.map((m, i) => (
-            <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+          {(mediaItems.filter(Boolean) as MediaItem[]).map((m, i) => (
+            <motion.div key={m.id ?? `media-${i}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
               <MediaCard media={m} onClick={() => handleMediaClick(m)} isMobile={false} />
             </motion.div>
           ))}
@@ -771,7 +776,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                         {selectedMedia.galleryImages.map((img, idx) => (
                           <button
                             key={idx}
-                            onClick={() => setModalImageIndex(idx)}
+                            onClick={() => setModalImageIndex(idx)} // no content scroll here
                             aria-label={`Thumbnail ${idx + 1}`}
                             aria-selected={idx === modalImageIndex}
                             className={cn(
@@ -787,11 +792,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   )}
                 </div>
 
-                {/* Text/content pane (scrolls independently, drives sync) */}
-                <div ref={contentPaneRef} className="min-h-0 overflow-y-auto p-4 md:p-6">
-                  {/* Per-image content kept in lock-step with current image */}
+                {/* Text/content pane (user scroll -> image sync; no auto scroll from image) */}
+                <div className="min-h-0 overflow-y-auto p-4 md:p-6">
                   {!selectedMedia.galleryImages?.length ? (
-                    // Single section fallback
                     <DetailSection
                       id={contentSections[0].id}
                       imgIndex={0}
@@ -811,6 +814,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                         details={sec.details || selectedMedia.details}
                         badges={sec.badges}
                         blocks={sec.blocks}
+                        // "View" button will switch image but NOT scroll
                         onJump={() => setModalImageIndex(sec.imgIndex)}
                         active={sec.imgIndex === modalImageIndex}
                       />
@@ -865,7 +869,6 @@ const DetailSection: React.FC<{
         )}
       </div>
 
-      {/* Details */}
       <div className="grid md:grid-cols-3 gap-6 mt-5">
         {details?.specs && details.specs.length > 0 && (
           <div>
@@ -917,7 +920,6 @@ const DetailSection: React.FC<{
         )}
       </div>
 
-      {/* Extra blocks */}
       {blocks && blocks.length > 0 && (
         <div className="space-y-3 pt-6 border-t mt-6">
           {blocks.map((b) => (
@@ -936,15 +938,17 @@ const DetailSection: React.FC<{
 };
 
 /* =========================================================
-   Media Card
+   Media Card (runtime-safe)
 ========================================================= */
 interface MediaCardProps {
-  media: MediaItem;
+  media?: MediaItem | null; // allow undefined/null safely
   onClick: () => void;
   isMobile: boolean;
 }
 const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
-  const Icon = media.icon;
+  if (!media) return null; // nothing to render if undefined/hole
+
+  const Icon = (media.icon ?? Info) as React.ComponentType<any>;
   const isVideo = media.type === "video";
   const is360 = media.type === "360";
   return (
