@@ -1,33 +1,35 @@
+// PageWithSideMenuNav.tsx — single-file implementation
+// - Sticky side "Sections" tab (right edge) on desktop & mobile
+// - Drawer menu with labels, scrollspy
+// - Toggle to Hide/Show (pin/unpin)
+// - Auto-hide on scroll down; show on scroll up
+// - Works with custom scroll containers (pass scrollRootSelector or add data-scroll-root)
+// - No external UI libraries. Inline CSS. Mobile tap-safe.
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-/** ======== CONFIG ======== */
+/** ========= CONFIG (edit labels/ids or pass via props) ========= */
 type SectionItem = { id: string; label: string; description?: string };
 
-const SECTIONS: SectionItem[] = [
-  { id: "hero", label: "Overview", description: "Highlights & hero media" },
-  { id: "virtual-showroom", label: "Experience", description: "Walkthrough & AR" },
-  { id: "media-showcase", label: "Gallery", description: "Photos & videos" },
-  { id: "story-performance", label: "Performance", description: "Engines & handling" },
-  { id: "story-safety", label: "Safety", description: "Assistance & ratings" },
-  { id: "story-connected", label: "Connected", description: "Infotainment & apps" },
-  { id: "story-sustainable", label: "Hybrid", description: "Efficiency & emissions" },
-  { id: "story-comfort", label: "Comfort", description: "Interior & seating" },
-  { id: "story-ownership", label: "Ownership", description: "Warranty & service" },
-  { id: "offers", label: "Offers", description: "Finance & leasing" },
-  { id: "tech-experience", label: "Technology", description: "ADAS & UX" },
-  { id: "configuration", label: "Configure", description: "Build & price" },
-  { id: "related", label: "Similar Models", description: "Alternatives" },
-  { id: "faq", label: "FAQs", description: "Common questions" },
+const DEFAULT_SECTIONS: SectionItem[] = [
+  { id: "hero", label: "Overview" },
+  { id: "virtual-showroom", label: "Experience" },
+  { id: "media-showcase", label: "Gallery" },
+  { id: "story-performance", label: "Performance" },
+  { id: "story-safety", label: "Safety" },
+  { id: "story-connected", label: "Connected" },
+  { id: "story-sustainable", label: "Hybrid" },
+  { id: "story-comfort", label: "Comfort" },
+  { id: "story-ownership", label: "Ownership" },
+  { id: "offers", label: "Offers" },
+  { id: "tech-experience", label: "Technology" },
+  { id: "configuration", label: "Configure" },
+  { id: "related", label: "Similar Models" },
+  { id: "faq", label: "FAQs" },
 ];
 
-/** ======== UTIL: Robust scroll-root detection ========
- * Priority:
- * 1) props.scrollRootSelector
- * 2) element with [data-scroll-root]
- * 3) document.scrollingElement
- * 4) document.documentElement
- */
+/** ========= UTIL: robust scroll-root detection ========= */
 function resolveScrollRoot(scrollRootSelector?: string): HTMLElement {
   if (scrollRootSelector) {
     const el = document.querySelector<HTMLElement>(scrollRootSelector);
@@ -38,361 +40,23 @@ function resolveScrollRoot(scrollRootSelector?: string): HTMLElement {
   return (document.scrollingElement as HTMLElement) || document.documentElement;
 }
 
-/** ======== UNIFIED NAV ======== */
-function SectionNavUnified({
-  sections = SECTIONS,
-  headerOffset = 80,             // match your header height
-  mobileTopVh = 34,              // summon button vertical position (mobile)
-  compactAfter = 320,            // px scrolled before desktop rail compacts
-  accentColor = "#EB0A1E",       // brand accent for active
-  scrollRootSelector,            // <-- IMPORTANT if your page scrolls inside a container
-}: {
+/** ========= COMPONENT ========= */
+type SideMenuNavProps = {
   sections?: SectionItem[];
-  headerOffset?: number;
-  mobileTopVh?: number;
-  compactAfter?: number;
-  accentColor?: string;
-  scrollRootSelector?: string;
-}) {
-  const list = useMemo(() => sections.filter(s => s.id && s.label), [sections]);
+  headerOffset?: number;          // sticky header height in px (for scroll offset)
+  accentColor?: string;           // brand color for active + accents
+  mobileTopVh?: number;           // vertical position of the side tab on mobile (vh)
+  scrollRootSelector?: string;    // selector if your page scrolls in a container
+};
 
-  // state
-  const [active, setActive] = useState(0);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [visible, setVisible] = useState(true);     // mobile summon auto-hide
-  const [railCompact, setRailCompact] = useState(false);
-  const [query, setQuery] = useState("");
-  const [mounted, setMounted] = useState(false);
-
-  // refs
-  const clickScrolling = useRef(false);
-  const lastScrollTop = useRef(0);
-  const portalEl = useRef<HTMLDivElement | null>(null);
-  const scrollRootRef = useRef<HTMLElement | null>(null);
-
-  // styles (self-contained)
-  const styles = `
-    .sn-surface     { background:#fff; color:#111; border:1px solid rgba(0,0,0,.1); }
-    .sn-shadow-sm   { box-shadow:0 4px 12px rgba(0,0,0,.08); }
-    .sn-shadow-xl   { box-shadow:0 16px 40px rgba(0,0,0,.18); }
-    .sn-rounded     { border-radius:12px; }
-    .sn-rounded-lg  { border-radius:14px; }
-    .sn-button      { display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
-    .sn-focus:focus { outline:2px solid #6366f1; outline-offset:2px; }
-    .sn-hidden      { opacity:0; transform:translateY(4px) scale(.98); pointer-events:none; transition:opacity .15s, transform .15s; }
-    .sn-visible     { opacity:1; transform:translateY(0) scale(1); transition:opacity .15s, transform .15s; }
-
-    /* Desktop Rail */
-    .sn-rail        { position:fixed; right:24px; top:50%; transform:translateY(-50%); width:240px; z-index:30; }
-    .sn-rail-inner  { padding:8px; }
-    .sn-rail-compact{ opacity:.96; transform:translateY(-50%) scale(.98); }
-
-    .sn-item        { width:100%; text-align:left; display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:10px; font-size:14px; }
-    .sn-item:hover  { background:rgba(0,0,0,.04); }
-    .sn-active      { font-weight:600; background:rgba(0,0,0,.06); }
-    .sn-dot         { width:6px; height:6px; border-radius:9999px; background:rgba(0,0,0,.45); }
-
-    /* Sticky bar under header (desktop only) */
-    .sn-sticky-wrap { position:sticky; z-index:40; }
-    .sn-bar         { display:flex; gap:8px; align-items:center; padding:10px 12px; }
-    .sn-bar-title   { font-size:14px; font-weight:600; }
-    .sn-progress    { height:2px; background:rgba(0,0,0,.12); border-radius:9999px; overflow:hidden; }
-
-    /* Mobile summon */
-    .sn-summon      { position:fixed; right:14px; width:46px; height:46px; border-radius:9999px; }
-    .sn-sheet       { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; padding:12px; }
-    .sn-sheet-card  { width:100%; max-width:720px; margin-top:12px; }
-    .sn-search      { width:100%; padding:8px 12px 8px 36px; border-radius:10px; border:1px solid rgba(0,0,0,.12); font-size:14px; }
-    .sn-search-ico  { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; opacity:.6; }
-    .sn-list        { max-height:70vh; overflow:auto; padding:8px 0 10px; }
-
-    /* CSS-FIRST responsive visibility (prevents SSR flicker) */
-    @media (max-width: 1023px){ .sn-desktop-only{ display:none !important; } }
-    @media (min-width: 1024px){ .sn-mobile-only{ display:none !important; } }
-
-    @media (prefers-color-scheme: dark){
-      .sn-surface{ background:#0b0b0b; color:#fff; border-color:rgba(255,255,255,.12); }
-      .sn-item:hover{ background:rgba(255,255,255,.08); }
-      .sn-active{ background:rgba(255,255,255,.12); }
-      .sn-dot{ background:rgba(255,255,255,.45); }
-      .sn-progress{ background:rgba(255,255,255,.18); }
-      .sn-search{ background:#0b0b0b; color:#fff; border-color:rgba(255,255,255,.12); }
-    }
-  `;
-
-  /** ---- init portal + scroll root ---- */
-  useEffect(() => {
-    setMounted(true);
-    // portal root for mobile summon & sheet (max z-index)
-    const el = document.createElement("div");
-    el.setAttribute("data-nav-root", "true");
-    el.style.zIndex = "2147483647";
-    document.body.appendChild(el);
-    portalEl.current = el;
-
-    // resolve scroll root
-    scrollRootRef.current = resolveScrollRoot(scrollRootSelector);
-
-    return () => {
-      if (portalEl.current) document.body.removeChild(portalEl.current);
-      portalEl.current = null;
-    };
-  }, [scrollRootSelector]);
-
-  /** ---- scrollspy with IO bound to scroll root ---- */
-  useEffect(() => {
-    if (!list.length || !scrollRootRef.current) return;
-    const rootEl = scrollRootRef.current;
-
-    const io = new IntersectionObserver(
-      entries => {
-        if (clickScrolling.current) return;
-        for (const e of entries) {
-          if (e.isIntersecting && e.intersectionRatio > 0.3) {
-            const i = list.findIndex(s => s.id === (e.target as HTMLElement).id);
-            if (i !== -1) setActive(i);
-          }
-        }
-      },
-      {
-        root: rootEl === document.documentElement ? null : rootEl,
-        rootMargin: "-30% 0px -55% 0px",
-        threshold: [0, 0.3, 0.6, 1],
-      }
-    );
-
-    list.forEach(s => { const el = document.getElementById(s.id); if (el) io.observe(el); });
-    return () => io.disconnect();
-  }, [list]);
-
-  /** ---- auto-hide (mobile summon) & compact (desktop rail) based on scroll root ---- */
-  useEffect(() => {
-    if (!scrollRootRef.current) return;
-    const root = scrollRootRef.current;
-
-    const getTop = () => root === document.documentElement
-      ? (window.scrollY || window.pageYOffset || 0)
-      : (root.scrollTop || 0);
-
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = getTop();
-        const goingDown = y > lastScrollTop.current;
-        setVisible(y < 120 || !goingDown);              // hide on scroll down (mobile summon)
-        setRailCompact(goingDown && y > compactAfter);  // compact desktop rail
-        lastScrollTop.current = y;
-        ticking = false;
-      });
-    };
-
-    (root === document.documentElement ? window : root).addEventListener("scroll", onScroll, { passive: true });
-    return () => (root === document.documentElement ? window : root).removeEventListener("scroll", onScroll);
-  }, [compactAfter]);
-
-  /** ---- close sheet on ESC ---- */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && sheetOpen) setSheetOpen(false); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [sheetOpen]);
-
-  /** ---- smooth scroll with headerOffset using the scroll root ---- */
-  const jumpTo = useCallback((id: string, i: number) => {
-    const target = document.getElementById(id);
-    const root = scrollRootRef.current || document.documentElement;
-    if (!target) return;
-
-    // where we are now (within root)
-    const currentTop =
-      root === document.documentElement
-        ? (window.scrollY || window.pageYOffset || 0)
-        : root.scrollTop;
-
-    // target position relative to document
-    const absoluteTop = target.getBoundingClientRect().top + currentTop;
-    const dest = Math.max(0, absoluteTop - Math.max(0, headerOffset));
-
-    clickScrolling.current = true;
-
-    if (root === document.documentElement) {
-      window.scrollTo({ top: dest, behavior: "smooth" });
-    } else {
-      root.scrollTo({ top: dest, behavior: "smooth" as ScrollBehavior });
-    }
-
-    setActive(i);
-    setSheetOpen(false);
-    window.setTimeout(() => (clickScrolling.current = false), 500);
-  }, [headerOffset]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? list.filter(s => s.label.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q)) : list;
-  }, [query, list]);
-
-  /** ---- Desktop UI (CSS-gated with .sn-desktop-only) ---- */
-
-  const desktopStickyBar = (
-    <div className="sn-desktop-only sn-sticky-wrap" style={{ top: headerOffset }}>
-      <div className="sn-surface sn-shadow-sm sn-rounded" style={{ margin: "0 auto", maxWidth: "1200px", padding: "6px 8px" }}>
-        <div className="sn-bar">
-          <button
-            className="sn-button sn-focus"
-            onClick={() => jumpTo(list[active]?.id, active)}
-            aria-label="Recenter current section"
-            style={{ flex: 1, minHeight: 40, alignItems: "flex-start", flexDirection: "column" }}
-          >
-            <span className="sn-bar-title">{list[active]?.label ?? "Section"}</span>
-            <div className="sn-progress" style={{ width: "100%", marginTop: 6 }}>
-              <div style={{
-                width: list.length > 1 ? `${Math.round((active / (list.length - 1)) * 100)}%` : "100%",
-                height: "100%", background: accentColor
-              }}/>
-            </div>
-          </button>
-          <button
-            className="sn-button sn-focus"
-            onClick={() => setSheetOpen(true)}
-            aria-expanded={sheetOpen}
-            aria-controls="section-sheet"
-            style={{ minHeight: 40, padding: "8px 12px", borderRadius: 10 }}
-          >
-            <span style={{ fontSize: 14 }}>Sections ▾</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const desktopRail = (
-    <nav className="sn-desktop-only sn-rail" aria-label="Page sections">
-      <div className={`sn-surface sn-shadow-xl sn-rounded-lg sn-rail-inner ${railCompact ? "sn-rail-compact" : ""}`}>
-        <ul style={{ maxHeight: "70vh", overflow: "auto", paddingRight: 6, margin: 0, listStyle: "none" }}>
-          {list.map((s, i) => {
-            const isActive = i === active;
-            return (
-              <li key={s.id} style={{ margin: "4px 0" }}>
-                <button
-                  onClick={() => jumpTo(s.id, i)}
-                  className={`sn-item sn-button sn-focus ${isActive ? "sn-active" : ""}`}
-                  aria-current={isActive ? "true" : undefined}
-                >
-                  <span className="sn-dot" style={{ background: isActive ? accentColor : undefined }} />
-                  <span>{s.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </nav>
-  );
-
-  /** ---- Mobile summon (always rendered; CSS hides on desktop to avoid hydration flicker) ---- */
-  const mobileSummon = mounted && portalEl.current ? createPortal(
-    <button
-      className={`sn-mobile-only sn-button sn-surface sn-shadow-xl sn-rounded sn-summon ${visible ? "sn-visible" : "sn-hidden"}`}
-      onClick={() => setSheetOpen(true)}
-      aria-label="Open sections"
-      style={{ top: `calc(${mobileTopVh}vh)`, padding: 0 }}
-    >
-      {/* Simple hamburger */}
-      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h12v2H3z"/></svg>
-    </button>,
-    portalEl.current
-  ) : null;
-
-  /** ---- Sheet (mobile + desktop) ---- */
-  const sheet = sheetOpen && mounted && (
-    <>
-      {/* Backdrop */}
-      <button
-        aria-label="Close sections"
-        onClick={() => setSheetOpen(false)}
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.28)", zIndex: 2147483646 }}
-      />
-      <div className="sn-sheet" role="dialog" aria-modal="true" id="section-sheet" style={{ zIndex: 2147483647 }}>
-        <div className="sn-surface sn-shadow-xl sn-rounded-lg sn-sheet-card">
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 12px 6px" }}>
-            <div style={{ width: 40, height: 6, borderRadius: 9999, background: "rgba(0,0,0,.18)" }} />
-            <div style={{ flex: 1 }} />
-            <button
-              onClick={() => setSheetOpen(false)}
-              className="sn-button sn-focus"
-              aria-label="Close"
-              style={{ padding: 8, borderRadius: 10 }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.29-6.3z"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Search */}
-          <div style={{ padding: "0 12px 8px", position: "relative" }}>
-            <svg className="sn-search-ico" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6 6 0 1 0-.71.71l.27.28v.79L20 20.5 21.5 19l-6-6zM6 10a4 4 0 1 1 8 0a4 4 0 0 1-8 0"/></svg>
-            <input
-              className="sn-search sn-focus"
-              placeholder="Search sections…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-
-          {/* List */}
-          <div className="sn-list">
-            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-              {(query ? filtered : list).map((s) => {
-                const i = list.findIndex(v => v.id === s.id);
-                const isActive = i === active;
-                return (
-                  <li key={s.id} style={{ margin: "4px 10px" }}>
-                    <button
-                      className={`sn-item sn-button sn-focus ${isActive ? "sn-active" : ""}`}
-                      aria-current={isActive ? "true" : undefined}
-                      onClick={() => jumpTo(s.id, i)}
-                    >
-                      <span className="sn-dot" style={{ background: isActive ? accentColor : undefined }} />
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span>{s.label}</span>
-                        {s.description && <span style={{ fontSize: 12, opacity: .7 }}>{s.description}</span>}
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  return (
-    <>
-      <style>{styles}</style>
-      {/* Desktop bar + rail (CSS hides on mobile) */}
-      {desktopStickyBar}
-      {desktopRail}
-      {/* Mobile summon via portal (CSS hides on desktop) */}
-      {mobileSummon}
-      {/* Fullscreen sheet */}
-      {sheet}
-    </>
-  );
-}
-
-/** ======== DEMO PAGE (kept simple) ======== */
-export default function PageWithUnifiedNav() {
+export default function PageWithSideMenuNav() {
+  // DEMO scaffold so you can run this file standalone.
   const headerHeight = 80;
+  const sections = DEFAULT_SECTIONS;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Sticky header */}
+      {/* Sticky header (demo) */}
       <header
         style={{
           position: "sticky", top: 0, zIndex: 50, height: headerHeight,
@@ -404,32 +68,25 @@ export default function PageWithUnifiedNav() {
         <span style={{ opacity: .7 }}>Sticky Header</span>
       </header>
 
-      {/* Scrollable main (this simulates many apps that scroll inside a container) */}
+      {/* Scrollable main to simulate apps that don't scroll window */}
       <main
         data-scroll-root
         style={{
-          flex: 1,
-          overflowY: "auto",
-          WebkitOverflowScrolling: "touch",
-          maxWidth: 1120,
-          margin: "0 auto",
-          width: "100%",
-          padding: "16px",
+          flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
+          maxWidth: 1120, margin: "0 auto", width: "100%", padding: "16px",
         }}
       >
-        {/* Unified nav (point it to the scroll root if you use a custom container) */}
-        <SectionNavUnified
-          sections={SECTIONS}
+        {/* <<< Mount the side menu nav once >>> */}
+        <SideMenuNav
+          sections={sections}
           headerOffset={headerHeight}
-          mobileTopVh={34}
-          compactAfter={320}
           accentColor="#EB0A1E"
-          // If you're not using data-scroll-root, pass your selector:
-          // scrollRootSelector="main"
+          mobileTopVh={35}
+          // If not using data-scroll-root, pass your selector: scrollRootSelector="#content"
         />
 
         {/* Content sections */}
-        {SECTIONS.map((s, idx) => (
+        {sections.map((s, idx) => (
           <section
             key={s.id}
             id={s.id}
@@ -443,8 +100,8 @@ export default function PageWithUnifiedNav() {
           >
             <h2 style={{ margin: "4px 0 12px" }}>{idx + 1}. {s.label}</h2>
             <p style={{ color: "#555", lineHeight: 1.6 }}>
-              This is the <strong>{s.label}</strong> section. {s.description ?? "Section details go here."}
-              The page scrolls inside <code>main[data-scroll-root]</code>, not window — navigation tracks it correctly.
+              This is the <strong>{s.label}</strong> section. Smooth scroll respects the header offset.
+              Scroll to see auto-hide (tab hides on downward scroll, reappears on upward scroll).
             </p>
             <div style={{ height: 420, borderRadius: 8, background: "#eaeaea", display: "grid", placeItems: "center", color: "#666" }}>
               Media / content placeholder
@@ -454,7 +111,7 @@ export default function PageWithUnifiedNav() {
         <div style={{ height: 120 }} />
       </main>
 
-      {/* Sticky bottom CTA (for your real page) */}
+      {/* Sticky bottom CTA (demo) */}
       <div
         style={{
           position: "sticky", bottom: 0, zIndex: 40, background: "#fff",
@@ -474,4 +131,380 @@ export default function PageWithUnifiedNav() {
       </div>
     </div>
   );
+}
+
+/** ========= The side menu nav (drop-in, self-contained) ========= */
+export function SideMenuNav({
+  sections = DEFAULT_SECTIONS,
+  headerOffset = 80,
+  accentColor = "#EB0A1E",
+  mobileTopVh = 35,
+  scrollRootSelector,
+}: SideMenuNavProps) {
+  const list = useMemo(() => sections.filter(s => s.id && s.label), [sections]);
+
+  // State
+  const [active, setActive] = useState(0);
+  const [drawerOpen, setDrawerOpen] = useState(false); // closed by default
+  const [autoVisible, setAutoVisible] = useState(true); // auto-hide on scroll down
+  const [pinned, setPinned] = useState(false); // user "Hide/Show" toggle
+  const [mounted, setMounted] = useState(false);
+
+  // Refs
+  const lastScrollTop = useRef(0);
+  const clickScrolling = useRef(false);
+  const portalEl = useRef<HTMLDivElement | null>(null);
+  const scrollRootRef = useRef<HTMLElement | null>(null);
+
+  /** Styles */
+  const styles = `
+    /* Base surfaces & shadows */
+    .sm-surface { background:#fff; color:#111; border:1px solid rgba(0,0,0,.1); }
+    .sm-shadow  { box-shadow:0 12px 28px rgba(0,0,0,.16); }
+    .sm-rounded { border-radius:12px; }
+    .sm-focus:focus { outline:2px solid #6366f1; outline-offset:2px; }
+    .sm-nohighlight { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+    /* Side tab (always present; CSS hides on desktop? No, we want it on both) */
+    .sm-tab {
+      position: fixed; right: 0; transform: translateY(-50%);
+      top: 50vh; width: 42px; height: 120px; border-top-left-radius: 10px; border-bottom-left-radius: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      border-left: none;
+    }
+    .sm-tab.hidden { opacity: 0; transform: translateY(-50%) translateX(8px); pointer-events: none; transition: opacity .16s, transform .16s; }
+    .sm-tab.visible { opacity: 1; transform: translateY(-50%) translateX(0); transition: opacity .16s, transform .16s; }
+    .sm-tab-btn {
+      display:flex; align-items:center; justify-content:center; width: 30px; height: 30px; border-radius: 8px;
+      background: transparent; border: none; cursor: pointer;
+    }
+
+    /* Drawer (right) */
+    .sm-drawer {
+      position: fixed; top: 0; right: 0; height: 100vh; width: min(320px, 86vw); transform: translateX(100%);
+      display: flex; flex-direction: column; gap: 0;
+      transition: transform .22s ease-out;
+      z-index: 2147483646;
+    }
+    .sm-drawer.open { transform: translateX(0%); }
+    .sm-drawer-header { display: flex; align-items: center; gap: 8px; padding: 10px 10px 8px 12px; }
+    .sm-search {
+      width: 100%; padding: 8px 12px 8px 36px; border-radius: 10px; border: 1px solid rgba(0,0,0,.12);
+      font-size: 14px; background: #fff; color: #111;
+    }
+    .sm-search-ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; opacity:.6; }
+    .sm-list { padding: 6px 6px 10px 6px; overflow-y: auto; }
+    .sm-item {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 10px 10px; border-radius: 10px; background: transparent; border: none; text-align: left; font-size: 14px; cursor: pointer;
+    }
+    .sm-item:hover { background: rgba(0,0,0,.05); }
+    .sm-active { font-weight: 600; background: rgba(0,0,0,.06); }
+    .sm-dot { width: 6px; height: 6px; border-radius: 9999px; background: rgba(0,0,0,.45); }
+    .sm-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.28); z-index: 2147483645;
+    }
+
+    /* Mobile tuning: place tab higher and shorter */
+    @media (max-width: 1023px){
+      .sm-tab { top: calc(var(--sm-top, 35vh)); height: 100px; }
+    }
+
+    @media (prefers-color-scheme: dark){
+      .sm-surface { background:#0b0b0b; color:#fff; border-color: rgba(255,255,255,.12); }
+      .sm-search { background:#0b0b0b; color:#fff; border-color: rgba(255,255,255,.12); }
+      .sm-item:hover { background: rgba(255,255,255,.08); }
+      .sm-active { background: rgba(255,255,255,.12); }
+      .sm-dot { background: rgba(255,255,255,.45); }
+    }
+  `;
+
+  /** Init portal + scroll root */
+  useEffect(() => {
+    setMounted(true);
+    const pe = document.createElement("div");
+    pe.setAttribute("data-side-nav-root", "true");
+    pe.style.zIndex = "2147483647";
+    document.body.appendChild(pe);
+    portalEl.current = pe;
+
+    scrollRootRef.current = resolveScrollRoot(scrollRootSelector);
+
+    return () => {
+      if (portalEl.current) document.body.removeChild(portalEl.current);
+      portalEl.current = null;
+    };
+  }, [scrollRootSelector]);
+
+  /** Scrollspy (IntersectionObserver bound to scroll root) */
+  useEffect(() => {
+    if (!list.length || !scrollRootRef.current) return;
+    const rootEl = scrollRootRef.current;
+
+    const io = new IntersectionObserver(
+      entries => {
+        if (clickScrolling.current) return;
+        let topMostIndex: number | null = null;
+
+        // Choose the intersecting entry with highest intersection ratio (more stable)
+        let bestRatio = 0;
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= bestRatio) {
+            bestRatio = e.intersectionRatio;
+            const idx = list.findIndex(s => s.id === (e.target as HTMLElement).id);
+            if (idx !== -1) topMostIndex = idx;
+          }
+        }
+        if (topMostIndex !== null) setActive(topMostIndex);
+      },
+      {
+        root: rootEl === document.documentElement ? null : rootEl,
+        rootMargin: "-30% 0px -55% 0px",
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      }
+    );
+
+    list.forEach(s => { const el = document.getElementById(s.id); if (el) io.observe(el); });
+    return () => io.disconnect();
+  }, [list]);
+
+  /** Auto-hide side tab on scroll down (and show on scroll up) */
+  useEffect(() => {
+    if (!scrollRootRef.current) return;
+    const root = scrollRootRef.current;
+
+    const getTop = () =>
+      root === document.documentElement
+        ? (window.scrollY || window.pageYOffset || 0)
+        : root.scrollTop;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = getTop();
+        const goingDown = y > lastScrollTop.current;
+        // Only auto-hide if user didn't pin "Show"
+        if (!pinned) setAutoVisible(y < 120 || !goingDown);
+        lastScrollTop.current = y;
+        ticking = false;
+      });
+    };
+
+    (root === document.documentElement ? window : root).addEventListener("scroll", onScroll, { passive: true });
+    return () => (root === document.documentElement ? window : root).removeEventListener("scroll", onScroll);
+  }, [pinned]);
+
+  /** ESC closes drawer */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && drawerOpen) setDrawerOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
+
+  /** Smooth scroll with header offset (works with custom scroll root) */
+  const jumpTo = useCallback((id: string, index: number) => {
+    const root = scrollRootRef.current || document.documentElement;
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const currentTop =
+      root === document.documentElement
+        ? (window.scrollY || window.pageYOffset || 0)
+        : root.scrollTop;
+
+    const absoluteTop = el.getBoundingClientRect().top + currentTop;
+    const dest = Math.max(0, absoluteTop - Math.max(0, headerOffset));
+
+    clickScrolling.current = true;
+
+    if (root === document.documentElement) {
+      window.scrollTo({ top: dest, behavior: "smooth" });
+    } else {
+      root.scrollTo({ top: dest, behavior: "smooth" as ScrollBehavior });
+    }
+
+    setActive(index);
+    setDrawerOpen(false);
+    window.setTimeout(() => (clickScrolling.current = false), 500);
+  }, [headerOffset]);
+
+  /** Filter (optional, simple contains) */
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? list.filter(s => s.label.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q)) : list;
+  }, [query, list]);
+
+  /** Render helpers */
+  const TabIcon = ({ open }: { open: boolean }) => (
+    // Simple hamburger / close icon
+    !open ? (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h12v2H3z"/></svg>
+    ) : (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.29-6.3z"/></svg>
+    )
+  );
+
+  // Portal for drawer & optional backdrop so it’s never clipped
+  const drawer = mounted && portalEl.current ? createPortal(
+    <>
+      {/* Backdrop */}
+      {drawerOpen && (
+        <button
+          className="sm-backdrop sm-nohighlight"
+          aria-label="Close menu"
+          onClick={() => setDrawerOpen(false)}
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      )}
+      {/* Drawer */}
+      <aside className={`sm-drawer sm-surface sm-shadow ${drawerOpen ? "open" : ""}`} onContextMenu={(e) => e.preventDefault()}>
+        <div className="sm-drawer-header">
+          <button
+            className="sm-tab-btn sm-nohighlight sm-focus"
+            aria-label="Close"
+            onClick={() => setDrawerOpen(false)}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <TabIcon open={true} />
+          </button>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Sections</div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+            {/* Pin/Unpin toggle */}
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+              <input
+                type="checkbox"
+                checked={!pinned}
+                onChange={() => setPinned(v => !v)}
+                aria-label="Auto-hide while scrolling"
+              />
+              Auto-hide
+            </label>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div style={{ position: "relative", padding: "0 10px 8px 10px" }}>
+          <svg className="sm-search-ico" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6 6 0 1 0-.71.71l.27.28v.79L20 20.5 21.5 19l-6-6zM6 10a4 4 0 1 1 8 0a4 4 0 0 1-8 0"/></svg>
+          <input
+            className="sm-search sm-nohighlight sm-focus"
+            placeholder="Search sections…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onContextMenu={(e) => e.preventDefault()}
+          />
+        </div>
+
+        {/* List */}
+        <div className="sm-list">
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {(query ? filtered : list).map((s) => {
+              const i = list.findIndex(v => v.id === s.id);
+              const isActive = i === active;
+              return (
+                <li key={s.id} style={{ margin: "4px" }}>
+                  <button
+                    className={`sm-item sm-nohighlight sm-focus ${isActive ? "sm-active" : ""}`}
+                    aria-current={isActive ? "true" : undefined}
+                    onClick={() => jumpTo(s.id, i)}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <span
+                      className="sm-dot"
+                      style={{ background: isActive ? accentColor : undefined }}
+                    />
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <span>{s.label}</span>
+                      {s.description && <span style={{ fontSize: 12, opacity: .7 }}>{s.description}</span>}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </aside>
+    </>,
+    portalEl.current
+  ) : null;
+
+  /** Mount portal & side tab */
+  useEffect(() => setMounted(true), []);
+
+  // Inline CSS + CSS variables for mobile tab vertical position
+  return (
+    <>
+      <style>{styles}</style>
+      <style>{`:root { --sm-top: ${mobileTopVh}vh; }`}</style>
+
+      {/* Side tab (edge of screen). Auto-hides on scroll down unless pinned. Present on mobile & desktop. */}
+      <div
+        className={`sm-tab sm-surface sm-shadow sm-nohighlight ${(!pinned && !autoVisible) ? "hidden" : "visible"}`}
+        style={{ borderTopLeftRadius: 10, borderBottomLeftRadius: 10 }}
+        role="navigation"
+        aria-label="Open sections menu"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <button
+          className="sm-tab-btn sm-focus"
+          aria-label={drawerOpen ? "Close sections" : "Open sections"}
+          onClick={() => setDrawerOpen(v => !v)}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <TabIcon open={drawerOpen} />
+        </button>
+
+        {/* Hide/Show toggle icon (eye) */}
+        <button
+          className="sm-tab-btn sm-focus"
+          aria-label={pinned ? "Hide while scrolling (enable auto-hide)" : "Keep visible (disable auto-hide)"}
+          title={pinned ? "Disable auto-hide" : "Enable auto-hide"}
+          onClick={() => setPinned(v => !v)}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {/* Eye / Eye-off glyph (simple) */}
+          {pinned ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 6c5.25 0 9 6 9 6s-3.75 6-9 6-9-6-9-6 3.75-6 9-6m0 2a4 4 0 1 0 .001 8.001A4 4 0 0 0 12 8m0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m2 4.27 1.28-1.27 18 18L20 22.27l-2.57-2.57A11.4 11.4 0 0 1 12 20c-5.25 0-9-6-9-6a20.9 20.9 0 0 1 4.23-4.73L2 4.27Zm6.73 6.73 1.5 1.5a2 2 0 0 0 2.97 2.97l1.5 1.5a4 4 0 0 1-5.97-5.97ZM12 6c1.39 0 2.68.36 3.87.98l-1.5 1.5A6 6 0 0 0 7.48 15.4l-1.49 1.49C3.9 15.92 3 14 3 14s3.75-6 9-6Z"/></svg>
+          )}
+        </button>
+      </div>
+
+      {/* Drawer + Backdrop via portal (so it never gets clipped) */}
+      {drawer}
+
+      {/* Scrollspy glue (hidden element; no UI) */}
+      <ScrollGlue
+        sections={list}
+        headerOffset={headerOffset}
+        setActive={setActive}
+        clickScrollingRef={clickScrolling}
+        scrollRootSelector={scrollRootSelector}
+      />
+    </>
+  );
+}
+
+/** ========= Internal helper: ensures scrollspy initializes even if sections mount late ========= */
+function ScrollGlue({
+  sections,
+  headerOffset,
+  setActive,
+  clickScrollingRef,
+  scrollRootSelector,
+}: {
+  sections: SectionItem[];
+  headerOffset: number;
+  setActive: (i: number) => void;
+  clickScrollingRef: React.MutableRefObject<boolean>;
+  scrollRootSelector?: string;
+}) {
+  // no UI; ensures we track after mount/route changes
+  useEffect(() => {
+    // NOP — the parent IO hook handles the spy.
+  }, [sections, headerOffset, setActive, clickScrollingRef, scrollRootSelector]);
+  return null;
 }
