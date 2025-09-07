@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -19,6 +19,9 @@ import {
   Info,
   Eye,
   Wrench,
+  Share2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,12 +31,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { cn } from "@/lib/utils";
 
-/* -----------------------------
-   SafeImage: reliable DAM renders
------------------------------- */
+/* =========================================================
+   SafeImage: DAM-friendly with lazy + fallback, no-referrer
+========================================================= */
 type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   fallbackText?: string;
-  ratioClass?: string; // e.g., "aspect-video"
+  ratioClass?: string; // e.g. "aspect-video"
   fit?: "cover" | "contain";
 };
 const SafeImage: React.FC<SafeImageProps> = ({
@@ -54,11 +57,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
           alt={alt}
           loading="lazy"
           referrerPolicy="no-referrer"
-          className={cn(
-            "w-full h-full",
-            fit === "cover" ? "object-cover" : "object-contain bg-black",
-            className
-          )}
+          className={cn("w-full h-full", fit === "cover" ? "object-cover" : "object-contain bg-black", className)}
           onError={() => setErrored(true)}
           {...rest}
         />
@@ -71,9 +70,25 @@ const SafeImage: React.FC<SafeImageProps> = ({
   );
 };
 
-/* -----------------------------
-   Types
------------------------------- */
+/* =========================================================
+   Types (backwards compatible with your data)
+========================================================= */
+interface ImageDetailsOverride {
+  specs?: string[];
+  benefits?: string[];
+  technology?: string[];
+}
+type ContentBlock = { id: string; title?: string; body?: string };
+
+interface GalleryImage {
+  url: string;
+  title: string;
+  description: string;
+  details?: ImageDetailsOverride;
+  contentBlocks?: ContentBlock[];
+  badges?: string[];
+}
+
 interface MediaItem {
   id: string;
   type: "image" | "video" | "360";
@@ -89,29 +104,127 @@ interface MediaItem {
     technology?: string[];
   };
   isPremium?: boolean;
-  galleryImages?: {
-    url: string;
-    title: string;
-    description: string;
-  }[];
+  galleryImages?: GalleryImage[];
 }
 
 interface VehicleMediaShowcaseProps {
   vehicle: VehicleModel;
 }
 
-/* -----------------------------
-   Main Component
------------------------------- */
+/* =========================================================
+   Utility hooks
+========================================================= */
+function useBodyScrollLock(locked: boolean) {
+  useEffect(() => {
+    if (!locked) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [locked]);
+}
+
+function usePreloadNeighbors(list: string[], index: number) {
+  useEffect(() => {
+    if (!list?.length) return;
+    const next = list[(index + 1) % list.length];
+    const prev = list[(index - 1 + list.length) % list.length];
+    [next, prev].forEach((src) => {
+      if (!src) return;
+      const img = new Image();
+      img.referrerPolicy = "no-referrer";
+      img.src = src;
+    });
+  }, [list, index]);
+}
+
+function useDeepLinking(
+  selectedMedia: MediaItem | null,
+  imageIndex: number,
+  setSelectedMedia: (m: MediaItem | null) => void,
+  setImageIndex: (i: number) => void,
+  mediaItems: MediaItem[]
+) {
+  // push state on change
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("media", selectedMedia.id);
+    url.searchParams.set("img", String(imageIndex));
+    window.history.replaceState({}, "", url.toString());
+  }, [selectedMedia, imageIndex]);
+
+  // read state on load
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const mediaId = url.searchParams.get("media");
+    const imgIdx = url.searchParams.get("img");
+    if (mediaId) {
+      const found = mediaItems.find((m) => m.id === mediaId);
+      if (found) {
+        setSelectedMedia(found);
+        setImageIndex(Math.max(0, Math.min(found.galleryImages?.length ? Number(imgIdx) || 0 : 0, (found.galleryImages?.length || 1) - 1)));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
+/** Maps content sections to image indices bidirectionally */
+function useContentImageSync(opts: {
+  enabled: boolean;
+  onSectionInView: (index: number) => void;
+  getSectionIds: () => string[];
+}) {
+  const { enabled, onSectionInView, getSectionIds } = opts;
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const observe = useCallback(() => {
+    if (!enabled) return;
+    const ids = getSectionIds();
+    if (!ids.length) return;
+
+    observerRef.current?.disconnect();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        // pick the most visible section
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+        if (visible.length) {
+          const id = (visible[0].target as HTMLElement).dataset.imgIndex;
+          if (id != null) onSectionInView(Number(id));
+        }
+      },
+      { rootMargin: "0px 0px -40% 0px", threshold: [0.25, 0.5, 0.75, 1] }
+    );
+
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) observerRef.current?.observe(el);
+    });
+  }, [enabled, getSectionIds, onSectionInView]);
+
+  useEffect(() => {
+    observe();
+    return () => observerRef.current?.disconnect();
+  }, [observe]);
+}
+
+/* =========================================================
+   Main component
+========================================================= */
 const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
   const isMobile = useIsMobile();
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0); // mobile card index
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
-  // Keep your original mediaItems (DAM URLs preserved)
+  // --- Keep your original DAM-based items (unchanged) ---
   const mediaItems: MediaItem[] = [
     {
       id: "performance",
@@ -133,24 +246,34 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           title: "Engine Bay Overview",
           description:
             "Complete view of the V6 twin-turbo engine with advanced cooling systems and precision engineering",
+          contentBlocks: [
+            { id: "perf-0-a", title: "Cooling Strategy", body: "Dual-path cooling improves thermal stability under load." },
+            { id: "perf-0-b", title: "Packaging", body: "Low-mounted turbos reduce CoG and improve throttle response." },
+          ],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
           title: "Turbocharger Detail",
           description:
             "Advanced twin-turbo technology featuring variable geometry turbines for optimal power delivery",
+          details: { technology: ["VGT turbines", "Low-inertia impellers"] },
+          contentBlocks: [{ id: "perf-1-a", title: "VGT Benefits", body: "Wider torque band with minimal lag in city and highway." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Performance Specs",
           description:
             "Technical specifications showcasing industry-leading performance metrics and efficiency ratings",
+          details: { specs: ["400+ HP", "0–60 in 4.2s"] },
+          contentBlocks: [{ id: "perf-2-a", title: "Numbers that Matter", body: "Top-tier acceleration with efficient cruising economy." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
           title: "Engine Control Unit",
           description:
             "State-of-the-art ECU managing engine parameters for optimal performance and fuel economy",
+          details: { technology: ["Knock learning", "Adaptive spark", "Closed-loop boost"] },
+          contentBlocks: [{ id: "perf-3-a", title: "Smart ECU", body: "Continuously adapts for environment and fuel quality." }],
         },
       ],
     },
@@ -159,8 +282,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       type: "image",
       url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
       title: "Luxury Interior",
-      description:
-        "Premium materials and cutting-edge technology create an unparalleled driving experience",
+      description: "Premium materials and cutting-edge technology create an unparalleled driving experience",
       category: "Interior",
       icon: Car,
       details: {
@@ -172,25 +294,27 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
           title: "Dashboard Overview",
-          description:
-            "Premium dashboard featuring digital instrument cluster and intuitive control layout",
+          description: "Premium dashboard featuring digital instrument cluster and intuitive control layout",
+          contentBlocks: [{ id: "int-0-a", title: "Driver Focused", body: "Controls angled toward the driver for ergonomics." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/84e8c1f6-161b-4fad-a1b2-aa9f00446b1d/renditions/c46fa084-5605-492e-8834-fae4693096f4?binary=true&mformat=true",
           title: "Leather Seats",
           description: "Hand-crafted leather seating with premium stitching and ergonomic support design",
+          contentBlocks: [{ id: "int-1-a", title: "Seating", body: "Ventilated with memory & multi-way adjust." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
           title: "Center Console",
-          description:
-            "Ergonomic center console with premium materials and convenient storage solutions",
+          description: "Ergonomic center console with premium materials and convenient storage solutions",
+          contentBlocks: [{ id: "int-2-a", title: "Usability", body: "Wireless charge pad and hidden storage." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/724e565c-9702-4e50-a1e5-b18351a75a82/renditions/37e39a52-c8d8-4d23-89c9-041b369d9429?binary=true&mformat=true",
           title: "Rear Seating",
           description:
             "Spacious rear passenger compartment with individual climate controls and premium amenities",
+          contentBlocks: [{ id: "int-3-a", title: "Rear Comfort", body: "Dedicated vents and USB-C ports." }],
         },
       ],
     },
@@ -216,6 +340,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           title: "Safety Overview",
           description:
             "Comprehensive safety suite featuring advanced driver assistance systems and protective technologies",
+          contentBlocks: [{ id: "safe-0-a", title: "ADAS Suite", body: "Camera + radar fusion for robust detection." }],
         },
       ],
     },
@@ -238,18 +363,21 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           title: "Suspension System",
           description:
             "Advanced adaptive suspension technology providing optimal balance between comfort and performance",
+          contentBlocks: [{ id: "hand-0-a", title: "Adaptive Dampers", body: "Millisecond-level response for composure." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/4d591b47-2866-457a-816a-a808ca9a364e/renditions/d8f9f2ed-a09d-4ecf-9586-02af429a86c2?binary=true&mformat=true",
           title: "Wheel Design",
           description:
             "Performance-oriented wheel design with advanced brake cooling and aerodynamic efficiency",
+          contentBlocks: [{ id: "hand-1-a", title: "Cooling Vanes", body: "Ducted flow reduces fade on track days." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
           title: "Drive Modes",
           description:
             "Multiple drive modes allowing customization of vehicle dynamics for any driving situation",
+          contentBlocks: [{ id: "hand-2-a", title: "Tunable Feel", body: "Calm in Eco, sharp in Sport." }],
         },
       ],
     },
@@ -270,20 +398,21 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
           title: "Infotainment System",
-          description:
-            "Advanced infotainment system with intuitive interface and seamless smartphone integration",
+          description: "Advanced infotainment with seamless smartphone integration",
+          contentBlocks: [{ id: "tech-0-a", title: "HMI", body: "Low-latency touch with voice fallback." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
           title: "Digital Cockpit",
-          description:
-            "Fully digital instrument cluster providing real-time vehicle information and customizable displays",
+          description: "Real-time vehicle info with customizable layouts",
+          contentBlocks: [{ id: "tech-1-a", title: "Clusters", body: "Themes per drive mode + widgets." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
           title: "Connected Services",
           description:
-            "Cloud-based services providing remote vehicle monitoring, maintenance alerts, and over-the-air updates",
+            "Cloud-based services providing remote vehicle monitoring, maintenance alerts, and OTA updates",
+          contentBlocks: [{ id: "tech-2-a", title: "Cloud", body: "Remote lock, diagnostics & route sync." }],
         },
       ],
     },
@@ -306,83 +435,46 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           title: "Manufacturing Excellence",
           description:
             "State-of-the-art manufacturing processes ensuring consistent quality and precision in every vehicle",
+          contentBlocks: [{ id: "qual-0-a", title: "Automation", body: "Robotic precision with human QA." }],
         },
         {
           url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Material Quality",
-          description:
-            "Premium materials selected for durability, sustainability, and luxurious feel throughout the vehicle",
+          description: "Premium materials for durability, sustainability, and a luxurious feel",
+          contentBlocks: [{ id: "qual-1-a", title: "Materials", body: "Corrosion-resistant coatings & sealants." }],
         },
         {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4d5a-b2f1-ee6cc38df9e2/renditions/56630e9b-b76a-4023-9af6-040187f89ad8?binary=true&mformat=true",
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
           title: "Finish Details",
-          description:
-            "Meticulous attention to finish details including paint quality, panel gaps, and surface textures",
+          description: "Meticulous paint quality, panel gaps, and surface textures",
+          contentBlocks: [{ id: "qual-2-a", title: "Finish", body: "Multi-stage paint with laser gap checks." }],
         },
       ],
     },
   ];
 
-  /* -----------------------------
-     Swipe (mobile carousel)
-  ------------------------------ */
+  // ----- Mobile swipe for card carousel -----
   const swipeableRef = useSwipeable<HTMLDivElement>({
     onSwipeLeft: () => setCurrentIndex((p) => Math.min(p + 1, mediaItems.length - 1)),
     onSwipeRight: () => setCurrentIndex((p) => Math.max(p - 1, 0)),
     threshold: 40,
   });
 
-  /* -----------------------------
-     Modal helpers
-  ------------------------------ */
+  // ----- Open/close modal -----
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
     setModalImageIndex(0);
+    setIsPlaying(media.type === "video" ? true : false);
   };
-
   const closeModal = useCallback(() => {
     setSelectedMedia(null);
     setIsPlaying(false);
   }, []);
 
-  const nextModalImage = () => {
-    if (selectedMedia?.galleryImages?.length) {
-      setModalImageIndex((p) => (p + 1) % selectedMedia.galleryImages!.length);
-    }
-  };
-  const prevModalImage = () => {
-    if (selectedMedia?.galleryImages?.length) {
-      setModalImageIndex((p) => (p - 1 + selectedMedia.galleryImages!.length) % selectedMedia.galleryImages!.length);
-    }
-  };
+  // ----- Scroll lock when open -----
+  useBodyScrollLock(!!selectedMedia);
 
-  const getCurrentImageData = () => {
-    if (selectedMedia?.galleryImages && selectedMedia.galleryImages[modalImageIndex]) {
-      return selectedMedia.galleryImages[modalImageIndex];
-    }
-    return {
-      url: selectedMedia?.url || "",
-      title: selectedMedia?.title || "",
-      description: selectedMedia?.description || "",
-    };
-  };
-
-  /* -----------------------------
-     Body scroll lock when modal open
-  ------------------------------ */
-  useEffect(() => {
-    if (selectedMedia) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
-  }, [selectedMedia]);
-
-  /* -----------------------------
-     Keyboard nav inside modal
-  ------------------------------ */
+  // ----- Keyboard navigation -----
   useEffect(() => {
     if (!selectedMedia) return;
     const onKey = (e: KeyboardEvent) => {
@@ -394,26 +486,102 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedMedia, closeModal]);
 
-  /* -----------------------------
-     Video controls (YouTube iframe)
-  ------------------------------ */
+  // ----- Next/Prev in modal -----
+  const nextModalImage = () => {
+    if (selectedMedia?.galleryImages?.length) {
+      setModalImageIndex((p) => (p + 1) % selectedMedia.galleryImages!.length);
+    }
+  };
+  const prevModalImage = () => {
+    if (selectedMedia?.galleryImages?.length) {
+      setModalImageIndex((p) => (p - 1 + selectedMedia.galleryImages!.length) % selectedMedia.galleryImages!.length);
+    }
+  };
+
+  // ----- Current image data -----
+  const currImg = useMemo(() => {
+    const g = selectedMedia?.galleryImages;
+    if (g && g[modalImageIndex]) return g[modalImageIndex];
+    return selectedMedia
+      ? { url: selectedMedia.url, title: selectedMedia.title, description: selectedMedia.description }
+      : { url: "", title: "", description: "" };
+  }, [selectedMedia, modalImageIndex]);
+
+  // ----- Image preloading for neighbors -----
+  usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), modalImageIndex);
+
+  // ----- Deep linking -----
+  useDeepLinking(selectedMedia, modalImageIndex, setSelectedMedia, setModalImageIndex, mediaItems);
+
+  // ----- Content ↔ Image synchronization -----
+  const contentPaneRef = useRef<HTMLDivElement>(null);
+
+  const contentSections = useMemo(() => {
+    // Build sections: per-image contentBlocks (fallback to media.description)
+    if (!selectedMedia) return [];
+    const g = selectedMedia.galleryImages;
+    if (g?.length) {
+      return g.map((img, i) => ({
+        id: `${selectedMedia.id}-section-${i}`,
+        imgIndex: i,
+        title: img.title || selectedMedia.title,
+        description: img.description || selectedMedia.description,
+        blocks: img.contentBlocks,
+        details: img.details,
+        badges: img.badges,
+      }));
+    }
+    // Fallback single section
+    return [
+      {
+        id: `${selectedMedia.id}-section-0`,
+        imgIndex: 0,
+        title: selectedMedia.title,
+        description: selectedMedia.description,
+        blocks: [] as ContentBlock[],
+        details: selectedMedia.details,
+        badges: [] as string[],
+      },
+    ];
+  }, [selectedMedia]);
+
+  // Map content visibility -> image index
+  useContentImageSync({
+    enabled: !!selectedMedia,
+    onSectionInView: (idx) => setModalImageIndex((prev) => (prev === idx ? prev : idx)),
+    getSectionIds: () => contentSections.map((s) => s.id),
+  });
+
+  // When image index changes via thumbnails/arrows, smooth-scroll to its section
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const sec = contentSections.find((s) => s.imgIndex === modalImageIndex);
+    if (!sec) return;
+    const el = document.getElementById(sec.id);
+    if (el && contentPaneRef.current) {
+      contentPaneRef.current.scrollTo({
+        top: el.offsetTop - 8,
+        behavior: "smooth",
+      });
+    }
+  }, [modalImageIndex, selectedMedia, contentSections]);
+
+  // ----- Video controls (YouTube embed) -----
   const toggleMute = () => setIsMuted((m) => !m);
   const togglePlay = () => setIsPlaying((p) => !p);
 
   const renderVideo = (url: string) => {
-    // Convert standard YouTube URL to embed
-    const match = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,})/);
-    const vid = match ? match[1] : "";
+    const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,})/);
+    const vid = m ? m[1] : "";
     const params = `?rel=0&modestbranding=1&controls=1&playsinline=1${isMuted ? "&mute=1" : ""}${
       isPlaying ? "&autoplay=1" : ""
     }`;
-    const src = `https://www.youtube.com/embed/${vid}${params}`;
     return (
       <div className="relative w-full aspect-video bg-black">
         <iframe
           title="video"
           className="absolute inset-0 w-full h-full"
-          src={src}
+          src={`https://www.youtube.com/embed/${vid}${params}`}
           allow="autoplay; encrypted-media; picture-in-picture"
           referrerPolicy="no-referrer"
         />
@@ -421,9 +589,25 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     );
   };
 
+  // ----- Share deep link -----
+  const onShare = async () => {
+    const url = new URL(window.location.href);
+    if (selectedMedia) {
+      url.searchParams.set("media", selectedMedia.id);
+      url.searchParams.set("img", String(modalImageIndex));
+    }
+    const link = url.toString();
+    try {
+      await navigator.clipboard.writeText(link);
+      // Optional: toast if you have one
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="relative bg-gradient-to-b from-background to-muted/30">
-      {/* Hero Header */}
+      {/* Header */}
       <div className="text-center py-8 md:py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <Badge variant="outline" className="px-4 py-2">
@@ -439,46 +623,31 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         </motion.div>
       </div>
 
-      {/* Mobile Carousel */}
+      {/* Mobile carousel */}
       <div className="px-4 md:px-8 pb-8 md:hidden">
         <div ref={swipeableRef} className="relative">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            className="w-full"
-          >
-            <MediaCard
-              media={mediaItems[currentIndex]}
-              onClick={() => handleMediaClick(mediaItems[currentIndex])}
-              isMobile
-            />
+          <motion.div key={currentIndex} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="w-full">
+            <MediaCard media={mediaItems[currentIndex]} onClick={() => handleMediaClick(mediaItems[currentIndex])} isMobile />
           </motion.div>
-
-          {/* Dots */}
           <div className="flex justify-center mt-6 space-x-2">
-            {mediaItems.map((_, index) => (
+            {mediaItems.map((_, i) => (
               <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                aria-label={`Go to item ${index + 1}`}
-                className={cn(
-                  "w-3 h-3 rounded-full transition-all",
-                  index === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                )}
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                aria-label={`Go to item ${i + 1}`}
+                className={cn("w-3 h-3 rounded-full transition-all", i === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30")}
               />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Desktop Grid */}
+      {/* Desktop grid */}
       <div className="hidden md:block px-4 md:px-8 pb-10">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {mediaItems.map((media, index) => (
-            <motion.div key={media.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}>
-              <MediaCard media={media} onClick={() => handleMediaClick(media)} isMobile={false} />
+          {mediaItems.map((m, i) => (
+            <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+              <MediaCard media={m} onClick={() => handleMediaClick(m)} isMobile={false} />
             </motion.div>
           ))}
         </div>
@@ -495,55 +664,77 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
             onClick={closeModal}
           >
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 30, scale: 0.98 }}
+              exit={{ opacity: 0, y: 24, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 210, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
               className="fixed inset-0 m-0 md:inset-6 md:rounded-2xl bg-background shadow-2xl overflow-hidden flex flex-col"
               role="dialog"
               aria-modal="true"
             >
-              {/* Sticky header (prevents clipping on small screens) */}
-              <div className="flex items-center justify-between p-4 md:p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+              {/* Sticky header */}
+              <div className="flex items-center justify-between p-4 md:p-6 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
                 <div className="min-w-0">
                   <h3 className="text-lg md:text-2xl font-bold truncate">{selectedMedia.title}</h3>
                   <p className="text-muted-foreground text-sm md:text-base truncate">{selectedMedia.category}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={onShare} aria-label="Copy deep link" className="hover:bg-muted">
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                  {selectedMedia.type !== "video" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsZoomed((z) => !z)}
+                      aria-label={isZoomed ? "Exit zoom" : "Zoom image"}
+                      className="hover:bg-muted"
+                    >
+                      {isZoomed ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                    </Button>
+                  )}
                   {selectedMedia.type === "video" && (
                     <>
-                      <Button variant="ghost" size="icon" onClick={toggleMute} className="hover:bg-muted" aria-label="Toggle Mute">
+                      <Button variant="ghost" size="icon" onClick={toggleMute} aria-label="Toggle mute" className="hover:bg-muted">
                         {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={togglePlay} className="hover:bg-muted" aria-label="Toggle Play">
+                      <Button variant="ghost" size="icon" onClick={togglePlay} aria-label="Toggle play" className="hover:bg-muted">
                         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                       </Button>
                     </>
                   )}
-                  <Button variant="ghost" size="icon" onClick={closeModal} className="hover:bg-muted" aria-label="Close">
+                  <Button variant="ghost" size="icon" onClick={closeModal} aria-label="Close" className="hover:bg-muted">
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
 
-              {/* Content area */}
+              {/* Content: mobile = single column, md+ = two panes */}
               <div className="flex-1 grid md:grid-cols-2 min-h-0">
                 {/* Visual pane */}
-                <div className="relative min-h-[40vh] md:min-h-0 bg-black">
-                  {/* Main visual: keep entire asset visible */}
+                <div className={cn("relative bg-black min-h-[42svh] md:min-h-0", isZoomed && "cursor-zoom-out")}>
                   {selectedMedia.type === "video" ? (
                     renderVideo(selectedMedia.url)
                   ) : (
-                    <SafeImage
-                      src={getCurrentImageData().url}
-                      alt={getCurrentImageData().title}
-                      ratioClass="md:aspect-auto aspect-[16/10]"
-                      fit="contain"
-                    />
+                    <div
+                      className={cn(
+                        "relative w-full h-full",
+                        "md:aspect-auto aspect-[16/10]",
+                        isZoomed ? "overflow-auto" : "overflow-hidden"
+                      )}
+                      onDoubleClick={() => setIsZoomed((z) => !z)}
+                    >
+                      <SafeImage
+                        src={currImg.url}
+                        alt={currImg.title}
+                        fit={isZoomed ? "cover" : "contain"}
+                        className={cn("transition-transform duration-300", isZoomed ? "scale-105" : "")}
+                      />
+                    </div>
                   )}
 
-                  {/* Gallery nav (only if multiple images) */}
+                  {/* Arrows + counter */}
                   {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
                     <>
                       <Button
@@ -564,15 +755,16 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                       >
                         <ChevronRight className="h-5 w-5" />
                       </Button>
-
-                      {/* Counter */}
-                      <div className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs">
+                      <div
+                        aria-live="polite"
+                        className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs"
+                      >
                         {modalImageIndex + 1} / {selectedMedia.galleryImages.length}
                       </div>
                     </>
                   )}
 
-                  {/* Thumbnails */}
+                  {/* Thumbs */}
                   {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
                     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur p-3">
                       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -580,11 +772,12 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                           <button
                             key={idx}
                             onClick={() => setModalImageIndex(idx)}
+                            aria-label={`Thumbnail ${idx + 1}`}
+                            aria-selected={idx === modalImageIndex}
                             className={cn(
-                              "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all",
+                              "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary/60",
                               idx === modalImageIndex ? "border-primary" : "border-transparent hover:border-primary/50"
                             )}
-                            aria-label={`Thumbnail ${idx + 1}`}
                           >
                             <SafeImage src={img.url} alt={img.title} className="w-full h-full object-cover" />
                           </button>
@@ -594,90 +787,35 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   )}
                 </div>
 
-                {/* Text/content pane (scrolls independently) */}
-                <div className="min-h-0 overflow-y-auto p-4 md:p-6">
-                  {/* Dynamic image info for images & 360 */}
-                  {selectedMedia.type !== "video" && (
-                    <div className="mb-4">
-                      <h4 className="font-semibold mb-1">{getCurrentImageData().title}</h4>
-                      <p className="text-sm text-muted-foreground">{getCurrentImageData().description}</p>
-                    </div>
+                {/* Text/content pane (scrolls independently, drives sync) */}
+                <div ref={contentPaneRef} className="min-h-0 overflow-y-auto p-4 md:p-6">
+                  {/* Per-image content kept in lock-step with current image */}
+                  {!selectedMedia.galleryImages?.length ? (
+                    // Single section fallback
+                    <DetailSection
+                      id={contentSections[0].id}
+                      imgIndex={0}
+                      title={contentSections[0].title}
+                      description={contentSections[0].description}
+                      details={contentSections[0].details || selectedMedia.details}
+                      badges={contentSections[0].badges}
+                    />
+                  ) : (
+                    contentSections.map((sec) => (
+                      <DetailSection
+                        key={sec.id}
+                        id={sec.id}
+                        imgIndex={sec.imgIndex}
+                        title={sec.title}
+                        description={sec.description}
+                        details={sec.details || selectedMedia.details}
+                        badges={sec.badges}
+                        blocks={sec.blocks}
+                        onJump={() => setModalImageIndex(sec.imgIndex)}
+                        active={sec.imgIndex === modalImageIndex}
+                      />
+                    ))
                   )}
-
-                  {/* Main description */}
-                  <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
-                    {selectedMedia.description}
-                  </p>
-
-                  {/* Details */}
-                  <div className="grid gap-6">
-                    {selectedMedia.details.specs && selectedMedia.details.specs.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold flex items-center mb-2">
-                          <Gauge className="h-4 w-4 mr-2" />
-                          Specifications
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.specs.map((spec, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
-                              {spec}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {selectedMedia.details.benefits && selectedMedia.details.benefits.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold flex items-center mb-2">
-                          <Award className="h-4 w-4 mr-2" />
-                          Key Benefits
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.benefits.map((b, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
-                              {b}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {selectedMedia.details.technology && selectedMedia.details.technology.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold flex items-center mb-2">
-                          <Cpu className="h-4 w-4 mr-2" />
-                          Technology
-                        </h4>
-                        <ul className="space-y-2">
-                          {selectedMedia.details.technology.map((t, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
-                              {t}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Why choose */}
-                  <div className="space-y-3 pt-6 border-t mt-6">
-                    <h4 className="text-base md:text-lg font-semibold">Why Choose This Feature?</h4>
-                    {[
-                      ["Enhanced Performance", "Optimized for maximum efficiency and power delivery"],
-                      ["Advanced Technology", "Latest innovations for superior driving experience"],
-                      ["Premium Quality", "Built with the finest materials and craftsmanship"],
-                    ].map(([title, copy]) => (
-                      <div className="flex items-start gap-3" key={title}>
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2" />
-                        <div>
-                          <p className="font-medium">{title}</p>
-                          <p className="text-sm text-muted-foreground">{copy}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -688,20 +826,127 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   );
 };
 
-/* -----------------------------
+/* =========================================================
+   DetailSection: content block bound to an image index
+========================================================= */
+const DetailSection: React.FC<{
+  id: string;
+  imgIndex: number;
+  title: string;
+  description: string;
+  details?: ImageDetailsOverride | MediaItem["details"];
+  badges?: string[];
+  blocks?: ContentBlock[];
+  onJump?: () => void;
+  active?: boolean;
+}> = ({ id, imgIndex, title, description, details, badges, blocks, onJump, active }) => {
+  return (
+    <section
+      id={id}
+      data-img-index={imgIndex}
+      className={cn("mb-8 p-4 rounded-xl border", active ? "border-primary/60 bg-primary/5" : "border-transparent bg-muted/20")}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {badges?.map((b) => (
+              <Badge key={b} variant="secondary" className="text-xs">
+                {b}
+              </Badge>
+            ))}
+          </div>
+          <h4 className="font-semibold text-lg">{title}</h4>
+          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        </div>
+        {onJump && (
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={onJump} aria-label="Show linked image">
+            View
+          </Button>
+        )}
+      </div>
+
+      {/* Details */}
+      <div className="grid md:grid-cols-3 gap-6 mt-5">
+        {details?.specs && details.specs.length > 0 && (
+          <div>
+            <h5 className="font-semibold flex items-center mb-2">
+              <Gauge className="h-4 w-4 mr-2" />
+              Specifications
+            </h5>
+            <ul className="space-y-2">
+              {details.specs.map((s, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-center">
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                  {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {details?.benefits && details.benefits.length > 0 && (
+          <div>
+            <h5 className="font-semibold flex items-center mb-2">
+              <Award className="h-4 w-4 mr-2" />
+              Key Benefits
+            </h5>
+            <ul className="space-y-2">
+              {details.benefits.map((b, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-center">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {details?.technology && details.technology.length > 0 && (
+          <div>
+            <h5 className="font-semibold flex items-center mb-2">
+              <Cpu className="h-4 w-4 mr-2" />
+              Technology
+            </h5>
+            <ul className="space-y-2">
+              {details.technology.map((t, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-center">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Extra blocks */}
+      {blocks && blocks.length > 0 && (
+        <div className="space-y-3 pt-6 border-t mt-6">
+          {blocks.map((b) => (
+            <div key={b.id} className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+              <div>
+                {b.title && <p className="font-medium">{b.title}</p>}
+                {b.body && <p className="text-sm text-muted-foreground">{b.body}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+/* =========================================================
    Media Card
------------------------------- */
+========================================================= */
 interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
   isMobile: boolean;
 }
-
 const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
   const Icon = media.icon;
   const isVideo = media.type === "video";
   const is360 = media.type === "360";
-
   return (
     <motion.div
       whileHover={{ scale: isMobile ? 1 : 1.02, y: isMobile ? 0 : -4 }}
@@ -711,17 +956,10 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
     >
       <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-background to-muted/20 hover:shadow-2xl transition-all duration-300">
         <div className="relative">
-          {/* Preview (taller for visual punch) */}
           <div className="relative h-64 md:h-80 overflow-hidden">
-            <SafeImage
-              src={media.url}
-              alt={media.title}
-              className="transition-transform duration-500 hover:scale-105"
-              fit="cover"
-            />
+            <SafeImage src={media.url} alt={media.title} className="transition-transform duration-500 hover:scale-105" fit="cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-            {/* Type badge */}
             <div className="absolute top-3 right-3 flex gap-2">
               {isVideo && (
                 <Badge className="bg-red-500/90 text-white">
@@ -740,14 +978,12 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
               )}
             </div>
 
-            {/* Icon + title */}
             <div className="absolute top-3 left-3 flex items-center gap-2">
               <div className="p-2 bg-white/20 backdrop-blur-sm rounded-full">
                 <Icon className="h-4 w-4 text-white" />
               </div>
             </div>
 
-            {/* Content overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <Badge variant="secondary" className="mb-2 text-xs">
                 {media.category}
@@ -756,7 +992,6 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
               <p className="text-white/80 text-sm line-clamp-2">{media.description}</p>
             </div>
 
-            {/* Hover affordance (desktop only) */}
             <div className="absolute inset-0 bg-primary/15 opacity-0 hover:opacity-100 transition-opacity duration-300 hidden md:flex items-center justify-center">
               <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
                 <Info className="h-6 w-6 text-white" />
