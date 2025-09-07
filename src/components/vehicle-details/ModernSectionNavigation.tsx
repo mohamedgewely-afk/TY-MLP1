@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { ChevronUp, Dot, Circle } from "lucide-react";
+import { ChevronUp, Dot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { contextualHaptic } from "@/utils/haptic";
 
@@ -24,7 +24,6 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 100], [1, 0.8]);
 
-  // Define all actual sections with proper IDs and modern styling
   const sections: NavigationSection[] = useMemo(() => [
     { id: "hero", title: "Overview", color: "bg-gradient-to-r from-blue-500 to-purple-600" },
     { id: "virtual-showroom", title: "Experience", color: "bg-gradient-to-r from-purple-500 to-pink-600" },
@@ -42,60 +41,45 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
     { id: "faq", title: "Support", color: "bg-gradient-to-r from-rose-500 to-red-600" }
   ], []);
 
-  // Enhanced scroll behavior with smooth hiding/showing
   const controlNavigation = useCallback(() => {
     const currentScrollY = window.scrollY;
-    
     if (currentScrollY < 200) {
       setIsVisible(true);
     } else if (currentScrollY > lastScrollY && currentScrollY > 300) {
-      // Scrolling down - hide
       setIsVisible(false);
       setIsExpanded(false);
     } else if (lastScrollY - currentScrollY > 10) {
-      // Scrolling up - show
       setIsVisible(true);
     }
-    
     setLastScrollY(currentScrollY);
   }, [lastScrollY]);
 
-  // Advanced section tracking with intersection observer
   useEffect(() => {
     const observerOptions = {
       root: null,
-      rootMargin: '-20% 0px -60% 0px',
-      threshold: [0, 0.25, 0.5, 0.75, 1]
+      rootMargin: "-20% 0px -60% 0px",
+      threshold: [0, 0.25, 0.5, 0.75, 1],
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
-          const sectionIndex = sections.findIndex(section => section.id === entry.target.id);
-          if (sectionIndex !== -1) {
-            setActiveSection(sectionIndex);
-          }
+          const sectionIndex = sections.findIndex((s) => s.id === entry.target.id);
+          if (sectionIndex !== -1) setActiveSection(sectionIndex);
         }
       });
     };
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    // Observe all sections
-    sections.forEach(section => {
-      const element = document.getElementById(section.id);
-      if (element) {
-        observer.observe(element);
-      }
+    sections.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
     });
-
     return () => observer.disconnect();
   }, [sections]);
 
-  // Throttled scroll handler
   useEffect(() => {
     let ticking = false;
-
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
@@ -105,26 +89,17 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
         ticking = true;
       }
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [controlNavigation]);
 
-  // Smooth scroll to section with offset
   const scrollToSection = useCallback((sectionId: string, index: number) => {
-    contextualHaptic.selectionChange();
-    
-    const element = document.getElementById(sectionId);
-    if (element) {
+    try { contextualHaptic?.selectionChange?.(); } catch {}
+    const el = document.getElementById(sectionId);
+    if (el) {
       const headerOffset = 100;
-      const elementPosition = element.offsetTop;
-      const offsetPosition = elementPosition - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-      
+      const offsetPosition = el.offsetTop - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       setActiveSection(index);
       setIsExpanded(false);
     }
@@ -140,14 +115,13 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
           exit={{ opacity: 0, scale: 0.8, x: 20 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
           className={cn(
-            "fixed right-6 top-1/2 transform -translate-y-1/2 z-50",
-            "hidden xl:block",
+            "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
+            "block",
             className
           )}
           role="navigation"
           aria-label="Section navigation"
         >
-          {/* Main floating navigation */}
           <motion.div
             layout
             className={cn(
@@ -160,10 +134,9 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
             style={{
               background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
               backdropFilter: "blur(20px)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)"
+              boxShadow: "0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)",
             }}
           >
-            {/* Toggle button */}
             <motion.button
               onClick={() => setIsExpanded(!isExpanded)}
               className={cn(
@@ -178,21 +151,17 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
               whileTap={{ scale: 0.95 }}
               aria-label={isExpanded ? "Collapse navigation" : "Expand navigation"}
             >
-              <motion.div
-                animate={{ rotate: isExpanded ? 45 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
+              <motion.div animate={{ rotate: isExpanded ? 45 : 0 }} transition={{ duration: 0.2 }}>
                 <Dot className="w-6 h-6 text-white" />
               </motion.div>
             </motion.button>
 
-            {/* Active section indicator */}
             <div className="relative">
               <motion.div
                 className="w-10 h-1 rounded-full bg-white/60 mb-2"
                 initial={false}
                 animate={{
-                  background: `linear-gradient(90deg, rgba(255,255,255,0.8) ${(activeSection / (sections.length - 1)) * 100}%, rgba(255,255,255,0.2) ${(activeSection / (sections.length - 1)) * 100}%)`
+                  background: `linear-gradient(90deg, rgba(255,255,255,0.8) ${(activeSection / (sections.length - 1)) * 100}%, rgba(255,255,255,0.2) ${(activeSection / (sections.length - 1)) * 100}%)`,
                 }}
               />
               <div className="text-[10px] text-white/80 text-center font-medium">
@@ -200,7 +169,6 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
               </div>
             </div>
 
-            {/* Expanded navigation */}
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
@@ -212,7 +180,6 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
                 >
                   {sections.map((section, index) => {
                     const isActive = activeSection === index;
-                    
                     return (
                       <motion.button
                         key={section.id}
@@ -223,39 +190,22 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
                           "transition-all duration-200",
                           "hover:bg-white/20 dark:hover:bg-white/10",
                           "focus:outline-none focus:ring-2 focus:ring-white/30",
-                          isActive 
-                            ? "bg-white/30 text-white shadow-lg" 
-                            : "text-white/80 hover:text-white"
+                          isActive ? "bg-white/30 text-white shadow-lg" : "text-white/80 hover:text-white"
                         )}
                         whileHover={{ scale: 1.02, x: 2 }}
                         whileTap={{ scale: 0.98 }}
                         initial={false}
-                        animate={{
-                          backgroundColor: isActive ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)"
-                        }}
+                        animate={{ backgroundColor: isActive ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)" }}
                         aria-label={`Go to ${section.title} section`}
                         aria-current={isActive ? "location" : undefined}
                       >
-                        {/* Section indicator dot */}
                         <motion.div
-                          className={cn(
-                            "w-2 h-2 rounded-full flex-shrink-0",
-                            isActive ? "bg-white" : "bg-white/40"
-                          )}
-                          animate={{
-                            scale: isActive ? 1.2 : 1,
-                            opacity: isActive ? 1 : 0.6
-                          }}
+                          className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-white" : "bg-white/40")}
+                          animate={{ scale: isActive ? 1.2 : 1, opacity: isActive ? 1 : 0.6 }}
                         />
-                        
-                        <span className={cn(
-                          "font-medium transition-all duration-200",
-                          isActive ? "text-white" : "text-white/80"
-                        )}>
+                        <span className={cn("font-medium transition-all duration-200", isActive ? "text-white" : "text-white/80")}>
                           {section.title}
                         </span>
-                        
-                        {/* Active indicator */}
                         {isActive && (
                           <motion.div
                             layoutId="activeExpandedIndicator"
@@ -267,11 +217,10 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
                       </motion.button>
                     );
                   })}
-                  
-                  {/* Scroll to top */}
+
                   <motion.button
                     onClick={() => {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                       setIsExpanded(false);
                     }}
                     className={cn(
@@ -292,17 +241,10 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
             </AnimatePresence>
           </motion.div>
 
-          {/* Minimal dots for collapsed state */}
           {!isExpanded && (
-            <motion.div 
-              className="mt-4 space-y-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div className="mt-4 space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               {sections.slice(0, 5).map((section, index) => {
                 const isActive = activeSection === index;
-                
                 return (
                   <motion.button
                     key={section.id}
@@ -314,17 +256,13 @@ const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ class
                     )}
                     whileHover={{ scale: 1.5 }}
                     whileTap={{ scale: 0.9 }}
-                    animate={{
-                      scale: isActive ? 1.25 : 1,
-                      opacity: isActive ? 1 : 0.6
-                    }}
+                    animate={{ scale: isActive ? 1.25 : 1, opacity: isActive ? 1 : 0.6 }}
                     aria-label={`Go to ${section.title} section`}
                   />
                 );
               })}
-              
               {sections.length > 5 && (
-                <motion.div 
+                <motion.div
                   className="text-[8px] text-white/60 text-center mt-2"
                   animate={{ opacity: [0.4, 0.8, 0.4] }}
                   transition={{ duration: 2, repeat: Infinity }}
