@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronUp } from "lucide-react";
+import { List, X, ChevronUp, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SectionItem = { id: string; label: string; icon?: React.ReactNode };
 
-interface ModernSectionNavProps {
+interface FloatingSectionNavProps {
   sections?: SectionItem[];
-  headerOffset?: number; // px, for sticky headers
-  className?: string;
+  headerOffset?: number;          // sticky header height, default 96
+  fabClassName?: string;          // extra classes for the FAB
+  panelClassName?: string;        // extra classes for the panel
+  placement?: "right-center" | "right-bottom"; // desktop placement
 }
 
 const DEFAULT_SECTIONS: SectionItem[] = [
@@ -28,18 +30,24 @@ const DEFAULT_SECTIONS: SectionItem[] = [
   { id: "faq", label: "FAQs" },
 ];
 
-const SURFACE =
-  "bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 shadow-xl";
+const SURFACE = "bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 shadow-xl";
 
-const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
+const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
   sections = DEFAULT_SECTIONS,
   headerOffset = 96,
-  className,
+  fabClassName,
+  panelClassName,
+  placement = "right-center",
 }) => {
   const [active, setActive] = useState(0);
-  const [visible, setVisible] = useState(true); // global auto-hide/show
+  const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true); // auto-hide/show FAB + panel
   const lastY = useRef(0);
   const clickScrolling = useRef(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // simple mobile swipe-to-close
+  const touchStartY = useRef<number | null>(null);
 
   const valid = useMemo(() => sections.filter(s => s.id && s.label), [sections]);
 
@@ -51,13 +59,14 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
       clickScrolling.current = true;
       window.scrollTo({ top: y, behavior: "smooth" });
       setActive(index);
-      // release the click lock after scrolling
+      // close panel on mobile after selection
+      if (window.innerWidth < 768) setOpen(false);
       window.setTimeout(() => (clickScrolling.current = false), 500);
     },
     [headerOffset]
   );
 
-  // Track active section
+  // Active section tracking
   useEffect(() => {
     if (!valid.length) return;
     const io = new IntersectionObserver(
@@ -72,7 +81,7 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
       },
       {
         root: null,
-        rootMargin: "-30% 0px -55% 0px", // stable, avoids flicker
+        rootMargin: "-30% 0px -55% 0px",
         threshold: [0, 0.3, 0.6, 1],
       }
     );
@@ -83,7 +92,7 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
     return () => io.disconnect();
   }, [valid]);
 
-  // Auto-hide on scroll down, show on scroll up / near top
+  // Auto-hide on scroll
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
@@ -94,18 +103,51 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
         const goingDown = y > lastY.current;
         const nearTop = y < 120;
         setVisible(nearTop || !goingDown);
+        if (goingDown && y > 200 && open) setOpen(false); // hide panel when scrolling down
         lastY.current = y;
         ticking = false;
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [open]);
 
-  // Keyboard: ArrowUp/Down, Home/End (desktop convenience)
+  // Click outside to close
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!panelRef.current) return;
+      if (!panelRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  // Mobile swipe down to close
+  useEffect(() => {
+    if (!open) return;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (touchStartY.current === null) return;
+      const dy = e.touches[0].clientY - touchStartY.current;
+      if (dy > 40) setOpen(false);
+    };
+    const panel = panelRef.current;
+    panel?.addEventListener("touchstart", onTouchStart, { passive: true });
+    panel?.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      panel?.removeEventListener("touchstart", onTouchStart);
+      panel?.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [open]);
+
+  // Keyboard shortcuts (desktop)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "Escape" && open) return setOpen(false);
       if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
       e.preventDefault();
       if (e.key === "Home") return jumpTo(valid[0].id, 0);
@@ -116,115 +158,183 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active, valid, jumpTo]);
+  }, [active, valid, jumpTo, open]);
 
-  // ===== UI =====
+  // FAB positions
+  const desktopPos =
+    placement === "right-center"
+      ? "md:top-1/2 md:-translate-y-1/2 md:right-6"
+      : "md:bottom-6 md:right-6";
 
   return (
     <>
-      {/* Desktop rail */}
+      {/* FAB (floats; hides on scroll down) */}
       <AnimatePresence>
         {visible && (
-          <motion.nav
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 8 }}
-            transition={{ duration: 0.16 }}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 6 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setOpen(v => !v)}
+            aria-expanded={open}
+            aria-label={open ? "Close section navigator" : "Open section navigator"}
             className={cn(
-              "fixed right-6 top-1/2 -translate-y-1/2 z-[80] hidden md:block",
-              className
+              "fixed z-[90] rounded-full p-3",
+              "bottom-6 right-4 md:right-6",        // mobile default
+              desktopPos,                            // desktop override
+              SURFACE,
+              "hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+              fabClassName
             )}
-            aria-label="Page sections"
           >
-            <div className={cn("w-56 rounded-2xl p-2", SURFACE)}>
-              <ul className="max-h-[70vh] overflow-y-auto pr-1">
-                {valid.map((s, i) => {
-                  const isActive = i === active;
-                  return (
-                    <li key={s.id} className="my-0.5">
-                      <button
-                        onClick={() => jumpTo(s.id, i)}
-                        className={cn(
-                          "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-left transition",
-                          "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
-                          isActive
-                            ? "bg-zinc-100 dark:bg-white/10 font-semibold"
-                            : "hover:bg-zinc-50 dark:hover:bg-white/5"
-                        )}
-                        aria-current={isActive ? "true" : undefined}
-                      >
-                        <span
-                          className={cn(
-                            "inline-block size-1.5 rounded-full",
-                            isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            isActive ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300"
-                          )}
-                        >
-                          {s.label}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </motion.nav>
+            {open ? (
+              <X className="h-5 w-5 text-zinc-900 dark:text-white" />
+            ) : (
+              <List className="h-5 w-5 text-zinc-900 dark:text-white" />
+            )}
+          </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Mobile bottom chips */}
+      {/* PANEL */}
       <AnimatePresence>
-        {visible && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.16 }}
-            className="fixed bottom-0 inset-x-0 z-[80] md:hidden pb-[env(safe-area-inset-bottom)]"
-          >
-            <div className="mx-auto max-w-screen-md">
-              <div className={cn("mx-3 mb-3 rounded-2xl", SURFACE)}>
-                <div className="flex overflow-x-auto gap-2 p-2">
+        {open && (
+          <>
+            {/* Mobile: full-width bottom sheet */}
+            <motion.div
+              className="fixed inset-x-0 bottom-0 z-[89] md:hidden"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div
+                ref={panelRef}
+                className={cn(
+                  "mx-3 mb-3 rounded-2xl overflow-hidden",
+                  SURFACE,
+                  panelClassName
+                )}
+              >
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="h-1.5 w-10 rounded-full bg-zinc-300 dark:bg-white/30" />
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-white/10"
+                    aria-label="Hide"
+                  >
+                    <EyeOff className="h-5 w-5 text-zinc-600 dark:text-zinc-200" />
+                  </button>
+                </div>
+
+                <ul className="max-h-[60vh] overflow-y-auto py-1">
                   {valid.map((s, i) => {
                     const isActive = i === active;
                     return (
-                      <button
-                        key={s.id}
-                        onClick={() => jumpTo(s.id, i)}
-                        className={cn(
-                          "px-3 py-2 rounded-lg border text-sm whitespace-nowrap transition",
-                          "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
-                          isActive
-                            ? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white"
-                            : "bg-transparent text-zinc-700 dark:text-zinc-300 border-zinc-300/60 dark:border-white/20"
-                        )}
-                        aria-current={isActive ? "true" : undefined}
-                      >
-                        {s.label}
-                      </button>
+                      <li key={s.id}>
+                        <button
+                          onClick={() => jumpTo(s.id, i)}
+                          className={cn(
+                            "w-full text-left px-4 py-3 flex items-center gap-3",
+                            isActive ? "bg-zinc-100 dark:bg-white/10 font-semibold" : "hover:bg-zinc-50 dark:hover:bg-white/5"
+                          )}
+                          aria-current={isActive ? "true" : undefined}
+                        >
+                          <span
+                            className={cn(
+                              "inline-block size-1.5 rounded-full",
+                              isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
+                            )}
+                          />
+                          <span className={cn(isActive ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300")}>
+                            {s.label}
+                          </span>
+                        </button>
+                      </li>
                     );
                   })}
-                </div>
+                </ul>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Desktop: anchored popover near FAB */}
+            <motion.div
+              className={cn(
+                "fixed z-[89] hidden md:block",
+                placement === "right-center"
+                  ? "top-1/2 -translate-y-1/2 right-[92px]" // next to FAB
+                  : "right-[92px] bottom-6"
+              )}
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 6 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div
+                ref={panelRef}
+                className={cn(
+                  "w-64 rounded-2xl p-2 overflow-hidden",
+                  SURFACE,
+                  panelClassName
+                )}
+              >
+                <ul className="max-h-[70vh] overflow-y-auto pr-1">
+                  {valid.map((s, i) => {
+                    const isActive = i === active;
+                    return (
+                      <li key={s.id} className="my-0.5">
+                        <button
+                          onClick={() => jumpTo(s.id, i)}
+                          className={cn(
+                            "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-left transition",
+                            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+                            isActive
+                              ? "bg-zinc-100 dark:bg-white/10 font-semibold"
+                              : "hover:bg-zinc-50 dark:hover:bg-white/5"
+                          )}
+                          aria-current={isActive ? "true" : undefined}
+                        >
+                          <span
+                            className={cn(
+                              "inline-block size-1.5 rounded-full",
+                              isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
+                            )}
+                          />
+                          <span className={cn(isActive ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300")}>
+                            {s.label}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Click-away backdrop (mobile only) */}
+            <motion.div
+              className="fixed inset-0 z-[88] md:hidden bg-black/20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              aria-hidden
+            />
+          </>
         )}
       </AnimatePresence>
 
-      {/* Mobile back-to-top FAB (appears after first section) */}
+      {/* Mobile quick Back-to-Top (optional, shows after first section) */}
       <AnimatePresence>
-        {active > 0 && (
+        {visible && !open && active > 0 && (
           <motion.button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
+            exit={{ opacity: 0, y: 6 }}
             className={cn(
-              "fixed right-4 bottom-24 md:hidden z-[81] rounded-full p-3",
+              "fixed right-4 bottom-[84px] md:hidden z-[85] rounded-full p-3",
               SURFACE
             )}
             aria-label="Back to top"
@@ -237,4 +347,4 @@ const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
   );
 };
 
-export default ModernSectionNav;
+export default FloatingSectionNav;
