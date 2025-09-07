@@ -9,7 +9,7 @@ import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
-import SectionNavigation from "@/components/vehicle-details/SectionNavigation";
+import ModernSectionNavigation from "@/components/vehicle-details/ModernSectionNavigation";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
 import OffersSection from "@/components/home/OffersSection";
 
@@ -328,7 +328,9 @@ const VehicleDetails = () => {
                 <RelatedVehicles currentVehicle={vehicle} />
               </section>
 
-              <PreOwnedSimilar currentVehicle={vehicle} />
+              <section id="pre-owned">
+                <PreOwnedSimilar currentVehicle={vehicle} />
+              </section>
               
               <section id="faq">
                 <VehicleFAQ vehicle={vehicle} />
@@ -346,8 +348,8 @@ const VehicleDetails = () => {
           />
         </div>
 
-        {/* Section Navigation */}
-        <SectionNavigation />
+        {/* Modern Section Navigation */}
+        <ModernSectionNavigation />
       </div>
 
       <VehicleModals
