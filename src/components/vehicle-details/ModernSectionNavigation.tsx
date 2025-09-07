@@ -1,281 +1,308 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { ChevronUp, Dot } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { contextualHaptic } from "@/utils/haptic";
 
-interface NavigationSection {
+/**
+ * ModernSectionNav
+ * - Mobile: bottom dock with labeled chips (scrollable)
+ * - Desktop: right rail with a vertical labeled list
+ * - Always shows current section label & progress
+ * - High contrast surfaces (visible on white / photo backgrounds)
+ */
+
+type SectionItem = {
   id: string;
-  title: string;
+  label: string;
   icon?: React.ReactNode;
-  color?: string;
-}
+};
 
-interface ModernSectionNavigationProps {
+interface ModernSectionNavProps {
+  sections?: SectionItem[];
+  /** Header height offset for smooth scroll (px). Default: 96 */
+  headerOffset?: number;
+  /** Additional className applied to the outermost container */
   className?: string;
+  /** Enable mobile haptics (best effort). Default: true */
+  enableHaptics?: boolean;
 }
 
-const ModernSectionNavigation: React.FC<ModernSectionNavigationProps> = ({ className }) => {
-  const [activeSection, setActiveSection] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
+const DEFAULT_SECTIONS: SectionItem[] = [
+  { id: "hero", label: "Overview" },
+  { id: "virtual-showroom", label: "Experience" },
+  { id: "media-showcase", label: "Gallery" },
+  { id: "story-performance", label: "Performance" },
+  { id: "story-safety", label: "Safety" },
+  { id: "story-connected", label: "Connected" },
+  { id: "story-sustainable", label: "Hybrid" },
+  { id: "story-comfort", label: "Comfort" },
+  { id: "story-ownership", label: "Ownership" },
+  { id: "offers", label: "Offers" },
+  { id: "tech-experience", label: "Technology" },
+  { id: "configuration", label: "Configure" },
+  { id: "related", label: "Similar Models" },
+  { id: "faq", label: "FAQs" },
+];
 
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 100], [1, 0.8]);
+const SURFACE_CLASSES =
+  "bg-white/95 dark:bg-zinc-900/95 border border-black/10 dark:border-white/10 shadow-xl";
 
-  const sections: NavigationSection[] = useMemo(() => [
-    { id: "hero", title: "Overview", color: "bg-gradient-to-r from-blue-500 to-purple-600" },
-    { id: "virtual-showroom", title: "Experience", color: "bg-gradient-to-r from-purple-500 to-pink-600" },
-    { id: "media-showcase", title: "Gallery", color: "bg-gradient-to-r from-pink-500 to-red-600" },
-    { id: "story-performance", title: "Performance", color: "bg-gradient-to-r from-red-500 to-orange-600" },
-    { id: "story-safety", title: "Safety", color: "bg-gradient-to-r from-orange-500 to-yellow-600" },
-    { id: "story-connected", title: "Connected", color: "bg-gradient-to-r from-yellow-500 to-green-600" },
-    { id: "story-sustainable", title: "Hybrid", color: "bg-gradient-to-r from-green-500 to-teal-600" },
-    { id: "story-comfort", title: "Comfort", color: "bg-gradient-to-r from-teal-500 to-cyan-600" },
-    { id: "story-ownership", title: "Ownership", color: "bg-gradient-to-r from-cyan-500 to-blue-600" },
-    { id: "offers", title: "Offers", color: "bg-gradient-to-r from-indigo-500 to-purple-600" },
-    { id: "tech-experience", title: "Technology", color: "bg-gradient-to-r from-purple-500 to-violet-600" },
-    { id: "configuration", title: "Configure", color: "bg-gradient-to-r from-violet-500 to-pink-600" },
-    { id: "related", title: "Similar Models", color: "bg-gradient-to-r from-pink-500 to-rose-600" },
-    { id: "faq", title: "Support", color: "bg-gradient-to-r from-rose-500 to-red-600" }
-  ], []);
+const ModernSectionNav: React.FC<ModernSectionNavProps> = ({
+  sections = DEFAULT_SECTIONS,
+  headerOffset = 96,
+  className,
+  enableHaptics = true,
+}) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isRailCompact, setIsRailCompact] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const clickScrollRef = useRef(false); // prevent IO flicker after manual click
 
-  const controlNavigation = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    if (currentScrollY < 200) {
-      setIsVisible(true);
-    } else if (currentScrollY > lastScrollY && currentScrollY > 300) {
-      setIsVisible(false);
-      setIsExpanded(false);
-    } else if (lastScrollY - currentScrollY > 10) {
-      setIsVisible(true);
-    }
-    setLastScrollY(currentScrollY);
-  }, [lastScrollY]);
+  const validSections = useMemo(
+    () => sections.filter((s) => !!s?.id && !!s?.label),
+    [sections]
+  );
 
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: "-20% 0px -60% 0px",
-      threshold: [0, 0.25, 0.5, 0.75, 1],
-    };
+  const progress = useMemo(() => {
+    if (validSections.length <= 1) return 1;
+    return activeIndex / (validSections.length - 1);
+  }, [activeIndex, validSections.length]);
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
-          const sectionIndex = sections.findIndex((s) => s.id === entry.target.id);
-          if (sectionIndex !== -1) setActiveSection(sectionIndex);
+  const jumpTo = useCallback(
+    (id: string, index: number) => {
+      // optional haptics on mobile
+      if (enableHaptics) {
+        try {
+          contextualHaptic?.selectionChange?.();
+        } catch {
+          /* noop */
         }
-      });
-    };
+      }
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    sections.forEach((s) => {
+      const el = typeof document !== "undefined" ? document.getElementById(id) : null;
+      if (!el) return;
+
+      const top =
+        el.getBoundingClientRect().top + (window?.pageYOffset || 0) - Math.max(0, headerOffset);
+
+      clickScrollRef.current = true;
+      window.scrollTo({ top, behavior: "smooth" });
+
+      // lock active section until scroll settles (avoid IO race)
+      setActiveIndex(index);
+      window.setTimeout(() => (clickScrollRef.current = false), 600);
+    },
+    [headerOffset, enableHaptics]
+  );
+
+  // Intersection Observer: track which section is in view
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!validSections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (clickScrollRef.current) return; // ignore while smooth scrolling from a click
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
+            const idx = validSections.findIndex((s) => s.id === entry.target.id);
+            if (idx !== -1) {
+              setActiveIndex(idx);
+            }
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-30% 0px -55% 0px", // stabilizes the active section
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      }
+    );
+
+    validSections.forEach((s) => {
       const el = document.getElementById(s.id);
       if (el) observer.observe(el);
     });
+
     return () => observer.disconnect();
-  }, [sections]);
+  }, [validSections]);
 
+  // Compact rail on scroll down; expand on scroll up
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          controlNavigation();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [controlNavigation]);
+    if (typeof window === "undefined") return;
 
-  const scrollToSection = useCallback((sectionId: string, index: number) => {
-    try { contextualHaptic?.selectionChange?.(); } catch {}
-    const el = document.getElementById(sectionId);
-    if (el) {
-      const headerOffset = 100;
-      const offsetPosition = el.offsetTop - headerOffset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-      setActiveSection(index);
-      setIsExpanded(false);
-    }
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY || 0;
+        const last = lastScrollYRef.current;
+        const goingDown = y > last;
+        setIsRailCompact(goingDown && y > 300);
+        lastScrollYRef.current = y;
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Keyboard support (desktop): ArrowUp/Down/Home/End to move
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+
+      e.preventDefault();
+      if (e.key === "Home") return jumpTo(validSections[0].id, 0);
+      if (e.key === "End") return jumpTo(validSections[validSections.length - 1].id, validSections.length - 1);
+
+      const delta = e.key === "ArrowDown" ? 1 : -1;
+      let next = activeIndex + delta;
+      next = Math.max(0, Math.min(validSections.length - 1, next));
+      jumpTo(validSections[next].id, next);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeIndex, validSections, jumpTo]);
+
+  // ====== UI ======
+
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.nav
-          style={{ opacity }}
-          initial={{ opacity: 0, scale: 0.8, x: 20 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          exit={{ opacity: 0, scale: 0.8, x: 20 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+    <>
+      {/* Current Section Pill (visible on both) */}
+      <motion.div
+        className={cn(
+          "fixed left-4 bottom-28 md:bottom-auto md:top-1/2 md:left-auto md:right-6",
+          "-translate-y-0 md:-translate-y-1/2 z-[60]",
+          "rounded-xl px-3.5 py-2.5 flex items-center gap-2",
+          SURFACE_CLASSES,
+          className
+        )}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {/* tiny active indicator */}
+        <span className="inline-block size-2 rounded-full bg-zinc-900 dark:bg-white" />
+        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+          {validSections[activeIndex]?.label ?? "Section"}
+        </span>
+        <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">
+          {activeIndex + 1}/{validSections.length}
+        </span>
+        {/* thin progress */}
+        <div className="ml-3 h-1 w-20 rounded-full bg-zinc-200 dark:bg-white/20 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-zinc-900 dark:bg-white"
+            style={{ width: `${Math.round(progress * 100)}%` }}
+          />
+        </div>
+      </motion.div>
+
+      {/* Desktop Right Rail */}
+      <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-[60] hidden md:block">
+        <div
           className={cn(
-            "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
-            "block",
-            className
+            "w-56 transition-all duration-200",
+            isRailCompact ? "opacity-90 scale-[0.98]" : "opacity-100 scale-100"
           )}
-          role="navigation"
-          aria-label="Section navigation"
         >
-          <motion.div
-            layout
-            className={cn(
-              "relative backdrop-blur-xl bg-white/10 dark:bg-black/10",
-              "border border-white/20 dark:border-white/10",
-              "rounded-2xl shadow-2xl",
-              "transition-all duration-300 ease-out",
-              isExpanded ? "p-4" : "p-2"
-            )}
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)",
-            }}
-          >
-            <motion.button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className={cn(
-                "w-10 h-10 rounded-xl bg-white/20 dark:bg-white/10",
-                "flex items-center justify-center",
-                "hover:bg-white/30 dark:hover:bg-white/20",
-                "transition-all duration-200",
-                "border border-white/30 dark:border-white/20",
-                "mb-2"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label={isExpanded ? "Collapse navigation" : "Expand navigation"}
-            >
-              <motion.div animate={{ rotate: isExpanded ? 45 : 0 }} transition={{ duration: 0.2 }}>
-                <Dot className="w-6 h-6 text-white" />
-              </motion.div>
-            </motion.button>
-
-            <div className="relative">
-              <motion.div
-                className="w-10 h-1 rounded-full bg-white/60 mb-2"
-                initial={false}
-                animate={{
-                  background: `linear-gradient(90deg, rgba(255,255,255,0.8) ${(activeSection / (sections.length - 1)) * 100}%, rgba(255,255,255,0.2) ${(activeSection / (sections.length - 1)) * 100}%)`,
-                }}
-              />
-              <div className="text-[10px] text-white/80 text-center font-medium">
-                {activeSection + 1}/{sections.length}
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="space-y-2 mt-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
-                >
-                  {sections.map((section, index) => {
-                    const isActive = activeSection === index;
-                    return (
-                      <motion.button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id, index)}
-                        className={cn(
-                          "relative w-full text-left px-3 py-2.5 rounded-xl text-xs",
-                          "flex items-center gap-3 min-w-[160px]",
-                          "transition-all duration-200",
-                          "hover:bg-white/20 dark:hover:bg-white/10",
-                          "focus:outline-none focus:ring-2 focus:ring-white/30",
-                          isActive ? "bg-white/30 text-white shadow-lg" : "text-white/80 hover:text-white"
-                        )}
-                        whileHover={{ scale: 1.02, x: 2 }}
-                        whileTap={{ scale: 0.98 }}
-                        initial={false}
-                        animate={{ backgroundColor: isActive ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)" }}
-                        aria-label={`Go to ${section.title} section`}
-                        aria-current={isActive ? "location" : undefined}
-                      >
-                        <motion.div
-                          className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-white" : "bg-white/40")}
-                          animate={{ scale: isActive ? 1.2 : 1, opacity: isActive ? 1 : 0.6 }}
-                        />
-                        <span className={cn("font-medium transition-all duration-200", isActive ? "text-white" : "text-white/80")}>
-                          {section.title}
-                        </span>
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeExpandedIndicator"
-                            className="absolute right-2 w-1 h-4 bg-white rounded-full"
-                            initial={false}
-                            transition={{ duration: 0.2 }}
-                          />
-                        )}
-                      </motion.button>
-                    );
-                  })}
-
-                  <motion.button
-                    onClick={() => {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      setIsExpanded(false);
-                    }}
-                    className={cn(
-                      "w-full flex items-center justify-center gap-2 px-3 py-2.5",
-                      "text-xs text-white/80 hover:text-white rounded-xl",
-                      "hover:bg-white/20 transition-all duration-200",
-                      "border-t border-white/20 mt-2 pt-4"
-                    )}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    aria-label="Scroll to top"
-                  >
-                    <ChevronUp className="w-3 h-3" />
-                    <span>Back to Top</span>
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {!isExpanded && (
-            <motion.div className="mt-4 space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-              {sections.slice(0, 5).map((section, index) => {
-                const isActive = activeSection === index;
+          <div className={cn("rounded-2xl p-2", SURFACE_CLASSES)}>
+            <ul className="max-h-[70vh] overflow-y-auto pr-1">
+              {validSections.map((s, i) => {
+                const active = i === activeIndex;
                 return (
-                  <motion.button
-                    key={section.id}
-                    onClick={() => scrollToSection(section.id, index)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all duration-200",
-                      "hover:scale-125 focus:outline-none focus:ring-2 focus:ring-white/30",
-                      isActive ? "bg-white scale-125" : "bg-white/40 hover:bg-white/60"
-                    )}
-                    whileHover={{ scale: 1.5 }}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{ scale: isActive ? 1.25 : 1, opacity: isActive ? 1 : 0.6 }}
-                    aria-label={`Go to ${section.title} section`}
-                  />
+                  <li key={s.id} className="my-0.5">
+                    <button
+                      onClick={() => jumpTo(s.id, i)}
+                      className={cn(
+                        "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-left",
+                        "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+                        active
+                          ? "bg-zinc-100 dark:bg-white/10 font-semibold"
+                          : "hover:bg-zinc-50 dark:hover:bg-white/5"
+                      )}
+                      aria-current={active ? "true" : undefined}
+                      aria-label={`Go to ${s.label}`}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block size-1.5 rounded-full",
+                          active ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          active ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300"
+                        )}
+                      >
+                        {s.label}
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
-              {sections.length > 5 && (
-                <motion.div
-                  className="text-[8px] text-white/60 text-center mt-2"
-                  animate={{ opacity: [0.4, 0.8, 0.4] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  +{sections.length - 5}
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </motion.nav>
-      )}
-    </AnimatePresence>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Bottom Dock */}
+      <div className="fixed bottom-0 inset-x-0 z-[60] md:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto max-w-screen-md">
+          <div className={cn("mx-3 mb-3 rounded-2xl", SURFACE_CLASSES)}>
+            <div className="flex overflow-x-auto gap-2 p-2 no-scrollbar">
+              {validSections.map((s, i) => {
+                const active = i === activeIndex;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => jumpTo(s.id, i)}
+                    className={cn(
+                      "px-3 py-2 rounded-lg border text-sm whitespace-nowrap",
+                      "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+                      active
+                        ? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white"
+                        : "bg-transparent text-zinc-700 dark:text-zinc-300 border-zinc-300/60 dark:border-white/20"
+                    )}
+                    aria-current={active ? "true" : undefined}
+                    aria-label={`Go to ${s.label}`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll-To-Top FAB (mobile) */}
+      <AnimatePresence>
+        {activeIndex > 0 && (
+          <motion.button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={cn(
+              "fixed right-4 bottom-24 md:hidden z-[61]",
+              "rounded-full p-3",
+              SURFACE_CLASSES,
+              "backdrop-blur"
+            )}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            aria-label="Back to Top"
+          >
+            <ChevronUp className="h-5 w-5 text-zinc-900 dark:text-white" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
-export default ModernSectionNavigation;
+export default ModernSectionNav;
