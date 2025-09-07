@@ -77,12 +77,13 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
       <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-20 lg:space-y-32 xl:space-y-40">
         <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
           {storySection.map((section, index) => (
-            <OptimizedStorySection
-              key={section.id}
-              section={section}
-              index={index}
-              setActiveStorySection={handleSectionClick}
-            />
+            <div key={section.id} id={`story-${section.id}`}>
+              <OptimizedStorySection
+                section={section}
+                index={index}
+                setActiveStorySection={handleSectionClick}
+              />
+            </div>
           ))}
         </Suspense>
       </div>

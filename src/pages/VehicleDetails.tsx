@@ -9,6 +9,7 @@ import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
+import SectionNavigation from "@/components/vehicle-details/SectionNavigation";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
 import OffersSection from "@/components/home/OffersSection";
 
@@ -30,9 +31,10 @@ const VehicleSpecs = createLazyComponent(
   () => window.innerWidth > 768 // Preload on desktop
 );
 
-const VehicleGallery = createLazyComponent(
-  () => import("@/components/vehicle-details/VehicleGallery")
-);
+// VehicleGallery - Hidden as requested
+// const VehicleGallery = createLazyComponent(
+//   () => import("@/components/vehicle-details/VehicleGallery")
+// );
 
 const VehicleFeatures = createLazyComponent(
   () => import("@/components/vehicle-details/VehicleFeatures")
@@ -215,24 +217,27 @@ const VehicleDetails = () => {
         </a>
 
         <div id="main-content">
-          <EnhancedHeroSection
-            vehicle={vehicle}
-            galleryImages={galleryImages}
-            isFavorite={isFavorite}
-            onToggleFavorite={toggleFavorite}
-            onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
-            onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
-            monthlyEMI={monthlyEMI}
-          />
+          <section id="hero">
+            <EnhancedHeroSection
+              vehicle={vehicle}
+              galleryImages={galleryImages}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
+              onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+              onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
+              monthlyEMI={monthlyEMI}
+            />
+          </section>
 
           {shouldRenderHeavyContent ? (
             shouldUseSuspense ? (
               <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
-                <VirtualShowroom vehicle={vehicle} />
+                <section id="virtual-showroom">
+                  <VirtualShowroom vehicle={vehicle} />
+                </section>
                 
-                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
-                  <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
-                  <VehicleGallery />
+                <section id="media-showcase">
+                  <VehicleMediaShowcase vehicle={vehicle} />
                 </section>
 
                 <StorytellingSection
@@ -247,19 +252,23 @@ const VehicleDetails = () => {
                   onInteriorExplore={modalHandlers.handleInteriorExplore}
                 />
 
-                <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+                <section id="offers">
+                  <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+                </section>
                 
-                <VehicleMediaShowcase vehicle={vehicle} />
-                <RefinedTechExperience vehicle={vehicle} />
+                <section id="tech-experience">
+                  <RefinedTechExperience vehicle={vehicle} />
+                </section>
               </Suspense>
             ) : (
               <>
-                <VirtualShowroom vehicle={vehicle} />
+                <section id="virtual-showroom">
+                  <VirtualShowroom vehicle={vehicle} />
+                </section>
                 
-                <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="gallery-heading">
-                  <h2 id="gallery-heading" className="sr-only">Vehicle Gallery</h2>
+                <section id="media-showcase">
                   <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-                    <VehicleGallery />
+                    <VehicleMediaShowcase vehicle={vehicle} />
                   </Suspense>
                 </section>
 
@@ -277,12 +286,15 @@ const VehicleDetails = () => {
                   />
                 </Suspense>
 
-                <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+                <section id="offers">
+                  <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+                </section>
                 
-                <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-                  <VehicleMediaShowcase vehicle={vehicle} />
-                  <RefinedTechExperience vehicle={vehicle} />
-                </Suspense>
+                <section id="tech-experience">
+                  <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+                    <RefinedTechExperience vehicle={vehicle} />
+                  </Suspense>
+                </section>
               </>
             )
           ) : (
@@ -300,22 +312,27 @@ const VehicleDetails = () => {
             </>
           )}
           
-          <VehicleConfiguration 
-            vehicle={vehicle}
-            onCarBuilder={modalHandlers.handleConfigureWithGrade}
-            onTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
-            onGradeSelect={modalHandlers.handleGradeSelect}
-          />
+          <section id="configuration">
+            <VehicleConfiguration 
+              vehicle={vehicle}
+              onCarBuilder={modalHandlers.handleConfigureWithGrade}
+              onTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+              onGradeSelect={modalHandlers.handleGradeSelect}
+            />
+          </section>
 
           {shouldRenderHeavyContent && (
             <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
-              <section className="py-8 lg:py-16 bg-muted/30" aria-labelledby="related-vehicles-heading">
+              <section id="related" className="py-8 lg:py-16 bg-muted/30" aria-labelledby="related-vehicles-heading">
                 <h2 id="related-vehicles-heading" className="sr-only">Related Vehicles</h2>
                 <RelatedVehicles currentVehicle={vehicle} />
               </section>
 
               <PreOwnedSimilar currentVehicle={vehicle} />
-              <VehicleFAQ vehicle={vehicle} />
+              
+              <section id="faq">
+                <VehicleFAQ vehicle={vehicle} />
+              </section>
             </Suspense>
           )}
 
@@ -328,6 +345,9 @@ const VehicleDetails = () => {
             onFinanceCalculator={() => modalHandlers.updateModal('isFinanceOpen', true)}
           />
         </div>
+
+        {/* Section Navigation */}
+        <SectionNavigation />
       </div>
 
       <VehicleModals
