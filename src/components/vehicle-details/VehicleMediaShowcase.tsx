@@ -112,7 +112,7 @@ interface VehicleMediaShowcaseProps {
 }
 
 /* =========================================================
-   Utility hooks
+   Small utilities
 ========================================================= */
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
@@ -166,54 +166,13 @@ function useDeepLinking(
       if (found) {
         const rawIdx = Number(imgIdx);
         const maxIdx = (found.galleryImages?.length ?? 1) - 1;
-        const safeIdx =
-          Number.isFinite(rawIdx) && rawIdx >= 0 ? Math.min(rawIdx, Math.max(0, maxIdx)) : 0;
+        const safeIdx = Number.isFinite(rawIdx) && rawIdx >= 0 ? Math.min(rawIdx, Math.max(0, maxIdx)) : 0;
         setSelectedMedia(found);
         setImageIndex(safeIdx);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-}
-
-/** Maps content sections to image indices (content scroll -> image index) */
-function useContentImageSync(opts: {
-  enabled: boolean;
-  onSectionInView: (index: number) => void;
-  getSectionIds: () => string[];
-}) {
-  const { enabled, onSectionInView, getSectionIds } = opts;
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  const observe = useCallback(() => {
-    if (!enabled) return;
-    const ids = getSectionIds();
-    if (!ids.length) return;
-
-    observerRef.current?.disconnect();
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
-        if (visible.length) {
-          const id = (visible[0].target as HTMLElement).dataset.imgIndex;
-          if (id != null) onSectionInView(Number(id));
-        }
-      },
-      { rootMargin: "0px 0px -40% 0px", threshold: [0.25, 0.5, 0.75, 1] }
-    );
-
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observerRef.current?.observe(el);
-    });
-  }, [enabled, getSectionIds, onSectionInView]);
-
-  useEffect(() => {
-    observe();
-    return () => observerRef.current?.disconnect();
-  }, [observe]);
 }
 
 /* =========================================================
@@ -223,13 +182,13 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const isMobile = useIsMobile();
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0); // mobile card index
-  const [modalImageIndex, setModalImageIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);   // <-- single source of truth for modal
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
 
   // --- Keep your original DAM-based items (unchanged) ---
-  const mediaItems: Array<MediaItem | undefined> = [
+  const mediaItems: MediaItem[] = [
     {
       id: "performance",
       type: "image",
@@ -457,22 +416,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     },
   ];
 
-  // ----- Early bail if no data -----
+  // Early bail
   if (!mediaItems || mediaItems.length === 0) {
     return <div className="p-8 text-center text-muted-foreground">No media available.</div>;
   }
 
-  // ----- Mobile swipe for card carousel -----
+  // Mobile swipe for card carousel
   const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => setCurrentIndex((p) => Math.min(p + 1, mediaItems.filter(Boolean).length - 1)),
+    onSwipeLeft: () => setCurrentIndex((p) => Math.min(p + 1, mediaItems.length - 1)),
     onSwipeRight: () => setCurrentIndex((p) => Math.max(p - 1, 0)),
     threshold: 40,
   });
 
-  // ----- Open/close modal -----
+  // Open/close modal
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
-    setModalImageIndex(0);
+    setActiveIndex(0);
     setIsPlaying(media.type === "video");
   };
   const closeModal = useCallback(() => {
@@ -480,95 +439,70 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     setIsPlaying(false);
   }, []);
 
-  // ----- Scroll lock when open -----
+  // Scroll lock when open
   useBodyScrollLock(!!selectedMedia);
 
-  // ----- Keyboard navigation -----
+  // Keyboard navigation (changes activeIndex only)
   useEffect(() => {
     if (!selectedMedia) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeModal();
-      if (e.key === "ArrowRight") nextModalImage();
-      if (e.key === "ArrowLeft") prevModalImage();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedMedia, closeModal]);
+  }, [selectedMedia, closeModal, activeIndex]);
 
-  // ----- Next/Prev in modal -----
-  const nextModalImage = () => {
-    if (selectedMedia?.galleryImages?.length) {
-      setModalImageIndex((p) => (p + 1) % selectedMedia.galleryImages!.length);
-    }
+  // Prev/Next for modal
+  const next = () => {
+    const len = selectedMedia?.galleryImages?.length ?? 0;
+    if (!len) return;
+    setActiveIndex((p) => (p + 1) % len);
   };
-  const prevModalImage = () => {
-    if (selectedMedia?.galleryImages?.length) {
-      setModalImageIndex((p) => (p - 1 + selectedMedia.galleryImages!.length) % selectedMedia.galleryImages!.length);
-    }
+  const prev = () => {
+    const len = selectedMedia?.galleryImages?.length ?? 0;
+    if (!len) return;
+    setActiveIndex((p) => (p - 1 + len) % len);
   };
 
-  // ----- Current image data -----
+  // Current asset + content (comes only from activeIndex; no scroll linkage)
   const currImg = useMemo(() => {
-    const g = selectedMedia?.galleryImages;
-    if (g && g[modalImageIndex]) return g[modalImageIndex];
-    return selectedMedia
-      ? { url: selectedMedia.url, title: selectedMedia.title, description: selectedMedia.description }
-      : { url: "", title: "", description: "" };
-  }, [selectedMedia, modalImageIndex]);
-
-  // ----- Image preloading for neighbors -----
-  usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), modalImageIndex);
-
-  // ----- Deep linking -----
-  useDeepLinking(selectedMedia, modalImageIndex, setSelectedMedia, setModalImageIndex, mediaItems.filter(Boolean) as MediaItem[]);
-
-  // ----- Content ↔ Image synchronization (content scroll drives image) -----
-  const contentSections = useMemo(() => {
-    if (!selectedMedia) return [];
+    if (!selectedMedia) return { url: "", title: "", description: "" };
     const g = selectedMedia.galleryImages;
-    if (g?.length) {
-      return g.map((img, i) => ({
-        id: `${selectedMedia.id}-section-${i}`,
-        imgIndex: i,
-        title: img.title || selectedMedia.title,
-        description: img.description || selectedMedia.description,
-        blocks: img.contentBlocks,
-        details: img.details,
-        badges: img.badges,
-      }));
+    if (g && g.length > 0) {
+      const clamped = Math.min(Math.max(0, activeIndex), g.length - 1);
+      return g[clamped];
     }
-    return [
-      {
-        id: `${selectedMedia.id}-section-0`,
-        imgIndex: 0,
-        title: selectedMedia.title,
-        description: selectedMedia.description,
-        blocks: [] as ContentBlock[],
-        details: selectedMedia.details,
-        badges: [] as string[],
-      },
-    ];
-  }, [selectedMedia]);
+    // fallback to top-level media when no gallery provided
+    return { url: selectedMedia.url, title: selectedMedia.title, description: selectedMedia.description };
+  }, [selectedMedia, activeIndex]);
 
-  useContentImageSync({
-    enabled: !!selectedMedia,
-    onSectionInView: (idx) => setModalImageIndex((prev) => (prev === idx ? prev : idx)),
-    getSectionIds: () => contentSections.map((s) => s.id),
-  });
+  // Merge details: image overrides -> media-level fallback
+  const mergedDetails = useMemo(() => {
+    if (!selectedMedia) return undefined;
+    const imgDetails = (currImg as GalleryImage).details;
+    const base = selectedMedia.details || {};
+    return {
+      specs: imgDetails?.specs ?? base.specs,
+      benefits: imgDetails?.benefits ?? base.benefits,
+      technology: imgDetails?.technology ?? base.technology,
+    };
+  }, [selectedMedia, currImg]);
 
-  // NOTE: NO AUTO-SCROLL from image -> content (removed).
-  // Changing image via arrows/thumbnails DOES NOT scroll the content pane.
+  // Preload neighbors for smooth image swaps
+  usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), activeIndex);
 
-  // ----- Video controls (YouTube embed) -----
+  // Deep linking: reflect activeIndex in URL and read on mount
+  useDeepLinking(selectedMedia, activeIndex, setSelectedMedia, setActiveIndex, mediaItems);
+
+  // Video controls (YouTube embed)
   const toggleMute = () => setIsMuted((m) => !m);
   const togglePlay = () => setIsPlaying((p) => !p);
-
   const renderVideo = (url: string) => {
     const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,})/);
     const vid = m ? m[1] : "";
-    const params = `?rel=0&modestbranding=1&controls=1&playsinline=1${isMuted ? "&mute=1" : ""}${
-      isPlaying ? "&autoplay=1" : ""
-    }`;
+    const params = `?rel=0&modestbranding=1&controls=1&playsinline=1${isMuted ? "&mute=1" : ""}${isPlaying ? "&autoplay=1" : ""}`;
     return (
       <div className="relative w-full aspect-video bg-black">
         <iframe
@@ -582,19 +516,16 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     );
   };
 
-  // ----- Share deep link -----
+  // Share deep link
   const onShare = async () => {
     const url = new URL(window.location.href);
     if (selectedMedia) {
       url.searchParams.set("media", selectedMedia.id);
-      url.searchParams.set("img", String(modalImageIndex));
+      url.searchParams.set("img", String(activeIndex));
     }
-    const link = url.toString();
     try {
-      await navigator.clipboard.writeText(link);
-    } catch {
-      // ignore
-    }
+      await navigator.clipboard.writeText(url.toString());
+    } catch {}
   };
 
   return (
@@ -618,40 +549,27 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       {/* Mobile carousel */}
       <div className="px-4 md:px-8 pb-8 md:hidden">
         <div ref={swipeableRef} className="relative">
-          {(() => {
-            const filtered = mediaItems.filter(Boolean) as MediaItem[];
-            const safeIdx = Math.min(Math.max(0, currentIndex), Math.max(0, filtered.length - 1));
-            const safeCurrentMedia = filtered[safeIdx] ?? null;
-            return (
-              <>
-                <motion.div key={safeIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="w-full">
-                  <MediaCard
-                    media={safeCurrentMedia}
-                    onClick={() => safeCurrentMedia && handleMediaClick(safeCurrentMedia)}
-                    isMobile
-                  />
-                </motion.div>
-                <div className="flex justify-center mt-6 space-x-2">
-                  {filtered.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentIndex(i)}
-                      aria-label={`Go to item ${i + 1}`}
-                      className={cn("w-3 h-3 rounded-full transition-all", i === safeIdx ? "bg-primary scale-125" : "bg-muted-foreground/30")}
-                    />
-                  ))}
-                </div>
-              </>
-            );
-          })()}
+          <motion.div key={currentIndex} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="w-full">
+            <MediaCard media={mediaItems[currentIndex]} onClick={() => handleMediaClick(mediaItems[currentIndex])} isMobile />
+          </motion.div>
+          <div className="flex justify-center mt-6 space-x-2">
+            {mediaItems.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                aria-label={`Go to item ${i + 1}`}
+                className={cn("w-3 h-3 rounded-full transition-all", i === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30")}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Desktop grid */}
       <div className="hidden md:block px-4 md:px-8 pb-10">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {(mediaItems.filter(Boolean) as MediaItem[]).map((m, i) => (
-            <motion.div key={m.id ?? `media-${i}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+          {mediaItems.map((m, i) => (
+            <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
               <MediaCard media={m} onClick={() => handleMediaClick(m)} isMobile={false} />
             </motion.div>
           ))}
@@ -715,19 +633,16 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 </div>
               </div>
 
-              {/* Content: mobile = single column, md+ = two panes */}
+              {/* Content: mobile = stacked, md+ = two panes */}
               <div className="flex-1 grid md:grid-cols-2 min-h-0">
                 {/* Visual pane */}
                 <div className={cn("relative bg-black min-h-[42svh] md:min-h-0", isZoomed && "cursor-zoom-out")}>
+                  {/* Main visual */}
                   {selectedMedia.type === "video" ? (
                     renderVideo(selectedMedia.url)
                   ) : (
                     <div
-                      className={cn(
-                        "relative w-full h-full",
-                        "md:aspect-auto aspect-[16/10]",
-                        isZoomed ? "overflow-auto" : "overflow-hidden"
-                      )}
+                      className={cn("relative w-full h-full", "md:aspect-auto aspect-[16/10]", isZoomed ? "overflow-auto" : "overflow-hidden")}
                       onDoubleClick={() => setIsZoomed((z) => !z)}
                     >
                       <SafeImage
@@ -745,7 +660,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={prevModalImage}
+                        onClick={prev}
                         className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
                         aria-label="Previous image"
                       >
@@ -754,17 +669,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={nextModalImage}
+                        onClick={next}
                         className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
                         aria-label="Next image"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </Button>
-                      <div
-                        aria-live="polite"
-                        className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs"
-                      >
-                        {modalImageIndex + 1} / {selectedMedia.galleryImages.length}
+                      <div aria-live="polite" className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs">
+                        {selectedMedia.galleryImages ? activeIndex + 1 : 1} / {selectedMedia.galleryImages?.length ?? 1}
                       </div>
                     </>
                   )}
@@ -772,16 +684,17 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   {/* Thumbs */}
                   {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
                     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur p-3">
-                      <div className="flex gap-2 overflow-x-auto pb-1">
+                      <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Image thumbnails">
                         {selectedMedia.galleryImages.map((img, idx) => (
                           <button
                             key={idx}
-                            onClick={() => setModalImageIndex(idx)} // no content scroll here
+                            role="tab"
+                            aria-selected={idx === activeIndex}
+                            onClick={() => setActiveIndex(idx)} // <-- only this changes content
                             aria-label={`Thumbnail ${idx + 1}`}
-                            aria-selected={idx === modalImageIndex}
                             className={cn(
                               "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary/60",
-                              idx === modalImageIndex ? "border-primary" : "border-transparent hover:border-primary/50"
+                              idx === activeIndex ? "border-primary" : "border-transparent hover:border-primary/50"
                             )}
                           >
                             <SafeImage src={img.url} alt={img.title} className="w-full h-full object-cover" />
@@ -792,33 +705,86 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   )}
                 </div>
 
-                {/* Text/content pane (user scroll -> image sync; no auto scroll from image) */}
+                {/* Text/content pane (bound to activeIndex only) */}
                 <div className="min-h-0 overflow-y-auto p-4 md:p-6">
-                  {!selectedMedia.galleryImages?.length ? (
-                    <DetailSection
-                      id={contentSections[0].id}
-                      imgIndex={0}
-                      title={contentSections[0].title}
-                      description={contentSections[0].description}
-                      details={contentSections[0].details || selectedMedia.details}
-                      badges={contentSections[0].badges}
-                    />
-                  ) : (
-                    contentSections.map((sec) => (
-                      <DetailSection
-                        key={sec.id}
-                        id={sec.id}
-                        imgIndex={sec.imgIndex}
-                        title={sec.title}
-                        description={sec.description}
-                        details={sec.details || selectedMedia.details}
-                        badges={sec.badges}
-                        blocks={sec.blocks}
-                        // "View" button will switch image but NOT scroll
-                        onJump={() => setModalImageIndex(sec.imgIndex)}
-                        active={sec.imgIndex === modalImageIndex}
-                      />
-                    ))
+                  {/* Per-image heading + badges */}
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    {(currImg as GalleryImage).badges?.map((b) => (
+                      <Badge key={b} variant="secondary" className="text-xs">
+                        {b}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h4 className="font-semibold text-lg">{currImg.title || selectedMedia.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {currImg.description || selectedMedia.description}
+                  </p>
+
+                  {/* Details (image overrides -> fallback to media-level) */}
+                  <div className="grid md:grid-cols-3 gap-6 mt-5">
+                    {mergedDetails?.specs && mergedDetails.specs.length > 0 && (
+                      <div>
+                        <h5 className="font-semibold flex items-center mb-2">
+                          <Gauge className="h-4 w-4 mr-2" />
+                          Specifications
+                        </h5>
+                        <ul className="space-y-2">
+                          {mergedDetails.specs.map((s, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-center">
+                              <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {mergedDetails?.benefits && mergedDetails.benefits.length > 0 && (
+                      <div>
+                        <h5 className="font-semibold flex items-center mb-2">
+                          <Award className="h-4 w-4 mr-2" />
+                          Key Benefits
+                        </h5>
+                        <ul className="space-y-2">
+                          {mergedDetails.benefits.map((b, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-center">
+                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {mergedDetails?.technology && mergedDetails.technology.length > 0 && (
+                      <div>
+                        <h5 className="font-semibold flex items-center mb-2">
+                          <Cpu className="h-4 w-4 mr-2" />
+                          Technology
+                        </h5>
+                        <ul className="space-y-2">
+                          {mergedDetails.technology.map((t, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-center">
+                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content blocks */}
+                  {(currImg as GalleryImage).contentBlocks && (currImg as GalleryImage).contentBlocks!.length > 0 && (
+                    <div className="space-y-3 pt-6 border-t mt-6">
+                      {(currImg as GalleryImage).contentBlocks!.map((b) => (
+                        <div key={b.id} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                          <div>
+                            {b.title && <p className="font-medium">{b.title}</p>}
+                            {b.body && <p className="text-sm text-muted-foreground">{b.body}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -831,126 +797,19 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
 };
 
 /* =========================================================
-   DetailSection: content block bound to an image index
-========================================================= */
-const DetailSection: React.FC<{
-  id: string;
-  imgIndex: number;
-  title: string;
-  description: string;
-  details?: ImageDetailsOverride | MediaItem["details"];
-  badges?: string[];
-  blocks?: ContentBlock[];
-  onJump?: () => void;
-  active?: boolean;
-}> = ({ id, imgIndex, title, description, details, badges, blocks, onJump, active }) => {
-  return (
-    <section
-      id={id}
-      data-img-index={imgIndex}
-      className={cn("mb-8 p-4 rounded-xl border", active ? "border-primary/60 bg-primary/5" : "border-transparent bg-muted/20")}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {badges?.map((b) => (
-              <Badge key={b} variant="secondary" className="text-xs">
-                {b}
-              </Badge>
-            ))}
-          </div>
-          <h4 className="font-semibold text-lg">{title}</h4>
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
-        </div>
-        {onJump && (
-          <Button variant="ghost" size="sm" className="shrink-0" onClick={onJump} aria-label="Show linked image">
-            View
-          </Button>
-        )}
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-6 mt-5">
-        {details?.specs && details.specs.length > 0 && (
-          <div>
-            <h5 className="font-semibold flex items-center mb-2">
-              <Gauge className="h-4 w-4 mr-2" />
-              Specifications
-            </h5>
-            <ul className="space-y-2">
-              {details.specs.map((s, i) => (
-                <li key={i} className="text-sm text-muted-foreground flex items-center">
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {details?.benefits && details.benefits.length > 0 && (
-          <div>
-            <h5 className="font-semibold flex items-center mb-2">
-              <Award className="h-4 w-4 mr-2" />
-              Key Benefits
-            </h5>
-            <ul className="space-y-2">
-              {details.benefits.map((b, i) => (
-                <li key={i} className="text-sm text-muted-foreground flex items-center">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {details?.technology && details.technology.length > 0 && (
-          <div>
-            <h5 className="font-semibold flex items-center mb-2">
-              <Cpu className="h-4 w-4 mr-2" />
-              Technology
-            </h5>
-            <ul className="space-y-2">
-              {details.technology.map((t, i) => (
-                <li key={i} className="text-sm text-muted-foreground flex items-center">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {blocks && blocks.length > 0 && (
-        <div className="space-y-3 pt-6 border-t mt-6">
-          {blocks.map((b) => (
-            <div key={b.id} className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2" />
-              <div>
-                {b.title && <p className="font-medium">{b.title}</p>}
-                {b.body && <p className="text-sm text-muted-foreground">{b.body}</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-};
-
-/* =========================================================
    Media Card (runtime-safe)
 ========================================================= */
 interface MediaCardProps {
-  media?: MediaItem | null; // allow undefined/null safely
+  media?: MediaItem | null;
   onClick: () => void;
   isMobile: boolean;
 }
 const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
-  if (!media) return null; // nothing to render if undefined/hole
-
+  if (!media) return null;
   const Icon = (media.icon ?? Info) as React.ComponentType<any>;
   const isVideo = media.type === "video";
   const is360 = media.type === "360";
+
   return (
     <motion.div
       whileHover={{ scale: isMobile ? 1 : 1.02, y: isMobile ? 0 : -4 }}
