@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { List, X, ChevronUp, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,10 +8,10 @@ type SectionItem = { id: string; label: string; icon?: React.ReactNode };
 
 interface FloatingSectionNavProps {
   sections?: SectionItem[];
-  headerOffset?: number;          // sticky header height, default 96
-  fabClassName?: string;          // extra classes for the FAB
-  panelClassName?: string;        // extra classes for the panel
-  placement?: "right-center" | "right-bottom"; // desktop placement
+  headerOffset?: number; // sticky header height, default 96
+  fabClassName?: string;
+  panelClassName?: string;
+  placement?: "right-center" | "right-bottom";
 }
 
 const DEFAULT_SECTIONS: SectionItem[] = [
@@ -31,6 +32,7 @@ const DEFAULT_SECTIONS: SectionItem[] = [
 ];
 
 const SURFACE = "bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 shadow-xl";
+const Z = "z-[2147483647]"; // escape everything
 
 const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
   sections = DEFAULT_SECTIONS,
@@ -39,9 +41,30 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
   panelClassName,
   placement = "right-center",
 }) => {
+  // mount portal target
+  const [mounted, setMounted] = useState(false);
+  const portalEl = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    if (!portalEl.current) {
+      const el = document.createElement("div");
+      el.setAttribute("data-fab-root", "true");
+      document.body.appendChild(el);
+      portalEl.current = el;
+    }
+    return () => {
+      if (portalEl.current) {
+        document.body.removeChild(portalEl.current);
+        portalEl.current = null;
+      }
+    };
+  }, []);
+
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
-  const [visible, setVisible] = useState(true); // auto-hide/show FAB + panel
+  const [visible, setVisible] = useState(true); // keep true on first paint
+  const [armed, setArmed] = useState(false); // only start auto-hide after first scroll
   const lastY = useRef(0);
   const clickScrolling = useRef(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -59,14 +82,13 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
       clickScrolling.current = true;
       window.scrollTo({ top: y, behavior: "smooth" });
       setActive(index);
-      // close panel on mobile after selection
       if (window.innerWidth < 768) setOpen(false);
-      window.setTimeout(() => (clickScrolling.current = false), 500);
+      window.setTimeout(() => (clickScrolling.current = false), 550);
     },
     [headerOffset]
   );
 
-  // Active section tracking
+  // Active section tracking (stable margins)
   useEffect(() => {
     if (!valid.length) return;
     const io = new IntersectionObserver(
@@ -79,11 +101,7 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
           }
         }
       },
-      {
-        root: null,
-        rootMargin: "-30% 0px -55% 0px",
-        threshold: [0, 0.3, 0.6, 1],
-      }
+      { root: null, rootMargin: "-30% 0px -55% 0px", threshold: [0, 0.3, 0.6, 1] }
     );
     valid.forEach(s => {
       const el = document.getElementById(s.id);
@@ -92,25 +110,26 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
     return () => io.disconnect();
   }, [valid]);
 
-  // Auto-hide on scroll
+  // Auto-hide on scroll (armed after first scroll event)
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
+      if (!armed) setArmed(true);
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         const y = window.scrollY || 0;
         const goingDown = y > lastY.current;
         const nearTop = y < 120;
-        setVisible(nearTop || !goingDown);
-        if (goingDown && y > 200 && open) setOpen(false); // hide panel when scrolling down
+        setVisible(!armed ? true : nearTop || !goingDown);
+        if (goingDown && y > 200 && open) setOpen(false);
         lastY.current = y;
         ticking = false;
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [open]);
+  }, [armed, open]);
 
   // Click outside to close
   useEffect(() => {
@@ -126,24 +145,22 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
   // Mobile swipe down to close
   useEffect(() => {
     if (!open) return;
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-    };
+    const onTouchStart = (e: TouchEvent) => { touchStartY.current = e.touches[0].clientY; };
     const onTouchMove = (e: TouchEvent) => {
       if (touchStartY.current === null) return;
       const dy = e.touches[0].clientY - touchStartY.current;
-      if (dy > 40) setOpen(false);
+      if (dy > 50) setOpen(false);
     };
-    const panel = panelRef.current;
-    panel?.addEventListener("touchstart", onTouchStart, { passive: true });
-    panel?.addEventListener("touchmove", onTouchMove, { passive: true });
+    const node = panelRef.current;
+    node?.addEventListener("touchstart", onTouchStart, { passive: true });
+    node?.addEventListener("touchmove", onTouchMove, { passive: true });
     return () => {
-      panel?.removeEventListener("touchstart", onTouchStart);
-      panel?.removeEventListener("touchmove", onTouchMove);
+      node?.removeEventListener("touchstart", onTouchStart);
+      node?.removeEventListener("touchmove", onTouchMove);
     };
   }, [open]);
 
-  // Keyboard shortcuts (desktop)
+  // Keyboard shortcuts (desktop only convenience)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -160,15 +177,16 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [active, valid, jumpTo, open]);
 
-  // FAB positions
   const desktopPos =
     placement === "right-center"
       ? "md:top-1/2 md:-translate-y-1/2 md:right-6"
       : "md:bottom-6 md:right-6";
 
-  return (
+  if (!mounted || !portalEl.current) return null;
+
+  return createPortal(
     <>
-      {/* FAB (floats; hides on scroll down) */}
+      {/* FAB */}
       <AnimatePresence>
         {visible && (
           <motion.button
@@ -180,11 +198,13 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
             aria-expanded={open}
             aria-label={open ? "Close section navigator" : "Open section navigator"}
             className={cn(
-              "fixed z-[90] rounded-full p-3",
-              "bottom-6 right-4 md:right-6",        // mobile default
-              desktopPos,                            // desktop override
+              "fixed rounded-full p-3",
+              "bottom-6 right-4 md:right-6",
+              desktopPos,
               SURFACE,
+              Z,
               "hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+              "pb-[calc(env(safe-area-inset-bottom)/2+0.75rem)]", // safe-area help on iOS
               fabClassName
             )}
           >
@@ -197,13 +217,13 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* PANEL */}
+      {/* Panel */}
       <AnimatePresence>
         {open && (
           <>
-            {/* Mobile: full-width bottom sheet */}
+            {/* Mobile bottom sheet */}
             <motion.div
-              className="fixed inset-x-0 bottom-0 z-[89] md:hidden"
+              className={cn("fixed inset-x-0 bottom-0 md:hidden", Z)}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 20, opacity: 0 }}
@@ -211,11 +231,7 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
             >
               <div
                 ref={panelRef}
-                className={cn(
-                  "mx-3 mb-3 rounded-2xl overflow-hidden",
-                  SURFACE,
-                  panelClassName
-                )}
+                className={cn("mx-3 mb-3 rounded-2xl overflow-hidden", SURFACE, panelClassName)}
               >
                 <div className="flex items-center justify-between px-4 pt-3 pb-2">
                   <div className="h-1.5 w-10 rounded-full bg-zinc-300 dark:bg-white/30" />
@@ -227,7 +243,6 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
                     <EyeOff className="h-5 w-5 text-zinc-600 dark:text-zinc-200" />
                   </button>
                 </div>
-
                 <ul className="max-h-[60vh] overflow-y-auto py-1">
                   {valid.map((s, i) => {
                     const isActive = i === active;
@@ -241,12 +256,8 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
                           )}
                           aria-current={isActive ? "true" : undefined}
                         >
-                          <span
-                            className={cn(
-                              "inline-block size-1.5 rounded-full",
-                              isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
-                            )}
-                          />
+                          <span className={cn("inline-block size-1.5 rounded-full",
+                            isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40")} />
                           <span className={cn(isActive ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300")}>
                             {s.label}
                           </span>
@@ -258,27 +269,19 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
               </div>
             </motion.div>
 
-            {/* Desktop: anchored popover near FAB */}
+            {/* Desktop popover adjacent to FAB */}
             <motion.div
               className={cn(
-                "fixed z-[89] hidden md:block",
-                placement === "right-center"
-                  ? "top-1/2 -translate-y-1/2 right-[92px]" // next to FAB
-                  : "right-[92px] bottom-6"
+                "fixed hidden md:block",
+                placement === "right-center" ? "top-1/2 -translate-y-1/2 right-[92px]" : "right-[92px] bottom-6",
+                Z
               )}
               initial={{ opacity: 0, x: 6 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 6 }}
               transition={{ duration: 0.18 }}
             >
-              <div
-                ref={panelRef}
-                className={cn(
-                  "w-64 rounded-2xl p-2 overflow-hidden",
-                  SURFACE,
-                  panelClassName
-                )}
-              >
+              <div ref={panelRef} className={cn("w-64 rounded-2xl p-2 overflow-hidden", SURFACE, panelClassName)}>
                 <ul className="max-h-[70vh] overflow-y-auto pr-1">
                   {valid.map((s, i) => {
                     const isActive = i === active;
@@ -289,18 +292,12 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
                           className={cn(
                             "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-left transition",
                             "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
-                            isActive
-                              ? "bg-zinc-100 dark:bg-white/10 font-semibold"
-                              : "hover:bg-zinc-50 dark:hover:bg-white/5"
+                            isActive ? "bg-zinc-100 dark:bg-white/10 font-semibold" : "hover:bg-zinc-50 dark:hover:bg-white/5"
                           )}
                           aria-current={isActive ? "true" : undefined}
                         >
-                          <span
-                            className={cn(
-                              "inline-block size-1.5 rounded-full",
-                              isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40"
-                            )}
-                          />
+                          <span className={cn("inline-block size-1.5 rounded-full",
+                            isActive ? "bg-zinc-900 dark:bg-white" : "bg-zinc-400/70 dark:bg-white/40")} />
                           <span className={cn(isActive ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300")}>
                             {s.label}
                           </span>
@@ -314,7 +311,7 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
 
             {/* Click-away backdrop (mobile only) */}
             <motion.div
-              className="fixed inset-0 z-[88] md:hidden bg-black/20"
+              className={cn("fixed inset-0 md:hidden bg-black/20", Z)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -325,7 +322,7 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Mobile quick Back-to-Top (optional, shows after first section) */}
+      {/* Mobile Back-to-Top (only when closed) */}
       <AnimatePresence>
         {visible && !open && active > 0 && (
           <motion.button
@@ -334,8 +331,9 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             className={cn(
-              "fixed right-4 bottom-[84px] md:hidden z-[85] rounded-full p-3",
-              SURFACE
+              "fixed right-4 bottom-[84px] md:hidden rounded-full p-3",
+              SURFACE,
+              Z
             )}
             aria-label="Back to top"
           >
@@ -343,7 +341,8 @@ const FloatingSectionNav: React.FC<FloatingSectionNavProps> = ({
           </motion.button>
         )}
       </AnimatePresence>
-    </>
+    </>,
+    portalEl.current
   );
 };
 
