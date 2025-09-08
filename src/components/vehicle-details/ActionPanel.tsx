@@ -67,8 +67,12 @@ interface ActionPanelProps {
   onBookTestDrive: () => void;
   onCarBuilder: () => void;
   onFinanceCalculator: () => void;
-}
 
+  /** @deprecated – kept for backward compatibility */
+  isFavorite?: boolean;
+  /** @deprecated – kept for backward compatibility */
+  onToggleFavorite?: () => void;
+}
 const PANEL_H = {
   base: "64px",
   md: "80px",
