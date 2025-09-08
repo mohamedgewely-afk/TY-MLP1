@@ -1,8 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Car, Thermometer, Volume2, Smartphone, Armchair, Sun, Wind, Coffee,
-  X, Info, Play, Lightbulb, Sparkles, Wand2, Gauge, BatteryCharging
+  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Info, Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,26 +18,26 @@ import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/*                                   THEME                                    */
+/* THEME + MEDIA                                                              */
 /* -------------------------------------------------------------------------- */
 
 const BRAND_RED = "#cb0017";
 
-/* Gallery defaults (swap/override via props if you want) */
+/** Real interior photo for the tour spotlight */
+const TOUR_BG =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
+
+/** Gallery defaults (swap via props if needed) */
 const DEFAULT_IMG_A =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true";
 const DEFAULT_IMG_B =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
 
-/* Optional hotspots background (you can override via props) */
-const HOTSPOT_BG =
-  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
-
 /* -------------------------------------------------------------------------- */
-/*                                   TYPES                                    */
+/* TYPES                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type TabKey = "overview" | "composer" | "hotspots" | "images" | "videos";
+type TabKey = "overview" | "tour" | "hotspots" | "images" | "videos";
 
 type Hotspot = {
   x: number; y: number; // percent
@@ -57,7 +56,7 @@ interface InteriorExperienceModalProps {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   TABS                                     */
+/* TABS                                                                       */
 /* -------------------------------------------------------------------------- */
 
 const Tabs: React.FC<{
@@ -88,7 +87,7 @@ const Tabs: React.FC<{
 );
 
 /* -------------------------------------------------------------------------- */
-/*                               IMAGE GALLERY                                */
+/* GALLERY + YOUTUBE                                                          */
 /* -------------------------------------------------------------------------- */
 
 const ImageGallery: React.FC<{
@@ -100,18 +99,13 @@ const ImageGallery: React.FC<{
   const canPrev = idx > 0;
   const canNext = idx < images.length - 1;
 
-  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
-    if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
-  };
-
   return (
-    <div
-      className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden"
-      tabIndex={0}
-      onKeyDown={onKey}
+    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden" tabIndex={0}
       aria-label="Image gallery. Use arrow keys to navigate."
-    >
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
+        if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
+      }}>
       <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
         <AnimatePresence mode="wait">
           <motion.img
@@ -128,33 +122,15 @@ const ImageGallery: React.FC<{
         </AnimatePresence>
       </div>
 
-      {/* Controls */}
       <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
-        <button
-          aria-label="Previous image"
-          disabled={!canPrev}
-          onClick={() => canPrev && setIdx((i) => i - 1)}
-          className={cn(
-            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canPrev && "opacity-40 pointer-events-none"
-          )}
-        >
-          ‹
-        </button>
-        <button
-          aria-label="Next image"
-          disabled={!canNext}
-          onClick={() => canNext && setIdx((i) => i + 1)}
-          className={cn(
-            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canNext && "opacity-40 pointer-events-none"
-          )}
-        >
-          ›
-        </button>
+        <button aria-label="Previous image" disabled={!canPrev} onClick={() => canPrev && setIdx(idx - 1)}
+          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canPrev && "opacity-40 pointer-events-none")}>‹</button>
+        <button aria-label="Next image" disabled={!canNext} onClick={() => canNext && setIdx(idx + 1)}
+          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canNext && "opacity-40 pointer-events-none")}>›</button>
       </div>
 
-      {/* Caption + dots */}
       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
         <div className="text-xs text-white">
           <span className="inline-block rounded-md bg-black/50 px-2 py-1 backdrop-blur-sm">
@@ -163,29 +139,18 @@ const ImageGallery: React.FC<{
         </div>
         <div className="flex gap-1">
           {images.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Go to slide ${i + 1}`}
-              onClick={() => setIdx(i)}
-              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")}
-            />
+            <button key={i} onClick={() => setIdx(i)} aria-label={`Go to slide ${i + 1}`}
+              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")} />
           ))}
         </div>
       </div>
 
-      {/* Thumbs */}
       <div className="flex gap-2 p-2 border-t bg-white/80">
         {images.map((im, i) => (
-          <button
-            key={im.src}
-            onClick={() => setIdx(i)}
-            className={cn(
-              "relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5",
-              i === idx && "outline outline-2"
-            )}
+          <button key={im.src} onClick={() => setIdx(i)}
+            className={cn("relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5", i === idx && "outline outline-2")}
             style={i === idx ? { outlineColor: BRAND_RED } : {}}
-            aria-label={`Go to image ${i + 1}`}
-          >
+            aria-label={`Go to image ${i + 1}`}>
             <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
           </button>
         ))}
@@ -193,10 +158,6 @@ const ImageGallery: React.FC<{
     </div>
   );
 };
-
-/* -------------------------------------------------------------------------- */
-/*                               YOUTUBE INLINE                               */
-/* -------------------------------------------------------------------------- */
 
 const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
   const [play, setPlay] = React.useState(false);
@@ -209,20 +170,13 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
           <button onClick={() => setPlay(true)} aria-label="Play video" className="absolute inset-0 flex items-center justify-center group">
             <div className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition" style={{ backgroundImage: `url('${poster}')` }} />
             <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
-              <Play className="h-4 w-4" />
-              Play video
+              <Play className="h-4 w-4" /> Play video
             </div>
           </button>
         )}
         {play && (
-          <iframe
-            className="absolute inset-0 w-full h-full"
-            src={src}
-            title={title}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          <iframe className="absolute inset-0 w-full h-full" src={src} title={title} loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
         )}
       </div>
     </div>
@@ -230,7 +184,7 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
 };
 
 /* -------------------------------------------------------------------------- */
-/*                                   HOTSPOTS                                 */
+/* HOTSPOTS                                                                   */
 /* -------------------------------------------------------------------------- */
 
 const HotspotsStage: React.FC<{
@@ -244,8 +198,7 @@ const HotspotsStage: React.FC<{
     <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" />
-          Tap a dot to learn more.
+          <Info className="h-3.5 w-3.5" /> Tap a dot to learn more.
         </div>
         <button onClick={() => setShow(!show)} className="text-xs underline">{show ? "Hide hotspots" : "Show hotspots"}</button>
       </div>
@@ -283,289 +236,130 @@ const HotspotsStage: React.FC<{
 };
 
 /* -------------------------------------------------------------------------- */
-/*                              CABIN COMPOSER TAB                             */
+/* GUIDED TOUR (spotlight over photo)                                         */
 /* -------------------------------------------------------------------------- */
 
-type Zone = "pool" | "must" | "nice" | "nope";
-type Category = "comfort" | "air" | "light" | "tech" | "sky" | "audio" | "clean" | "storage";
-
-type Chip = {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  cat: Category;
-  zone: Zone;
+type TourStep = {
+  key: string;
+  title: string;
+  body: string;
+  x: number; // 0..100 (percent of width)
+  y: number; // 0..100 (percent of height)
+  rx: number; // radiusX in %
+  ry?: number; // radiusY in %, defaults to rx
+  icon?: React.ComponentType<{ className?: string }>;
+  metric?: { label: string; value: string }[];
 };
 
-const CHIP_LIBRARY: Omit<Chip, "zone">[] = [
-  { id: "heated", label: "Heated Seats", icon: Armchair, cat: "comfort" },
-  { id: "vented", label: "Ventilated Seats", icon: Wind, cat: "air" },
-  { id: "ambient", label: "Ambient Lighting", icon: Lightbulb, cat: "light" },
-  { id: "wireless", label: "Wireless Charging", icon: Smartphone, cat: "tech" },
-  { id: "roof", label: "Panoramic Roof", icon: Sun, cat: "sky" },
-  { id: "jbl", label: "JBL Premium Audio", icon: Volume2, cat: "audio" },
-  { id: "airclean", label: "Allergen Filter", icon: Thermometer, cat: "clean" },
-  { id: "storage", label: "Smart Storage", icon: Coffee, cat: "storage" },
-  { id: "quiet", label: "Quiet Cabin", icon: Gauge, cat: "comfort" },
-  { id: "smartkey", label: "Smart Key", icon: Sparkles, cat: "tech" },
-  { id: "usbC", label: "USB-C Ports", icon: BatteryCharging, cat: "tech" },
+const TOUR_STEPS: TourStep[] = [
+  {
+    key: "seats",
+    title: "Premium Seating",
+    body: "Ergonomic seats with heating & ventilation keep you fresh on every drive.",
+    x: 30, y: 62, rx: 18, ry: 14,
+    icon: Armchair,
+    metric: [{ label: "Adjust", value: "8-way" }, { label: "Memory", value: "Driver" }],
+  },
+  {
+    key: "ambient",
+    title: "Ambient Lighting",
+    body: "Subtle LED accents set the tone—elegant by day, calming at night.",
+    x: 52, y: 44, rx: 28, ry: 10,
+    icon: Lightbulb,
+    metric: [{ label: "Palette", value: "Warm / Cool" }],
+  },
+  {
+    key: "airflow",
+    title: "Clean, Quiet Airflow",
+    body: "Smart climate routes air gently through the cabin for quiet comfort.",
+    x: 50, y: 40, rx: 18, ry: 12,
+    icon: Wind,
+    metric: [{ label: "Dual-Zone", value: "Yes" }],
+  },
+  {
+    key: "infotainment",
+    title: "Intuitive Infotainment",
+    body: "Seamless smartphone integration, wireless charging and voice control.",
+    x: 47, y: 52, rx: 10,
+    icon: Smartphone,
+    metric: [{ label: "Charging", value: "Wireless" }],
+  },
+  {
+    key: "audio",
+    title: "JBL Premium Audio",
+    body: "Concert-grade clarity tuned specifically for the Camry cabin.",
+    x: 18, y: 58, rx: 12,
+    icon: Volume2,
+    metric: [{ label: "Speakers", value: "9" }],
+  },
+  {
+    key: "roof",
+    title: "Panoramic Roof",
+    body: "Let in sky and light with one-touch open/close.",
+    x: 82, y: 18, rx: 16, ry: 8,
+    icon: Sun,
+    metric: [{ label: "Open", value: "One-touch" }],
+  },
 ];
 
-const ZONE_LABELS: Record<Exclude<Zone, "pool">, string> = {
-  must: "Must-have",
-  nice: "Nice-to-have",
-  nope: "Not for me",
-};
-
-const ZONE_WEIGHT: Record<Exclude<Zone, "pool">, number> = { must: 2, nice: 1, nope: 0 };
-
-const CAT_META: Record<Category, { label: string; color: string }> = {
-  comfort: { label: "Comfort", color: BRAND_RED },
-  air:     { label: "Fresh Air", color: "#0EA5E9" },
-  light:   { label: "Ambience", color: "#4F46E5" },
-  tech:    { label: "Tech", color: "#111827" },
-  sky:     { label: "Open Sky", color: "#EA580C" },
-  audio:   { label: "Audio", color: "#16A34A" },
-  clean:   { label: "Clean Air", color: "#10B981" },
-  storage: { label: "Storage", color: "#6B7280" },
-};
-
-function personaFromScores(scores: Record<Category, number>) {
-  const entries = Object.entries(scores) as [Category, number][];
-  const [topCat, topScore] = entries.reduce((a, b) => (b[1] > a[1] ? b : a), ["comfort", -Infinity] as [Category, number]);
-  const meta = CAT_META[topCat];
-
-  const persona =
-    topCat === "comfort" ? "Warm Voyager" :
-    topCat === "tech"    ? "Connected Pro" :
-    topCat === "audio"   ? "Soundstage Fan" :
-    topCat === "light"   ? "Mood Aesthete" :
-    topCat === "air"     ? "Breeze Seeker" :
-    topCat === "sky"     ? "Skyline Lover" :
-    topCat === "clean"   ? "Fresh Cabin" :
-    "Practical Organizer";
-
-  const recs =
-    topCat === "comfort" ? ["Heated seats L1–L2", "Soft ambient white", "Quieter audio"] :
-    topCat === "tech"    ? ["Wireless charging", "USB-C everywhere", "Smart Key"] :
-    topCat === "audio"   ? ["JBL on • 35–45 volume", "Balance centered", "Low road-noise"] :
-    topCat === "light"   ? ["Ambient violet/blue", "Dim cabin LEDs", "Roof 10–20%"] :
-    topCat === "air"     ? ["Vent seats L1", "Fresh air mode", "Mild temp 21–22°C"] :
-    topCat === "sky"     ? ["Roof 40–60%", "Ambient warm", "Shades open"] :
-    topCat === "clean"   ? ["Allergen filter ON", "Recirc in traffic", "Floor mats clean"] :
-    ["Extra bins", "Adjustable cupholders", "Seatback pockets"];
-
-  return { persona, color: meta.color, topCat, topScore, recs };
-}
-
-const ChipPill: React.FC<{ chip: Chip; onTapCycle?: (id: string) => void; draggable?: boolean }> = ({ chip, onTapCycle, draggable = true }) => {
-  const Icon = chip.icon;
+const SpotlightMask: React.FC<{ x: number; y: number; rx: number; ry?: number; }> = ({ x, y, rx, ry }) => {
+  // We use CSS masks to cut a hole through a dark overlay.
+  // Position/size are in percent, responsive by design.
+  const rY = ry ?? rx;
+  const mask = `radial-gradient(${rx}% ${rY}% at ${x}% ${y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.6) 61%)`;
   return (
-    <motion.div
-      layout
-      className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border bg-white cursor-grab active:cursor-grabbing",
-        "shadow-sm ring-1 ring-black/5 text-sm select-none"
-      )}
-      style={{ borderColor: CAT_META[chip.cat].color }}
-      draggable={draggable}
-      onDragStart={(e) => e.dataTransfer.setData("text/plain", chip.id)}
-      onClick={() => onTapCycle?.(chip.id)}
-      title="Drag to a bucket, or tap to cycle"
-    >
-      <span className="p-1 rounded-full text-white" style={{ background: CAT_META[chip.cat].color }}>
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-      {chip.label}
-    </motion.div>
+    <div className="absolute inset-0 pointer-events-none" style={{ WebkitMaskImage: mask, maskImage: mask, background: "rgba(0,0,0,0.64)" }} />
   );
 };
 
-const DropZone: React.FC<{
-  zone: Exclude<Zone, "pool">;
-  onDropChip: (id: string, zone: Exclude<Zone, "pool">) => void;
-  children: React.ReactNode;
-  highlight?: boolean;
-}> = ({ zone, onDropChip, children, highlight }) => {
-  const onDrop = (e: React.DragEvent) => {
-    const id = e.dataTransfer.getData("text/plain");
-    if (id) onDropChip(id, zone);
-  };
-  return (
-    <div
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={onDrop}
-      className={cn(
-        "rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3 min-h-[120px]",
-        highlight && "outline outline-2",
-      )}
-      style={highlight ? { outlineColor: BRAND_RED } : {}}
-      aria-label={`${ZONE_LABELS[zone]} drop zone`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium">{ZONE_LABELS[zone]}</div>
-        <div className="text-[11px] text-muted-foreground">drag or tap chips</div>
-      </div>
-      <motion.div layout className="flex flex-wrap gap-2">{children}</motion.div>
-    </div>
-  );
-};
+const GuidedTour: React.FC<{ steps?: TourStep[]; bg?: string; }> = ({ steps = TOUR_STEPS, bg = TOUR_BG }) => {
+  const [i, setI] = React.useState(0);
+  const s = steps[i];
+  const canPrev = i > 0;
+  const canNext = i < steps.length - 1;
 
-const ComposerMeters: React.FC<{ scores: Record<Category, number> }> = ({ scores }) => {
-  const max = Math.max(1, ...Object.values(scores));
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      {Object.entries(CAT_META).map(([k, meta]) => {
-        const v = scores[k as Category] || 0;
-        const pct = Math.round((v / max) * 100);
-        return (
-          <div key={k} className="rounded-lg border bg-white/70 p-2">
-            <div className="text-[11px] mb-1">{meta.label}</div>
-            <div className="h-2 w-full rounded bg-black/5 overflow-hidden">
-              <div className="h-full" style={{ width: `${pct}%`, background: meta.color }} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-const CabinComposer: React.FC<{
-  initialChips?: Chip[];
-  onChange?: (chips: Chip[]) => void;
-}> = ({ initialChips, onChange }) => {
-  const [chips, setChips] = React.useState<Chip[]>(
-    () => (initialChips ?? CHIP_LIBRARY.map((c) => ({ ...c, zone: "pool" as Zone })))
-  );
-
-  const setZone = (id: string, zone: Exclude<Zone, "pool">) => {
-    setChips((prev) => {
-      const next = prev.map((c) => (c.id === id ? { ...c, zone } : c));
-      onChange?.(next);
-      return next;
-    });
-  };
-
-  const cycleTap = (id: string) => {
-    setChips((prev) => {
-      const next = prev.map((c) => {
-        if (c.id !== id) return c;
-        const order: Zone[] = ["pool", "must", "nice", "nope"];
-        const idx = order.indexOf(c.zone);
-        const nz = order[(idx + 1) % order.length];
-        return { ...c, zone: nz };
-      });
-      onChange?.(next);
-      return next;
-    });
-  };
-
-  const moveAllTo = (zone: Exclude<Zone, "pool">) => {
-    setChips((prev) => prev.map((c) => ({ ...c, zone })));
-  };
-  const reset = () => setChips(CHIP_LIBRARY.map((c) => ({ ...c, zone: "pool" as Zone })));
-
-  // scores
-  const scores = chips.reduce((acc, c) => {
-    if (c.zone !== "pool") acc[c.cat] = (acc[c.cat] || 0) + ZONE_WEIGHT[c.zone];
-    return acc;
-  }, {} as Record<Category, number>);
-  const { persona, color, recs } = personaFromScores(scores);
-
-  const pool = chips.filter((c) => c.zone === "pool");
-  const must = chips.filter((c) => c.zone === "must");
-  const nice = chips.filter((c) => c.zone === "nice");
-  const nope = chips.filter((c) => c.zone === "nope");
+  const Icon = s.icon || Info;
 
   return (
-    <div className="grid lg:grid-cols-3 gap-4">
-      {/* Left: buckets */}
-      <div className="lg:col-span-2 space-y-3">
-        {/* Pool */}
-        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Drag feature chips</div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={reset}>Reset</Button>
-              <Button variant="outline" size="sm" onClick={() => moveAllTo("must")}>All Must</Button>
-            </div>
-          </div>
-          <motion.div layout className="flex flex-wrap gap-2">
-            <AnimatePresence>
-              {pool.map((chip) => (
-                <ChipPill key={chip.id} chip={chip} onTapCycle={cycleTap} />
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        </div>
-
-        {/* Drop Zones */}
-        <div className="grid md:grid-cols-3 gap-3">
-          <DropZone zone="must" onDropChip={setZone} highlight>
-            {must.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
-          </DropZone>
-          <DropZone zone="nice" onDropChip={setZone}>
-            {nice.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
-          </DropZone>
-          <DropZone zone="nope" onDropChip={setZone}>
-            {nope.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
-          </DropZone>
+    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
+      {/* Stage */}
+      <div className="relative w-full overflow-hidden rounded-lg" style={{ paddingTop: "56.25%" }}>
+        <img src={bg} alt="Interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        {/* Spotlight overlay */}
+        <SpotlightMask x={s.x} y={s.y} rx={s.rx} ry={s.ry} />
+        {/* Pulse dot at focus center */}
+        <div className="absolute -translate-x-1/2 -translate-y-1/2"
+             style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+          <div className="h-4 w-4 rounded-full bg-white shadow ring-2 ring-white/80" />
+          <div className="absolute inset-0 rounded-full animate-ping" style={{ background: BRAND_RED, opacity: 0.35 }} />
         </div>
       </div>
 
-      {/* Right: dynamic summary / recommendation */}
-      <div className="space-y-3">
-        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="p-2 rounded-md text-white" style={{ background: color }}>
-              <Wand2 className="h-4 w-4" />
-            </span>
-            <div className="font-semibold">Your interior vibe</div>
-          </div>
-          <div className="text-xl font-bold" style={{ color }}>{persona}</div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Based on your priorities, here’s a cabin setup we think you’ll love.
-          </p>
-
-          <div className="mt-3">
-            <ComposerMeters scores={scores} />
-          </div>
-
-          <div className="mt-3">
-            <div className="text-xs text-muted-foreground mb-1">Quick recommendations</div>
-            <ul className="text-sm space-y-1">
-              {recs.map((r) => (
-                <li key={r} className="flex gap-2 items-start">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: color }} />
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <Button className="flex-1" style={{ background: color }}>
-              Apply to a build
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={() => {
-              const summary = `Persona: ${persona}\nMust: ${must.map(m=>m.label).join(", ") || "-"}\nNice: ${nice.map(m=>m.label).join(", ") || "-"}\nNope: ${nope.map(m=>m.label).join(", ") || "-"}`;
-              navigator.clipboard?.writeText(summary);
-              alert("Summary copied to clipboard");
-            }}>
-              Share
-            </Button>
-          </div>
+      {/* Caption */}
+      <div className="mt-3 rounded-lg border bg-white/90 p-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="font-semibold">{s.title}</div>
         </div>
-
-        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-4 w-4" style={{ color }} />
-            <div className="font-semibold">Why this works</div>
+        <p className="text-sm text-muted-foreground">{s.body}</p>
+        {!!s.metric?.length && (
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {s.metric.map((m) => (
+              <div key={m.label} className="rounded-md border bg-white p-2 text-xs">
+                <div className="text-muted-foreground">{m.label}</div>
+                <div className="font-medium">{m.value}</div>
+              </div>
+            ))}
           </div>
-          <p className="text-sm text-muted-foreground">
-            Sorting features clarifies what matters most, so we can tailor trims, packages, and demos to your vibe — making your test drive hyper-relevant.
-          </p>
+        )}
+        <div className="mt-3 flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={!canPrev} onClick={() => setI((v) => Math.max(0, v - 1))}>Prev</Button>
+          <Button size="sm" onClick={() => setI((v) => Math.min(steps.length - 1, v + 1))} style={{ background: BRAND_RED }}>
+            Next
+          </Button>
+          <div className="ml-auto text-xs text-muted-foreground">{i + 1} / {steps.length}</div>
         </div>
       </div>
     </div>
@@ -573,7 +367,7 @@ const CabinComposer: React.FC<{
 };
 
 /* -------------------------------------------------------------------------- */
-/*                              MAIN MODAL COMPONENT                           */
+/* MAIN MODAL                                                                 */
 /* -------------------------------------------------------------------------- */
 
 const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
@@ -594,7 +388,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
     { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
   ];
 
-  const hotspotBg = hotspotImage || { src: HOTSPOT_BG, alt: "Interior with features" };
+  const hotspotBg = hotspotImage || { src: DEFAULT_IMG_B, alt: "Interior with features" };
   const hotspotItems: Hotspot[] = hotspots?.length ? hotspots : [
     { x: 48, y: 70, title: "Wireless Charging", body: "Drop your phone on the pad to charge while you drive.", icon: Smartphone },
     { x: 18, y: 62, title: "JBL Speakers", body: "Crisp highs and deep lows tuned for the cabin.", icon: Volume2 },
@@ -604,26 +398,26 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   ];
 
   const tabItems = (videoIds.length
-    ? [
+    ? ([
         { key: "overview", label: "Overview" as const },
-        { key: "composer", label: "Cabin Composer" as const },
+        { key: "tour",     label: "Guided Tour" as const },
         { key: "hotspots", label: "Hotspots" as const },
-        { key: "images", label: "Images" as const },
-        { key: "videos", label: "Videos" as const },
-      ]
-    : [
+        { key: "images",   label: "Images" as const },
+        { key: "videos",   label: "Videos" as const },
+      ])
+    : ([
         { key: "overview", label: "Overview" as const },
-        { key: "composer", label: "Cabin Composer" as const },
+        { key: "tour",     label: "Guided Tour" as const },
         { key: "hotspots", label: "Hotspots" as const },
-        { key: "images", label: "Images" as const },
-      ]) as { key: TabKey; label: string }[];
+        { key: "images",   label: "Images" as const },
+      ])) as { key: TabKey; label: string }[];
 
-  const [tab, setTab] = React.useState<TabKey>("composer"); // land users on the new interactive tab
+  const [tab, setTab] = React.useState<TabKey>("tour");
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* Compact mobile header */}
+        {/* Compact header */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
@@ -634,14 +428,15 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
             </Button>
           </div>
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            Sort your must-haves to craft a cabin vibe — then explore hotspots, images, or videos.
+            Step through a clean, focused tour — then explore hotspots, images, or videos.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* HERO: Tabs + quick stats */}
-            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }} className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
+            {/* HERO */}
+            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }}
+              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
               <div className="flex items-center gap-3 mb-4">
                 <Car className="h-7 w-7" style={{ color: BRAND_RED }} />
                 <Badge variant="secondary" className="text-xs font-semibold" style={{ background: "#fff", border: "1px solid #eee" }}>
@@ -653,7 +448,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
                   <p className="text-sm text-muted-foreground">
-                    Drag feature chips into buckets — we’ll turn that into a personalized interior vibe.
+                    A focused, story-like walkthrough that highlights what matters — fast and clear.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
@@ -673,15 +468,15 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
 
                 <div className="lg:col-span-2 space-y-3">
                   <Tabs active={tab} onChange={setTab} items={tabItems} />
-                  <div className="text-xs text-muted-foreground">Overview · Cabin Composer · Hotspots · Images · Videos</div>
+                  <div className="text-xs text-muted-foreground">Overview · Guided Tour · Hotspots · Images · Videos</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* COMPOSER TAB */}
-            {tab === "composer" && (
-              <motion.div key="composer" initial={enter} animate={entered}>
-                <CabinComposer />
+            {/* TOUR TAB */}
+            {tab === "tour" && (
+              <motion.div key="tour" initial={enter} animate={entered}>
+                <GuidedTour />
               </motion.div>
             )}
 
@@ -716,14 +511,14 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium mb-2">
                     Feature Catalog
-                    <span className="text-xs text-muted-foreground ml-2">Expandable sections — add more anytime</span>
+                    <span className="text-xs text-muted-foreground ml-2">Expandable sections</span>
                   </div>
                   <div className="space-y-3">
                     {[
                       { icon: Smartphone, title: "Tech Integration", features: ["Wireless Charging", "Multiple USB", "12V Outlets", "Smartphone Integration"] },
-                      { icon: Coffee, title: "Smart Storage", features: ["Adjustable Cupholders", "Deep Console Bin", "Door Pockets", "Seatback Pockets"] },
+                      { icon: Lightbulb, title: "Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
                       { icon: Wind, title: "Air Quality", features: ["Cabin Filter", "Fresh Air Mode", "Recirculation", "Allergen Reduction"] },
-                      { icon: Car, title: "Interior Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
+                      { icon: Armchair, title: "Comfort", features: ["Heated & Ventilated", "Power Adjust", "Memory Seat", "Supportive Foam"] },
                     ].map((group, index) => (
                       <CollapsibleContent
                         key={group.title}
