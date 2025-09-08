@@ -1,5 +1,5 @@
-// PageWithSideMenuNav.tsx — single-file implementation
-// - Sticky side "Sections" tab (right edge) on desktop & mobile
+// PageWithSideMenuNav.tsx — single-file implementation (no sticky header)
+// - Side "Sections" tab (right edge) on desktop & mobile
 // - Drawer menu with labels, scrollspy
 // - Toggle to Hide/Show (pin/unpin)
 // - Auto-hide on scroll down; show on scroll up
@@ -44,43 +44,38 @@ function resolveScrollRoot(scrollRootSelector?: string): HTMLElement {
 /** ========= COMPONENT ========= */
 type SideMenuNavProps = {
   sections?: SectionItem[];
-  headerOffset?: number;          // sticky header height in px (for scroll offset)
+  headerOffset?: number;          // sticky header height in px (for scroll offset) — set to 0 now
   accentColor?: string;           // brand color for active + accents
   mobileTopVh?: number;           // vertical position of the side tab on mobile (vh)
   scrollRootSelector?: string;    // selector if your page scrolls in a container
 };
 
 export default function PageWithSideMenuNav() {
-  // DEMO scaffold so you can run this file standalone.
-  const headerHeight = 80;
+  // No sticky header
+  const headerHeight = 0;
   const sections = DEFAULT_SECTIONS;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Sticky header (demo) */}
-      <header
-        style={{
-          position: "sticky", top: 0, zIndex: 50, height: headerHeight,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 16px", background: "#fff", borderBottom: "1px solid rgba(0,0,0,.1)",
-        }}
-      >
-        <strong>Brand</strong>
-        <span style={{ opacity: .7 }}>Sticky Header</span>
-      </header>
+      {/* (sticky header removed) */}
 
       {/* Scrollable main to simulate apps that don't scroll window */}
       <main
         data-scroll-root
         style={{
-          flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
-          maxWidth: 1120, margin: "0 auto", width: "100%", padding: "16px",
+          flex: 1,
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+          maxWidth: 1120,
+          margin: "0 auto",
+          width: "100%",
+          padding: "16px",
         }}
       >
         {/* <<< Mount the side menu nav once >>> */}
         <SideMenuNav
           sections={sections}
-          headerOffset={headerHeight}
+          headerOffset={headerHeight}  // = 0
           accentColor="#EB0A1E"
           mobileTopVh={35}
           // If not using data-scroll-root, pass your selector: scrollRootSelector="#content"
@@ -101,10 +96,19 @@ export default function PageWithSideMenuNav() {
           >
             <h2 style={{ margin: "4px 0 12px" }}>{idx + 1}. {s.label}</h2>
             <p style={{ color: "#555", lineHeight: 1.6 }}>
-              This is the <strong>{s.label}</strong> section. Smooth scroll respects the header offset.
+              This is the <strong>{s.label}</strong> section. Smooth scroll uses zero header offset.
               Scroll to see auto-hide (tab hides on downward scroll, reappears on upward scroll).
             </p>
-            <div style={{ height: 420, borderRadius: 8, background: "#eaeaea", display: "grid", placeItems: "center", color: "#666" }}>
+            <div
+              style={{
+                height: 420,
+                borderRadius: 8,
+                background: "#eaeaea",
+                display: "grid",
+                placeItems: "center",
+                color: "#666",
+              }}
+            >
               Media / content placeholder
             </div>
           </section>
@@ -112,12 +116,18 @@ export default function PageWithSideMenuNav() {
         <div style={{ height: 120 }} />
       </main>
 
-      {/* Sticky bottom CTA (demo) */}
+      {/* Sticky bottom CTA (kept) */}
       <div
         style={{
-          position: "sticky", bottom: 0, zIndex: 40, background: "#fff",
-          borderTop: "1px solid rgba(0,0,0,.1)", padding: 12,
-          display: "flex", gap: 12, justifyContent: "center",
+          position: "sticky",
+          bottom: 0,
+          zIndex: 40,
+          background: "#fff",
+          borderTop: "1px solid rgba(0,0,0,.1)",
+          padding: 12,
+          display: "flex",
+          gap: 12,
+          justifyContent: "center",
         }}
       >
         <button style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(0,0,0,.12)", background: "#fff" }}>
@@ -137,7 +147,7 @@ export default function PageWithSideMenuNav() {
 /** ========= The side menu nav (drop-in, self-contained) ========= */
 export function SideMenuNav({
   sections = DEFAULT_SECTIONS,
-  headerOffset = 80,
+  headerOffset = 0,         // default to 0 since sticky header is removed
   accentColor = "#EB0A1E",
   mobileTopVh = 35,
   scrollRootSelector,
@@ -166,7 +176,7 @@ export function SideMenuNav({
     .sm-focus:focus { outline:2px solid #6366f1; outline-offset:2px; }
     .sm-nohighlight { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-    /* Side tab (always present; CSS hides on desktop? No, we want it on both) */
+    /* Side tab (always present) */
     .sm-tab {
       position: fixed; right: 0; transform: translateY(-50%);
       top: 50vh; width: 42px; height: 120px; border-top-left-radius: 10px; border-bottom-left-radius: 10px;
@@ -265,19 +275,10 @@ export function SideMenuNav({
       }
     );
 
-    // Add debug logging to see what's available
-    setTimeout(() => {
-      const allSections = document.querySelectorAll('[id]');
-      console.log('Available sections with IDs:', Array.from(allSections).map(el => el.id));
-    }, 1000);
-
-    list.forEach(s => { 
-      const el = document.getElementById(s.id); 
+    list.forEach(s => {
+      const el = document.getElementById(s.id);
       if (el) {
         io.observe(el);
-        console.log(`✓ Found section: ${s.id}`);
-      } else {
-        console.warn(`✗ Element with id "${s.id}" not found for navigation`);
       }
     });
     return () => io.disconnect();
@@ -295,8 +296,7 @@ export function SideMenuNav({
         const y = getTop();
         const goingDown = y > lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
         const goingUp = y < lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
-        
-        // Only auto-hide if user didn't pin "Show"
+
         if (!pinned) {
           if (goingDown && y > 200) {
             setAutoVisible(false);
@@ -335,14 +335,14 @@ export function SideMenuNav({
     const dest = Math.max(0, elementTop - headerOffset - 20);
 
     // Always scroll the window since VehicleDetails uses normal window scrolling
-    window.scrollTo({ 
-      top: dest, 
-      behavior: "smooth" 
+    window.scrollTo({
+      top: dest,
+      behavior: "smooth"
     });
 
     setActive(index);
     setDrawerOpen(false);
-    
+
     // Clear click scrolling flag after animation completes
     setTimeout(() => {
       clickScrolling.current = false;
@@ -358,7 +358,6 @@ export function SideMenuNav({
 
   /** Render helpers */
   const TabIcon = ({ open }: { open: boolean }) => (
-    // Simple hamburger / close icon
     !open ? (
       <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h12v2H3z"/></svg>
     ) : (
@@ -483,7 +482,6 @@ export function SideMenuNav({
           onClick={() => setPinned(v => !v)}
           onContextMenu={(e) => e.preventDefault()}
         >
-          {/* Eye / Eye-off glyph (simple) */}
           {pinned ? (
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 6c5.25 0 9 6 9 6s-3.75 6-9 6-9-6-9-6 3.75-6 9-6m0 2a4 4 0 1 0 .001 8.001A4 4 0 0 0 12 8m0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg>
           ) : (
@@ -521,7 +519,6 @@ function ScrollGlue({
   clickScrollingRef: React.MutableRefObject<boolean>;
   scrollRootSelector?: string;
 }) {
-  // no UI; ensures we track after mount/route changes
   useEffect(() => {
     // NOP — the parent IO hook handles the spy.
   }, [sections, headerOffset, setActive, clickScrollingRef, scrollRootSelector]);
