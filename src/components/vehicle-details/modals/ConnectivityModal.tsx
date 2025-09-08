@@ -29,7 +29,7 @@ type Hotspot = {
   label: string;
   short?: string;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  details?: string[]; // keep compact lines
+  details?: string[]; // compact lines
 };
 
 interface ConnectivityModalProps {
@@ -54,6 +54,11 @@ const HotspotDemo: React.FC<{
   const prefersReduced = useReducedMotion();
   const active = hotspots.find((h) => h.id === activeId);
 
+  // Close any open hotspot when switching to "video"
+  React.useEffect(() => {
+    if (mediaTab !== "image" && activeId) setActiveId(null);
+  }, [mediaTab, activeId]);
+
   const enter = prefersReduced ? {} : { opacity: 0, scale: 0.96 };
   const entered = prefersReduced ? {} : { opacity: 1, scale: 1 };
 
@@ -61,8 +66,9 @@ const HotspotDemo: React.FC<{
     ? `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1&playsinline=1`
     : "";
 
-  // When a hotspot is open, disable pointer events on the iframe so the card stays interactable
-  const mediaPointer = active ? "pointer-events-none" : "pointer-events-auto";
+  // Only apply pointer-events suppression if image + active card
+  const mediaPointer =
+    mediaTab === "image" && active ? "pointer-events-none" : "pointer-events-auto";
 
   return (
     <div className="relative w-full overflow-hidden rounded-xl ring-1 ring-black/5 bg-black">
@@ -87,28 +93,29 @@ const HotspotDemo: React.FC<{
           />
         )}
 
-        {/* Hotspots */}
-        {hotspots.map((h) => (
-          <button
-            key={h.id}
-            aria-label={h.label}
-            onClick={() => setActiveId((prev) => (prev === h.id ? null : h.id))}
-            className={cn(
-              "absolute z-20 -translate-x-1/2 -translate-y-1/2",
-              "h-9 w-9 rounded-full bg-white/90 backdrop-blur text-foreground",
-              "shadow hover:shadow-md border border-black/5",
-              "flex items-center justify-center",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            )}
-            style={{ left: `${h.x}%`, top: `${h.y}%` }}
-          >
-            {h.icon ? <h.icon className="h-4 w-4" /> : <span className="text-sm font-semibold">+</span>}
-          </button>
-        ))}
+        {/* HOTSPOTS — render ONLY on image tab */}
+        {mediaTab === "image" &&
+          hotspots.map((h) => (
+            <button
+              key={h.id}
+              aria-label={h.label}
+              onClick={() => setActiveId((prev) => (prev === h.id ? null : h.id))}
+              className={cn(
+                "absolute z-20 -translate-x-1/2 -translate-y-1/2",
+                "h-9 w-9 rounded-full bg-white/90 backdrop-blur text-foreground",
+                "shadow hover:shadow-md border border-black/5",
+                "flex items-center justify-center",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              )}
+              style={{ left: `${h.x}%`, top: `${h.y}%` }}
+            >
+              {h.icon ? <h.icon className="h-4 w-4" /> : <span className="text-sm font-semibold">+</span>}
+            </button>
+          ))}
 
-        {/* Desktop popover (md+) */}
+        {/* Desktop popover (md+) — ONLY on image tab */}
         <AnimatePresence>
-          {active && (
+          {mediaTab === "image" && active && (
             <motion.div
               initial={enter}
               animate={entered}
@@ -153,9 +160,9 @@ const HotspotDemo: React.FC<{
           )}
         </AnimatePresence>
 
-        {/* Mobile sheet (sm and below) */}
+        {/* Mobile sheet (sm and below) — ONLY on image tab */}
         <AnimatePresence>
-          {active && (
+          {mediaTab === "image" && active && (
             <motion.div
               initial={{ y: 24, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -206,7 +213,7 @@ const HotspotDemo: React.FC<{
 const DAM_IMAGE =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true";
 
-// Example YouTube video from your earlier message
+// YouTube video from your request
 const YT_ID = "cCOszP-VQcc";
 
 const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
@@ -222,7 +229,6 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
   const enter = prefersReducedMotion ? {} : { opacity: 0, y: 16 };
   const entered = prefersReducedMotion ? {} : { opacity: 1, y: 0 };
 
-  // Choose clean, high-value hotspots (positions are percentage-based; tweak as needed)
   const hotspots: Hotspot[] = [
     {
       id: "carplay",
@@ -264,7 +270,7 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
-      {/* Wider modal: up to ~1100px, with responsive width */}
+      {/* Wider modal for better media */}
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
         <MobileOptimizedDialogHeader>
           <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
@@ -286,7 +292,7 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
             >
               <div className="flex items-center gap-2 mb-3">
                 <Badge variant="secondary" className="text-xs font-semibold bg-blue-100 text-blue-700">
-                  Multimedia Hotspots
+                  Multimedia
                 </Badge>
                 <div className="ml-auto flex gap-2">
                   {(["image", "video"] as MediaTab[]).map((t) => (
@@ -299,7 +305,7 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
                       )}
                       aria-pressed={mediaTab === t}
                     >
-                      {t === "image" ? "Image" : (
+                      {t === "image" ? "Image (Hotspots)" : (
                         <span className="inline-flex items-center gap-1">
                           Video <Play className="h-3.5 w-3.5" />
                         </span>
@@ -309,7 +315,7 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
                 </div>
               </div>
 
-              {/* Hotspot demo */}
+              {/* Hotspot demo (now hides hotspots on video) */}
               <HotspotDemo
                 mediaTab={mediaTab}
                 imageSrc={DAM_IMAGE}
@@ -330,7 +336,7 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
               </div>
             </motion.div>
 
-            {/* At a glance (tiny bullets only) */}
+            {/* At a glance */}
             <div className="rounded-xl border">
               <div className="p-4 sm:p-5">
                 <h3 className="text-lg font-semibold mb-3">At a glance</h3>
@@ -350,14 +356,14 @@ const ConnectivityModal: React.FC<ConnectivityModalProps> = ({
               </div>
             </div>
 
-            {/* Quick answers (compact) */}
+            {/* Quick answers */}
             <div className="rounded-xl border">
               <div className="p-4 sm:p-5">
                 <h3 className="text-lg font-semibold mb-3">Quick answers</h3>
                 <div className="space-y-2">
                   {[
                     { q: "Need a data plan?", a: "Only for the Wi-Fi hotspot. Most features use your phone’s data." },
-                    { q: "Is my data private?", a: "Yes—sharing is user-controlled, and you can opt out anytime." },
+                    { q: "Is my data private?", a: "Yes—sharing is user-controlled. Opt out anytime." },
                     { q: "Available here?", a: `Specs reflect ${regionLabel}. Availability may vary by grade/model year.` },
                   ].map((item) => (
                     <details key={item.q} className="group rounded-lg border p-3">
