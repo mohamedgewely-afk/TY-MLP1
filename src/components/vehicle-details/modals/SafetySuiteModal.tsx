@@ -1,9 +1,9 @@
+
 import React from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import {
-  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart,
-  ChevronRight, CheckCircle2, Play, X
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   MobileOptimizedDialog,
   MobileOptimizedDialogContent,
@@ -13,442 +13,132 @@ import {
   MobileOptimizedDialogTitle,
   MobileOptimizedDialogDescription,
 } from "@/components/ui/mobile-optimized-dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import CollapsibleContent from "@/components/ui/collapsible-content";
-import { cn } from "@/lib/utils";
-
-/* -------------------------------------------------------------------------- */
-/*                                  Config                                     */
-/* -------------------------------------------------------------------------- */
-
-type ScenarioKey = "preCollision" | "laneDrift" | "cruise" | "night";
-
-const IMG_LANE =
-  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/27becc9e-3b15-436e-a603-df509955cba9/renditions/e6cec4c7-f5aa-4560-b91f-49ed9ab26956?binary=true&mformat=true";
-const IMG_CRUISE =
-  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/cbbefa79-6002-4f61-94e0-ee097a8dc6c6/items/a7ed1d12-7c0e-4377-84f1-bf4d0230ded6/renditions/4b8651e3-1a7c-4e08-aab5-aa103f6a5b4b?binary=true&mformat=true";
-const IMG_NIGHT =
-  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/9200d151-0947-45d4-b2de-99d247bee98a/renditions/d5c695c7-b387-4005-bf45-55b8786bafd7?binary=true&mformat=true";
-
-const YT_PRECOLLISION = "oL6mrPWtZJ4"; // https://www.youtube.com/watch?v=oL6mrPWtZJ4
-
-/* -------------------------------------------------------------------------- */
-/*                              Reusable pieces                                */
-/* -------------------------------------------------------------------------- */
-
-const ScenarioPills: React.FC<{
-  active: ScenarioKey;
-  setActive: (k: ScenarioKey) => void;
-}> = ({ active, setActive }) => {
-  const items: { key: ScenarioKey; label: string; icon: React.ElementType }[] = [
-    { key: "preCollision", label: "Pre-Collision", icon: Eye },
-    { key: "laneDrift", label: "Lane Assist", icon: AlertTriangle },
-    { key: "cruise", label: "Adaptive Cruise", icon: Car },
-    { key: "night", label: "Auto High Beam", icon: Zap },
-  ];
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map(({ key, label, icon: Icon }) => (
-        <button
-          key={key}
-          onClick={() => setActive(key)}
-          className={cn(
-            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition",
-            active === key
-              ? "bg-primary text-primary-foreground border-transparent shadow-sm"
-              : "hover:bg-muted border"
-          )}
-          aria-pressed={active === key}
-        >
-          <Icon className="h-4 w-4" />
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-/** Privacy-enhanced YouTube with poster overlay; loads only on click */
-const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
-  const [play, setPlay] = React.useState(false);
-  const src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${play ? "&autoplay=1" : ""}`;
-  const poster = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-
-  return (
-    <div className="relative w-full overflow-hidden rounded-xl bg-black ring-1 ring-black/5">
-      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-        {!play && (
-          <button
-            onClick={() => setPlay(true)}
-            aria-label="Play video"
-            className="absolute inset-0 flex items-center justify-center group"
-          >
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition"
-              style={{ backgroundImage: `url('${poster}')` }}
-            />
-            <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
-              <Play className="h-4 w-4" />
-              Play video
-            </div>
-          </button>
-        )}
-        {play && (
-          <iframe
-            className="absolute inset-0 w-full h-full"
-            src={src}
-            title={title}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        )}
-      </div>
-    </div>
-  );
-};
-
-/** Swipeable image gallery with thumbnails & keyboard support */
-const ImageGallery: React.FC<{
-  images: { src: string; alt: string }[];
-  initial?: number;
-  caption?: string;
-}> = ({ images, initial = 0, caption }) => {
-  const [idx, setIdx] = React.useState(initial);
-  const prefersReduced = useReducedMotion();
-  const canPrev = idx > 0;
-  const canNext = idx < images.length - 1;
-
-  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
-    if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
-  };
-
-  return (
-    <div
-      className="rounded-xl ring-1 ring-black/5 bg-background/60 backdrop-blur-md border overflow-hidden"
-      tabIndex={0}
-      onKeyDown={onKey}
-      aria-label="Image gallery. Use left and right arrow keys to navigate."
-    >
-      <div className="relative">
-        <div className="relative w-full overflow-hidden">
-          <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={images[idx].src}
-                src={images[idx].src}
-                alt={images[idx].alt || ""}
-                className="absolute inset-0 h-full w-full object-cover"
-                initial={prefersReduced ? {} : { opacity: 0.0, scale: 0.98 }}
-                animate={prefersReduced ? {} : { opacity: 1, scale: 1 }}
-                exit={prefersReduced ? {} : { opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                loading="lazy"
-              />
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
-          <button
-            aria-label="Previous image"
-            disabled={!canPrev}
-            onClick={() => canPrev && setIdx((i) => i - 1)}
-            className={cn(
-              "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-              !canPrev && "opacity-40 pointer-events-none"
-            )}
-          >
-            ‹
-          </button>
-          <button
-            aria-label="Next image"
-            disabled={!canNext}
-            onClick={() => canNext && setIdx((i) => i + 1)}
-            className={cn(
-              "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-              !canNext && "opacity-40 pointer-events-none"
-            )}
-          >
-            ›
-          </button>
-        </div>
-
-        {/* Caption */}
-        {caption && (
-          <div className="absolute bottom-2 left-2 right-2 text-xs text-white/95">
-            <div className="inline-block rounded-md bg-black/45 px-2 py-1 backdrop-blur-sm">
-              {caption}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Thumbnails */}
-      <div className="flex gap-2 p-2 border-t bg-background/70">
-        {images.map((im, i) => (
-          <button
-            key={im.src}
-            onClick={() => setIdx(i)}
-            className={cn(
-              "relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5",
-              i === idx && "outline outline-2 outline-primary"
-            )}
-            aria-label={`Go to image ${i + 1}`}
-          >
-            <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/* Minimal placeholder card (kept for non-video scenarios if desired later) */
-const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "amber" | "emerald" }> = ({ title, subtitle, accent = "blue" }) => {
-  const accentMap: Record<string, string> = {
-    blue: "from-blue-500/20 to-blue-500/0 ring-blue-300/30",
-    amber: "from-amber-500/20 to-amber-500/0 ring-amber-300/30",
-    emerald: "from-emerald-500/20 to-emerald-500/0 ring-emerald-300/30",
-  };
-  return (
-    <div className={cn("relative rounded-lg p-4 lg:p-6 bg-gradient-to-b ring-1", accentMap[accent])}>
-      <p className="text-sm text-muted-foreground">{subtitle}</p>
-      <div className="mt-2 flex items-center gap-2">
-        <span className="text-lg font-semibold">{title}</span>
-        <ChevronRight className="h-4 w-4" />
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-14 rounded bg-background/60 border" />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/* -------------------------------------------------------------------------- */
-/*                           Main Safety Suite Modal                           */
-/* -------------------------------------------------------------------------- */
+import InteractiveDemo from "./shared/InteractiveDemo";
 
 interface SafetySuiteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBookTestDrive: () => void;
-  modelName?: string;
-  regionLabel?: string;
 }
 
 const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
   isOpen,
   onClose,
-  onBookTestDrive,
-  modelName = "Toyota Camry",
-  regionLabel = "UAE",
+  onBookTestDrive
 }) => {
-  const prefersReduced = useReducedMotion();
-  const [scenario, setScenario] = React.useState<ScenarioKey>("laneDrift");
-
-  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
-  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
-
   const safetyFeatures = [
     {
       icon: Eye,
       name: "Pre-Collision System",
-      chips: ["Pedestrian", "Auto Brake", "Radar"],
-      details:
-        "Camera + radar help detect vehicles/pedestrians and can apply brakes if a collision is likely.",
-      active: scenario === "preCollision",
+      description: "Helps detect vehicles and pedestrians ahead and can automatically apply brakes",
+      details: "Uses camera and radar to monitor the road ahead, providing alerts and automatic emergency braking when potential collisions are detected.",
+      active: true
     },
     {
       icon: AlertTriangle,
       name: "Lane Departure Alert",
-      chips: ["Steering Assist", "Road Edge"],
-      details:
-        "Monitors lane markers and can provide steering assist to help keep you centered.",
-      active: scenario === "laneDrift",
+      description: "Warns when you drift out of your lane without signaling",
+      details: "Camera-based system that monitors lane markings and provides visual and audible alerts to help keep you in your lane.",
+      active: true
     },
     {
       icon: Car,
-      name: "Dynamic Radar Cruise",
-      chips: ["Stop & Go", "Distance Set"],
-      details:
-        "Automatically adjusts speed to maintain a preset following distance.",
-      active: scenario === "cruise",
+      name: "Dynamic Radar Cruise Control",
+      description: "Maintains set speed and following distance automatically",
+      details: "Adaptive system that adjusts your speed based on traffic conditions while maintaining a safe following distance.",
+      active: false
     },
     {
       icon: Zap,
       name: "Automatic High Beams",
-      chips: ["Auto Dip", "Camera"],
-      details:
-        "Optimizes visibility by toggling high/low beams when traffic is detected.",
-      active: scenario === "night",
+      description: "Switches between high and low beams based on traffic",
+      details: "Intelligent lighting system that automatically toggles high beams when no oncoming traffic is detected.",
+      active: false
+    }
+  ];
+
+  const additionalSafety = [
+    {
+      icon: Gauge,
+      title: "Star Safety System",
+      features: ["Vehicle Stability Control", "Traction Control", "Anti-lock Brakes", "Electronic Brake-force Distribution", "Brake Assist", "Smart Stop Technology"]
     },
-  ] as const;
+    {
+      icon: Users,
+      title: "Airbag System",
+      features: ["Driver & Front Passenger Advanced Airbags", "Driver & Front Passenger Seat-Mounted Side Airbags", "Rear Seat-Mounted Side Airbags", "Front & Rear Side Curtain Airbags"]
+    },
+    {
+      icon: Heart,
+      title: "Active Safety",
+      features: ["Blind Spot Monitor", "Rear Cross-Traffic Alert", "Bird's Eye View Camera", "Parking Support Brake"]
+    }
+  ];
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
-      {/* Wider for media clarity */}
-      <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* COMPACT MOBILE HEADER */}
-        <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
-          <div className="flex items-center justify-between gap-2">
-            <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
-              Toyota Safety Sense 2.0 · {modelName}
-            </MobileOptimizedDialogTitle>
-            {/* Mobile inline close (desktop keeps default spacing) */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="sm:hidden shrink-0"
-              onClick={onClose}
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          {/* Hide description on mobile, show on ≥sm */}
-          <MobileOptimizedDialogDescription className="hidden sm:block text-base text-muted-foreground mt-1">
-            Real scenarios you can see—then book a test drive.
+      <MobileOptimizedDialogContent className="sm:max-w-4xl">
+        <MobileOptimizedDialogHeader>
+          <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
+            Toyota Safety Sense 2.0
+          </MobileOptimizedDialogTitle>
+          <MobileOptimizedDialogDescription className="text-base">
+            Advanced safety features designed to help protect you and your passengers
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* Hero area: scenario + media */}
+            {/* Hero Section */}
             <motion.div
-              initial={enter}
-              animate={entered}
-              transition={{ duration: 0.3 }}
-              className="rounded-2xl p-4 lg:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent ring-1 ring-primary/20 backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 lg:p-8"
             >
               <div className="flex items-center gap-3 mb-4">
-                <Shield className="h-7 w-7 text-primary" />
-                <Badge variant="secondary" className="text-xs font-semibold">
-                  Standard on most grades
+                <Shield className="h-8 w-8 text-primary" />
+                <Badge variant="secondary" className="text-sm font-semibold">
+                  Standard on All Models
                 </Badge>
               </div>
-
-              <div className="flex flex-col lg:flex-row gap-4">
-                {/* Left: scenario controls + micro timeline */}
-                <div className="lg:w-72 space-y-3">
-                  <ScenarioPills active={scenario} setActive={setScenario} />
-                  <div className="rounded-lg border p-3 bg-background/60 backdrop-blur">
-                    <h4 className="text-sm font-semibold mb-2">Reaction Timeline</h4>
-                    <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                      {[
-                        { t: "0.0s", label: "Detect" },
-                        { t: "0.3s", label: "Alert" },
-                        { t: "0.5s", label: "Assist" },
-                        { t: "0.6s", label: "Stabilize" },
-                      ].map((s, i) => (
-                        <motion.div
-                          key={s.t}
-                          initial={{ opacity: 0.4, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="rounded-md border p-2 bg-background"
-                        >
-                          <div className="font-semibold">{s.t}</div>
-                          <div className="text-muted-foreground">{s.label}</div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: media */}
-                <div className="flex-1 min-w-0">
-                  <AnimatePresence mode="wait">
-                    {scenario === "preCollision" && (
-                      <motion.div key="pre" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <YoutubeInline videoId={YT_PRECOLLISION} title="Pre-Collision System" />
-                      </motion.div>
-                    )}
-
-                    {scenario === "laneDrift" && (
-                      <motion.div key="lane" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <ImageGallery
-                          images={[
-                            { src: IMG_LANE, alt: "Lane Assist visualization" },
-                            { src: IMG_CRUISE, alt: "Road view – cruise support" },
-                            { src: IMG_NIGHT, alt: "Night visibility / Auto High Beam" },
-                          ]}
-                          initial={0}
-                          caption="Lane Assist keeps you centered with gentle steering support."
-                        />
-                      </motion.div>
-                    )}
-
-                    {scenario === "cruise" && (
-                      <motion.div key="cruise" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <ImageGallery
-                          images={[
-                            { src: IMG_CRUISE, alt: "Adaptive Cruise – maintains distance" },
-                            { src: IMG_LANE, alt: "Lane guidance context" },
-                            { src: IMG_NIGHT, alt: "Night conditions" },
-                          ]}
-                          initial={0}
-                          caption="Adaptive Cruise automatically maintains a safe following distance."
-                        />
-                      </motion.div>
-                    )}
-
-                    {scenario === "night" && (
-                      <motion.div key="night" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <ImageGallery
-                          images={[
-                            { src: IMG_NIGHT, alt: "Auto High Beam – clearer night view" },
-                            { src: IMG_CRUISE, alt: "Cruise and visibility" },
-                            { src: IMG_LANE, alt: "Lane context at night" },
-                          ]}
-                          initial={0}
-                          caption="Auto High Beam toggles headlights for optimal visibility."
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
+              <h3 className="text-xl lg:text-2xl font-bold mb-3">Peace of Mind, Standard</h3>
+              <p className="text-muted-foreground mb-6">
+                Toyota Safety Sense 2.0 comes standard on every Camry, providing you with advanced safety 
+                technologies that help protect what matters most.
+              </p>
+              
+              <InteractiveDemo type="safety" />
             </motion.div>
 
-            {/* Core features — compact + progressive */}
+            {/* Core Safety Features */}
             <div>
-              <h3 className="text-xl font-bold mb-3">Core Safety Features</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {safetyFeatures.map((f, idx) => (
+              <h3 className="text-xl font-bold mb-4">Core Safety Features</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {safetyFeatures.map((feature, index) => (
                   <motion.div
-                    key={f.name}
-                    initial={enter}
-                    animate={entered}
-                    transition={{ delay: idx * 0.03 }}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all hover:border-muted-foreground/20 bg-background/60 backdrop-blur",
-                      f.active && "border-primary/30 bg-primary/5"
-                    )}
+                    key={feature.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`p-4 rounded-xl border transition-all duration-300 ${
+                      feature.active 
+                        ? 'border-primary/20 bg-primary/5' 
+                        : 'border-muted hover:border-muted-foreground/20'
+                    }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={cn("p-2 rounded-md", f.active ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                        <f.icon className="h-4 w-4" />
+                      <div className={`p-2 rounded-lg ${
+                        feature.active ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      }`}>
+                        <feature.icon className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold leading-tight">{f.name}</h4>
-                          {f.active && <Badge className="h-5 px-2 text-[10px]">Selected</Badge>}
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {f.chips.map((c) => (
-                            <span key={c} className="px-2 py-0.5 text-[11px] rounded-full bg-muted">{c}</span>
-                          ))}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-1">{f.details}</p>
-                        <CollapsibleContent title="Learn more" className="border-0 mt-1">
-                          <p className="text-sm text-muted-foreground">{f.details}</p>
+                        <h4 className="font-semibold mb-1 leading-tight">{feature.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
+                        
+                        <CollapsibleContent title="Learn More" className="mt-2 border-0">
+                          <p className="text-sm text-muted-foreground">{feature.details}</p>
                         </CollapsibleContent>
                       </div>
                     </div>
@@ -457,15 +147,11 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
               </div>
             </div>
 
-            {/* Complete package — compact */}
+            {/* Additional Safety Systems */}
             <div>
-              <h3 className="text-xl font-bold mb-3">Complete Safety Package</h3>
-              <div className="space-y-3">
-                {[
-                  { icon: Gauge, title: "Star Safety System", features: ["VSC", "TRAC", "ABS", "EBD", "BA", "SST"] },
-                  { icon: Users, title: "Airbag System", features: ["Front Airbags", "Front Side", "Rear Side", "Curtains"] },
-                  { icon: Heart, title: "Active Safety", features: ["Blind Spot Monitor", "Rear Cross-Traffic Alert", "Bird’s Eye View", "Parking Support Brake"] },
-                ].map((system, index) => (
+              <h3 className="text-xl font-bold mb-4">Complete Safety Package</h3>
+              <div className="space-y-4">
+                {additionalSafety.map((system, index) => (
                   <CollapsibleContent
                     key={system.title}
                     title={
@@ -475,34 +161,51 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                       </div>
                     }
                     defaultOpen={index === 0}
-                    className="border bg-background/60 backdrop-blur"
                   >
                     <div className="grid gap-2 sm:grid-cols-2">
-                      {system.features.map((feature) => (
-                        <div key={feature} className="flex items-center gap-2 text-sm">
+                      {system.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-primary" />
-                          <span>{feature}</span>
+                          <span className="text-sm">{feature}</span>
                         </div>
                       ))}
                     </div>
                   </CollapsibleContent>
                 ))}
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center text-xs text-muted-foreground mt-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Features may vary by grade/model year and region ({regionLabel}).</span>
+            </div>
+
+            {/* Safety Ratings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-muted/30 rounded-2xl p-6"
+            >
+              <h3 className="text-xl font-bold mb-4">Safety Recognition</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">5★</div>
+                  <div className="font-semibold mb-1">NHTSA Overall Rating</div>
+                  <div className="text-sm text-muted-foreground">National Highway Traffic Safety Administration</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">TSP+</div>
+                  <div className="font-semibold mb-1">IIHS Top Safety Pick+</div>
+                  <div className="text-sm text-muted-foreground">Insurance Institute for Highway Safety</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </MobileOptimizedDialogBody>
 
-        {/* Single CTA only */}
-        <MobileOptimizedDialogFooter className="px-3 py-3 sm:px-6 sm:py-4">
-          <div className="flex w-full sm:w-auto sm:ml-auto gap-3">
-            <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button onClick={onBookTestDrive}>Book Test Drive</Button>
+        <MobileOptimizedDialogFooter>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:ml-auto">
+            <Button variant="outline" onClick={onClose} className="sm:w-auto">
+              Close
+            </Button>
+            <Button onClick={onBookTestDrive} className="sm:w-auto">
+              Experience Safety Features
+            </Button>
           </div>
         </MobileOptimizedDialogFooter>
       </MobileOptimizedDialogContent>
