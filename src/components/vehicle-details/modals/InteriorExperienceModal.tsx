@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Play, Pause
+  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Play, Pause, Power, BatteryCharging
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +22,10 @@ import { cn } from "@/lib/utils";
 /* -------------------------------------------------------------------------- */
 
 const BRAND_RED = "#cb0017";
+const BRAND_DARK = "#111827";
 
-/** Real interior photo (applies to all scenes, can be overridden per scene) */
-const INTERIOR_BG =
+/** Real interior photo (default hero) */
+const INTERIOR_HERO =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
 
 /** Gallery defaults (swap via props if needed) */
@@ -37,7 +38,7 @@ const DEFAULT_IMG_B =
 /* TYPES                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type TabKey = "overview" | "cineloop" | "images" | "videos";
+type TabKey = "overview" | "lenses" | "images" | "videos";
 
 interface InteriorExperienceModalProps {
   isOpen: boolean;
@@ -45,10 +46,11 @@ interface InteriorExperienceModalProps {
   onBookTestDrive: () => void;
   videoIds?: string[];
   images?: { src: string; alt?: string }[];
+  hero?: string;
 }
 
 /* -------------------------------------------------------------------------- */
-/* TABS                                                                       */
+/* UTILS                                                                      */
 /* -------------------------------------------------------------------------- */
 
 const Tabs: React.FC<{
@@ -176,81 +178,15 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
 };
 
 /* -------------------------------------------------------------------------- */
-/* CINELOOP (auto-play scenes, no tapping required)                            */
+/* QUICK LENSES (toggle overlays; no hotspots, no steps)                       */
 /* -------------------------------------------------------------------------- */
 
-type Scene = {
-  key: string;
-  title: string;
-  caption: string;
-  ambient: string;     // ambient bar color
-  audioLevel: number;  // 0..100
-  climate: "cool" | "warm" | "neutral";
-  roofPct: number;     // 0..100 (indicator only)
-  leftSeatHeat: 0 | 1 | 2;
-  rightSeatHeat: 0 | 1 | 2;
-  uiAccent?: string;
-  bg?: string;         // optional override image
-  micro?: { icon: React.ReactNode; label: string; value: string }[];
-};
+type LensKey = "comfort" | "air" | "ambient" | "roof" | "audio" | "tech";
 
-const scenes: Scene[] = [
-  {
-    key: "commute",
-    title: "Morning Commute",
-    caption: "Quiet, focused start. Cool air, subtle light, balanced audio.",
-    ambient: "#0EA5E9",
-    audioLevel: 28,
-    climate: "cool",
-    roofPct: 0,
-    leftSeatHeat: 0,
-    rightSeatHeat: 0,
-    uiAccent: "#0EA5E9",
-    micro: [
-      { icon: <Wind className="h-3.5 w-3.5" />, label: "Air", value: "Fresh" },
-      { icon: <Lightbulb className="h-3.5 w-3.5" />, label: "Ambient", value: "Cool" },
-      { icon: <Volume2 className="h-3.5 w-3.5" />, label: "Audio", value: "28%" },
-    ],
-  },
-  {
-    key: "family",
-    title: "Family Trip",
-    caption: "Comfort for everyone. Gentle climate, roof ajar, playlists on.",
-    ambient: BRAND_RED,
-    audioLevel: 38,
-    climate: "neutral",
-    roofPct: 35,
-    leftSeatHeat: 1,
-    rightSeatHeat: 1,
-    uiAccent: BRAND_RED,
-    micro: [
-      { icon: <Armchair className="h-3.5 w-3.5" />, label: "Seats", value: "Warm L1" },
-      { icon: <Sun className="h-3.5 w-3.5" />, label: "Roof", value: "35%" },
-      { icon: <Smartphone className="h-3.5 w-3.5" />, label: "Charging", value: "Wireless" },
-    ],
-  },
-  {
-    key: "night",
-    title: "Night Drive",
-    caption: "Calm cabin. Warm LEDs, low fan, richer soundstage.",
-    ambient: "#4F46E5",
-    audioLevel: 22,
-    climate: "warm",
-    roofPct: 0,
-    leftSeatHeat: 0,
-    rightSeatHeat: 0,
-    uiAccent: "#4F46E5",
-    micro: [
-      { icon: <Lightbulb className="h-3.5 w-3.5" />, label: "Ambient", value: "Indigo" },
-      { icon: <Volume2 className="h-3.5 w-3.5" />, label: "Audio", value: "22%" },
-      { icon: <Car className="h-3.5 w-3.5" />, label: "Mode", value: "Comfort" },
-    ],
-  },
-];
+type LensState = Record<LensKey, boolean>;
 
-/* Non-positional overlays: no guessing exact seat/vent locations */
 const AmbientBar: React.FC<{ color: string }> = ({ color }) => (
-  <div className="absolute left-6 right-6 bottom-6 h-2 rounded-full" style={{ background: color, opacity: 0.9, filter: "blur(1px)" }} />
+  <div className="absolute left-6 right-6 bottom-6 h-2 rounded-full" style={{ background: color, opacity: 0.95, filter: "blur(1px)" }} />
 );
 
 const RoofIndicator: React.FC<{ pct: number }> = ({ pct }) => (
@@ -266,7 +202,7 @@ const AudioMeter: React.FC<{ level: number }> = ({ level }) => (
   <div className="absolute right-3 bottom-3 rounded-md border bg-white/90 shadow px-2 py-1">
     <div className="text-[10px] text-muted-foreground">JBL</div>
     <div className="mt-1 h-1 w-24 rounded bg-black/10 overflow-hidden">
-      <div className="h-full" style={{ width: `${level}%`, background: "#111827" }} />
+      <div className="h-full" style={{ width: `${level}%`, background: BRAND_DARK }} />
     </div>
   </div>
 );
@@ -283,8 +219,7 @@ const SeatBadges: React.FC<{ left: 0|1|2; right: 0|1|2; accent: string }> = ({ l
   </div>
 );
 
-const ClimateWash: React.FC<{ type: Scene["climate"] }> = ({ type }) => {
-  // A soft, animated wash at mid-height: blue (cool) / red (warm) / subtle gray (neutral)
+const ClimateWash: React.FC<{ type: "cool" | "warm" | "neutral" }> = ({ type }) => {
   const color = type === "cool" ? "rgba(14,165,233,.25)" : type === "warm" ? "rgba(203,0,23,.20)" : "rgba(0,0,0,.10)";
   return (
     <motion.div
@@ -297,113 +232,125 @@ const ClimateWash: React.FC<{ type: Scene["climate"] }> = ({ type }) => {
   );
 };
 
-const MicroStats: React.FC<{ items?: Scene["micro"]; accent?: string }> = ({ items, accent = BRAND_RED }) => {
-  if (!items?.length) return null;
-  return (
-    <div className="absolute left-3 top-3 rounded-md border bg-white/90 shadow px-2 py-1.5">
-      <div className="grid grid-cols-3 gap-2">
-        {items.map((m) => (
-          <div key={m.label} className="flex items-center gap-1">
-            <span className="text-white p-1 rounded" style={{ background: accent }}>{m.icon}</span>
-            <span className="text-[10px] text-muted-foreground">{m.label}</span>
-            <span className="text-[11px] font-medium">{m.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const SceneCard: React.FC<{ scene: Scene }> = ({ scene }) => {
-  const img = scene.bg || INTERIOR_BG;
-  return (
-    <div className="relative w-full overflow-hidden rounded-xl ring-1 ring-black/5 border bg-black/5" style={{ paddingTop: "56.25%" }}>
-      <img src={img} alt="Interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <ClimateWash type={scene.climate} />
-      <AmbientBar color={scene.ambient} />
-      <RoofIndicator pct={scene.roofPct} />
-      <AudioMeter level={scene.audioLevel} />
-      <SeatBadges left={scene.leftSeatHeat} right={scene.rightSeatHeat} accent={scene.uiAccent || BRAND_RED} />
-      <MicroStats items={scene.micro} accent={scene.uiAccent || BRAND_RED} />
-    </div>
-  );
-};
-
-const ProgressDots: React.FC<{ total: number; index: number; accent?: string }> = ({ total, index, accent = BRAND_RED }) => (
-  <div className="flex items-center justify-center gap-2">
-    {Array.from({ length: total }).map((_, i) => (
-      <div key={i} className="h-1.5 w-6 rounded-full" style={{ background: i === index ? accent : "rgba(0,0,0,.12)" }} />
-    ))}
+const TechBadge: React.FC = () => (
+  <div className="absolute left-3 top-3 rounded-md border bg-white/90 shadow px-2 py-1 text-xs flex items-center gap-1.5">
+    <Smartphone className="h-3.5 w-3.5" style={{ color: BRAND_RED }} />
+    <span>Wireless charging</span>
   </div>
 );
 
-const CineLoop: React.FC = () => {
-  const prefersReduced = useReducedMotion();
-  const [i, setI] = React.useState(0);
-  const [playing, setPlaying] = React.useState(true);
+/* LENS CONTROLS ------------------------------------------------------------ */
 
-  // Auto-advance every 4.5s (reduced motion = paused by default)
-  React.useEffect(() => {
-    if (prefersReduced || !playing) return;
-    const t = setInterval(() => setI((v) => (v + 1) % scenes.length), 4500);
-    return () => clearInterval(t);
-  }, [playing, prefersReduced]);
+const LensToggle: React.FC<{
+  active: boolean; label: string; icon: React.ElementType; onClick: () => void;
+}> = ({ active, label, icon: Icon, onClick }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "min-w-[110px] px-3 py-2 rounded-xl border text-sm flex items-center justify-center gap-2",
+      active ? "bg-black text-white border-black" : "bg-white hover:bg-black/5"
+    )}
+    aria-pressed={active}
+  >
+    <Icon className="h-4 w-4" />
+    {label}
+  </button>
+);
 
-  const scene = scenes[i];
+/* MAIN LENSES VIEW --------------------------------------------------------- */
 
-  // swipe to switch (mobile)
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  React.useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    let startX = 0;
-    const onTouchStart = (e: TouchEvent) => (startX = e.touches[0].clientX);
-    const onTouchEnd = (e: TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 40) setI((v) => (dx < 0 ? (v + 1) % scenes.length : (v - 1 + scenes.length) % scenes.length));
-    };
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchend", onTouchEnd);
-    };
-  }, []);
+const QuickLenses: React.FC<{ hero?: string }> = ({ hero = INTERIOR_HERO }) => {
+  const [on, setOn] = React.useState<LensState>({
+    comfort: true,
+    air: false,
+    ambient: true,
+    roof: false,
+    audio: true,
+    tech: false,
+  });
+
+  // Simple cycle for ambient color on repeated taps
+  const [ambientIndex, setAmbientIndex] = React.useState(0);
+  const ambientColors = ["#0EA5E9", BRAND_RED, "#4F46E5", "#10B981"];
+  const ambientColor = ambientColors[ambientIndex % ambientColors.length];
+
+  const toggle = (k: LensKey) => {
+    setOn((prev) => ({ ...prev, [k]: !prev[k] }));
+    if (k === "ambient") setAmbientIndex((i) => i + 1);
+  };
+
+  const reset = () => setOn({ comfort: false, air: false, ambient: false, roof: false, audio: false, tech: false });
 
   return (
-    <div ref={containerRef} className="rounded-2xl p-3 border bg-white/70 backdrop-blur ring-1 ring-black/5">
-      {/* Title + play/pause */}
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <div className="text-sm font-semibold" style={{ color: scene.uiAccent || BRAND_RED }}>{scene.title}</div>
-          <div className="text-xs text-muted-foreground">{scene.caption}</div>
-        </div>
-        <button
-          className="rounded-full border bg-white/90 shadow px-2.5 py-1.5 text-sm inline-flex items-center gap-1"
-          onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? "Pause" : "Play"}
-        >
-          {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-          {playing ? "Pause" : "Play"}
-        </button>
+    <div className="rounded-2xl p-3 border bg-white/70 backdrop-blur ring-1 ring-black/5">
+      {/* Stage */}
+      <div className="relative w-full overflow-hidden rounded-xl ring-1 ring-black/5 border bg-black/5" style={{ paddingTop: "56.25%" }}>
+        <img src={hero} alt="Camry interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+
+        <AnimatePresence>
+          {on.air && <ClimateWash key="air" type="cool" />}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {on.ambient && (
+            <motion.div key="ambient" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <AmbientBar color={ambientColor} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {on.roof && (
+            <motion.div key="roof" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <RoofIndicator pct={35} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {on.audio && (
+            <motion.div key="audio" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+              <AudioMeter level={32} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {on.comfort && (
+            <motion.div key="comfort" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+              <SeatBadges left={1} right={1} accent={BRAND_RED} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {on.tech && (
+            <motion.div key="tech" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
+              <TechBadge />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Scene */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={scene.key}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.35 }}
-        >
-          <SceneCard scene={scene} />
-        </motion.div>
-      </AnimatePresence>
+      {/* Controls */}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="text-xs text-muted-foreground">
+          Tap to highlight what matters — combine lenses freely.
+        </div>
+        <Button variant="outline" size="sm" onClick={reset}>
+          Reset
+        </Button>
+      </div>
 
-      {/* Dots */}
-      <div className="mt-3">
-        <ProgressDots total={scenes.length} index={i} accent={scene.uiAccent || BRAND_RED} />
+      <div className="mt-3 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 min-w-max pb-1">
+          <LensToggle active={on.comfort} label="Comfort" icon={Armchair} onClick={() => toggle("comfort")} />
+          <LensToggle active={on.air} label="Fresh Air" icon={Wind} onClick={() => toggle("air")} />
+          <LensToggle active={on.ambient} label="Ambient" icon={Lightbulb} onClick={() => toggle("ambient")} />
+          <LensToggle active={on.roof} label="Panoramic Roof" icon={Sun} onClick={() => toggle("roof")} />
+          <LensToggle active={on.audio} label="Audio" icon={Volume2} onClick={() => toggle("audio")} />
+          <LensToggle active={on.tech} label="Tech" icon={Smartphone} onClick={() => toggle("tech")} />
+        </div>
       </div>
     </div>
   );
@@ -419,6 +366,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   onBookTestDrive,
   videoIds = [],
   images,
+  hero,
 }) => {
   const prefersReduced = useReducedMotion();
   const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
@@ -432,17 +380,17 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   const tabItems = (videoIds.length
     ? ([
         { key: "overview",  label: "Overview" as const },
-        { key: "cineloop",  label: "CineLoop" as const },
+        { key: "lenses",    label: "Quick Lenses" as const },
         { key: "images",    label: "Images" as const },
         { key: "videos",    label: "Videos" as const },
       ])
     : ([
         { key: "overview",  label: "Overview" as const },
-        { key: "cineloop",  label: "CineLoop" as const },
+        { key: "lenses",    label: "Quick Lenses" as const },
         { key: "images",    label: "Images" as const },
       ])) as { key: TabKey; label: string }[];
 
-  const [tab, setTab] = React.useState<TabKey>("cineloop");
+  const [tab, setTab] = React.useState<TabKey>("lenses");
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
@@ -458,13 +406,13 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
             </Button>
           </div>
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            Lean back—your interior comes alive automatically. Swipe to switch scenes anytime.
+            One-tap lenses — highlight Comfort, Air, Ambient, Roof, Audio, or Tech (no hotspots).
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* HERO */}
+            {/* HERO / TABS */}
             <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }}
               className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
               <div className="flex items-center gap-3 mb-4">
@@ -478,7 +426,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
                   <p className="text-sm text-muted-foreground">
-                    A smooth, hands-free showcase of real-world cabin moments.
+                    Toggle lenses to instantly see what matters — without tapping through steps.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
@@ -498,22 +446,28 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
 
                 <div className="lg:col-span-2 space-y-3">
                   <Tabs active={tab} onChange={setTab} items={tabItems} />
-                  <div className="text-xs text-muted-foreground">Overview · CineLoop · Images · Videos</div>
+                  <div className="text-xs text-muted-foreground">Overview · Quick Lenses · Images · Videos</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* CINELOOP TAB */}
-            {tab === "cineloop" && (
-              <motion.div key="cineloop" initial={enter} animate={entered}>
-                <CineLoop />
+            {/* LENSES TAB */}
+            {tab === "lenses" && (
+              <motion.div key="lenses" initial={enter} animate={entered}>
+                <QuickLenses hero={hero} />
               </motion.div>
             )}
 
             {/* IMAGES TAB */}
             {tab === "images" && (
               <motion.div key="images" initial={enter} animate={entered}>
-                <ImageGallery images={gallery} caption="Swipe or tap thumbnails to explore the cabin" />
+                <ImageGallery
+                  images={(images?.length ? images : [
+                    { src: DEFAULT_IMG_A, alt: "Interior highlight 1" },
+                    { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
+                  ])}
+                  caption="Swipe or tap thumbnails to explore the cabin"
+                />
               </motion.div>
             )}
 
