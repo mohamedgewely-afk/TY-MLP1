@@ -2,7 +2,7 @@ import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Car, Thermometer, Volume2, Smartphone, Armchair, Sun, Wind, Coffee,
-  X, Info, Play, Lightbulb
+  X, Info, Play, Lightbulb, Sparkles, Wand2, Gauge, BatteryCharging
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,39 +18,32 @@ import {
 import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
-/* ----------------------------------------------------------------------------
-  THEME / DEFAULTS
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   THEME                                    */
+/* -------------------------------------------------------------------------- */
 
 const BRAND_RED = "#cb0017";
-const EXPERIENCE_BG_DEFAULT =
-  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
 
+/* Gallery defaults (swap/override via props if you want) */
 const DEFAULT_IMG_A =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true";
 const DEFAULT_IMG_B =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
 
-/* ----------------------------------------------------------------------------
-  TYPES
----------------------------------------------------------------------------- */
+/* Optional hotspots background (you can override via props) */
+const HOTSPOT_BG =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
 
-type Level = 0 | 1 | 2;
-type TabKey = "overview" | "experience" | "hotspots" | "images" | "videos";
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
 
-type P = { x: number; y: number }; // 0..1
-type R = { x: number; y: number; w: number; h: number }; // 0..1
+type TabKey = "overview" | "composer" | "hotspots" | "images" | "videos";
 
-type OverlayConfig = {
-  seatLeft: R;
-  seatRight: R;
-  ventLeft: { c: P; r: number };   // r as portion of min(containerW,containerH)
-  ventRight: { c: P; r: number };
-  ambient: R;
-  sunroof: R;
-  headUnit: R;
-  volumeBar: R; // inside headUnit
-  plume: { p0: P; c1: P; c2: P; p1: P };
+type Hotspot = {
+  x: number; y: number; // percent
+  title: string; body: string;
+  icon?: React.ComponentType<{ className?: string }>;
 };
 
 interface InteriorExperienceModalProps {
@@ -60,76 +53,12 @@ interface InteriorExperienceModalProps {
   videoIds?: string[];
   images?: { src: string; alt?: string }[];
   hotspotImage?: { src: string; alt?: string };
-  hotspots?: {
-    x: number; y: number; title: string; body: string; icon?: React.ComponentType<{ className?: string }>;
-  }[];
-  experienceBg?: string;
+  hotspots?: Hotspot[];
 }
 
-/* ----------------------------------------------------------------------------
-  UTILS
----------------------------------------------------------------------------- */
-
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-const storageKeyFor = (bg: string) => `interior-calib:${bg}`;
-
-function toPxRect(r: R, w: number, h: number) {
-  return { x: r.x * w, y: r.y * h, w: r.w * w, h: r.h * h };
-}
-function toPxPoint(p: P, w: number, h: number) {
-  return { x: p.x * w, y: p.y * h };
-}
-
-/* ----------------------------------------------------------------------------
-  DEFAULT OVERLAY (good starting guess — refine via Calibrate)
----------------------------------------------------------------------------- */
-
-const DEFAULT_CONFIG: OverlayConfig = {
-  seatLeft:  { x: 0.24, y: 0.48, w: 0.18, h: 0.28 },
-  seatRight: { x: 0.63, y: 0.48, w: 0.18, h: 0.28 },
-  ventLeft:  { c: { x: 0.48, y: 0.44 }, r: 0.045 },
-  ventRight: { c: { x: 0.53, y: 0.44 }, r: 0.045 },
-  ambient:   { x: 0.12, y: 0.82, w: 0.76, h: 0.015 },
-  sunroof:   { x: 0.28, y: 0.08, w: 0.44, h: 0.02 },
-  headUnit:  { x: 0.47, y: 0.51, w: 0.06, h: 0.06 },
-  volumeBar: { x: 0.48, y: 0.555, w: 0.05, h: 0.008 },
-  plume: {
-    p0: { x: 0.49, y: 0.40 },
-    c1: { x: 0.51, y: 0.36 },
-    c2: { x: 0.56, y: 0.36 },
-    p1: { x: 0.58, y: 0.41 },
-  },
-};
-
-/* ----------------------------------------------------------------------------
-  STATE (cabin) + PRESETS
----------------------------------------------------------------------------- */
-
-const useCabinState = () => {
-  const [temp, setTemp] = React.useState(22);
-  const [seatHeat, setSeatHeat] = React.useState<Level>(1);
-  const [seatVent, setSeatVent] = React.useState<Level>(0);
-  const [ambient, setAmbient] = React.useState<string>(BRAND_RED);
-  const [volume, setVolume] = React.useState(30);
-  const [sunroofPct, setSunroofPct] = React.useState(10);
-  const [recirc, setRecirc] = React.useState(false);
-
-  const applyPreset = (preset: "commute" | "family" | "night") => {
-    if (preset === "commute") {
-      setTemp(21); setSeatHeat(0); setSeatVent(1); setAmbient("#0EA5E9"); setVolume(28); setSunroofPct(0); setRecirc(true);
-    } else if (preset === "family") {
-      setTemp(22); setSeatHeat(1); setSeatVent(1); setAmbient(BRAND_RED); setVolume(35); setSunroofPct(35); setRecirc(false);
-    } else {
-      setTemp(20); setSeatHeat(0); setSeatVent(0); setAmbient("#4F46E5"); setVolume(18); setSunroofPct(0); setRecirc(true);
-    }
-  };
-
-  return { temp, setTemp, seatHeat, setSeatHeat, seatVent, setSeatVent, ambient, setAmbient, volume, setVolume, sunroofPct, setSunroofPct, recirc, setRecirc, applyPreset };
-};
-
-/* ----------------------------------------------------------------------------
-  SIMPLE TABS
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   TABS                                     */
+/* -------------------------------------------------------------------------- */
 
 const Tabs: React.FC<{
   active: TabKey;
@@ -144,8 +73,10 @@ const Tabs: React.FC<{
           <button
             key={it.key}
             onClick={() => onChange(it.key)}
-            className={cn("flex-1 px-3 py-1.5 rounded-lg text-sm transition border",
-              selected ? "bg-black text-white border-black" : "hover:bg-black/5 border-transparent")}
+            className={cn(
+              "flex-1 px-3 py-1.5 rounded-lg text-sm transition border",
+              selected ? "bg-black text-white border-black" : "hover:bg-black/5 border-transparent"
+            )}
             aria-pressed={selected}
           >
             {it.label}
@@ -156,39 +87,74 @@ const Tabs: React.FC<{
   </div>
 );
 
-/* ----------------------------------------------------------------------------
-  GALLERY + YOUTUBE
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                               IMAGE GALLERY                                */
+/* -------------------------------------------------------------------------- */
 
-const ImageGallery: React.FC<{ images: { src: string; alt?: string }[]; caption?: string; }> = ({ images, caption }) => {
+const ImageGallery: React.FC<{
+  images: { src: string; alt?: string }[];
+  caption?: string;
+}> = ({ images, caption }) => {
   const [idx, setIdx] = React.useState(0);
-  const prefers = useReducedMotion();
-  const canPrev = idx > 0, canNext = idx < images.length - 1;
+  const prefersReduced = useReducedMotion();
+  const canPrev = idx > 0;
+  const canNext = idx < images.length - 1;
+
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
+    if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
+  };
 
   return (
-    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden" tabIndex={0}
-      aria-label="Image gallery. Use arrow keys to navigate.">
+    <div
+      className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden"
+      tabIndex={0}
+      onKeyDown={onKey}
+      aria-label="Image gallery. Use arrow keys to navigate."
+    >
       <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
         <AnimatePresence mode="wait">
-          <motion.img key={images[idx].src} src={images[idx].src} alt={images[idx].alt || ""}
+          <motion.img
+            key={images[idx].src}
+            src={images[idx].src}
+            alt={images[idx].alt || ""}
             className="absolute inset-0 h-full w-full object-cover"
-            initial={prefers ? {} : { opacity: 0, scale: 0.98 }}
-            animate={prefers ? {} : { opacity: 1, scale: 1 }}
-            exit={prefers ? {} : { opacity: 0 }}
+            initial={prefersReduced ? {} : { opacity: 0, scale: 0.98 }}
+            animate={prefersReduced ? {} : { opacity: 1, scale: 1 }}
+            exit={prefersReduced ? {} : { opacity: 0 }}
             transition={{ duration: 0.25 }}
-            loading="lazy" />
+            loading="lazy"
+          />
         </AnimatePresence>
       </div>
 
+      {/* Controls */}
       <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
-        <button aria-label="Previous image" disabled={!canPrev} onClick={() => canPrev && setIdx(idx - 1)}
-          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canPrev && "opacity-40 pointer-events-none")}>‹</button>
-        <button aria-label="Next image" disabled={!canNext} onClick={() => canNext && setIdx(idx + 1)}
-          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canNext && "opacity-40 pointer-events-none")}>›</button>
+        <button
+          aria-label="Previous image"
+          disabled={!canPrev}
+          onClick={() => canPrev && setIdx((i) => i - 1)}
+          className={cn(
+            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canPrev && "opacity-40 pointer-events-none"
+          )}
+        >
+          ‹
+        </button>
+        <button
+          aria-label="Next image"
+          disabled={!canNext}
+          onClick={() => canNext && setIdx((i) => i + 1)}
+          className={cn(
+            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canNext && "opacity-40 pointer-events-none"
+          )}
+        >
+          ›
+        </button>
       </div>
 
+      {/* Caption + dots */}
       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
         <div className="text-xs text-white">
           <span className="inline-block rounded-md bg-black/50 px-2 py-1 backdrop-blur-sm">
@@ -197,17 +163,29 @@ const ImageGallery: React.FC<{ images: { src: string; alt?: string }[]; caption?
         </div>
         <div className="flex gap-1">
           {images.map((_, i) => (
-            <button key={i} onClick={() => setIdx(i)} aria-label={`Go to slide ${i + 1}`}
-              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")} />
+            <button
+              key={i}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => setIdx(i)}
+              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")}
+            />
           ))}
         </div>
       </div>
 
+      {/* Thumbs */}
       <div className="flex gap-2 p-2 border-t bg-white/80">
         {images.map((im, i) => (
-          <button key={im.src} onClick={() => setIdx(i)}
-            className={cn("relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5", i === idx && "outline outline-2")}
-            style={i === idx ? { outlineColor: BRAND_RED } : {}} aria-label={`Go to image ${i + 1}`}>
+          <button
+            key={im.src}
+            onClick={() => setIdx(i)}
+            className={cn(
+              "relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5",
+              i === idx && "outline outline-2"
+            )}
+            style={i === idx ? { outlineColor: BRAND_RED } : {}}
+            aria-label={`Go to image ${i + 1}`}
+          >
             <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
           </button>
         ))}
@@ -215,6 +193,10 @@ const ImageGallery: React.FC<{ images: { src: string; alt?: string }[]; caption?
     </div>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/*                               YOUTUBE INLINE                               */
+/* -------------------------------------------------------------------------- */
 
 const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
   const [play, setPlay] = React.useState(false);
@@ -227,26 +209,33 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
           <button onClick={() => setPlay(true)} aria-label="Play video" className="absolute inset-0 flex items-center justify-center group">
             <div className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition" style={{ backgroundImage: `url('${poster}')` }} />
             <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
-              <Play className="h-4 w-4" /> Play video
+              <Play className="h-4 w-4" />
+              Play video
             </div>
           </button>
         )}
         {play && (
-          <iframe className="absolute inset-0 w-full h-full" src={src} title={title} loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={src}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
         )}
       </div>
     </div>
   );
 };
 
-/* ----------------------------------------------------------------------------
-  HOTSPOTS (unchanged)
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                   HOTSPOTS                                 */
+/* -------------------------------------------------------------------------- */
 
 const HotspotsStage: React.FC<{
   image: { src: string; alt?: string };
-  hotspots: { x: number; y: number; title: string; body: string; icon?: React.ComponentType<{ className?: string }> }[];
+  hotspots: Hotspot[];
 }> = ({ image, hotspots }) => {
   const [active, setActive] = React.useState<number | null>(null);
   const [show, setShow] = React.useState(true);
@@ -255,7 +244,8 @@ const HotspotsStage: React.FC<{
     <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" /> Tap a dot to learn more.
+          <Info className="h-3.5 w-3.5" />
+          Tap a dot to learn more.
         </div>
         <button onClick={() => setShow(!show)} className="text-xs underline">{show ? "Hide hotspots" : "Show hotspots"}</button>
       </div>
@@ -266,11 +256,15 @@ const HotspotsStage: React.FC<{
           const Icon = h.icon || Info;
           return (
             <div key={`${h.title}-${i}`} style={{ left: `${h.x}%`, top: `${h.y}%` }} className="absolute -translate-x-1/2 -translate-y-1/2">
-              <button onClick={() => setActive(active === i ? null : i)}
+              <button
+                onClick={() => setActive(active === i ? null : i)}
                 className="h-5 w-5 rounded-full border bg-white/90 backdrop-blur shadow grid place-items-center"
-                style={{ borderColor: BRAND_RED }} aria-label={h.title}>
+                style={{ borderColor: BRAND_RED }}
+                aria-label={h.title}
+              >
                 <span className="h-2 w-2 rounded-full" style={{ background: BRAND_RED }} />
               </button>
+
               {active === i && (
                 <div className="mt-2 w-56 rounded-lg border bg-white shadow ring-1 ring-black/5 p-3">
                   <div className="flex items-center gap-2 mb-1">
@@ -288,397 +282,299 @@ const HotspotsStage: React.FC<{
   );
 };
 
-/* ----------------------------------------------------------------------------
-  EXPERIENCE PREVIEW W/ CALIBRATION
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                              CABIN COMPOSER TAB                             */
+/* -------------------------------------------------------------------------- */
 
-const HandlePoint: React.FC<{
-  x: number; y: number;
-  onDrag: (nx: number, ny: number) => void;
-  label?: string;
-}> = ({ x, y, onDrag, label }) => {
-  const ref = React.useRef<HTMLDivElement | null>(null);
-  const onPointerDown = (e: React.PointerEvent) => {
-    const el = ref.current?.parentElement as HTMLElement;
-    if (!el) return;
-    const bounds = el.getBoundingClientRect();
-    const move = (ee: PointerEvent) => {
-      const nx = clamp01((ee.clientX - bounds.left) / bounds.width);
-      const ny = clamp01((ee.clientY - bounds.top) / bounds.height);
-      onDrag(nx, ny);
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+type Zone = "pool" | "must" | "nice" | "nope";
+type Category = "comfort" | "air" | "light" | "tech" | "sky" | "audio" | "clean" | "storage";
+
+type Chip = {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  cat: Category;
+  zone: Zone;
+};
+
+const CHIP_LIBRARY: Omit<Chip, "zone">[] = [
+  { id: "heated", label: "Heated Seats", icon: Armchair, cat: "comfort" },
+  { id: "vented", label: "Ventilated Seats", icon: Wind, cat: "air" },
+  { id: "ambient", label: "Ambient Lighting", icon: Lightbulb, cat: "light" },
+  { id: "wireless", label: "Wireless Charging", icon: Smartphone, cat: "tech" },
+  { id: "roof", label: "Panoramic Roof", icon: Sun, cat: "sky" },
+  { id: "jbl", label: "JBL Premium Audio", icon: Volume2, cat: "audio" },
+  { id: "airclean", label: "Allergen Filter", icon: Thermometer, cat: "clean" },
+  { id: "storage", label: "Smart Storage", icon: Coffee, cat: "storage" },
+  { id: "quiet", label: "Quiet Cabin", icon: Gauge, cat: "comfort" },
+  { id: "smartkey", label: "Smart Key", icon: Sparkles, cat: "tech" },
+  { id: "usbC", label: "USB-C Ports", icon: BatteryCharging, cat: "tech" },
+];
+
+const ZONE_LABELS: Record<Exclude<Zone, "pool">, string> = {
+  must: "Must-have",
+  nice: "Nice-to-have",
+  nope: "Not for me",
+};
+
+const ZONE_WEIGHT: Record<Exclude<Zone, "pool">, number> = { must: 2, nice: 1, nope: 0 };
+
+const CAT_META: Record<Category, { label: string; color: string }> = {
+  comfort: { label: "Comfort", color: BRAND_RED },
+  air:     { label: "Fresh Air", color: "#0EA5E9" },
+  light:   { label: "Ambience", color: "#4F46E5" },
+  tech:    { label: "Tech", color: "#111827" },
+  sky:     { label: "Open Sky", color: "#EA580C" },
+  audio:   { label: "Audio", color: "#16A34A" },
+  clean:   { label: "Clean Air", color: "#10B981" },
+  storage: { label: "Storage", color: "#6B7280" },
+};
+
+function personaFromScores(scores: Record<Category, number>) {
+  const entries = Object.entries(scores) as [Category, number][];
+  const [topCat, topScore] = entries.reduce((a, b) => (b[1] > a[1] ? b : a), ["comfort", -Infinity] as [Category, number]);
+  const meta = CAT_META[topCat];
+
+  const persona =
+    topCat === "comfort" ? "Warm Voyager" :
+    topCat === "tech"    ? "Connected Pro" :
+    topCat === "audio"   ? "Soundstage Fan" :
+    topCat === "light"   ? "Mood Aesthete" :
+    topCat === "air"     ? "Breeze Seeker" :
+    topCat === "sky"     ? "Skyline Lover" :
+    topCat === "clean"   ? "Fresh Cabin" :
+    "Practical Organizer";
+
+  const recs =
+    topCat === "comfort" ? ["Heated seats L1–L2", "Soft ambient white", "Quieter audio"] :
+    topCat === "tech"    ? ["Wireless charging", "USB-C everywhere", "Smart Key"] :
+    topCat === "audio"   ? ["JBL on • 35–45 volume", "Balance centered", "Low road-noise"] :
+    topCat === "light"   ? ["Ambient violet/blue", "Dim cabin LEDs", "Roof 10–20%"] :
+    topCat === "air"     ? ["Vent seats L1", "Fresh air mode", "Mild temp 21–22°C"] :
+    topCat === "sky"     ? ["Roof 40–60%", "Ambient warm", "Shades open"] :
+    topCat === "clean"   ? ["Allergen filter ON", "Recirc in traffic", "Floor mats clean"] :
+    ["Extra bins", "Adjustable cupholders", "Seatback pockets"];
+
+  return { persona, color: meta.color, topCat, topScore, recs };
+}
+
+const ChipPill: React.FC<{ chip: Chip; onTapCycle?: (id: string) => void; draggable?: boolean }> = ({ chip, onTapCycle, draggable = true }) => {
+  const Icon = chip.icon;
+  return (
+    <motion.div
+      layout
+      className={cn(
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border bg-white cursor-grab active:cursor-grabbing",
+        "shadow-sm ring-1 ring-black/5 text-sm select-none"
+      )}
+      style={{ borderColor: CAT_META[chip.cat].color }}
+      draggable={draggable}
+      onDragStart={(e) => e.dataTransfer.setData("text/plain", chip.id)}
+      onClick={() => onTapCycle?.(chip.id)}
+      title="Drag to a bucket, or tap to cycle"
+    >
+      <span className="p-1 rounded-full text-white" style={{ background: CAT_META[chip.cat].color }}>
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      {chip.label}
+    </motion.div>
+  );
+};
+
+const DropZone: React.FC<{
+  zone: Exclude<Zone, "pool">;
+  onDropChip: (id: string, zone: Exclude<Zone, "pool">) => void;
+  children: React.ReactNode;
+  highlight?: boolean;
+}> = ({ zone, onDropChip, children, highlight }) => {
+  const onDrop = (e: React.DragEvent) => {
+    const id = e.dataTransfer.getData("text/plain");
+    if (id) onDropChip(id, zone);
   };
   return (
-    <div ref={ref} className="absolute"
-      style={{ left: `${x * 100}%`, top: `${y * 100}%`, transform: "translate(-50%, -50%)" }}>
-      <div onPointerDown={onPointerDown}
-        className="h-4 w-4 rounded-full border bg-white shadow cursor-pointer"
-        title={label || "Drag handle"} />
+    <div
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={onDrop}
+      className={cn(
+        "rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3 min-h-[120px]",
+        highlight && "outline outline-2",
+      )}
+      style={highlight ? { outlineColor: BRAND_RED } : {}}
+      aria-label={`${ZONE_LABELS[zone]} drop zone`}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-medium">{ZONE_LABELS[zone]}</div>
+        <div className="text-[11px] text-muted-foreground">drag or tap chips</div>
+      </div>
+      <motion.div layout className="flex flex-wrap gap-2">{children}</motion.div>
     </div>
   );
 };
 
-const HandleRect: React.FC<{
-  r: R; onChange: (r: R) => void;
-  stroke?: string; label?: string;
-  calibrate?: boolean;
-}> = ({ r, onChange, stroke = BRAND_RED, label, calibrate }) => {
-  const moveCorner = (which: "tl" | "tr" | "bl" | "br") => (nx: number, ny: number) => {
-    const tl = { x: r.x, y: r.y };
-    const br = { x: r.x + r.w, y: r.y + r.h };
-    if (which === "tl") { tl.x = nx; tl.y = ny; }
-    if (which === "tr") { br.x = nx; tl.y = ny; }
-    if (which === "bl") { tl.x = nx; br.y = ny; }
-    if (which === "br") { br.x = nx; br.y = ny; }
-    const nx0 = Math.min(tl.x, br.x), ny0 = Math.min(tl.y, br.y);
-    const nx1 = Math.max(tl.x, br.x), ny1 = Math.max(tl.y, br.y);
-    onChange({ x: clamp01(nx0), y: clamp01(ny0), w: clamp01(nx1 - nx0), h: clamp01(ny1 - ny0) });
-  };
+const ComposerMeters: React.FC<{ scores: Record<Category, number> }> = ({ scores }) => {
+  const max = Math.max(1, ...Object.values(scores));
   return (
-    <>
-      {/* stroke box */}
-      <div className="absolute border rounded pointer-events-none"
-        style={{
-          left: `${r.x * 100}%`, top: `${r.y * 100}%`,
-          width: `${r.w * 100}%`, height: `${r.h * 100}%`,
-          borderColor: stroke, opacity: calibrate ? 0.9 : 0.0
-        }} />
-      {calibrate && (
-        <>
-          <HandlePoint x={r.x} y={r.y} onDrag={moveCorner("tl")} label={`${label} TL`} />
-          <HandlePoint x={r.x + r.w} y={r.y} onDrag={moveCorner("tr")} label={`${label} TR`} />
-          <HandlePoint x={r.x} y={r.y + r.h} onDrag={moveCorner("bl")} label={`${label} BL`} />
-          <HandlePoint x={r.x + r.w} y={r.y + r.h} onDrag={moveCorner("br")} label={`${label} BR`} />
-        </>
-      )}
-    </>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {Object.entries(CAT_META).map(([k, meta]) => {
+        const v = scores[k as Category] || 0;
+        const pct = Math.round((v / max) * 100);
+        return (
+          <div key={k} className="rounded-lg border bg-white/70 p-2">
+            <div className="text-[11px] mb-1">{meta.label}</div>
+            <div className="h-2 w-full rounded bg-black/5 overflow-hidden">
+              <div className="h-full" style={{ width: `${pct}%`, background: meta.color }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 };
 
-const ExperiencePhotoPreview: React.FC<{
-  bgSrc: string;
-  cabin: ReturnType<typeof useCabinState>;
-}> = ({ bgSrc, cabin }) => {
-  const prefers = useReducedMotion();
-  const [calibrate, setCalibrate] = React.useState(false);
-  const [highContrast, setHighContrast] = React.useState(false);
-  const [cfg, setCfg] = React.useState<OverlayConfig>(() => {
-    try {
-      const fromLS = localStorage.getItem(storageKeyFor(bgSrc));
-      return fromLS ? JSON.parse(fromLS) : DEFAULT_CONFIG;
-    } catch { return DEFAULT_CONFIG; }
-  });
+const CabinComposer: React.FC<{
+  initialChips?: Chip[];
+  onChange?: (chips: Chip[]) => void;
+}> = ({ initialChips, onChange }) => {
+  const [chips, setChips] = React.useState<Chip[]>(
+    () => (initialChips ?? CHIP_LIBRARY.map((c) => ({ ...c, zone: "pool" as Zone })))
+  );
 
-  React.useEffect(() => {
-    localStorage.setItem(storageKeyFor(bgSrc), JSON.stringify(cfg));
-  }, [bgSrc, cfg]);
-
-  const mult = highContrast ? 1 : 0.6;
-  const heatAlpha = (0.10 + 0.12 * cabin.seatHeat) * mult;
-  const ventAlpha = (cabin.seatVent === 0 ? 0 : cabin.seatVent === 1 ? 0.20 : 0.30) * mult;
-  const plumeAlpha = (Math.min(Math.abs(cabin.temp - 22), 6) / 6) * 0.25 * mult;
-
-  // radius handle for vent
-  const VentRadiusHandle: React.FC<{ c: P; r: number; onChange: (c: P, r: number) => void; label: string; }> = ({ c, r, onChange, label }) => {
-    const onCenter = (nx: number, ny: number) => onChange({ x: nx, y: ny }, r);
-    const onEdge = (nx: number, ny: number) => {
-      // compute radius as distance from center in min-dim units
-      const dx = nx - c.x, dy = ny - c.y;
-      const newR = clamp01(Math.sqrt(dx * dx + dy * dy));
-      onChange(c, newR);
-    };
-    return (
-      <>
-        <HandlePoint x={c.x} y={c.y} onDrag={onCenter} label={`${label} center`} />
-        <HandlePoint x={c.x + r} y={c.y} onDrag={onEdge} label={`${label} radius`} />
-      </>
-    );
+  const setZone = (id: string, zone: Exclude<Zone, "pool">) => {
+    setChips((prev) => {
+      const next = prev.map((c) => (c.id === id ? { ...c, zone } : c));
+      onChange?.(next);
+      return next;
+    });
   };
 
-  // plume path as Bezier
-  const pathD = `M ${cfg.plume.p0.x * 100} ${cfg.plume.p0.y * 100} 
-                 C ${cfg.plume.c1.x * 100} ${cfg.plume.c1.y * 100},
-                   ${cfg.plume.c2.x * 100} ${cfg.plume.c2.y * 100},
-                   ${cfg.plume.p1.x * 100} ${cfg.plume.p1.y * 100}`;
-
-  const copyCfg = async () => {
-    const text = JSON.stringify(cfg, null, 2);
-    try { await navigator.clipboard.writeText(text); } catch {}
-    alert("Overlay config copied to clipboard.");
+  const cycleTap = (id: string) => {
+    setChips((prev) => {
+      const next = prev.map((c) => {
+        if (c.id !== id) return c;
+        const order: Zone[] = ["pool", "must", "nice", "nope"];
+        const idx = order.indexOf(c.zone);
+        const nz = order[(idx + 1) % order.length];
+        return { ...c, zone: nz };
+      });
+      onChange?.(next);
+      return next;
+    });
   };
-  const resetCfg = () => setCfg(DEFAULT_CONFIG);
+
+  const moveAllTo = (zone: Exclude<Zone, "pool">) => {
+    setChips((prev) => prev.map((c) => ({ ...c, zone })));
+  };
+  const reset = () => setChips(CHIP_LIBRARY.map((c) => ({ ...c, zone: "pool" as Zone })));
+
+  // scores
+  const scores = chips.reduce((acc, c) => {
+    if (c.zone !== "pool") acc[c.cat] = (acc[c.cat] || 0) + ZONE_WEIGHT[c.zone];
+    return acc;
+  }, {} as Record<Category, number>);
+  const { persona, color, recs } = personaFromScores(scores);
+
+  const pool = chips.filter((c) => c.zone === "pool");
+  const must = chips.filter((c) => c.zone === "must");
+  const nice = chips.filter((c) => c.zone === "nice");
+  const nope = chips.filter((c) => c.zone === "nope");
 
   return (
-    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" />
-          Live preview on real interior photo
+    <div className="grid lg:grid-cols-3 gap-4">
+      {/* Left: buckets */}
+      <div className="lg:col-span-2 space-y-3">
+        {/* Pool */}
+        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium">Drag feature chips</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={reset}>Reset</Button>
+              <Button variant="outline" size="sm" onClick={() => moveAllTo("must")}>All Must</Button>
+            </div>
+          </div>
+          <motion.div layout className="flex flex-wrap gap-2">
+            <AnimatePresence>
+              {pool.map((chip) => (
+                <ChipPill key={chip.id} chip={chip} onTapCycle={cycleTap} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setHighContrast(!highContrast)} className="text-xs underline">
-            {highContrast ? "Normal overlays" : "High contrast overlays"}
-          </button>
-          <button onClick={() => setCalibrate(!calibrate)} className="text-xs underline">
-            {calibrate ? "Exit Calibrate" : "Calibrate"}
-          </button>
-          {calibrate && (
-            <>
-              <button onClick={copyCfg} className="text-xs underline">Copy JSON</button>
-              <button onClick={resetCfg} className="text-xs underline">Reset</button>
-            </>
-          )}
+
+        {/* Drop Zones */}
+        <div className="grid md:grid-cols-3 gap-3">
+          <DropZone zone="must" onDropChip={setZone} highlight>
+            {must.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
+          </DropZone>
+          <DropZone zone="nice" onDropChip={setZone}>
+            {nice.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
+          </DropZone>
+          <DropZone zone="nope" onDropChip={setZone}>
+            {nope.map((c) => <ChipPill key={c.id} chip={c} onTapCycle={cycleTap} />)}
+          </DropZone>
         </div>
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-lg shadow-sm" style={{ paddingTop: "56.25%" }}>
-        {/* Background */}
-        <img src={bgSrc} alt="Vehicle interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      {/* Right: dynamic summary / recommendation */}
+      <div className="space-y-3">
+        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="p-2 rounded-md text-white" style={{ background: color }}>
+              <Wand2 className="h-4 w-4" />
+            </span>
+            <div className="font-semibold">Your interior vibe</div>
+          </div>
+          <div className="text-xl font-bold" style={{ color }}>{persona}</div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Based on your priorities, here’s a cabin setup we think you’ll love.
+          </p>
 
-        {/* Overlay container (100% size) */}
-        <div className="absolute inset-0">
-
-          {/* Heat (seats) */}
-          <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "multiply" }}>
-            <div className="absolute" style={{
-              left: `${cfg.seatLeft.x * 100}%`, top: `${cfg.seatLeft.y * 100}%`,
-              width: `${cfg.seatLeft.w * 100}%`, height: `${cfg.seatLeft.h * 100}%`,
-              background: BRAND_RED, opacity: heatAlpha, borderRadius: 12
-            }} />
-            <div className="absolute" style={{
-              left: `${cfg.seatRight.x * 100}%`, top: `${cfg.seatRight.y * 100}%`,
-              width: `${cfg.seatRight.w * 100}%`, height: `${cfg.seatRight.h * 100}%`,
-              background: BRAND_RED, opacity: heatAlpha, borderRadius: 12
-            }} />
+          <div className="mt-3">
+            <ComposerMeters scores={scores} />
           </div>
 
-          {/* Vent haze */}
-          {cabin.seatVent > 0 && (
-            <>
-              <div className="absolute rounded-full pointer-events-none"
-                style={{
-                  left: `calc(${cfg.ventLeft.c.x * 100}% - ${cfg.ventLeft.r * 100}%)`,
-                  top:  `calc(${cfg.ventLeft.c.y * 100}% - ${cfg.ventLeft.r * 100}%)`,
-                  width: `${cfg.ventLeft.r * 200}%`, height: `${cfg.ventLeft.r * 200}%`,
-                  background: "#0EA5E9", opacity: ventAlpha, filter: "blur(8px)"
-                }} />
-              <div className="absolute rounded-full pointer-events-none"
-                style={{
-                  left: `calc(${cfg.ventRight.c.x * 100}% - ${cfg.ventRight.r * 100}%)`,
-                  top:  `calc(${cfg.ventRight.c.y * 100}% - ${cfg.ventRight.r * 100}%)`,
-                  width: `${cfg.ventRight.r * 200}%`, height: `${cfg.ventRight.r * 200}%`,
-                  background: "#0EA5E9", opacity: ventAlpha, filter: "blur(8px)"
-                }} />
-            </>
-          )}
+          <div className="mt-3">
+            <div className="text-xs text-muted-foreground mb-1">Quick recommendations</div>
+            <ul className="text-sm space-y-1">
+              {recs.map((r) => (
+                <li key={r} className="flex gap-2 items-start">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Plume (animated) */}
-          {cabin.temp !== 22 && (
-            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
-              <motion.path
-                d={pathD}
-                stroke={cabin.temp > 22 ? BRAND_RED : "#0EA5E9"}
-                strokeWidth={1.2}
-                fill="none"
-                initial={{ opacity: 0.15 }}
-                animate={{ opacity: [0.15, plumeAlpha, 0.15] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-                style={{ filter: "blur(0.5px)" }}
-              />
-            </svg>
-          )}
-
-          {/* Ambient strip */}
-          <div className="absolute pointer-events-none"
-            style={{
-              left: `${cfg.ambient.x * 100}%`, top: `${cfg.ambient.y * 100}%`,
-              width: `${cfg.ambient.w * 100}%`, height: `${cfg.ambient.h * 100}%`,
-              background: cabin.ambient, opacity: 0.85 * mult, filter: "blur(2px)", borderRadius: 4
-            }} />
-
-          {/* Sunroof opening indicator (use width proportional to sunroofPct) */}
-          <div className="absolute pointer-events-none"
-            style={{
-              left: `${cfg.sunroof.x * 100}%`,
-              top: `${cfg.sunroof.y * 100}%`,
-              width: `${(cfg.sunroof.w * (cabin.sunroofPct / 100)) * 100}%`,
-              height: `${cfg.sunroof.h * 100}%`,
-              background: "#000", opacity: 0.20 * mult, borderRadius: 6
-            }} />
-
-          {/* Head unit + volume */}
-          <div className="absolute" style={{
-            left: `${cfg.headUnit.x * 100}%`, top: `${cfg.headUnit.y * 100}%`,
-            width: `${cfg.headUnit.w * 100}%`, height: `${cfg.headUnit.h * 100}%`,
-            background: "rgba(255,255,255,.85)", borderRadius: 6, border: "1px solid rgba(0,0,0,.15)"
-          }} />
-          <div className="absolute" style={{
-            left: `${cfg.volumeBar.x * 100}%`, top: `${cfg.volumeBar.y * 100}%`,
-            width: `${Math.max(0.1, (cabin.volume / 100) * cfg.volumeBar.w) * 100}%`,
-            height: `${cfg.volumeBar.h * 100}%`,
-            background: "rgba(0,0,0,.65)", borderRadius: 3
-          }} />
-
-          {/* Calibration handles */}
-          {calibrate && (
-            <>
-              <HandleRect r={cfg.seatLeft}  onChange={(r) => setCfg({ ...cfg, seatLeft: r })}  label="Seat L" calibrate stroke={BRAND_RED} />
-              <HandleRect r={cfg.seatRight} onChange={(r) => setCfg({ ...cfg, seatRight: r })} label="Seat R" calibrate stroke={BRAND_RED} />
-              <HandleRect r={cfg.ambient}   onChange={(r) => setCfg({ ...cfg, ambient: r })}   label="Ambient" calibrate stroke={cabin.ambient} />
-              <HandleRect r={cfg.sunroof}   onChange={(r) => setCfg({ ...cfg, sunroof: r })}   label="Sunroof" calibrate stroke="#000" />
-              <HandleRect r={cfg.headUnit}  onChange={(r) => setCfg({ ...cfg, headUnit: r })}  label="HeadUnit" calibrate stroke="#333" />
-              <HandleRect r={cfg.volumeBar} onChange={(r) => setCfg({ ...cfg, volumeBar: r })} label="Volume" calibrate stroke="#333" />
-
-              <VentRadiusHandle
-                c={cfg.ventLeft.c} r={cfg.ventLeft.r}
-                onChange={(c, r) => setCfg({ ...cfg, ventLeft: { c, r } })}
-                label="Vent L" />
-              <VentRadiusHandle
-                c={cfg.ventRight.c} r={cfg.ventRight.r}
-                onChange={(c, r) => setCfg({ ...cfg, ventRight: { c, r } })}
-                label="Vent R" />
-
-              {/* Plume points */}
-              <HandlePoint x={cfg.plume.p0.x} y={cfg.plume.p0.y}
-                onDrag={(x, y) => setCfg({ ...cfg, plume: { ...cfg.plume, p0: { x, y } } })}
-                label="Plume p0" />
-              <HandlePoint x={cfg.plume.c1.x} y={cfg.plume.c1.y}
-                onDrag={(x, y) => setCfg({ ...cfg, plume: { ...cfg.plume, c1: { x, y } } })}
-                label="Plume c1" />
-              <HandlePoint x={cfg.plume.c2.x} y={cfg.plume.c2.y}
-                onDrag={(x, y) => setCfg({ ...cfg, plume: { ...cfg.plume, c2: { x, y } } })}
-                label="Plume c2" />
-              <HandlePoint x={cfg.plume.p1.x} y={cfg.plume.p1.y}
-                onDrag={(x, y) => setCfg({ ...cfg, plume: { ...cfg.plume, p1: { x, y } } })}
-                label="Plume p1" />
-            </>
-          )}
+          <div className="mt-4 flex gap-2">
+            <Button className="flex-1" style={{ background: color }}>
+              Apply to a build
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={() => {
+              const summary = `Persona: ${persona}\nMust: ${must.map(m=>m.label).join(", ") || "-"}\nNice: ${nice.map(m=>m.label).join(", ") || "-"}\nNope: ${nope.map(m=>m.label).join(", ") || "-"}`;
+              navigator.clipboard?.writeText(summary);
+              alert("Summary copied to clipboard");
+            }}>
+              Share
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-2 text-xs text-muted-foreground">
-        {calibrate
-          ? "Drag the handles to align overlays with the photo. Changes are saved automatically (localStorage)."
-          : "Adjust controls to see heat/vent overlays, climate plume (red=warm, blue=cool), ambient glow, sunroof opening, and volume."}
+        <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4" style={{ color }} />
+            <div className="font-semibold">Why this works</div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Sorting features clarifies what matters most, so we can tailor trims, packages, and demos to your vibe — making your test drive hyper-relevant.
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
-/* ----------------------------------------------------------------------------
-  SPOTLIGHT MODULE CARDS (short)
----------------------------------------------------------------------------- */
-
-const CardShell: React.FC<{ title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode; }> =
-({ title, icon: Icon, children }) => (
-  <div className="p-4 rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
-        <Icon className="h-4 w-4" />
-      </span>
-      <h4 className="font-semibold">{title}</h4>
-    </div>
-    {children}
-  </div>
-);
-
-const SeatingModule: React.FC<{ seatHeat: Level; seatVent: Level; setSeatHeat: (v: Level)=>void; setSeatVent: (v: Level)=>void; }> =
-({ seatHeat, seatVent, setSeatHeat, setSeatVent }) => (
-  <CardShell title="Seating" icon={Armchair}>
-    <div className="grid grid-cols-2 gap-3">
-      <div>
-        <div className="text-sm mb-1 font-medium">Heat</div>
-        <div className="flex gap-1">{[0,1,2].map((lvl)=>(
-          <button key={`heat-${lvl}`} onClick={()=>setSeatHeat(lvl as Level)}
-            className={cn("px-2 py-1 rounded border text-xs", seatHeat===lvl ? "bg-black text-white border-black":"hover:bg-black/5")}>
-            {lvl}
-          </button>))}</div>
-      </div>
-      <div>
-        <div className="text-sm mb-1 font-medium">Vent</div>
-        <div className="flex gap-1">{[0,1,2].map((lvl)=>(
-          <button key={`vent-${lvl}`} onClick={()=>setSeatVent(lvl as Level)}
-            className={cn("px-2 py-1 rounded border text-xs", seatVent===lvl ? "bg-black text-white border-black":"hover:bg-black/5")}>
-            {lvl}
-          </button>))}</div>
-      </div>
-    </div>
-    <p className="text-xs text-muted-foreground mt-2">Tune heat/vent per seat.</p>
-  </CardShell>
-);
-
-const ClimateModule: React.FC<{ temp: number; setTemp: (v:number)=>void; recirc: boolean; setRecirc: (v:boolean)=>void; }> =
-({ temp, setTemp, recirc, setRecirc }) => (
-  <CardShell title="Climate" icon={Thermometer}>
-    <div className="flex items-center gap-2 text-sm font-medium">
-      Temperature <span className="ml-auto font-semibold">{temp}°C</span>
-    </div>
-    <input type="range" min={16} max={28} value={temp} onChange={(e)=>setTemp(parseInt(e.target.value))} className="w-full mt-2" />
-    <div className="mt-2 flex items-center justify-between">
-      <div className="text-xs text-muted-foreground">Dual-zone ready</div>
-      <button onClick={()=>setRecirc(!recirc)} className={cn("px-2 py-1 rounded border text-xs", recirc?"bg-black text-white border-black":"hover:bg-black/5")}>
-        {recirc ? "Recirc On" : "Fresh Air"}
-      </button>
-    </div>
-  </CardShell>
-);
-
-const LightingModule: React.FC<{ ambient: string; setAmbient: (c:string)=>void; }> =
-({ ambient, setAmbient }) => (
-  <CardShell title="Ambient Lighting" icon={Lightbulb}>
-    <div className="flex gap-2">
-      {[BRAND_RED, "#4F46E5", "#059669", "#0EA5E9", "#F59E0B"].map((c)=>(
-        <button key={c} onClick={()=>setAmbient(c)}
-          className={cn("h-6 w-6 rounded-full border", ambient===c && "ring-2")}
-          style={{ background: c }} aria-label={`Ambient ${c}`} />
-      ))}
-    </div>
-    <p className="text-xs text-muted-foreground mt-2">Pick a mood color.</p>
-  </CardShell>
-);
-
-const AudioModule: React.FC<{ volume: number; setVolume: (v:number)=>void; }> =
-({ volume, setVolume }) => (
-  <CardShell title="JBL Audio" icon={Volume2}>
-    <div className="flex items-center gap-2 text-sm font-medium">
-      Volume <span className="ml-auto font-semibold">{volume}</span>
-    </div>
-    <input type="range" min={0} max={100} value={volume} onChange={(e)=>setVolume(parseInt(e.target.value))} className="w-full mt-2" />
-    <p className="text-xs text-muted-foreground mt-2">Concert-like clarity.</p>
-  </CardShell>
-);
-
-const SunroofModule: React.FC<{ sunroofPct: number; setSunroofPct: (v:number)=>void; }> =
-({ sunroofPct, setSunroofPct }) => (
-  <CardShell title="Panoramic Roof" icon={Sun}>
-    <div className="flex items-center gap-2 text-sm font-medium">
-      Open <span className="ml-auto font-semibold">{sunroofPct}%</span>
-    </div>
-    <input type="range" min={0} max={100} value={sunroofPct} onChange={(e)=>setSunroofPct(parseInt(e.target.value))} className="w-full mt-2" />
-  </CardShell>
-);
-
-const AirQualityModule: React.FC<{ recirc: boolean; setRecirc: (v:boolean)=>void; }> =
-({ recirc, setRecirc }) => (
-  <CardShell title="Air Quality" icon={Wind}>
-    <div className="flex items-center justify-between">
-      <div className="text-sm font-medium">{recirc ? "Recirculation" : "Fresh Air"}</div>
-      <button onClick={()=>setRecirc(!recirc)} className={cn("px-2 py-1 rounded border text-xs", recirc?"bg-black text-white border-black":"hover:bg-black/5")}>
-        Toggle
-      </button>
-    </div>
-  </CardShell>
-);
-
-/* ----------------------------------------------------------------------------
-  MAIN MODAL
----------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                              MAIN MODAL COMPONENT                           */
+/* -------------------------------------------------------------------------- */
 
 const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   isOpen,
@@ -688,56 +584,46 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   images,
   hotspotImage,
   hotspots,
-  experienceBg,
 }) => {
-  const prefers = useReducedMotion();
-  const enter = prefers ? {} : { opacity: 0, y: 16 };
-  const entered = prefers ? {} : { opacity: 1, y: 0 };
-
-  const cabin = useCabinState();
+  const prefersReduced = useReducedMotion();
+  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
+  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
 
   const gallery = images?.length ? images : [
     { src: DEFAULT_IMG_A, alt: "Interior highlight 1" },
     { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
   ];
 
-  const hotspotBg = hotspotImage || { src: DEFAULT_IMG_B, alt: "Interior with features" };
-  const hotspotItems = hotspots?.length ? hotspots : [
-    { x: 48, y: 70, title: "Wireless Charging", body: "Drop your phone on the pad to charge.", icon: Smartphone },
-    { x: 18, y: 62, title: "JBL Speakers", body: "Crisp highs and deep lows.", icon: Volume2 },
-    { x: 82, y: 26, title: "Panoramic Roof", body: "One-touch to open.", icon: Sun },
-    { x: 52, y: 40, title: "Ambient Lighting", body: "Subtle LED accents.", icon: Lightbulb },
-    { x: 30, y: 78, title: "Comfort Seats", body: "Heated & vented.", icon: Armchair },
+  const hotspotBg = hotspotImage || { src: HOTSPOT_BG, alt: "Interior with features" };
+  const hotspotItems: Hotspot[] = hotspots?.length ? hotspots : [
+    { x: 48, y: 70, title: "Wireless Charging", body: "Drop your phone on the pad to charge while you drive.", icon: Smartphone },
+    { x: 18, y: 62, title: "JBL Speakers", body: "Crisp highs and deep lows tuned for the cabin.", icon: Volume2 },
+    { x: 82, y: 26, title: "Panoramic Roof", body: "Let in sky and light with one-touch control.", icon: Sun },
+    { x: 52, y: 40, title: "Ambient Lighting", body: "Set the tone with subtle LED accents.", icon: Lightbulb },
+    { x: 30, y: 78, title: "Comfort Seats", body: "Heated/ventilated seats keep you fresh.", icon: Armchair },
   ];
 
   const tabItems = (videoIds.length
-    ? ([
+    ? [
         { key: "overview", label: "Overview" as const },
-        { key: "experience", label: "Experience" as const },
+        { key: "composer", label: "Cabin Composer" as const },
         { key: "hotspots", label: "Hotspots" as const },
         { key: "images", label: "Images" as const },
         { key: "videos", label: "Videos" as const },
-      ])
-    : ([
+      ]
+    : [
         { key: "overview", label: "Overview" as const },
-        { key: "experience", label: "Experience" as const },
+        { key: "composer", label: "Cabin Composer" as const },
         { key: "hotspots", label: "Hotspots" as const },
         { key: "images", label: "Images" as const },
-      ])) as { key: TabKey; label: string }[];
+      ]) as { key: TabKey; label: string }[];
 
-  const [tab, setTab] = React.useState<TabKey>("experience");
-
-  const convenienceGroups = [
-    { icon: Smartphone, title: "Tech Integration", features: ["Wireless Charging", "Multiple USB", "12V Outlets", "Smartphone Integration"] },
-    { icon: Coffee, title: "Smart Storage", features: ["Adjustable Cupholders", "Deep Console Bin", "Door Pockets", "Seatback Pockets"] },
-    { icon: Wind, title: "Air Quality", features: ["Cabin Filter", "Fresh Air Mode", "Recirculation", "Allergen Reduction"] },
-    { icon: Car, title: "Interior Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
-  ];
+  const [tab, setTab] = React.useState<TabKey>("composer"); // land users on the new interactive tab
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* Compact header */}
+        {/* Compact mobile header */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
@@ -748,15 +634,14 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
             </Button>
           </div>
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            Tune controls, calibrate overlays, and explore hotspots/images/videos.
+            Sort your must-haves to craft a cabin vibe — then explore hotspots, images, or videos.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* HERO */}
-            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }}
-              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
+            {/* HERO: Tabs + quick stats */}
+            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }} className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
               <div className="flex items-center gap-3 mb-4">
                 <Car className="h-7 w-7" style={{ color: BRAND_RED }} />
                 <Badge variant="secondary" className="text-xs font-semibold" style={{ background: "#fff", border: "1px solid #eee" }}>
@@ -767,7 +652,9 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
               <div className="grid lg:grid-cols-3 gap-4 mb-3">
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
-                  <p className="text-sm text-muted-foreground">Set the cabin and see it update on the real photo.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Drag feature chips into buckets — we’ll turn that into a personalized interior vibe.
+                  </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
                       <div className="text-xl font-bold" style={{ color: BRAND_RED }}>100.4</div>
@@ -786,39 +673,15 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
 
                 <div className="lg:col-span-2 space-y-3">
                   <Tabs active={tab} onChange={setTab} items={tabItems} />
-                  <div className="text-xs text-muted-foreground">Overview · Experience · Hotspots · Images · Videos</div>
+                  <div className="text-xs text-muted-foreground">Overview · Cabin Composer · Hotspots · Images · Videos</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* EXPERIENCE TAB */}
-            {tab === "experience" && (
-              <motion.div key="experience" initial={enter} animate={entered} className="space-y-4">
-                {/* Presets */}
-                <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-                  <div className="flex items-center gap-2 mb-2 text-sm font-medium">
-                    Quick Presets
-                    <span className="text-xs text-muted-foreground ml-2">Apply multiple settings at once</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={()=>cabin.applyPreset("commute")}>Morning Commute</Button>
-                    <Button variant="outline" size="sm" onClick={()=>cabin.applyPreset("family")}>Family Trip</Button>
-                    <Button variant="outline" size="sm" onClick={()=>cabin.applyPreset("night")}>Night Mode</Button>
-                  </div>
-                </div>
-
-                {/* Spotlight modules */}
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <SeatingModule seatHeat={cabin.seatHeat} seatVent={cabin.seatVent} setSeatHeat={cabin.setSeatHeat} setSeatVent={cabin.setSeatVent} />
-                  <ClimateModule temp={cabin.temp} setTemp={cabin.setTemp} recirc={cabin.recirc} setRecirc={cabin.setRecirc} />
-                  <LightingModule ambient={cabin.ambient} setAmbient={cabin.setAmbient} />
-                  <AudioModule volume={cabin.volume} setVolume={cabin.setVolume} />
-                  <SunroofModule sunroofPct={cabin.sunroofPct} setSunroofPct={cabin.setSunroofPct} />
-                  <AirQualityModule recirc={cabin.recirc} setRecirc={cabin.setRecirc} />
-                </div>
-
-                {/* Photo overlay preview with calibration */}
-                <ExperiencePhotoPreview bgSrc={experienceBg || EXPERIENCE_BG_DEFAULT} cabin={cabin} />
+            {/* COMPOSER TAB */}
+            {tab === "composer" && (
+              <motion.div key="composer" initial={enter} animate={entered}>
+                <CabinComposer />
               </motion.div>
             )}
 
@@ -853,7 +716,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium mb-2">
                     Feature Catalog
-                    <span className="text-xs text-muted-foreground ml-2">Expandable sections</span>
+                    <span className="text-xs text-muted-foreground ml-2">Expandable sections — add more anytime</span>
                   </div>
                   <div className="space-y-3">
                     {[
@@ -865,7 +728,12 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                       <CollapsibleContent
                         key={group.title}
                         defaultOpen={index === 0}
-                        title={<div className="flex items-center gap-3"><group.icon className="h-5 w-5 text-black/70" /><span className="font-medium">{group.title}</span></div>}
+                        title={
+                          <div className="flex items-center gap-3">
+                            <group.icon className="h-5 w-5 text-black/70" />
+                            <span className="font-medium">{group.title}</span>
+                          </div>
+                        }
                       >
                         <div className="grid gap-2 sm:grid-cols-2">
                           {group.features.map((f, i) => (
