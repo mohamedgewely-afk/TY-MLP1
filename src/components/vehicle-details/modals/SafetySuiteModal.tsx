@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart, ChevronRight, CheckCircle2, Play, X
+  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart, ChevronRight, CheckCircle2, Play
 } from "lucide-react";
 import {
   MobileOptimizedDialog,
@@ -18,21 +18,22 @@ import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/*                                 Types & UX                                  */
+/*                                  Config                                     */
 /* -------------------------------------------------------------------------- */
 
 type ScenarioKey = "preCollision" | "laneDrift" | "cruise" | "night";
 
-interface SafetySuiteModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onBookTestDrive: () => void;
-  modelName?: string;     // e.g., "Camry Hybrid"
-  regionLabel?: string;   // e.g., "UAE"
-}
+const IMG_LANE =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/27becc9e-3b15-436e-a603-df509955cba9/renditions/e6cec4c7-f5aa-4560-b91f-49ed9ab26956?binary=true&mformat=true";
+const IMG_CRUISE =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/cbbefa79-6002-4f61-94e0-ee097a8dc6c6/items/a7ed1d12-7c0e-4377-84f1-bf4d0230ded6/renditions/4b8651e3-1a7c-4e08-aab5-aa103f6a5b4b?binary=true&mformat=true";
+const IMG_NIGHT =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/9200d151-0947-45d4-b2de-99d247bee98a/renditions/d5c695c7-b387-4005-bf45-55b8786bafd7?binary=true&mformat=true";
+
+const YT_PRECOLLISION = "oL6mrPWtZJ4"; // https://www.youtube.com/watch?v=oL6mrPWtZJ4
 
 /* -------------------------------------------------------------------------- */
-/*                          Scenario Selector (Pills)                          */
+/*                              Reusable pieces                                */
 /* -------------------------------------------------------------------------- */
 
 const ScenarioPills: React.FC<{
@@ -54,7 +55,9 @@ const ScenarioPills: React.FC<{
           onClick={() => setActive(key)}
           className={cn(
             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition",
-            active === key ? "bg-primary text-primary-foreground border-transparent" : "hover:bg-muted border"
+            active === key
+              ? "bg-primary text-primary-foreground border-transparent shadow-sm"
+              : "hover:bg-muted border"
           )}
           aria-pressed={active === key}
         >
@@ -66,17 +69,14 @@ const ScenarioPills: React.FC<{
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              Media Components                               */
-/* -------------------------------------------------------------------------- */
-
-/** Video with privacy-enhanced YouTube + poster overlay; loads only after click */
+/** Privacy-enhanced YouTube with poster overlay; loads only on click */
 const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
   const [play, setPlay] = React.useState(false);
   const src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${play ? "&autoplay=1" : ""}`;
   const poster = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
   return (
-    <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5 bg-black">
+    <div className="relative w-full overflow-hidden rounded-xl bg-black ring-1 ring-black/5">
       <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
         {!play && (
           <button
@@ -109,82 +109,105 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
   );
 };
 
-/** Before/After scrub demo (no external assets required) */
-const LaneDriftScrub: React.FC = () => {
-  const [pos, setPos] = React.useState(60); // 0..100
-  return (
-    <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5 bg-neutral-900">
-      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-        {/* BEFORE (no assist) */}
-        <div className="absolute inset-0">
-          <GridRoad drift />
-          <DriftingCar />
-          <LabelBadge text="Before · No Assist" className="left-3 top-3" />
-        </div>
-        {/* AFTER (lane assist) */}
-        <div className="absolute inset-0 pointer-events-none" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-          <GridRoad drift={false} assisted />
-          <CenteredCar />
-          <LabelBadge text="After · Lane Assist" className="right-3 top-3" />
-        </div>
+/** Elegant, swipeable image gallery with thumbnails & keyboard support */
+const ImageGallery: React.FC<{
+  images: { src: string; alt: string }[];
+  initial?: number;
+  caption?: string;
+}> = ({ images, initial = 0, caption }) => {
+  const [idx, setIdx] = React.useState(initial);
+  const prefersReduced = useReducedMotion();
+  const canPrev = idx > 0;
+  const canNext = idx < images.length - 1;
 
-        {/* Scrubber */}
-        <div className="absolute top-0 bottom-0" style={{ left: `${pos}%`, transform: "translateX(-50%)" }}>
-          <div className="h-full w-0.5 bg-white/70" />
-          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-black shadow">
-            Drag
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
+    if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
+  };
+
+  return (
+    <div
+      className="rounded-xl ring-1 ring-black/5 bg-background/60 backdrop-blur-md border overflow-hidden"
+      tabIndex={0}
+      onKeyDown={onKey}
+      aria-label="Image gallery. Use left and right arrow keys to navigate."
+    >
+      <div className="relative">
+        <div className="relative w-full overflow-hidden">
+          <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={images[idx].src}
+                src={images[idx].src}
+                alt={images[idx].alt || ""}
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={prefersReduced ? {} : { opacity: 0.0, scale: 0.98 }}
+                animate={prefersReduced ? {} : { opacity: 1, scale: 1 }}
+                exit={prefersReduced ? {} : { opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                loading="lazy"
+              />
+            </AnimatePresence>
           </div>
         </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={pos}
-          onChange={(e) => setPos(Number(e.target.value))}
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[60%] cursor-ew-resize [accent-color:hsl(var(--primary))]"
-          aria-label="Slide to compare before and after"
-        />
+
+        {/* Controls */}
+        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
+          <button
+            aria-label="Previous image"
+            disabled={!canPrev}
+            onClick={() => canPrev && setIdx((i) => i - 1)}
+            className={cn(
+              "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+              !canPrev && "opacity-40 pointer-events-none"
+            )}
+          >
+            ‹
+          </button>
+          <button
+            aria-label="Next image"
+            disabled={!canNext}
+            onClick={() => canNext && setIdx((i) => i + 1)}
+            className={cn(
+              "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+              !canNext && "opacity-40 pointer-events-none"
+            )}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Caption */}
+        {caption && (
+          <div className="absolute bottom-2 left-2 right-2 text-xs text-white/95">
+            <div className="inline-block rounded-md bg-black/45 px-2 py-1 backdrop-blur-sm">
+              {caption}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Thumbnails */}
+      <div className="flex gap-2 p-2 border-t bg-background/70">
+        {images.map((im, i) => (
+          <button
+            key={im.src}
+            onClick={() => setIdx(i)}
+            className={cn(
+              "relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5",
+              i === idx && "outline outline-2 outline-primary"
+            )}
+            aria-label={`Go to image ${i + 1}`}
+          >
+            <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
+          </button>
+        ))}
       </div>
     </div>
   );
 };
 
-/* Visual primitives for the scrub demo */
-const GridRoad: React.FC<{ drift?: boolean; assisted?: boolean }> = ({ drift, assisted }) => (
-  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 160 90" preserveAspectRatio="none">
-    <defs>
-      <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-      </pattern>
-    </defs>
-    <rect width="160" height="90" fill="#0a0a0a" />
-    <rect width="160" height="90" fill="url(#grid)" />
-    <path d="M0,60 L160,60" stroke="#2f2f2f" strokeWidth="20" />
-    <path d="M10,60 L150,60" stroke="#ffffff" strokeDasharray="4 4" strokeWidth="1.2" />
-    {drift && <circle cx="110" cy="48" r="10" fill="rgba(255,200,0,0.12)" />}
-    {assisted && <path d="M40,52 Q80,60 120,58" stroke="rgba(0,200,255,0.5)" strokeWidth="3" fill="none" />}
-  </svg>
-);
-
-const DriftingCar: React.FC = () => (
-  <div className="absolute left-[48%] top-[46%] -translate-x-1/2 -rotate-8">
-    <div className="h-8 w-14 rounded bg-red-500 shadow-lg" />
-  </div>
-);
-
-const CenteredCar: React.FC = () => (
-  <div className="absolute left-[50%] top-[58%] -translate-x-1/2">
-    <div className="h-8 w-14 rounded bg-emerald-500 shadow-lg" />
-  </div>
-);
-
-const LabelBadge: React.FC<{ text: string; className?: string }> = ({ text, className }) => (
-  <div className={cn("absolute rounded-full bg-white/90 text-[10px] text-black px-2 py-0.5 shadow", className)}>
-    {text}
-  </div>
-);
-
-/* Simple placeholder cards for the non-video scenarios (keep hero interactive) */
+/* Minimal placeholder card for non-video scenarios when needed */
 const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "amber" | "emerald" }> = ({ title, subtitle, accent = "blue" }) => {
   const accentMap: Record<string, string> = {
     blue: "from-blue-500/20 to-blue-500/0 ring-blue-300/30",
@@ -211,7 +234,13 @@ const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "
 /*                           Main Safety Suite Modal                           */
 /* -------------------------------------------------------------------------- */
 
-const YT_PRECOLLISION = "oL6mrPWtZJ4"; // from https://www.youtube.com/watch?v=oL6mrPWtZJ4
+interface SafetySuiteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onBookTestDrive: () => void;
+  modelName?: string;
+  regionLabel?: string;
+}
 
 const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
   isOpen,
@@ -232,7 +261,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
       name: "Pre-Collision System",
       chips: ["Pedestrian", "Auto Brake", "Radar"],
       details:
-        "Camera + radar help detect vehicles/pedestrians and can automatically apply brakes if a collision is likely.",
+        "Camera + radar help detect vehicles/pedestrians and can apply brakes if a collision is likely.",
       active: scenario === "preCollision",
     },
     {
@@ -261,45 +290,27 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
     },
   ] as const;
 
-  const additionalSafety = [
-    {
-      icon: Gauge,
-      title: "Star Safety System",
-      features: ["VSC", "TRAC", "ABS", "EBD", "BA", "SST"],
-    },
-    {
-      icon: Users,
-      title: "Airbag System",
-      features: ["Front Airbags", "Front Side", "Rear Side", "Curtains"],
-    },
-    {
-      icon: Heart,
-      title: "Active Safety",
-      features: ["Blind Spot Monitor", "Rear Cross-Traffic Alert", "Bird’s Eye View", "Parking Support Brake"],
-    },
-  ] as const;
-
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
-      {/* Wider for proper media */}
+      {/* Wider for media clarity */}
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
         <MobileOptimizedDialogHeader>
           <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
             Toyota Safety Sense 2.0 · {modelName}
           </MobileOptimizedDialogTitle>
           <MobileOptimizedDialogDescription className="text-base line-clamp-2">
-            Real scenarios you can feel—then book a test drive.
+            Real scenarios you can see—then book a test drive.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* Hero: Scenario pills + reaction timeline + media */}
+            {/* Hero area: scenario + media */}
             <motion.div
               initial={enter}
               animate={entered}
               transition={{ duration: 0.3 }}
-              className="rounded-2xl p-4 lg:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent ring-1 ring-primary/20"
+              className="rounded-2xl p-4 lg:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent ring-1 ring-primary/20 backdrop-blur-sm"
             >
               <div className="flex items-center gap-3 mb-4">
                 <Shield className="h-7 w-7 text-primary" />
@@ -309,10 +320,10 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
               </div>
 
               <div className="flex flex-col lg:flex-row gap-4">
-                {/* Left: scenario controls + timeline */}
+                {/* Left: scenario controls + micro timeline */}
                 <div className="lg:w-72 space-y-3">
                   <ScenarioPills active={scenario} setActive={setScenario} />
-                  <div className="rounded-lg border p-3">
+                  <div className="rounded-lg border p-3 bg-background/60 backdrop-blur">
                     <h4 className="text-sm font-semibold mb-2">Reaction Timeline</h4>
                     <div className="grid grid-cols-4 gap-2 text-center text-xs">
                       {[
@@ -326,7 +337,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                           initial={{ opacity: 0.4, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.05 }}
-                          className="rounded-md border p-2"
+                          className="rounded-md border p-2 bg-background"
                         >
                           <div className="font-semibold">{s.t}</div>
                           <div className="text-muted-foreground">{s.label}</div>
@@ -336,7 +347,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                   </div>
                 </div>
 
-                {/* Right: interactive media area */}
+                {/* Right: media */}
                 <div className="flex-1 min-w-0">
                   <AnimatePresence mode="wait">
                     {scenario === "preCollision" && (
@@ -344,23 +355,46 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                         <YoutubeInline videoId={YT_PRECOLLISION} title="Pre-Collision System" />
                       </motion.div>
                     )}
+
                     {scenario === "laneDrift" && (
                       <motion.div key="lane" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <LaneDriftScrub />
+                        <ImageGallery
+                          images={[
+                            { src: IMG_LANE, alt: "Lane Assist visualization" },
+                            { src: IMG_CRUISE, alt: "Road view – cruise support" },
+                            { src: IMG_NIGHT, alt: "Night visibility / Auto High Beam" },
+                          ]}
+                          initial={0}
+                          caption="Lane Assist keeps you centered with gentle steering support."
+                        />
                       </motion.div>
                     )}
+
                     {scenario === "cruise" && (
                       <motion.div key="cruise" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
-                          <CardShell title="Adaptive Following" subtitle="Speed & distance" accent="emerald" />
-                        </div>
+                        <ImageGallery
+                          images={[
+                            { src: IMG_CRUISE, alt: "Adaptive Cruise – maintains distance" },
+                            { src: IMG_LANE, alt: "Lane guidance context" },
+                            { src: IMG_NIGHT, alt: "Night conditions" },
+                          ]}
+                          initial={0}
+                          caption="Adaptive Cruise automatically maintains a safe following distance."
+                        />
                       </motion.div>
                     )}
+
                     {scenario === "night" && (
                       <motion.div key="night" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
-                          <CardShell title="Smart Visibility" subtitle="Auto high/low beam" accent="blue" />
-                        </div>
+                        <ImageGallery
+                          images={[
+                            { src: IMG_NIGHT, alt: "Auto High Beam – clearer night view" },
+                            { src: IMG_CRUISE, alt: "Cruise and visibility" },
+                            { src: IMG_LANE, alt: "Lane context at night" },
+                          ]}
+                          initial={0}
+                          caption="Auto High Beam toggles headlights for optimal visibility."
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -368,7 +402,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
               </div>
             </motion.div>
 
-            {/* Core safety features — compact + progressive */}
+            {/* Core features — compact + progressive */}
             <div>
               <h3 className="text-xl font-bold mb-3">Core Safety Features</h3>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -379,7 +413,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                     animate={entered}
                     transition={{ delay: idx * 0.03 }}
                     className={cn(
-                      "p-4 rounded-xl border transition-all hover:border-muted-foreground/20",
+                      "p-4 rounded-xl border transition-all hover:border-muted-foreground/20 bg-background/60 backdrop-blur",
                       f.active && "border-primary/30 bg-primary/5"
                     )}
                   >
@@ -426,7 +460,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                       </div>
                     }
                     defaultOpen={index === 0}
-                    className="border"
+                    className="border bg-background/60 backdrop-blur"
                   >
                     <div className="grid gap-2 sm:grid-cols-2">
                       {system.features.map((feature) => (
@@ -442,7 +476,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center text-xs text-muted-foreground mt-3">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
-                  <span>Feature availability varies by grade/model year and region ({regionLabel}).</span>
+                  <span>Features may vary by grade/model year and region ({regionLabel}).</span>
                 </div>
               </div>
             </div>
