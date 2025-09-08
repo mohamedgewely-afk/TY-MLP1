@@ -328,7 +328,7 @@ const VehicleDetails = () => {
                 <RelatedVehicles currentVehicle={vehicle} />
               </section>
 
-              <section id="pre-owned">
+              <section id="preowned-similar">
                 <PreOwnedSimilar currentVehicle={vehicle} />
               </section>
               
