@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart, ChevronRight, CheckCircle2, X
+  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart, ChevronRight, CheckCircle2, Play, X
 } from "lucide-react";
 import {
   MobileOptimizedDialog,
@@ -18,7 +18,7 @@ import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/*                               Helper & Types                                */
+/*                                 Types & UX                                  */
 /* -------------------------------------------------------------------------- */
 
 type ScenarioKey = "preCollision" | "laneDrift" | "cruise" | "night";
@@ -32,10 +32,9 @@ interface SafetySuiteModalProps {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                         Micro-components (inline)                           */
+/*                          Scenario Selector (Pills)                          */
 /* -------------------------------------------------------------------------- */
 
-/** Pills to switch hero scenarios */
 const ScenarioPills: React.FC<{
   active: ScenarioKey;
   setActive: (k: ScenarioKey) => void;
@@ -67,22 +66,44 @@ const ScenarioPills: React.FC<{
   );
 };
 
-/** Conic-gradient radial meter that fills to a target% */
-const ConfidenceMeter: React.FC<{ percent: number }> = ({ percent }) => {
-  const clamped = Math.max(0, Math.min(100, percent));
-  const angle = (clamped / 100) * 360;
+/* -------------------------------------------------------------------------- */
+/*                              Media Components                               */
+/* -------------------------------------------------------------------------- */
+
+/** Video with privacy-enhanced YouTube + poster overlay; loads only after click */
+const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
+  const [play, setPlay] = React.useState(false);
+  const src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${play ? "&autoplay=1" : ""}`;
+  const poster = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
   return (
-    <div className="relative h-24 w-24">
-      <div
-        className="h-full w-full rounded-full"
-        style={{
-          background: `conic-gradient(hsl(var(--primary)) ${angle}deg, hsl(var(--muted)) ${angle}deg 360deg)`,
-        }}
-        aria-hidden
-      />
-      <div className="absolute inset-2 rounded-full bg-background border" />
-      <div className="absolute inset-0 grid place-items-center">
-        <span className="text-sm font-semibold">{clamped}%</span>
+    <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5 bg-black">
+      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+        {!play && (
+          <button
+            onClick={() => setPlay(true)}
+            aria-label="Play video"
+            className="absolute inset-0 flex items-center justify-center group"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition"
+              style={{ backgroundImage: `url('${poster}')` }}
+            />
+            <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
+              <Play className="h-4 w-4" />
+              Play video
+            </div>
+          </button>
+        )}
+        {play && (
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={src}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        )}
       </div>
     </div>
   );
@@ -90,10 +111,9 @@ const ConfidenceMeter: React.FC<{ percent: number }> = ({ percent }) => {
 
 /** Before/After scrub demo (no external assets required) */
 const LaneDriftScrub: React.FC = () => {
-  const [pos, setPos] = React.useState(60); // 0..100 clip for "after" overlay
+  const [pos, setPos] = React.useState(60); // 0..100
   return (
     <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5 bg-neutral-900">
-      {/* 16:9 box */}
       <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
         {/* BEFORE (no assist) */}
         <div className="absolute inset-0">
@@ -102,17 +122,14 @@ const LaneDriftScrub: React.FC = () => {
           <LabelBadge text="Before · No Assist" className="left-3 top-3" />
         </div>
         {/* AFTER (lane assist) */}
-        <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
           <GridRoad drift={false} assisted />
           <CenteredCar />
           <LabelBadge text="After · Lane Assist" className="right-3 top-3" />
         </div>
 
         {/* Scrubber */}
-        <div
-          className="absolute top-0 bottom-0"
-          style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
-        >
+        <div className="absolute top-0 bottom-0" style={{ left: `${pos}%`, transform: "translateX(-50%)" }}>
           <div className="h-full w-0.5 bg-white/70" />
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-black shadow">
             Drag
@@ -142,13 +159,9 @@ const GridRoad: React.FC<{ drift?: boolean; assisted?: boolean }> = ({ drift, as
     </defs>
     <rect width="160" height="90" fill="#0a0a0a" />
     <rect width="160" height="90" fill="url(#grid)" />
-    {/* road */}
     <path d="M0,60 L160,60" stroke="#2f2f2f" strokeWidth="20" />
-    {/* lane markers */}
     <path d="M10,60 L150,60" stroke="#ffffff" strokeDasharray="4 4" strokeWidth="1.2" />
-    {/* drift highlight */}
     {drift && <circle cx="110" cy="48" r="10" fill="rgba(255,200,0,0.12)" />}
-    {/* assist guidance */}
     {assisted && <path d="M40,52 Q80,60 120,58" stroke="rgba(0,200,255,0.5)" strokeWidth="3" fill="none" />}
   </svg>
 );
@@ -171,9 +184,34 @@ const LabelBadge: React.FC<{ text: string; className?: string }> = ({ text, clas
   </div>
 );
 
+/* Simple placeholder cards for the non-video scenarios (keep hero interactive) */
+const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "amber" | "emerald" }> = ({ title, subtitle, accent = "blue" }) => {
+  const accentMap: Record<string, string> = {
+    blue: "from-blue-500/20 to-blue-500/0 ring-blue-300/30",
+    amber: "from-amber-500/20 to-amber-500/0 ring-amber-300/30",
+    emerald: "from-emerald-500/20 to-emerald-500/0 ring-emerald-300/30",
+  };
+  return (
+    <div className={cn("relative rounded-lg p-4 lg:p-6 bg-gradient-to-b ring-1", accentMap[accent])}>
+      <p className="text-sm text-muted-foreground">{subtitle}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="text-lg font-semibold">{title}</span>
+        <ChevronRight className="h-4 w-4" />
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-14 rounded bg-background/60 border" />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 /* -------------------------------------------------------------------------- */
-/*                            Main Safety Suite Modal                          */
+/*                           Main Safety Suite Modal                           */
 /* -------------------------------------------------------------------------- */
+
+const YT_PRECOLLISION = "oL6mrPWtZJ4"; // from https://www.youtube.com/watch?v=oL6mrPWtZJ4
 
 const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
   isOpen,
@@ -185,13 +223,8 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
   const prefersReduced = useReducedMotion();
   const [scenario, setScenario] = React.useState<ScenarioKey>("laneDrift");
 
-  // Fill the meter based on features relevant to the scenario (just a simple mapping)
-  const confidenceMap: Record<ScenarioKey, number> = {
-    preCollision: 92,
-    laneDrift: 88,
-    cruise: 84,
-    night: 80,
-  };
+  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
+  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
 
   const safetyFeatures = [
     {
@@ -246,9 +279,6 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
     },
   ] as const;
 
-  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
-  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
-
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       {/* Wider for proper media */}
@@ -258,13 +288,13 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
             Toyota Safety Sense 2.0 · {modelName}
           </MobileOptimizedDialogTitle>
           <MobileOptimizedDialogDescription className="text-base line-clamp-2">
-            See how safety assists react in real situations—then book a test drive.
+            Real scenarios you can feel—then book a test drive.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* Hero: Scenario pills + meter + demo */}
+            {/* Hero: Scenario pills + reaction timeline + media */}
             <motion.div
               initial={enter}
               animate={entered}
@@ -273,16 +303,9 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
             >
               <div className="flex items-center gap-3 mb-4">
                 <Shield className="h-7 w-7 text-primary" />
-                <Badge variant="secondary" className="text-xs font-semibold">Standard on most grades</Badge>
-                <div className="ml-auto">
-                  <div className="flex items-center gap-3">
-                    <ConfidenceMeter percent={confidenceMap[scenario]} />
-                    <div className="text-xs text-muted-foreground leading-tight">
-                      <div className="font-semibold text-foreground">Confidence Meter</div>
-                      <div>Illustrative assist coverage</div>
-                    </div>
-                  </div>
-                </div>
+                <Badge variant="secondary" className="text-xs font-semibold">
+                  Standard on most grades
+                </Badge>
               </div>
 
               <div className="flex flex-col lg:flex-row gap-4">
@@ -313,27 +336,31 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                   </div>
                 </div>
 
-                {/* Right: interactive media (lane drift scrub by default) */}
+                {/* Right: interactive media area */}
                 <div className="flex-1 min-w-0">
                   <AnimatePresence mode="wait">
+                    {scenario === "preCollision" && (
+                      <motion.div key="pre" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                        <YoutubeInline videoId={YT_PRECOLLISION} title="Pre-Collision System" />
+                      </motion.div>
+                    )}
                     {scenario === "laneDrift" && (
                       <motion.div key="lane" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                         <LaneDriftScrub />
                       </motion.div>
                     )}
-                    {scenario === "preCollision" && (
-                      <motion.div key="pre" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <PreCollisionDemo />
-                      </motion.div>
-                    )}
                     {scenario === "cruise" && (
                       <motion.div key="cruise" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <CruiseDemo />
+                        <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
+                          <CardShell title="Adaptive Following" subtitle="Speed & distance" accent="emerald" />
+                        </div>
                       </motion.div>
                     )}
                     {scenario === "night" && (
                       <motion.div key="night" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                        <NightBeamDemo />
+                        <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
+                          <CardShell title="Smart Visibility" subtitle="Auto high/low beam" accent="blue" />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -341,7 +368,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
               </div>
             </motion.div>
 
-            {/* Core safety features — compact chips + accordion */}
+            {/* Core safety features — compact + progressive */}
             <div>
               <h3 className="text-xl font-bold mb-3">Core Safety Features</h3>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -352,8 +379,8 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                     animate={entered}
                     transition={{ delay: idx * 0.03 }}
                     className={cn(
-                      "p-4 rounded-xl border transition-all",
-                      f.active ? "border-primary/30 bg-primary/5" : "hover:border-muted-foreground/20"
+                      "p-4 rounded-xl border transition-all hover:border-muted-foreground/20",
+                      f.active && "border-primary/30 bg-primary/5"
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -363,15 +390,13 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold leading-tight">{f.name}</h4>
-                          {f.active && <Badge className="h-5 px-2 text-[10px]">Scenario</Badge>}
+                          {f.active && <Badge className="h-5 px-2 text-[10px]">Selected</Badge>}
                         </div>
-                        {/* chips */}
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {f.chips.map((c) => (
                             <span key={c} className="px-2 py-0.5 text-[11px] rounded-full bg-muted">{c}</span>
                           ))}
                         </div>
-                        {/* teaser + disclosure */}
                         <p className="text-sm text-muted-foreground mt-2 line-clamp-1">{f.details}</p>
                         <CollapsibleContent title="Learn more" className="border-0 mt-1">
                           <p className="text-sm text-muted-foreground">{f.details}</p>
@@ -387,7 +412,11 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
             <div>
               <h3 className="text-xl font-bold mb-3">Complete Safety Package</h3>
               <div className="space-y-3">
-                {additionalSafety.map((system, index) => (
+                {[
+                  { icon: Gauge, title: "Star Safety System", features: ["VSC", "TRAC", "ABS", "EBD", "BA", "SST"] },
+                  { icon: Users, title: "Airbag System", features: ["Front Airbags", "Front Side", "Rear Side", "Curtains"] },
+                  { icon: Heart, title: "Active Safety", features: ["Blind Spot Monitor", "Rear Cross-Traffic Alert", "Bird’s Eye View", "Parking Support Brake"] },
+                ].map((system, index) => (
                   <CollapsibleContent
                     key={system.title}
                     title={
@@ -417,23 +446,6 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
                 </div>
               </div>
             </div>
-
-            {/* Recognition (keep compact / illustrative) */}
-            <motion.div initial={enter} animate={entered} className="bg-muted/30 rounded-2xl p-5">
-              <h3 className="text-xl font-bold mb-3">Safety Recognition (Illustrative)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-1">5★</div>
-                  <div className="font-semibold mb-0.5">NHTSA Overall Rating</div>
-                  <div className="text-xs text-muted-foreground">Varies by model/year</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-1">TSP+</div>
-                  <div className="font-semibold mb-0.5">IIHS Top Safety Pick+</div>
-                  <div className="text-xs text-muted-foreground">Varies by model/year</div>
-                </div>
-              </div>
-            </motion.div>
           </div>
         </MobileOptimizedDialogBody>
 
@@ -441,9 +453,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
         <MobileOptimizedDialogFooter>
           <div className="flex w-full sm:w-auto sm:ml-auto gap-3">
             <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button onClick={onBookTestDrive}>
-              Book Test Drive
-            </Button>
+            <Button onClick={onBookTestDrive}>Book Test Drive</Button>
           </div>
         </MobileOptimizedDialogFooter>
       </MobileOptimizedDialogContent>
@@ -452,48 +462,3 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
 };
 
 export default SafetySuiteModal;
-
-/* -------------------------------------------------------------------------- */
-/*                     Scenario demo placeholders (inline)                     */
-/* -------------------------------------------------------------------------- */
-
-/** Simple visuals for other scenarios so the hero always feels interactive */
-const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "amber" | "emerald" }> = ({ title, subtitle, accent = "blue" }) => {
-  const accentMap: Record<string, string> = {
-    blue: "from-blue-500/20 to-blue-500/0 ring-blue-300/30",
-    amber: "from-amber-500/20 to-amber-500/0 ring-amber-300/30",
-    emerald: "from-emerald-500/20 to-emerald-500/0 ring-emerald-300/30",
-  };
-  return (
-    <div className={cn("relative rounded-lg p-4 lg:p-6 bg-gradient-to-b ring-1", accentMap[accent])}>
-      <p className="text-sm text-muted-foreground">{subtitle}</p>
-      <div className="mt-2 flex items-center gap-2">
-        <span className="text-lg font-semibold">{title}</span>
-        <ChevronRight className="h-4 w-4" />
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-14 rounded bg-background/60 border" />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const PreCollisionDemo: React.FC = () => (
-  <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
-    <CardShell title="Forward Detection" subtitle="Camera + radar" accent="amber" />
-  </div>
-);
-
-const CruiseDemo: React.FC = () => (
-  <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
-    <CardShell title="Adaptive Following" subtitle="Speed & distance" accent="emerald" />
-  </div>
-);
-
-const NightBeamDemo: React.FC = () => (
-  <div className="relative w-full overflow-hidden rounded-lg ring-1 ring-black/5">
-    <CardShell title="Smart Visibility" subtitle="Auto high/low beam" accent="blue" />
-  </div>
-);
