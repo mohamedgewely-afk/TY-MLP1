@@ -25,6 +25,7 @@ const DEFAULT_SECTIONS: SectionItem[] = [
   { id: "offers", label: "Offers" },
   { id: "tech-experience", label: "Technology" },
   { id: "configuration", label: "Configure" },
+  { id: "preowned-similar", label: "Pre-Owned" },
   { id: "related", label: "Similar Models" },
   { id: "faq", label: "FAQs" },
 ];
@@ -228,7 +229,8 @@ export function SideMenuNav({
     document.body.appendChild(pe);
     portalEl.current = pe;
 
-    scrollRootRef.current = resolveScrollRoot(scrollRootSelector);
+    // Always use window/document for VehicleDetails page
+    scrollRootRef.current = document.documentElement;
 
     return () => {
       if (portalEl.current) document.body.removeChild(portalEl.current);
@@ -236,10 +238,9 @@ export function SideMenuNav({
     };
   }, [scrollRootSelector]);
 
-  /** Scrollspy (IntersectionObserver bound to scroll root) */
+  /** Scrollspy (IntersectionObserver for window scrolling) */
   useEffect(() => {
-    if (!list.length || !scrollRootRef.current) return;
-    const rootEl = scrollRootRef.current;
+    if (!list.length) return;
 
     const io = new IntersectionObserver(
       entries => {
@@ -258,25 +259,33 @@ export function SideMenuNav({
         if (topMostIndex !== null) setActive(topMostIndex);
       },
       {
-        root: rootEl === document.documentElement ? null : rootEl,
-        rootMargin: "-30% 0px -55% 0px",
+        root: null, // Use viewport as root for window scrolling
+        rootMargin: "-20% 0px -60% 0px",
         threshold: [0, 0.25, 0.5, 0.75, 1],
       }
     );
 
-    list.forEach(s => { const el = document.getElementById(s.id); if (el) io.observe(el); });
+    // Add debug logging to see what's available
+    setTimeout(() => {
+      const allSections = document.querySelectorAll('[id]');
+      console.log('Available sections with IDs:', Array.from(allSections).map(el => el.id));
+    }, 1000);
+
+    list.forEach(s => { 
+      const el = document.getElementById(s.id); 
+      if (el) {
+        io.observe(el);
+        console.log(`✓ Found section: ${s.id}`);
+      } else {
+        console.warn(`✗ Element with id "${s.id}" not found for navigation`);
+      }
+    });
     return () => io.disconnect();
   }, [list]);
 
   /** Auto-hide side tab on scroll down (and show on scroll up) */
   useEffect(() => {
-    if (!scrollRootRef.current) return;
-    const root = scrollRootRef.current;
-
-    const getTop = () =>
-      root === document.documentElement
-        ? (window.scrollY || window.pageYOffset || 0)
-        : root.scrollTop;
+    const getTop = () => window.scrollY || window.pageYOffset || 0;
 
     let ticking = false;
     const onScroll = () => {
@@ -284,16 +293,24 @@ export function SideMenuNav({
       ticking = true;
       requestAnimationFrame(() => {
         const y = getTop();
-        const goingDown = y > lastScrollTop.current;
+        const goingDown = y > lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
+        const goingUp = y < lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
+        
         // Only auto-hide if user didn't pin "Show"
-        if (!pinned) setAutoVisible(y < 120 || !goingDown);
+        if (!pinned) {
+          if (goingDown && y > 200) {
+            setAutoVisible(false);
+          } else if (goingUp || y <= 120) {
+            setAutoVisible(true);
+          }
+        }
         lastScrollTop.current = y;
         ticking = false;
       });
     };
 
-    (root === document.documentElement ? window : root).addEventListener("scroll", onScroll, { passive: true });
-    return () => (root === document.documentElement ? window : root).removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [pinned]);
 
   /** ESC closes drawer */
@@ -303,31 +320,33 @@ export function SideMenuNav({
     return () => document.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
-  /** Smooth scroll with header offset (works with custom scroll root) */
+  /** Smooth scroll with header offset - fixed for window scrolling */
   const jumpTo = useCallback((id: string, index: number) => {
-    const root = scrollRootRef.current || document.documentElement;
     const el = document.getElementById(id);
-    if (!el) return;
-
-    const currentTop =
-      root === document.documentElement
-        ? (window.scrollY || window.pageYOffset || 0)
-        : root.scrollTop;
-
-    const absoluteTop = el.getBoundingClientRect().top + currentTop;
-    const dest = Math.max(0, absoluteTop - Math.max(0, headerOffset));
+    if (!el) {
+      console.warn(`Section with id "${id}" not found`);
+      return;
+    }
 
     clickScrolling.current = true;
 
-    if (root === document.documentElement) {
-      window.scrollTo({ top: dest, behavior: "smooth" });
-    } else {
-      root.scrollTo({ top: dest, behavior: "smooth" as ScrollBehavior });
-    }
+    // Get the element's position relative to the document
+    const elementTop = el.offsetTop;
+    const dest = Math.max(0, elementTop - headerOffset - 20);
+
+    // Always scroll the window since VehicleDetails uses normal window scrolling
+    window.scrollTo({ 
+      top: dest, 
+      behavior: "smooth" 
+    });
 
     setActive(index);
     setDrawerOpen(false);
-    window.setTimeout(() => (clickScrolling.current = false), 500);
+    
+    // Clear click scrolling flag after animation completes
+    setTimeout(() => {
+      clickScrolling.current = false;
+    }, 800);
   }, [headerOffset]);
 
   /** Filter (optional, simple contains) */
@@ -441,7 +460,7 @@ export function SideMenuNav({
 
       {/* Side tab (edge of screen). Auto-hides on scroll down unless pinned. Present on mobile & desktop. */}
       <div
-        className={`sm-tab sm-surface sm-shadow sm-nohighlight ${(!pinned && !autoVisible) ? "hidden" : "visible"}`}
+        className={`sm-tab sm-surface sm-shadow sm-nohighlight ${(pinned || autoVisible) ? "visible" : "hidden"}`}
         style={{ borderTopLeftRadius: 10, borderBottomLeftRadius: 10 }}
         role="navigation"
         aria-label="Open sections menu"
