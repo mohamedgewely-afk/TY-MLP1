@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Battery, Zap, Gauge, Leaf, Car, RotateCcw, TrendingUp, Award, X, PlugZap
+  Battery, Zap, Gauge, Leaf, Car, RotateCcw, TrendingUp, Award, X, Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,157 +17,300 @@ import {
 import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   CONFIG: brand accents & media
+---------------------------------------------------------------------------- */
+
+const BRAND_RED = "#cb0017";
+
+const IMG_A =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true";
+const IMG_B =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
+
+/* ----------------------------------------------------------------------------
+   Types
+---------------------------------------------------------------------------- */
 
 interface HybridTechModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBookTestDrive: () => void;
+  /** Optional YouTube IDs for the Videos tab. If empty, Videos tab hides. */
+  videoIds?: string[];
 }
 
-/* -------------------------------------------------------------------------- */
-/*                          Energy Flow Demo (inline)                          */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Tabs (no external deps)
+---------------------------------------------------------------------------- */
 
-type FlowMode = "EV" | "Hybrid" | "Charge";
+type TabKey = "overview" | "diagrams" | "images" | "videos";
 
-const EnergyFlowDemo: React.FC = () => {
-  const [mode, setMode] = React.useState<FlowMode>("EV");
+const Tabs: React.FC<{
+  active: TabKey;
+  onChange: (k: TabKey) => void;
+  items: { key: TabKey; label: string }[];
+}> = ({ active, onChange, items }) => {
+  return (
+    <div className="relative">
+      <div className="flex gap-1 p-1 rounded-xl border bg-white/70 backdrop-blur">
+        {items.map((it) => {
+          const selected = it.key === active;
+          return (
+            <button
+              key={it.key}
+              onClick={() => onChange(it.key)}
+              className={cn(
+                "flex-1 px-3 py-1.5 rounded-lg text-sm transition border",
+                selected
+                  ? "bg-black text-white border-black"
+                  : "bg-transparent hover:bg-black/5 border-transparent"
+              )}
+              aria-pressed={selected}
+            >
+              {it.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ----------------------------------------------------------------------------
+   Image Gallery (neutral, swipe/keys)
+---------------------------------------------------------------------------- */
+
+const ImageGallery: React.FC<{
+  images: { src: string; alt?: string }[];
+  caption?: string;
+}> = ({ images, caption }) => {
+  const [idx, setIdx] = React.useState(0);
   const prefersReduced = useReducedMotion();
+  const canPrev = idx > 0;
+  const canNext = idx < images.length - 1;
 
-  const pulse = prefersReduced ? {} : { filter: ["brightness(1)", "brightness(1.25)", "brightness(1)"] };
-  const arrows = prefersReduced ? {} : { opacity: [0.3, 1, 0.3] };
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
+    if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
+  };
 
   return (
-    <div className="rounded-xl border border-emerald-200/50 bg-emerald-50/30 backdrop-blur p-3 lg:p-4">
-      {/* mode toggles */}
-      <div className="flex gap-2 mb-3">
-        {(["EV", "Hybrid", "Charge"] as FlowMode[]).map((m) => (
+    <div
+      className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden"
+      tabIndex={0}
+      onKeyDown={onKey}
+      aria-label="Image gallery. Use left and right arrow keys to navigate."
+    >
+      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={images[idx].src}
+            src={images[idx].src}
+            alt={images[idx].alt || ""}
+            className="absolute inset-0 h-full w-full object-cover"
+            initial={prefersReduced ? {} : { opacity: 0, scale: 0.98 }}
+            animate={prefersReduced ? {} : { opacity: 1, scale: 1 }}
+            exit={prefersReduced ? {} : { opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            loading="lazy"
+          />
+        </AnimatePresence>
+      </div>
+
+      {/* Controls */}
+      <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
+        <button
+          aria-label="Previous image"
+          disabled={!canPrev}
+          onClick={() => canPrev && setIdx((i) => i - 1)}
+          className={cn(
+            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canPrev && "opacity-40 pointer-events-none"
+          )}
+        >
+          ‹
+        </button>
+        <button
+          aria-label="Next image"
+          disabled={!canNext}
+          onClick={() => canNext && setIdx((i) => i + 1)}
+          className={cn(
+            "h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
+            !canNext && "opacity-40 pointer-events-none"
+          )}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Caption + dots */}
+      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+        <div className="text-xs text-white">
+          <span className="inline-block rounded-md bg-black/50 px-2 py-1 backdrop-blur-sm">
+            {caption || "Swipe to explore"}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => setIdx(i)}
+              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Thumbs */}
+      <div className="flex gap-2 p-2 border-t bg-white/80">
+        {images.map((im, i) => (
           <button
-            key={m}
-            onClick={() => setMode(m)}
+            key={im.src}
+            onClick={() => setIdx(i)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-xs border transition",
-              mode === m ? "bg-emerald-600 text-white border-transparent" : "hover:bg-white/70"
+              "relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5",
+              i === idx && "outline outline-2",
             )}
-            aria-pressed={mode === m}
+            style={i === idx ? { outlineColor: BRAND_RED } : {}}
+            aria-label={`Go to image ${i + 1}`}
           >
-            {m}
+            <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
           </button>
         ))}
       </div>
+    </div>
+  );
+};
 
-      {/* 16:9 canvas */}
+/* ----------------------------------------------------------------------------
+   YouTube Inline (privacy-enhanced, lazy)
+---------------------------------------------------------------------------- */
+
+const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
+  const [play, setPlay] = React.useState(false);
+  const src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${play ? "&autoplay=1" : ""}`;
+  const poster = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  return (
+    <div className="relative w-full overflow-hidden rounded-xl bg-black ring-1 ring-black/5">
+      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+        {!play && (
+          <button onClick={() => setPlay(true)} aria-label="Play video" className="absolute inset-0 flex items-center justify-center group">
+            <div className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition" style={{ backgroundImage: `url('${poster}')` }} />
+            <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
+              <Play className="h-4 w-4" />
+              Play video
+            </div>
+          </button>
+        )}
+        {play && (
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={src}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ----------------------------------------------------------------------------
+   Energy Flow Figure (neutral theme)
+---------------------------------------------------------------------------- */
+
+type FlowMode = "EV" | "Hybrid" | "Charge";
+
+const EnergyFlowFigure: React.FC = () => {
+  const [mode, setMode] = React.useState<FlowMode>("EV");
+  const prefersReduced = useReducedMotion();
+  const arrows = prefersReduced ? {} : { opacity: [0.35, 1, 0.35] };
+
+  const chip = (label: FlowMode) => {
+    const active = mode === label;
+    return (
+      <button
+        key={label}
+        onClick={() => setMode(label)}
+        className={cn(
+          "px-3 py-1.5 rounded-full text-xs border transition",
+          active ? "bg-black text-white border-black" : "hover:bg-black/5"
+        )}
+        aria-pressed={active}
+      >
+        {label}
+      </button>
+    );
+  };
+
+  return (
+    <div className="rounded-xl border bg-white/70 backdrop-blur p-3 lg:p-4 ring-1 ring-black/5">
+      <div className="flex gap-2 mb-3">{(["EV", "Hybrid", "Charge"] as FlowMode[]).map(chip)}</div>
+
       <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
         <svg viewBox="0 0 320 180" className="absolute inset-0 w-full h-full">
-          {/* background grid */}
+          {/* grid */}
           <defs>
-            <pattern id="g" width="16" height="16" patternUnits="userSpaceOnUse">
-              <path d="M16 0H0V16" stroke="rgba(16, 80, 48, .08)" strokeWidth="1" />
+            <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+              <path d="M16 0H0V16" stroke="rgba(0,0,0,.06)" strokeWidth="1" />
             </pattern>
           </defs>
-          <rect width="320" height="180" fill="url(#g)" />
-          {/* Car silhouette */}
-          <g transform="translate(30,60)">
-            <rect x="0" y="20" width="260" height="40" rx="10" fill="rgba(16, 80, 48, .06)" />
-            <circle cx="50" cy="70" r="10" fill="rgba(16, 80, 48, .18)" />
-            <circle cx="210" cy="70" r="10" fill="rgba(16, 80, 48, .18)" />
-          </g>
+          <rect width="320" height="180" fill="url(#grid)" />
 
-          {/* Engine block */}
-          <motion.rect
-            x="55" y="40" width="60" height="38" rx="6"
-            className="fill-emerald-200/60"
-            animate={pulse}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          <text x="85" y="62" textAnchor="middle" className="fill-emerald-900 text-[10px] font-semibold">ENGINE</text>
+          {/* blocks */}
+          <rect x="55" y="40" width="60" height="38" rx="6" fill="rgba(0,0,0,.06)" />
+          <text x="85" y="62" textAnchor="middle" className="fill-black/80 text-[10px] font-semibold">ENGINE</text>
 
-          {/* Battery block */}
-          <motion.rect
-            x="205" y="40" width="60" height="38" rx="6"
-            className="fill-emerald-200/60"
-            animate={pulse}
-            transition={{ duration: 1.5, repeat: Infinity, delay: .3 }}
-          />
-          <text x="235" y="62" textAnchor="middle" className="fill-emerald-900 text-[10px] font-semibold">BATTERY</text>
+          <rect x="205" y="40" width="60" height="38" rx="6" fill="rgba(0,0,0,.06)" />
+          <text x="235" y="62" textAnchor="middle" className="fill-black/80 text-[10px] font-semibold">BATTERY</text>
 
-          {/* Motor/Trans */}
-          <motion.rect
-            x="130" y="95" width="60" height="38" rx="6"
-            className="fill-emerald-100"
-          />
-          <text x="160" y="117" textAnchor="middle" className="fill-emerald-900 text-[10px] font-semibold">MOTOR</text>
+          <rect x="130" y="95" width="60" height="38" rx="6" fill="rgba(0,0,0,.04)" />
+          <text x="160" y="117" textAnchor="middle" className="fill-black/80 text-[10px] font-semibold">MOTOR</text>
 
-          {/* Wheels */}
-          <circle cx="90" cy="145" r="12" className="fill-emerald-900/10" />
-          <circle cx="225" cy="145" r="12" className="fill-emerald-900/10" />
+          {/* wheels */}
+          <circle cx="90" cy="145" r="12" fill="rgba(0,0,0,.08)" />
+          <circle cx="225" cy="145" r="12" fill="rgba(0,0,0,.08)" />
 
-          {/* Flow arrows */}
-          {/* EV: Battery -> Motor -> Wheels */}
+          {/* flows */}
           <AnimatePresence>
             {mode === "EV" && (
               <g>
-                <motion.path
-                  d="M235,78 L160,114"
-                  stroke="rgba(4,120,87,0.9)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.6, repeat: Infinity }}
-                />
-                <motion.path
-                  d="M160,114 L90,145"
-                  stroke="rgba(4,120,87,0.9)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.6, repeat: Infinity, delay: .2 }}
-                />
-                <motion.path
-                  d="M160,114 L225,145"
-                  stroke="rgba(4,120,87,0.9)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.6, repeat: Infinity, delay: .4 }}
-                />
+                <motion.path d="M235,78 L160,114" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.4, repeat: Infinity }} />
+                <motion.path d="M160,114 L90,145" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.4, repeat: Infinity, delay: .2 }} />
+                <motion.path d="M160,114 L225,145" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.4, repeat: Infinity, delay: .4 }} />
               </g>
             )}
-            {/* Hybrid: Engine + Battery -> Motor */}
             {mode === "Hybrid" && (
               <g>
-                <motion.path
-                  d="M85,78 L160,114"
-                  stroke="rgba(6,95,70,0.9)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.4, repeat: Infinity }}
-                />
-                <motion.path
-                  d="M235,78 L160,114"
-                  stroke="rgba(6,95,70,0.9)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.4, repeat: Infinity, delay: .2 }}
-                />
+                <motion.path d="M85,78 L160,114" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.2, repeat: Infinity }} />
+                <motion.path d="M235,78 L160,114" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.2, repeat: Infinity, delay: .2 }} />
               </g>
             )}
-            {/* Charge: Wheels/Motor -> Battery */}
             {mode === "Charge" && (
               <g>
-                <motion.path
-                  d="M160,114 L235,78"
-                  stroke="rgba(5,150,105,0.95)" strokeWidth="3" fill="none"
-                  animate={arrows} transition={{ duration: 1.4, repeat: Infinity }}
-                />
+                <motion.path d="M160,114 L235,78" stroke={BRAND_RED} strokeWidth="3" fill="none" animate={arrows} transition={{ duration: 1.2, repeat: Infinity }} />
               </g>
             )}
           </AnimatePresence>
         </svg>
       </div>
 
-      {/* Legend */}
+      {/* legend */}
       <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-600" />
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: BRAND_RED }} />
           <span>Power flow</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-300" />
+          <span className="inline-block h-2 w-2 rounded-full bg-black/30" />
           <span>Components</span>
         </div>
         <div className="flex items-center gap-2">
-          <PlugZap className="h-3.5 w-3.5 text-emerald-700" />
+          <Zap className="h-3.5 w-3.5 text-black/70" />
           <span>Regen braking</span>
         </div>
       </div>
@@ -175,16 +318,19 @@ const EnergyFlowDemo: React.FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                  Modal                                      */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Modal
+---------------------------------------------------------------------------- */
 
 const HybridTechModal: React.FC<HybridTechModalProps> = ({
   isOpen,
   onClose,
-  onBookTestDrive
+  onBookTestDrive,
+  videoIds = [],
 }) => {
   const prefersReduced = useReducedMotion();
+  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
+  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
 
   const hybridComponents = [
     {
@@ -192,168 +338,196 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
       name: "2.5L 4-Cylinder Engine",
       description: "Efficient gasoline engine optimized for hybrid operation",
       details:
-        "Atkinson-cycle engine designed for maximum fuel efficiency while maintaining performance. Features direct injection and variable valve timing.",
+        "Atkinson-cycle design prioritizes fuel efficiency while maintaining everyday performance. Direct injection & variable valve timing.",
       specs: ["176 HP", "Atkinson Cycle", "Direct Injection", "VVT-i"],
     },
     {
       icon: Zap,
       name: "Electric Motor System",
-      description: "Powerful electric motors for instant torque and efficiency",
+      description: "Instant torque & energy recovery",
       details:
-        "Dual electric motor setup provides immediate power delivery and regenerative braking for enhanced efficiency.",
-      specs: ["118 HP Combined", "Instant Torque", "Regen Braking", "Silent Operation"],
+        "Dual motor layout delivers smooth starts and captures braking energy for later acceleration.",
+      specs: ["118 HP combined", "Instant torque", "Regenerative braking"],
     },
     {
       icon: Battery,
       name: "Hybrid Battery Pack",
-      description: "Advanced lithium-ion battery system",
+      description: "Compact, long-life lithium-ion",
       details:
-        "Compact, lightweight lithium-ion battery pack positioned for optimal weight distribution and cabin space.",
-      specs: ["Lithium-ion", "8-Year Warranty", "Minimal Maintenance", "Compact Design"],
+        "Optimized placement improves weight balance and preserves cabin space with minimal maintenance.",
+      specs: ["Lithium-ion", "8-Year warranty", "Compact design"],
     },
     {
       icon: RotateCcw,
       name: "Power Control Unit",
-      description: "Intelligent system that manages power flow",
+      description: "Seamlessly blends power sources",
       details:
-        "Sophisticated control that seamlessly blends gasoline and electric power for optimal efficiency and response.",
-      specs: ["Seamless Switching", "Smart Management", "Real-time Optimization", "Predictive Logic"],
+        "Real-time control orchestrates engine & motors for efficiency, response, and smoothness.",
+      specs: ["Seamless switching", "Predictive logic", "Smart management"],
     },
   ];
 
   const drivingModes = [
-    {
-      icon: Leaf,
-      title: "EV Mode",
-      description: "Pure electric drive for short distances",
-      features: ["Silent Start", "Zero Tailpipe Emissions", "Low-speed Zones", "Parking"],
-    },
-    {
-      icon: TrendingUp,
-      title: "Eco Mode",
-      description: "Max efficiency with gentle throttle mapping",
-      features: ["Extended Range", "Climate Optimization", "Efficiency Coaching"],
-    },
-    {
-      icon: Gauge,
-      title: "Normal Mode",
-      description: "Balanced performance and efficiency",
-      features: ["Everyday Driving", "Smooth Power", "Auto Switching"],
-    },
-    {
-      icon: Zap,
-      title: "Sport Mode",
-      description: "Sharper response and quicker acceleration",
-      features: ["More Immediate Throttle", "Dynamic Feel"],
-    },
+    { icon: Leaf, title: "EV Mode", description: "Pure electric for short hops", features: ["Silent start", "Zero tailpipe emissions", "Low-speed zones"] },
+    { icon: TrendingUp, title: "Eco Mode", description: "Maximize range", features: ["Gentle throttle", "Climate optimization", "Eco coaching"] },
+    { icon: Gauge, title: "Normal Mode", description: "Balanced everyday drive", features: ["Auto switching", "Smooth response"] },
+    { icon: Zap, title: "Sport Mode", description: "Sharper response", features: ["Quicker acceleration", "Dynamic feel"] },
   ];
 
-  const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
-  const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
+  // tabs: hide Videos if no IDs
+  const tabItems = (videoIds.length
+    ? [
+        { key: "overview", label: "Overview" },
+        { key: "diagrams", label: "Diagrams" },
+        { key: "images", label: "Images" },
+        { key: "videos", label: "Videos" },
+      ]
+    : [
+        { key: "overview", label: "Overview" },
+        { key: "diagrams", label: "Diagrams" },
+        { key: "images", label: "Images" },
+      ]) as { key: TabKey; label: string }[];
+
+  const [tab, setTab] = React.useState<TabKey>("overview");
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
-      {/* Wider desktop, compact mobile header */}
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
+        {/* Compact header on mobile */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
               Hybrid Synergy Drive®
             </MobileOptimizedDialogTitle>
-            {/* Inline mobile close */}
             <Button variant="ghost" size="icon" className="sm:hidden" onClick={onClose} aria-label="Close">
               <X className="h-5 w-5" />
             </Button>
           </div>
-          {/* Hide description on mobile; keep on larger screens */}
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            Advanced hybrid technology delivering exceptional fuel efficiency and performance
+            Advanced hybrid technology delivering exceptional efficiency and performance
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* Hero Section */}
+            {/* Hero with tabs */}
             <motion.div
               initial={enter}
               animate={entered}
               transition={{ duration: 0.3 }}
-              className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent p-4 lg:p-6 ring-1 ring-emerald-300/30"
+              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5"
             >
               <div className="flex items-center gap-3 mb-4">
-                <Battery className="h-7 w-7 text-emerald-600" />
-                <Badge variant="secondary" className="text-xs font-semibold bg-emerald-100 text-emerald-800">
+                <Battery className="h-7 w-7" style={{ color: BRAND_RED }} />
+                <Badge variant="secondary" className="text-xs font-semibold" style={{ background: "#fff", border: "1px solid #eee" }}>
                   25+ Years of Innovation
                 </Badge>
               </div>
 
-              <div className="grid lg:grid-cols-3 gap-4">
-                {/* Left: headline & stats (mobile: top) */}
+              {/* Headline + stats */}
+              <div className="grid lg:grid-cols-3 gap-4 mb-4">
                 <div className="lg:col-span-1 space-y-3">
-                  <h3 className="text-xl lg:text-2xl font-bold">The Future of Efficiency</h3>
+                  <h3 className="text-xl lg:text-2xl font-bold">Hybrid, made simple</h3>
                   <p className="text-sm text-muted-foreground">
-                    Toyota’s proven hybrid tech blends gasoline and electric power for standout economy—without compromise.
+                    Gasoline + electric working together. Quiet starts, fewer stops for fuel, and a smooth drive—no plugs required.
                   </p>
-
-                  {/* Key stats */}
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="text-center rounded-lg bg-white/60 backdrop-blur border p-2">
-                      <div className="text-xl font-bold text-emerald-700 leading-none">52</div>
+                    <div className="text-center rounded-lg bg-white border p-2">
+                      <div className="text-xl font-bold" style={{ color: BRAND_RED }}>52</div>
                       <div className="text-[11px] text-muted-foreground mt-0.5">City MPG</div>
                     </div>
-                    <div className="text-center rounded-lg bg-white/60 backdrop-blur border p-2">
-                      <div className="text-xl font-bold text-emerald-700 leading-none">208</div>
+                    <div className="text-center rounded-lg bg-white border p-2">
+                      <div className="text-xl font-bold" style={{ color: BRAND_RED }}>208</div>
                       <div className="text-[11px] text-muted-foreground mt-0.5">Total HP</div>
                     </div>
-                    <div className="text-center rounded-lg bg-white/60 backdrop-blur border p-2">
-                      <div className="text-sm font-bold text-emerald-700 leading-none">AT-PZEV</div>
+                    <div className="text-center rounded-lg bg-white border p-2">
+                      <div className="text-sm font-bold" style={{ color: BRAND_RED }}>AT-PZEV</div>
                       <div className="text-[11px] text-muted-foreground mt-0.5">Emissions</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right: Energy flow demo */}
-                <div className="lg:col-span-2">
-                  <EnergyFlowDemo />
+                {/* Media Tabs */}
+                <div className="lg:col-span-2 space-y-3">
+                  <Tabs active={tab} onChange={setTab} items={tabItems} />
+                  <AnimatePresence mode="wait">
+                    {tab === "overview" && (
+                      <motion.div key="overview" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                        <ImageGallery
+                          images={[
+                            { src: IMG_A, alt: "Hybrid exterior highlight" },
+                            { src: IMG_B, alt: "Hybrid interior/cluster" },
+                          ]}
+                          caption="Hybrid highlights"
+                        />
+                      </motion.div>
+                    )}
+
+                    {tab === "diagrams" && (
+                      <motion.div key="diagrams" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                        <EnergyFlowFigure />
+                      </motion.div>
+                    )}
+
+                    {tab === "images" && (
+                      <motion.div key="images" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                        <ImageGallery
+                          images={[
+                            { src: IMG_A, alt: "Hybrid exterior highlight" },
+                            { src: IMG_B, alt: "Hybrid interior/cluster" },
+                          ]}
+                          caption="Tap thumbnails to switch"
+                        />
+                      </motion.div>
+                    )}
+
+                    {tab === "videos" && videoIds.length > 0 && (
+                      <motion.div key="videos" initial={enter} animate={entered} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {videoIds.map((id) => (
+                            <YoutubeInline key={id} videoId={id} title="Hybrid video" />
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
 
-            {/* Hybrid Components */}
+            {/* Components */}
             <div>
               <h3 className="text-xl font-bold mb-3">Hybrid System Components</h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                {hybridComponents.map((component, index) => (
+                {hybridComponents.map((c, i) => (
                   <motion.div
-                    key={component.name}
+                    key={c.name}
                     initial={enter}
                     animate={entered}
-                    transition={{ delay: index * 0.04 }}
-                    className="p-4 rounded-xl border hover:border-emerald-300/60 transition-all duration-300 bg-white/60 backdrop-blur"
+                    transition={{ delay: i * 0.04 }}
+                    className="p-4 rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-md bg-emerald-600 text-white">
-                        <component.icon className="h-4 w-4" />
+                      <div className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
+                        <c.icon className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-semibold leading-tight">{component.name}</h4>
+                          <h4 className="font-semibold leading-tight">{c.name}</h4>
                           <Badge className="h-5 px-2 text-[10px]" variant="secondary">Hybrid Core</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{component.description}</p>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{c.description}</p>
 
-                        {/* chips */}
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {component.specs.map((s) => (
-                            <span key={s} className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">
+                          {c.specs.map((s) => (
+                            <span key={s} className="px-2 py-0.5 text-[11px] rounded-full bg-white border">
                               {s}
                             </span>
                           ))}
                         </div>
 
-                        {/* disclosure */}
                         <CollapsibleContent title="Technical details" className="border-0 mt-2">
-                          <p className="text-sm text-muted-foreground">{component.details}</p>
+                          <p className="text-sm text-muted-foreground">{c.details}</p>
                         </CollapsibleContent>
                       </div>
                     </div>
@@ -362,29 +536,29 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
               </div>
             </div>
 
-            {/* Driving Modes (carousel on mobile, grid on desktop) */}
+            {/* Modes */}
             <div>
               <h3 className="text-xl font-bold mb-3">Intelligent Driving Modes</h3>
 
-              {/* mobile swipe row */}
+              {/* mobile swipe */}
               <div className="sm:hidden -mx-3 px-3">
                 <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                  {drivingModes.map((mode, i) => (
+                  {drivingModes.map((m, i) => (
                     <motion.div
-                      key={mode.title}
+                      key={m.title}
                       initial={enter}
                       animate={entered}
                       transition={{ delay: i * 0.05 }}
-                      className="min-w-[78%] snap-center p-4 rounded-xl border bg-emerald-50/40"
+                      className="min-w-[78%] snap-center p-4 rounded-xl border bg-white"
                     >
                       <div className="flex items-center gap-3 mb-2">
-                        <mode.icon className="h-5 w-5 text-emerald-700" />
-                        <h4 className="font-semibold">{mode.title}</h4>
+                        <m.icon className="h-5 w-5 text-black/70" />
+                        <h4 className="font-semibold">{m.title}</h4>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{mode.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{m.description}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {mode.features.map((f) => (
-                          <span key={f} className="px-2 py-0.5 text-[11px] rounded-full bg-white border">{f}</span>
+                        {m.features.map((f) => (
+                          <span key={f} className="px-2 py-0.5 text-[11px] rounded-full bg-black/[.04] border">{f}</span>
                         ))}
                       </div>
                     </motion.div>
@@ -394,22 +568,22 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
 
               {/* desktop grid */}
               <div className="hidden sm:grid gap-3 sm:grid-cols-2">
-                {drivingModes.map((mode, i) => (
+                {drivingModes.map((m, i) => (
                   <motion.div
-                    key={mode.title}
+                    key={m.title}
                     initial={enter}
                     animate={entered}
                     transition={{ delay: i * 0.05 }}
-                    className="p-4 rounded-xl border bg-emerald-50/40"
+                    className="p-4 rounded-xl border bg-white"
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <mode.icon className="h-5 w-5 text-emerald-700" />
-                      <h4 className="font-semibold">{mode.title}</h4>
+                      <m.icon className="h-5 w-5 text-black/70" />
+                      <h4 className="font-semibold">{m.title}</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{mode.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{m.description}</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {mode.features.map((f) => (
-                        <span key={f} className="px-2 py-0.5 text-[11px] rounded-full bg-white border">{f}</span>
+                      {m.features.map((f) => (
+                        <span key={f} className="px-2 py-0.5 text-[11px] rounded-full bg-black/[.04] border">{f}</span>
                       ))}
                     </div>
                   </motion.div>
@@ -417,33 +591,27 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
               </div>
             </div>
 
-            {/* Environmental Impact (tight & visual) */}
-            <motion.div
-              initial={enter}
-              animate={entered}
-              className="rounded-2xl p-5 border bg-gradient-to-r from-emerald-50 to-emerald-100/60"
-            >
+            {/* Impact */}
+            <motion.div initial={enter} animate={entered} className="rounded-2xl p-5 border bg-white/70 backdrop-blur ring-1 ring-black/5">
               <div className="flex items-center gap-3 mb-3">
-                <Award className="h-5 w-5 text-emerald-700" />
-                <h3 className="text-lg font-semibold text-emerald-900">Environmental Benefits</h3>
+                <Award className="h-5 w-5 text-black/70" />
+                <h3 className="text-lg font-semibold">Ownership Impact</h3>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <h4 className="font-semibold text-emerald-800 mb-1.5">Reduced Emissions</h4>
-                  <ul className="text-sm text-emerald-800/90 space-y-1">
+                  <h4 className="font-semibold mb-1.5">Lower Emissions</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• AT-PZEV certified</li>
-                    <li>• Up to 70% fewer emissions vs gas-only</li>
-                    <li>• Cleaner urban air contribution</li>
-                    <li>• Sustainable tech footprint</li>
+                    <li>• Up to 70% fewer emissions vs. gas-only</li>
+                    <li>• Cleaner city air contribution</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-emerald-800 mb-1.5">Fuel Savings</h4>
-                  <ul className="text-sm text-emerald-800/90 space-y-1">
+                  <h4 className="font-semibold mb-1.5">Fuel Savings</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Up to 52 MPG city</li>
-                    <li>• Lower fuel spend</li>
+                    <li>• Fewer stops, lower spend</li>
                     <li>• Reduced CO₂ per km</li>
-                    <li>• Long-term cost efficiency</li>
                   </ul>
                 </div>
               </div>
@@ -451,11 +619,13 @@ const HybridTechModal: React.FC<HybridTechModalProps> = ({
           </div>
         </MobileOptimizedDialogBody>
 
-        {/* CTA — single primary for conversion clarity */}
+        {/* CTA */}
         <MobileOptimizedDialogFooter className="px-3 py-3 sm:px-6 sm:py-4">
           <div className="flex w-full sm:w-auto sm:ml-auto gap-3">
             <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button onClick={onBookTestDrive}>Book Test Drive</Button>
+            <Button onClick={onBookTestDrive} style={{ background: BRAND_RED }}>
+              Book Test Drive
+            </Button>
           </div>
         </MobileOptimizedDialogFooter>
       </MobileOptimizedDialogContent>
