@@ -1,7 +1,7 @@
 import React from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
-  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Play, Pause, Power, BatteryCharging
+  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,39 +18,37 @@ import CollapsibleContent from "@/components/ui/collapsible-content";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/* THEME + MEDIA                                                              */
+/* BRAND + MEDIA                                                              */
 /* -------------------------------------------------------------------------- */
 
 const BRAND_RED = "#cb0017";
-const BRAND_DARK = "#111827";
 
-/** Real interior photo (default hero) */
+// Story images (swap via props if you want)
 const INTERIOR_HERO =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
 
-/** Gallery defaults (swap via props if needed) */
-const DEFAULT_IMG_A =
+const IMG_A =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true";
-const DEFAULT_IMG_B =
+const IMG_B =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
 
 /* -------------------------------------------------------------------------- */
 /* TYPES                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type TabKey = "overview" | "lenses" | "images" | "videos";
+type TabKey = "overview" | "story" | "images" | "videos";
 
 interface InteriorExperienceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBookTestDrive: () => void;
-  videoIds?: string[];
-  images?: { src: string; alt?: string }[];
-  hero?: string;
+  storyImages?: { src: string; alt?: string }[];  // optional override
+  gallery?: { src: string; alt?: string }[];
+  videoIds?: string[]; // optional YouTube IDs for the Videos tab
 }
 
 /* -------------------------------------------------------------------------- */
-/* UTILS                                                                      */
+/* UI HELPERS                                                                 */
 /* -------------------------------------------------------------------------- */
 
 const Tabs: React.FC<{
@@ -80,79 +78,6 @@ const Tabs: React.FC<{
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* GALLERY + YOUTUBE                                                          */
-/* -------------------------------------------------------------------------- */
-
-const ImageGallery: React.FC<{
-  images: { src: string; alt?: string }[];
-  caption?: string;
-}> = ({ images, caption }) => {
-  const [idx, setIdx] = React.useState(0);
-  const prefersReduced = useReducedMotion();
-  const canPrev = idx > 0;
-  const canNext = idx < images.length - 1;
-
-  return (
-    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 overflow-hidden" tabIndex={0}
-      aria-label="Image gallery. Use arrow keys to navigate."
-      onKeyDown={(e) => {
-        if (e.key === "ArrowRight" && canNext) setIdx((i) => i + 1);
-        if (e.key === "ArrowLeft" && canPrev) setIdx((i) => i - 1);
-      }}>
-      <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={images[idx].src}
-            src={images[idx].src}
-            alt={images[idx].alt || ""}
-            className="absolute inset-0 h-full w-full object-cover"
-            initial={prefersReduced ? {} : { opacity: 0, scale: 0.98 }}
-            animate={prefersReduced ? {} : { opacity: 1, scale: 1 }}
-            exit={prefersReduced ? {} : { opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            loading="lazy"
-          />
-        </AnimatePresence>
-      </div>
-
-      <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
-        <button aria-label="Previous image" disabled={!canPrev} onClick={() => canPrev && setIdx(idx - 1)}
-          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canPrev && "opacity-40 pointer-events-none")}>‹</button>
-        <button aria-label="Next image" disabled={!canNext} onClick={() => canNext && setIdx(idx + 1)}
-          className={cn("h-9 w-9 rounded-full grid place-items-center bg-white/90 backdrop-blur shadow border",
-            !canNext && "opacity-40 pointer-events-none")}>›</button>
-      </div>
-
-      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-        <div className="text-xs text-white">
-          <span className="inline-block rounded-md bg-black/50 px-2 py-1 backdrop-blur-sm">
-            {caption || "Swipe or use arrows"}
-          </span>
-        </div>
-        <div className="flex gap-1">
-          {images.map((_, i) => (
-            <button key={i} onClick={() => setIdx(i)} aria-label={`Go to slide ${i + 1}`}
-              className={cn("h-2 w-2 rounded-full", i === idx ? "bg-white" : "bg-white/50")} />
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-2 p-2 border-t bg-white/80">
-        {images.map((im, i) => (
-          <button key={im.src} onClick={() => setIdx(i)}
-            className={cn("relative h-14 w-20 rounded-md overflow-hidden ring-1 ring-black/5", i === idx && "outline outline-2")}
-            style={i === idx ? { outlineColor: BRAND_RED } : {}}
-            aria-label={`Go to image ${i + 1}`}>
-            <img src={im.src} alt="" className="h-full w-full object-cover" loading="lazy" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, title }) => {
   const [play, setPlay] = React.useState(false);
   const src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${play ? "&autoplay=1" : ""}`;
@@ -164,13 +89,19 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
           <button onClick={() => setPlay(true)} aria-label="Play video" className="absolute inset-0 flex items-center justify-center group">
             <div className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-95 transition" style={{ backgroundImage: `url('${poster}')` }} />
             <div className="relative z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur text-sm font-medium shadow">
-              <Play className="h-4 w-4" /> Play video
+              ▶ Play video
             </div>
           </button>
         )}
         {play && (
-          <iframe className="absolute inset-0 w-full h-full" src={src} title={title} loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={src}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
         )}
       </div>
     </div>
@@ -178,179 +109,128 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
 };
 
 /* -------------------------------------------------------------------------- */
-/* QUICK LENSES (toggle overlays; no hotspots, no steps)                       */
+/* SCROLL STORY (no controls, just scroll)                                    */
 /* -------------------------------------------------------------------------- */
 
-type LensKey = "comfort" | "air" | "ambient" | "roof" | "audio" | "tech";
-
-type LensState = Record<LensKey, boolean>;
-
-const AmbientBar: React.FC<{ color: string }> = ({ color }) => (
-  <div className="absolute left-6 right-6 bottom-6 h-2 rounded-full" style={{ background: color, opacity: 0.95, filter: "blur(1px)" }} />
-);
-
-const RoofIndicator: React.FC<{ pct: number }> = ({ pct }) => (
-  <div className="absolute left-1/2 -translate-x-1/2 top-3 w-[60%] max-w-[420px] rounded-full bg-black/30 backdrop-blur text-white px-3 py-1.5 text-xs">
-    Panoramic roof: <span className="font-medium">{pct}%</span>
-    <div className="mt-1 h-1 w-full rounded bg-white/20 overflow-hidden">
-      <div className="h-full bg-white" style={{ width: `${pct}%` }} />
-    </div>
-  </div>
-);
-
-const AudioMeter: React.FC<{ level: number }> = ({ level }) => (
-  <div className="absolute right-3 bottom-3 rounded-md border bg-white/90 shadow px-2 py-1">
-    <div className="text-[10px] text-muted-foreground">JBL</div>
-    <div className="mt-1 h-1 w-24 rounded bg-black/10 overflow-hidden">
-      <div className="h-full" style={{ width: `${level}%`, background: BRAND_DARK }} />
-    </div>
-  </div>
-);
-
-const SeatBadges: React.FC<{ left: 0|1|2; right: 0|1|2; accent: string }> = ({ left, right, accent }) => (
-  <div className="absolute left-3 bottom-3 flex gap-2">
-    {([left, right] as const).map((lvl, i) => (
-      <div key={i} className="rounded-md border bg-white/90 shadow px-2 py-1 text-xs flex items-center gap-1.5">
-        <Armchair className="h-3.5 w-3.5" style={{ color: accent }} />
-        <span>Seat {i === 0 ? "L" : "R"}</span>
-        <span className="ml-1 font-medium">{lvl === 0 ? "Off" : `Warm L${lvl}`}</span>
-      </div>
-    ))}
-  </div>
-);
-
-const ClimateWash: React.FC<{ type: "cool" | "warm" | "neutral" }> = ({ type }) => {
-  const color = type === "cool" ? "rgba(14,165,233,.25)" : type === "warm" ? "rgba(203,0,23,.20)" : "rgba(0,0,0,.10)";
-  return (
-    <motion.div
-      className="absolute left-0 right-0 top-1/3 h-1/3"
-      style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}
-      initial={{ opacity: 0.0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    />
-  );
+type Vignette = {
+  key: string;
+  img: string;
+  title: string;
+  body: string;
+  icon: React.ElementType;
+  stats?: { label: string; value: string }[];
 };
 
-const TechBadge: React.FC = () => (
-  <div className="absolute left-3 top-3 rounded-md border bg-white/90 shadow px-2 py-1 text-xs flex items-center gap-1.5">
-    <Smartphone className="h-3.5 w-3.5" style={{ color: BRAND_RED }} />
-    <span>Wireless charging</span>
-  </div>
-);
+const defaultVignettes: Vignette[] = [
+  {
+    key: "comfort",
+    img: INTERIOR_HERO,
+    title: "Comfort that fits",
+    body: "Supportive seats with thoughtful ergonomics keep you fresh—short hops or long hauls.",
+    icon: Armchair,
+    stats: [{ label: "Adjust", value: "8-way" }, { label: "Memory", value: "Driver" }],
+  },
+  {
+    key: "lighting",
+    img: IMG_A,
+    title: "Ambient made simple",
+    body: "Refined cabin lighting that quietly elevates every drive—day or night.",
+    icon: Lightbulb,
+    stats: [{ label: "LED", value: "Full cabin" }],
+  },
+  {
+    key: "tech",
+    img: IMG_B,
+    title: "Seamless everyday tech",
+    body: "Wireless charging, easy device integration and quick access—no learning curve.",
+    icon: Smartphone,
+    stats: [{ label: "Charging", value: "Wireless" }, { label: "USB", value: "Multiple" }],
+  },
+  {
+    key: "space",
+    img: INTERIOR_HERO,
+    title: "Room to breathe",
+    body: "Generous cabin volume with clever storage that stays out of your way.",
+    icon: Car,
+    stats: [{ label: "Cabin", value: "100.4 cu ft" }, { label: "Trunk", value: "15.1 cu ft" }],
+  },
+];
 
-/* LENS CONTROLS ------------------------------------------------------------ */
+const ScrollStory: React.FC<{ vignettes?: Vignette[] }> = ({ vignettes = defaultVignettes }) => {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = React.useState(0);
 
-const LensToggle: React.FC<{
-  active: boolean; label: string; icon: React.ElementType; onClick: () => void;
-}> = ({ active, label, icon: Icon, onClick }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "min-w-[110px] px-3 py-2 rounded-xl border text-sm flex items-center justify-center gap-2",
-      active ? "bg-black text-white border-black" : "bg-white hover:bg-black/5"
-    )}
-    aria-pressed={active}
-  >
-    <Icon className="h-4 w-4" />
-    {label}
-  </button>
-);
-
-/* MAIN LENSES VIEW --------------------------------------------------------- */
-
-const QuickLenses: React.FC<{ hero?: string }> = ({ hero = INTERIOR_HERO }) => {
-  const [on, setOn] = React.useState<LensState>({
-    comfort: true,
-    air: false,
-    ambient: true,
-    roof: false,
-    audio: true,
-    tech: false,
-  });
-
-  // Simple cycle for ambient color on repeated taps
-  const [ambientIndex, setAmbientIndex] = React.useState(0);
-  const ambientColors = ["#0EA5E9", BRAND_RED, "#4F46E5", "#10B981"];
-  const ambientColor = ambientColors[ambientIndex % ambientColors.length];
-
-  const toggle = (k: LensKey) => {
-    setOn((prev) => ({ ...prev, [k]: !prev[k] }));
-    if (k === "ambient") setAmbientIndex((i) => i + 1);
+  // Progress bar logic
+  const onScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    const max = el.scrollHeight - el.clientHeight;
+    const p = max > 0 ? el.scrollTop / max : 0;
+    setProgress(Math.min(1, Math.max(0, p)));
   };
 
-  const reset = () => setOn({ comfort: false, air: false, ambient: false, roof: false, audio: false, tech: false });
-
   return (
-    <div className="rounded-2xl p-3 border bg-white/70 backdrop-blur ring-1 ring-black/5">
-      {/* Stage */}
-      <div className="relative w-full overflow-hidden rounded-xl ring-1 ring-black/5 border bg-black/5" style={{ paddingTop: "56.25%" }}>
-        <img src={hero} alt="Camry interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-
-        <AnimatePresence>
-          {on.air && <ClimateWash key="air" type="cool" />}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {on.ambient && (
-            <motion.div key="ambient" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <AmbientBar color={ambientColor} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {on.roof && (
-            <motion.div key="roof" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <RoofIndicator pct={35} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {on.audio && (
-            <motion.div key="audio" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-              <AudioMeter level={32} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {on.comfort && (
-            <motion.div key="comfort" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-              <SeatBadges left={1} right={1} accent={BRAND_RED} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {on.tech && (
-            <motion.div key="tech" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
-              <TechBadge />
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="rounded-2xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-0 overflow-hidden">
+      {/* sticky progress bar */}
+      <div className="relative h-1 bg-black/5">
+        <div className="absolute left-0 top-0 h-1" style={{ width: `${progress * 100}%`, background: BRAND_RED }} />
       </div>
 
-      {/* Controls */}
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <div className="text-xs text-muted-foreground">
-          Tap to highlight what matters — combine lenses freely.
-        </div>
-        <Button variant="outline" size="sm" onClick={reset}>
-          Reset
-        </Button>
-      </div>
+      {/* snap scroll container */}
+      <div
+        ref={containerRef}
+        onScroll={onScroll}
+        className="max-h-[70vh] overflow-y-auto snap-y snap-mandatory scroll-smooth"
+      >
+        {vignettes.map((v, i) => {
+          const Icon = v.icon;
+          return (
+            <section key={v.key} className="relative snap-start min-h-[68vh]">
+              {/* background */}
+              <div className="absolute inset-0">
+                <img src={v.img} alt="" className="h-full w-full object-cover" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+              </div>
 
-      <div className="mt-3 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 min-w-max pb-1">
-          <LensToggle active={on.comfort} label="Comfort" icon={Armchair} onClick={() => toggle("comfort")} />
-          <LensToggle active={on.air} label="Fresh Air" icon={Wind} onClick={() => toggle("air")} />
-          <LensToggle active={on.ambient} label="Ambient" icon={Lightbulb} onClick={() => toggle("ambient")} />
-          <LensToggle active={on.roof} label="Panoramic Roof" icon={Sun} onClick={() => toggle("roof")} />
-          <LensToggle active={on.audio} label="Audio" icon={Volume2} onClick={() => toggle("audio")} />
-          <LensToggle active={on.tech} label="Tech" icon={Smartphone} onClick={() => toggle("tech")} />
-        </div>
+              {/* foreground content */}
+              <div className="relative z-10 h-full w-full p-4 sm:p-6 flex items-end">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ amount: 0.4, once: true }}
+                  transition={{ duration: 0.35, delay: 0.05 }}
+                  className="w-full"
+                >
+                  <div className="max-w-[720px] rounded-2xl bg-white/90 backdrop-blur-md shadow border p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <h4 className="text-base sm:text-lg font-semibold">{v.title}</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{v.body}</p>
+
+                    {!!v.stats?.length && (
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {v.stats.map((s) => (
+                          <div key={s.label} className="rounded-md border bg-white p-2 text-xs">
+                            <div className="text-muted-foreground">{s.label}</div>
+                            <div className="font-medium">{s.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* page marker */}
+                  <div className="mt-2 text-[11px] text-white/90">
+                    {i + 1} / {vignettes.length}
+                  </div>
+                </motion.div>
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );
@@ -364,38 +244,47 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   isOpen,
   onClose,
   onBookTestDrive,
+  storyImages,
+  gallery,
   videoIds = [],
-  images,
-  hero,
 }) => {
   const prefersReduced = useReducedMotion();
   const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
   const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
 
-  const gallery = images?.length ? images : [
-    { src: DEFAULT_IMG_A, alt: "Interior highlight 1" },
-    { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
-  ];
+  // Optional override for vignettes images
+  const vignettes = defaultVignettes.map((v, i) => {
+    if (storyImages?.[i]) return { ...v, img: storyImages[i].src };
+    return v;
+  });
+
+  const images = gallery?.length
+    ? gallery
+    : [
+        { src: IMG_A, alt: "Interior highlight 1" },
+        { src: IMG_B, alt: "Interior highlight 2" },
+        { src: INTERIOR_HERO, alt: "Interior highlight 3" },
+      ];
 
   const tabItems = (videoIds.length
     ? ([
-        { key: "overview",  label: "Overview" as const },
-        { key: "lenses",    label: "Quick Lenses" as const },
-        { key: "images",    label: "Images" as const },
-        { key: "videos",    label: "Videos" as const },
+        { key: "overview", label: "Overview" as const },
+        { key: "story",    label: "Story" as const },
+        { key: "images",   label: "Images" as const },
+        { key: "videos",   label: "Videos" as const },
       ])
     : ([
-        { key: "overview",  label: "Overview" as const },
-        { key: "lenses",    label: "Quick Lenses" as const },
-        { key: "images",    label: "Images" as const },
+        { key: "overview", label: "Overview" as const },
+        { key: "story",    label: "Story" as const },
+        { key: "images",   label: "Images" as const },
       ])) as { key: TabKey; label: string }[];
 
-  const [tab, setTab] = React.useState<TabKey>("lenses");
+  const [tab, setTab] = React.useState<TabKey>("story");
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* Compact header (mobile-friendly) */}
+        {/* Compact mobile header */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
@@ -406,15 +295,19 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
             </Button>
           </div>
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            One-tap lenses — highlight Comfort, Air, Ambient, Roof, Audio, or Tech (no hotspots).
+            Just scroll — a clean, cinematic story with zero controls or hotspots.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* HERO / TABS */}
-            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }}
-              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
+            {/* HERO w/ Tabs + tiny stats */}
+            <motion.div
+              initial={enter}
+              animate={entered}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5"
+            >
               <div className="flex items-center gap-3 mb-4">
                 <Car className="h-7 w-7" style={{ color: BRAND_RED }} />
                 <Badge variant="secondary" className="text-xs font-semibold" style={{ background: "#fff", border: "1px solid #eee" }}>
@@ -426,7 +319,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
                   <p className="text-sm text-muted-foreground">
-                    Toggle lenses to instantly see what matters — without tapping through steps.
+                    A smooth, scroll-first story that highlights comfort, lighting, tech, and space.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
@@ -445,81 +338,83 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 </div>
 
                 <div className="lg:col-span-2 space-y-3">
-                  <Tabs active={tab} onChange={setTab} items={tabItems} />
-                  <div className="text-xs text-muted-foreground">Overview · Quick Lenses · Images · Videos</div>
+                  <Tabs
+                    active={tab}
+                    onChange={setTab}
+                    items={tabItems}
+                  />
+                  <div className="text-xs text-muted-foreground">Overview · Story · Images · Videos</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* LENSES TAB */}
-            {tab === "lenses" && (
-              <motion.div key="lenses" initial={enter} animate={entered}>
-                <QuickLenses hero={hero} />
-              </motion.div>
+            {/* STORY TAB (scroll-only) */}
+            {tab === "story" && (
+              <ScrollStory vignettes={vignettes} />
             )}
 
-            {/* IMAGES TAB */}
+            {/* IMAGES TAB (simple responsive grid for reliability) */}
             {tab === "images" && (
-              <motion.div key="images" initial={enter} animate={entered}>
-                <ImageGallery
-                  images={(images?.length ? images : [
-                    { src: DEFAULT_IMG_A, alt: "Interior highlight 1" },
-                    { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
-                  ])}
-                  caption="Swipe or tap thumbnails to explore the cabin"
-                />
-              </motion.div>
-            )}
-
-            {/* VIDEOS TAB */}
-            {tab === "videos" && (videoIds?.length ?? 0) > 0 && (
-              <motion.div key="videos" initial={enter} animate={entered}>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {videoIds!.map((id) => (
-                    <YoutubeInline key={id} videoId={id} title="Interior feature video" />
+              <div className="rounded-2xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {images.map((im) => (
+                    <div key={im.src} className="relative w-full overflow-hidden rounded-lg border ring-1 ring-black/5">
+                      <div className="w-full" style={{ paddingTop: "60%" }}>
+                        <img src={im.src} alt={im.alt || ""} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
+            )}
+
+            {/* VIDEOS TAB (optional) */}
+            {tab === "videos" && (videoIds?.length ?? 0) > 0 && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {videoIds!.map((id) => (
+                  <YoutubeInline key={id} videoId={id} title="Interior feature video" />
+                ))}
+              </div>
             )}
 
             {/* OVERVIEW TAB */}
             {tab === "overview" && (
-              <motion.div key="overview" initial={enter} animate={entered} className="space-y-4">
-                <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
-                  <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                    Feature Catalog
-                    <span className="text-xs text-muted-foreground ml-2">Expandable sections</span>
-                  </div>
-                  <div className="space-y-3">
-                    {[
-                      { icon: Smartphone, title: "Tech Integration", features: ["Wireless Charging", "Multiple USB", "12V Outlets", "Smartphone Integration"] },
-                      { icon: Lightbulb, title: "Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
-                      { icon: Wind, title: "Air Quality", features: ["Cabin Filter", "Fresh Air Mode", "Recirculation", "Allergen Reduction"] },
-                      { icon: Armchair, title: "Comfort", features: ["Heated & Ventilated", "Power Adjust", "Memory Seat", "Supportive Foam"] },
-                    ].map((group, index) => (
-                      <CollapsibleContent
-                        key={group.title}
-                        defaultOpen={index === 0}
-                        title={
-                          <div className="flex items-center gap-3">
-                            <group.icon className="h-5 w-5 text-black/70" />
-                            <span className="font-medium">{group.title}</span>
-                          </div>
-                        }
-                      >
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          {group.features.map((f, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full" style={{ background: BRAND_RED }} />
-                              <span className="text-sm">{f}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CollapsibleContent>
-                    ))}
-                  </div>
+              <div className="rounded-2xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium mb-2">
+                  Feature Catalog
+                  <span className="text-xs text-muted-foreground ml-2">Quick reference</span>
                 </div>
-              </motion.div>
+                <div className="space-y-3">
+                  {[
+                    { icon: Smartphone, title: "Tech Integration", features: ["Wireless Charging", "Multiple USB", "12V Outlets", "Smartphone Integration"] },
+                    { icon: Lightbulb, title: "Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
+                    { icon: Wind, title: "Air Quality", features: ["Cabin Filter", "Fresh Air Mode", "Recirculation", "Allergen Reduction"] },
+                    { icon: Armchair, title: "Comfort", features: ["Heated & Ventilated", "Power Adjust", "Memory Seat", "Supportive Foam"] },
+                    { icon: Volume2, title: "Audio", features: ["JBL Tuning", "Balanced Soundstage", "Low Noise Cabin"] },
+                    { icon: Sun, title: "Panoramic Roof", features: ["One-touch Open/Close", "Shade", "Quiet Sealing"] },
+                  ].map((group, index) => (
+                    <CollapsibleContent
+                      key={group.title}
+                      defaultOpen={index === 0}
+                      title={
+                        <div className="flex items-center gap-3">
+                          <group.icon className="h-5 w-5 text-black/70" />
+                          <span className="font-medium">{group.title}</span>
+                        </div>
+                      }
+                    >
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {group.features.map((f, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ background: BRAND_RED }} />
+                            <span className="text-sm">{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </MobileOptimizedDialogBody>
