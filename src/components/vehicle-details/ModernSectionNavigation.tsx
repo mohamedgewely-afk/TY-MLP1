@@ -1,4 +1,5 @@
-// ModernSectionNavigation.tsx — side menu only (no demo sections, no sticky header/footer)
+// src/components/vehicle-details/ModernSectionNavigation.tsx
+// Side menu only (no demo sections, no sticky header/footer)
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -8,13 +9,13 @@ type SectionItem = { id: string; label: string; description?: string };
 
 export type ModernSectionNavigationProps = {
   sections?: SectionItem[];
-  headerOffset?: number;       // reserve space for YOUR site's header; 0 means no offset
+  headerOffset?: number;       // reserve space for your site header; 0 = none
   accentColor?: string;
   mobileTopVh?: number;
-  scrollRootSelector?: string;
+  scrollRootSelector?: string; // for custom scroll containers if needed
 };
 
-/** Default list (optional; replace or pass your own via props) */
+/** Example sections (optional; pass your own via props) */
 const DEFAULT_SECTIONS: SectionItem[] = [
   { id: "hero", label: "Overview" },
   { id: "virtual-showroom", label: "Experience" },
@@ -33,7 +34,7 @@ const DEFAULT_SECTIONS: SectionItem[] = [
   { id: "faq", label: "FAQs" },
 ];
 
-/** Public wrapper: renders ONLY the nav (no content / placeholders) */
+/** Public wrapper: renders ONLY the side navigation (no content/placeholder) */
 export default function ModernSectionNavigation({
   sections = DEFAULT_SECTIONS,
   headerOffset = 0,
@@ -73,7 +74,6 @@ function SideMenuNav({
   const lastScrollTop = useRef(0);
   const clickScrolling = useRef(false);
   const portalEl = useRef<HTMLDivElement | null>(null);
-  const scrollRootRef = useRef<HTMLElement | null>(null);
 
   /** Styles */
   const styles = `
@@ -85,8 +85,7 @@ function SideMenuNav({
     .sm-tab {
       position: fixed; right: 0; transform: translateY(-50%);
       top: 50vh; width: 42px; height: 120px; border-top-left-radius: 10px; border-bottom-left-radius: 10px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-      border-left: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-left: none;
     }
     .sm-tab.hidden { opacity: 0; transform: translateY(-50%) translateX(8px); pointer-events: none; transition: opacity .16s, transform .16s; }
     .sm-tab.visible { opacity: 1; transform: translateY(-50%) translateX(0); transition: opacity .16s, transform .16s; }
@@ -107,19 +106,17 @@ function SideMenuNav({
     .sm-dot { width: 6px; height: 6px; border-radius: 9999px; background: rgba(0,0,0,.45); }
     .sm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.28); z-index: 2147483645; }
 
-    @media (max-width: 1023px){
-      .sm-tab { top: calc(var(--sm-top, 35vh)); height: 100px; }
-    }
+    @media (max-width: 1023px){ .sm-tab { top: calc(var(--sm-top, 35vh)); height: 100px; } }
     @media (prefers-color-scheme: dark){
       .sm-surface { background:#0b0b0b; color:#fff; border-color: rgba(255,255,255,.12); }
-      .sm-search  { background:#0b0b0b; color:#fff; border-color: rgba(255,255,255,.12); }
+      .sm-search { background:#0b0b0b; color:#fff; border-color: rgba(255,255,255,.12); }
       .sm-item:hover { background: rgba(255,255,255,.08); }
-      .sm-active    { background: rgba(255,255,255,.12); }
-      .sm-dot       { background: rgba(255,255,255,.45); }
+      .sm-active { background: rgba(255,255,255,.12); }
+      .sm-dot { background: rgba(255,255,255,.45); }
     }
   `;
 
-  /** Init portal + scroll root */
+  /** Init portal */
   useEffect(() => {
     setMounted(true);
     const pe = document.createElement("div");
@@ -127,9 +124,6 @@ function SideMenuNav({
     pe.style.zIndex = "2147483647";
     document.body.appendChild(pe);
     portalEl.current = pe;
-
-    // Use window/document scrolling
-    scrollRootRef.current = document.documentElement;
 
     return () => {
       if (portalEl.current) document.body.removeChild(portalEl.current);
@@ -199,9 +193,9 @@ function SideMenuNav({
     if (!el) return;
 
     clickScrolling.current = true;
+
     const elementTop = el.offsetTop;
     const dest = Math.max(0, elementTop - (headerOffset ?? 0) - 20);
-
     window.scrollTo({ top: dest, behavior: "smooth" });
 
     setActive(index);
@@ -214,7 +208,7 @@ function SideMenuNav({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q ? list.filter(s => s.label.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q)) : list;
-  }, [q, list]); // eslint-disable-line
+  }, [query, list]); // <-- FIXED: depend on query, not q
 
   /** Icons */
   const TabIcon = ({ open }: { open: boolean }) =>
@@ -295,7 +289,11 @@ function SideMenuNav({
         role="navigation"
         aria-label="Open sections menu"
       >
-        <button className="sm-tab-btn sm-focus" aria-label={drawerOpen ? "Close sections" : "Open sections"} onClick={() => setDrawerOpen(v => !v)}>
+        <button
+          className="sm-tab-btn sm-focus"
+          aria-label={drawerOpen ? "Close sections" : "Open sections"}
+          onClick={() => setDrawerOpen(v => !v)}
+        >
           <TabIcon open={drawerOpen} />
         </button>
         <button
