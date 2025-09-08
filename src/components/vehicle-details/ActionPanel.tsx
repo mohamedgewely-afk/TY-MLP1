@@ -1,8 +1,7 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Car, Settings, Heart, Share2, Calculator, MapPin } from "lucide-react";
+import { Car, Settings, Share2, Calculator, MapPin, FileText } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
@@ -64,8 +63,7 @@ function useGRMode() {
 
 interface ActionPanelProps {
   vehicle: VehicleModel;
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
+  onDownloadBrochure?: () => void;
   onBookTestDrive: () => void;
   onCarBuilder: () => void;
   onFinanceCalculator: () => void;
@@ -78,8 +76,7 @@ const PANEL_H = {
 
 const ActionPanel: React.FC<ActionPanelProps> = ({
   vehicle,
-  isFavorite,
-  onToggleFavorite,
+  onDownloadBrochure,
   onBookTestDrive,
   onCarBuilder,
   onFinanceCalculator,
@@ -89,11 +86,15 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   const { isGR, toggleGR } = useGRMode();
 
   const fmt = useMemo(
-    () => new Intl.NumberFormat(typeof navigator !== "undefined" ? navigator.language : "en-AE"),
+    () =>
+      new Intl.NumberFormat(
+        typeof navigator !== "undefined" ? navigator.language : "en-AE"
+      ),
     []
   );
 
   const handleTestDrive = () => {
+    // Keep existing popup util
     openTestDrivePopup(vehicle);
   };
 
@@ -102,7 +103,9 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       try {
         await navigator.share({
           title: `${vehicle.name} - Toyota UAE`,
-          text: `Check out this amazing ${vehicle.name} starting from AED ${fmt.format(vehicle.price)}`,
+          text: `Check out this amazing ${vehicle.name} starting from AED ${fmt.format(
+            vehicle.price
+          )}`,
           url: window.location.href,
         });
       } catch {
@@ -114,13 +117,33 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     }
   };
 
+  const handleDownloadBrochure =
+    onDownloadBrochure ??
+    (() => {
+      const url =
+        (vehicle as any)?.brochureUrl ||
+        (vehicle as any)?.assets?.brochureUrl ||
+        "";
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        toast({
+          title: "Brochure unavailable",
+          description: "This model doesn't have a brochure link yet.",
+          variant: "destructive",
+        });
+      }
+    });
+
   if (isMobile) return null;
 
   const panelStyle: React.CSSProperties = {
     // @ts-ignore – CSS var is fine
     "--panel-h": PANEL_H.base,
     "--panel-h-md": PANEL_H.md,
-    ...(isGR ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" } : {})
+    ...(isGR
+      ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" }
+      : {}),
   };
 
   return (
@@ -172,7 +195,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
           {/* Actions */}
           <div className="flex-1 flex items-center justify-end gap-1.5 md:gap-2 min-w-0">
-            {/* Primary buttons (fixed height) */}
+            {/* Primary buttons */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
                 onClick={handleTestDrive}
@@ -204,7 +227,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               </Button>
             </div>
 
-            {/* Icon actions (fixed h/w) */}
+            {/* Icon actions */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
                 onClick={onFinanceCalculator}
@@ -221,25 +244,22 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 <Calculator className="h-4 w-4" />
               </Button>
 
+              {/* ↓ Brochure button (replaces Favorite) */}
               <Button
-                onClick={onToggleFavorite}
+                onClick={handleDownloadBrochure}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
                   "h-9 w-9 md:h-10 md:w-10 p-0 rounded-lg",
                   isGR
-                    ? isFavorite
-                      ? "border border-[#2A2D31] bg-[#1C1F22] text-red-300"
-                      : "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
-                    : isFavorite
-                    ? "border-primary text-primary bg-primary/10"
-                    : "border border-gray-300 text-gray-700 bg-white/50 hover:bg-gray-50",
+                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm",
                 ].join(" ")}
-                aria-pressed={isFavorite}
-                aria-label="Favorite"
-                title="Favorite"
+                aria-label="Brochure"
+                title="Download brochure"
               >
-                <Heart className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
+                <FileText className="h-4 w-4" />
               </Button>
+              {/* ↑ Brochure button */}
 
               <Button
                 onClick={handleShare}
