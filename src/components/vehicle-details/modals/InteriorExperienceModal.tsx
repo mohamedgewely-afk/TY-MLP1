@@ -2,7 +2,7 @@ import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Car, Thermometer, Volume2, Smartphone, Armchair, Sun, Wind, Coffee,
-  X, Info, Play, Lightbulb, Droplets, Fan, Maximize2
+  X, Info, Play, Lightbulb
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +24,15 @@ import { cn } from "@/lib/utils";
 
 const BRAND_RED = "#cb0017";
 
-/* Defaults if none are passed in */
+/* Gallery defaults (swap/override via props if you want) */
 const DEFAULT_IMG_A =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true";
 const DEFAULT_IMG_B =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true";
+
+/* Experience background (your real interior photo) */
+const EXPERIENCE_BG =
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -38,22 +42,26 @@ interface InteriorExperienceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBookTestDrive: () => void;
-  videoIds?: string[]; // optional
-  images?: { src: string; alt?: string }[]; // optional (gallery)
-  hotspotImage?: { src: string; alt?: string }; // optional (hotspots tab background)
-  hotspots?: {
-    x: number; // 0..100 (percent)
-    y: number; // 0..100 (percent)
-    title: string;
-    body: string;
-    icon?: React.ComponentType<{ className?: string }>;
-  }[];
+  videoIds?: string[];
+  images?: { src: string; alt?: string }[];
+  hotspotImage?: { src: string; alt?: string };
+  hotspots?: Hotspot[];
+  experienceBg?: string; // optional override for the photo preview background
 }
 
 type TabKey = "overview" | "experience" | "hotspots" | "images" | "videos";
+type Level = 0 | 1 | 2;
+
+type Hotspot = {
+  x: number; // 0..100
+  y: number; // 0..100
+  title: string;
+  body: string;
+  icon?: React.ComponentType<{ className?: string }>;
+};
 
 /* -------------------------------------------------------------------------- */
-/*                                   TABS                                     */
+/*                                    TABS                                    */
 /* -------------------------------------------------------------------------- */
 
 const Tabs: React.FC<{
@@ -124,7 +132,6 @@ const ImageGallery: React.FC<{
         </AnimatePresence>
       </div>
 
-      {/* Controls */}
       <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
         <button
           aria-label="Previous image"
@@ -150,7 +157,6 @@ const ImageGallery: React.FC<{
         </button>
       </div>
 
-      {/* Caption + dots */}
       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
         <div className="text-xs text-white">
           <span className="inline-block rounded-md bg-black/50 px-2 py-1 backdrop-blur-sm">
@@ -169,7 +175,6 @@ const ImageGallery: React.FC<{
         </div>
       </div>
 
-      {/* Thumbs */}
       <div className="flex gap-2 p-2 border-t bg-white/80">
         {images.map((im, i) => (
           <button
@@ -226,21 +231,18 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
 };
 
 /* -------------------------------------------------------------------------- */
-/*                         STATE SHARED ACROSS MODULES                         */
+/*                         SHARED CABIN STATE & PRESETS                       */
 /* -------------------------------------------------------------------------- */
 
-type Level = 0 | 1 | 2;
-
 const useCabinState = () => {
-  const [temp, setTemp] = React.useState(22); // °C
+  const [temp, setTemp] = React.useState(22);
   const [seatHeat, setSeatHeat] = React.useState<Level>(1);
   const [seatVent, setSeatVent] = React.useState<Level>(0);
   const [ambient, setAmbient] = React.useState<string>(BRAND_RED);
   const [volume, setVolume] = React.useState(30);
-  const [sunroof, setSunroof] = React.useState(10); // 0..100 open %
+  const [sunroof, setSunroof] = React.useState(10); // 0..100
   const [recirc, setRecirc] = React.useState(false);
 
-  /* Presets update multiple values at once */
   const applyPreset = (preset: "commute" | "family" | "night") => {
     if (preset === "commute") {
       setTemp(21); setSeatHeat(0); setSeatVent(1); setAmbient("#0EA5E9"); setVolume(28); setSunroof(0); setRecirc(true);
@@ -267,7 +269,11 @@ const useCabinState = () => {
 /*                             SPOTLIGHT MODULES                               */
 /* -------------------------------------------------------------------------- */
 
-const CardShell: React.FC<{ title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode; }> = ({ title, icon: Icon, children }) => (
+const CardShell: React.FC<{
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}> = ({ title, icon: Icon, children }) => (
   <div className="p-4 rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5">
     <div className="flex items-center gap-2 mb-3">
       <span className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
@@ -279,7 +285,10 @@ const CardShell: React.FC<{ title: string; icon: React.ComponentType<{ className
   </div>
 );
 
-const SeatingModule: React.FC<{ seatHeat: Level; seatVent: Level; setSeatHeat: (v: Level)=>void; setSeatVent: (v: Level)=>void; }> = ({ seatHeat, seatVent, setSeatHeat, setSeatVent }) => (
+type LevelSetter = (v: Level) => void;
+
+const SeatingModule: React.FC<{ seatHeat: Level; seatVent: Level; setSeatHeat: LevelSetter; setSeatVent: LevelSetter; }> =
+({ seatHeat, seatVent, setSeatHeat, setSeatVent }) => (
   <CardShell title="Seating" icon={Armchair}>
     <div className="grid grid-cols-2 gap-3">
       <div>
@@ -309,7 +318,8 @@ const SeatingModule: React.FC<{ seatHeat: Level; seatVent: Level; setSeatHeat: (
   </CardShell>
 );
 
-const ClimateModule: React.FC<{ temp: number; setTemp: (v:number)=>void; recirc: boolean; setRecirc: (v:boolean)=>void; }> = ({ temp, setTemp, recirc, setRecirc }) => (
+const ClimateModule: React.FC<{ temp: number; setTemp: (v:number)=>void; recirc: boolean; setRecirc: (v:boolean)=>void; }> =
+({ temp, setTemp, recirc, setRecirc }) => (
   <CardShell title="Climate" icon={Thermometer}>
     <div className="flex items-center gap-2 text-sm font-medium">
       Temperature: <span className="ml-auto font-semibold">{temp}°C</span>
@@ -328,7 +338,13 @@ const LightingModule: React.FC<{ ambient: string; setAmbient: (c:string)=>void; 
   <CardShell title="Ambient Lighting" icon={Lightbulb}>
     <div className="flex gap-2">
       {[BRAND_RED, "#4F46E5", "#059669", "#0EA5E9", "#F59E0B"].map((c) => (
-        <button key={c} onClick={()=>setAmbient(c)} className={cn("h-6 w-6 rounded-full border", ambient===c && "ring-2")} style={{ background: c }} aria-label={`Set ambient ${c}`} />
+        <button
+          key={c}
+          onClick={()=>setAmbient(c)}
+          className={cn("h-6 w-6 rounded-full border", ambient===c && "ring-2")}
+          style={{ background: c }}
+          aria-label={`Set ambient ${c}`}
+        />
       ))}
     </div>
     <p className="text-xs text-muted-foreground mt-2">Choose a mood that fits the drive.</p>
@@ -368,12 +384,12 @@ const AirQualityModule: React.FC<{ recirc: boolean; setRecirc: (v:boolean)=>void
 );
 
 /* -------------------------------------------------------------------------- */
-/*                                 HOTSPOTS                                   */
+/*                                   HOTSPOTS                                 */
 /* -------------------------------------------------------------------------- */
 
 const HotspotsStage: React.FC<{
   image: { src: string; alt?: string };
-  hotspots: Required<InteriorExperienceModalProps>["hotspots"];
+  hotspots: Hotspot[];
 }> = ({ image, hotspots }) => {
   const [active, setActive] = React.useState<number | null>(null);
   const [show, setShow] = React.useState(true);
@@ -383,7 +399,7 @@ const HotspotsStage: React.FC<{
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5" />
-          Tap a dot to learn more.{" "}
+          Tap a dot to learn more.
         </div>
         <button onClick={()=>setShow(!show)} className="text-xs underline">{show ? "Hide hotspots" : "Show hotspots"}</button>
       </div>
@@ -393,8 +409,7 @@ const HotspotsStage: React.FC<{
         {show && hotspots?.map((h, i) => {
           const Icon = h.icon || Info;
           return (
-            <div key={`${h.title}-${i}`} style={{ left: `${h.x}%`, top: `${h.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2">
+            <div key={`${h.title}-${i}`} style={{ left: `${h.x}%`, top: `${h.y}%` }} className="absolute -translate-x-1/2 -translate-y-1/2">
               <button
                 onClick={()=>setActive(active===i?null:i)}
                 className="h-5 w-5 rounded-full border bg-white/90 backdrop-blur shadow grid place-items-center"
@@ -404,7 +419,6 @@ const HotspotsStage: React.FC<{
                 <span className="h-2 w-2 rounded-full" style={{ background: BRAND_RED }} />
               </button>
 
-              {/* Popover */}
               {active===i && (
                 <div className="mt-2 w-56 rounded-lg border bg-white shadow ring-1 ring-black/5 p-3">
                   <div className="flex items-center gap-2 mb-1">
@@ -423,6 +437,114 @@ const HotspotsStage: React.FC<{
 };
 
 /* -------------------------------------------------------------------------- */
+/*                      PHOTO EXPERIENCE PREVIEW (OVERLAY)                    */
+/* -------------------------------------------------------------------------- */
+
+const PhotoExperiencePreview: React.FC<{
+  bgSrc: string;
+  temp: number;
+  seatHeat: Level;
+  seatVent: Level;
+  ambient: string;
+  volume: number;
+  sunroof: number;
+}> = ({ bgSrc, temp, seatHeat, seatVent, ambient, volume, sunroof }) => {
+  const [highContrast, setHighContrast] = React.useState(false);
+  const prefersReduced = useReducedMotion();
+
+  // Opacity multipliers for demo vs subtle overlay
+  const mult = highContrast ? 1 : 0.6;
+  const heatAlpha = (0.10 + 0.12 * seatHeat) * mult;     // 0 → 0.10, 1 → 0.22, 2 → 0.34
+  const ventAlpha = (seatVent === 0 ? 0 : seatVent === 1 ? 0.20 : 0.30) * mult;
+  const plumeAlpha = (Math.min(Math.abs(temp - 22), 6) / 6) * 0.25 * mult; // up to 0.25
+
+  return (
+    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Info className="h-3.5 w-3.5" />
+          Live preview on real interior photo
+        </div>
+        <button
+          onClick={() => setHighContrast(!highContrast)}
+          className="text-xs underline"
+          aria-pressed={highContrast}
+        >
+          {highContrast ? "Normal overlays" : "High contrast overlays"}
+        </button>
+      </div>
+
+      <div className="relative w-full overflow-hidden rounded-lg shadow-sm" style={{ paddingTop: "56.25%" }}>
+        {/* Background Photo */}
+        <img
+          src={bgSrc}
+          alt="Vehicle interior"
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+
+        {/* SVG Overlay (responsive via viewBox) */}
+        <svg viewBox="0 0 1280 720" className="absolute inset-0 w-full h-full pointer-events-none">
+          <defs>
+            {/* Soft blur for glows if motion allowed */}
+            {!prefersReduced && (
+              <filter id="softBlur">
+                <feGaussianBlur stdDeviation="8" />
+              </filter>
+            )}
+          </defs>
+
+          {/* Seat heat (approximate front seat bounds on photo) */}
+          <rect x="300" y="330" width="230" height="250" rx="20"
+            fill={BRAND_RED} opacity={heatAlpha} filter="url(#softBlur)" />
+          <rect x="750" y="330" width="230" height="250" rx="20"
+            fill={BRAND_RED} opacity={heatAlpha} filter="url(#softBlur)" />
+
+          {/* Seat ventilation cool haze */}
+          {seatVent > 0 && (
+            <>
+              <circle cx="415" cy="455" r={seatVent === 1 ? 40 : 56} fill="#0EA5E9" opacity={ventAlpha} filter="url(#softBlur)" />
+              <circle cx="865" cy="455" r={seatVent === 1 ? 40 : 56} fill="#0EA5E9" opacity={ventAlpha} filter="url(#softBlur)" />
+            </>
+          )}
+
+          {/* Climate plume from center vents */}
+          {temp !== 22 && (
+            <motion.path
+              d="M640,300 C660,270 700,270 720,300 S760,360 780,330"
+              stroke={temp > 22 ? BRAND_RED : "#0EA5E9"}
+              strokeWidth={12}
+              strokeLinecap="round"
+              fill="none"
+              initial={{ opacity: 0.15 }}
+              animate={{ opacity: [0.15, plumeAlpha, 0.15] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+              filter="url(#softBlur)"
+            />
+          )}
+
+          {/* Ambient light—dash/door accent strip */}
+          <rect x="140" y="580" width="1000" height="10" rx="5" fill={ambient} opacity={0.85 * mult} filter="url(#softBlur)" />
+
+          {/* Sunroof opening indicator (top center bar) */}
+          <rect x={640 - (sunroof/100)*280} y="80" width={(sunroof/100)*560} height="12" rx="6"
+            fill="#000" opacity={0.20 * mult} />
+
+          {/* Head unit volume bar (center console) */}
+          <rect x="610" y="370" width="60" height="40" rx="6" fill="white" opacity={0.85} />
+          <rect x="615" y="375" width="50" height="10" rx="3" fill="rgba(0,0,0,.15)" />
+          <rect x="615" y="392" width={Math.max(10, (volume/100)*50)} height="6" rx="3" fill="black" opacity={0.65} />
+        </svg>
+      </div>
+
+      <div className="mt-2 text-xs text-muted-foreground">
+        Adjust controls to see heat/vent overlays, climate plume (red=warm, blue=cool), ambient glow, sunroof opening, and volume indicator.
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
 /*                              MAIN MODAL COMPONENT                           */
 /* -------------------------------------------------------------------------- */
 
@@ -434,22 +556,21 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   images,
   hotspotImage,
   hotspots,
+  experienceBg,
 }) => {
   const prefersReduced = useReducedMotion();
   const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
   const entered = prefersReduced ? {} : { opacity: 1, y: 0 };
 
-  /* Shared state across all spotlight modules */
   const cabin = useCabinState();
 
-  /* Defaults */
   const gallery = images?.length ? images : [
     { src: DEFAULT_IMG_A, alt: "Interior highlight 1" },
     { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
   ];
 
   const hotspotBg = hotspotImage || { src: DEFAULT_IMG_B, alt: "Interior with features" };
-  const hotspotItems = hotspots?.length ? hotspots : [
+  const hotspotItems: Hotspot[] = hotspots?.length ? hotspots : [
     { x: 48, y: 70, title: "Wireless Charging", body: "Drop your phone on the pad to charge while you drive.", icon: Smartphone },
     { x: 18, y: 62, title: "JBL Speakers", body: "Crisp highs and deep lows tuned for the cabin.", icon: Volume2 },
     { x: 82, y: 26, title: "Panoramic Roof", body: "Let in sky and light with one-touch control.", icon: Sun },
@@ -472,9 +593,6 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
         { key: "images", label: "Images" as const },
       ]);
 
-  const [tab, setTab] = React.useState<TabKey>("overview");
-
-  /* Data for the “catalog” section (scales with more feature groups) */
   const convenienceGroups = [
     { icon: Smartphone, title: "Tech Integration", features: ["Wireless Charging", "Multiple USB", "12V Outlets", "Smartphone Integration"] },
     { icon: Coffee, title: "Smart Storage", features: ["Adjustable Cupholders", "Deep Console Bin", "Large Door Pockets", "Seatback Pockets"] },
@@ -482,10 +600,12 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
     { icon: Car, title: "Interior Lighting", features: ["LED Cabin Lights", "Ambient Accents", "Reading Lamps", "Illuminated Entry"] },
   ];
 
+  const [tab, setTab] = React.useState<TabKey>("experience"); // land them on the cool new preview
+
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* Compact header on mobile */}
+        {/* Compact mobile header */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
@@ -502,13 +622,8 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
 
         <MobileOptimizedDialogBody>
           <div className="space-y-6">
-            {/* HERO: Tabs + quick value chips */}
-            <motion.div
-              initial={enter}
-              animate={entered}
-              transition={{ duration: 0.3 }}
-              className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5"
-            >
+            {/* HERO: Tabs + quick stats */}
+            <motion.div initial={enter} animate={entered} transition={{ duration: 0.3 }} className="rounded-2xl p-4 lg:p-6 border bg-white/70 backdrop-blur ring-1 ring-black/5">
               <div className="flex items-center gap-3 mb-4">
                 <Car className="h-7 w-7" style={{ color: BRAND_RED }} />
                 <Badge variant="secondary" className="text-xs font-semibold" style={{ background: "#fff", border: "1px solid #eee" }}>
@@ -520,7 +635,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
                   <p className="text-sm text-muted-foreground">
-                    Seats that remember you. Air that feels just right. Sound that fills the space. Make it yours.
+                    Set the cabin just how you like it—then see it update on a real photo instantly.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
@@ -561,7 +676,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                   </div>
                 </div>
 
-                {/* Spotlight grid — add/remove modules freely */}
+                {/* Spotlight modules */}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <SeatingModule seatHeat={cabin.seatHeat} seatVent={cabin.seatVent} setSeatHeat={cabin.setSeatHeat} setSeatVent={cabin.setSeatVent} />
                   <ClimateModule temp={cabin.temp} setTemp={cabin.setTemp} recirc={cabin.recirc} setRecirc={cabin.setRecirc} />
@@ -571,40 +686,16 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                   <AirQualityModule recirc={cabin.recirc} setRecirc={cabin.setRecirc} />
                 </div>
 
-                {/* Live preview strip (clean SVG, no background) */}
-                <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Info className="h-3.5 w-3.5" />
-                    Live preview of your selections
-                  </div>
-                  <div className="relative w-full" style={{ paddingTop: "40%" }}>
-                    <svg viewBox="0 0 720 288" className="absolute inset-0 w-full h-full">
-                      {/* Base cabin */}
-                      <rect x="40" y="60" width="640" height="168" rx="18" fill="rgba(0,0,0,.04)" stroke="rgba(0,0,0,.12)" />
-                      {/* Seats respond to heat level */}
-                      <rect x="110" y="90" width="90" height="100" rx="12" fill={`rgba(0,0,0,${0.08 + 0.1*cabin.seatHeat})`} />
-                      <rect x="520" y="90" width="90" height="100" rx="12" fill={`rgba(0,0,0,${0.08 + 0.1*cabin.seatHeat})`} />
-                      {/* Vent haze */}
-                      {cabin.seatVent>0 && <>
-                        <circle cx="155" cy="140" r={cabin.seatVent===1?18:26} fill="rgba(14,165,233,.15)" />
-                        <circle cx="565" cy="140" r={cabin.seatVent===1?18:26} fill="rgba(14,165,233,.15)" />
-                      </>}
-                      {/* Climate plume */}
-                      {cabin.temp!==22 && (
-                        <path d="M360,100 C380,80 420,80 440,100 S480,140 500,120"
-                          stroke={cabin.temp>22?BRAND_RED:"#0EA5E9"} strokeWidth="6" fill="none" opacity="0.22" />
-                      )}
-                      {/* Ambient strip */}
-                      <rect x="40" y="220" width="640" height="6" rx="3" fill={cabin.ambient} opacity="0.9" />
-                      {/* Sunroof opening indicator */}
-                      <rect x="220" y="68" width={(cabin.sunroof/100)*280} height="8" rx="4" fill="#000" opacity="0.15" />
-                      {/* Head unit + volume */}
-                      <rect x="340" y="120" width="60" height="40" rx="6" fill="white" stroke="rgba(0,0,0,.15)" />
-                      <rect x="345" y="125" width="50" height="12" rx="3" fill="rgba(0,0,0,.08)" />
-                      <rect x="345" y="143" width={Math.max(10, (cabin.volume/100)*50)} height="6" rx="3" fill="black" opacity="0.65" />
-                    </svg>
-                  </div>
-                </div>
+                {/* NEW: Photo overlay preview */}
+                <PhotoExperiencePreview
+                  bgSrc={experienceBg || EXPERIENCE_BG}
+                  temp={cabin.temp}
+                  seatHeat={cabin.seatHeat}
+                  seatVent={cabin.seatVent}
+                  ambient={cabin.ambient}
+                  volume={cabin.volume}
+                  sunroof={cabin.sunroof}
+                />
               </motion.div>
             )}
 
@@ -633,7 +724,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
               </motion.div>
             )}
 
-            {/* OVERVIEW TAB (topical catalog that scales with more groups) */}
+            {/* OVERVIEW TAB */}
             {tab === "overview" && (
               <motion.div key="overview" initial={enter} animate={entered} className="space-y-4">
                 <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-4">
@@ -642,7 +733,9 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                     <span className="text-xs text-muted-foreground ml-2">Expandable sections — add more anytime</span>
                   </div>
                   <div className="space-y-3">
-                    {convenienceGroups.map((group, index) => (
+                    {[
+                      ...convenienceGroups
+                    ].map((group, index) => (
                       <CollapsibleContent
                         key={group.title}
                         defaultOpen={index===0}
