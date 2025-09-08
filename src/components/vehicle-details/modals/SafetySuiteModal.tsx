@@ -1,7 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart, ChevronRight, CheckCircle2, Play
+  Shield, Eye, AlertTriangle, Car, Zap, Gauge, Users, Heart,
+  ChevronRight, CheckCircle2, Play, X
 } from "lucide-react";
 import {
   MobileOptimizedDialog,
@@ -109,7 +110,7 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
   );
 };
 
-/** Elegant, swipeable image gallery with thumbnails & keyboard support */
+/** Swipeable image gallery with thumbnails & keyboard support */
 const ImageGallery: React.FC<{
   images: { src: string; alt: string }[];
   initial?: number;
@@ -207,7 +208,7 @@ const ImageGallery: React.FC<{
   );
 };
 
-/* Minimal placeholder card for non-video scenarios when needed */
+/* Minimal placeholder card (kept for non-video scenarios if desired later) */
 const CardShell: React.FC<{ title: string; subtitle: string; accent?: "blue" | "amber" | "emerald" }> = ({ title, subtitle, accent = "blue" }) => {
   const accentMap: Record<string, string> = {
     blue: "from-blue-500/20 to-blue-500/0 ring-blue-300/30",
@@ -294,11 +295,25 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       {/* Wider for media clarity */}
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        <MobileOptimizedDialogHeader>
-          <MobileOptimizedDialogTitle className="text-2xl lg:text-3xl font-bold">
-            Toyota Safety Sense 2.0 · {modelName}
-          </MobileOptimizedDialogTitle>
-          <MobileOptimizedDialogDescription className="text-base line-clamp-2">
+        {/* COMPACT MOBILE HEADER */}
+        <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
+              Toyota Safety Sense 2.0 · {modelName}
+            </MobileOptimizedDialogTitle>
+            {/* Mobile inline close (desktop keeps default spacing) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="sm:hidden shrink-0"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          {/* Hide description on mobile, show on ≥sm */}
+          <MobileOptimizedDialogDescription className="hidden sm:block text-base text-muted-foreground mt-1">
             Real scenarios you can see—then book a test drive.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
@@ -484,7 +499,7 @@ const SafetySuiteModal: React.FC<SafetySuiteModalProps> = ({
         </MobileOptimizedDialogBody>
 
         {/* Single CTA only */}
-        <MobileOptimizedDialogFooter>
+        <MobileOptimizedDialogFooter className="px-3 py-3 sm:px-6 sm:py-4">
           <div className="flex w-full sm:w-auto sm:ml-auto gap-3">
             <Button variant="outline" onClick={onClose}>Close</Button>
             <Button onClick={onBookTestDrive}>Book Test Drive</Button>
