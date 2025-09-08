@@ -229,8 +229,7 @@ export function SideMenuNav({
     document.body.appendChild(pe);
     portalEl.current = pe;
 
-    // Always use window/document for VehicleDetails page
-    scrollRootRef.current = document.documentElement;
+    scrollRootRef.current = resolveScrollRoot(scrollRootSelector);
 
     return () => {
       if (portalEl.current) document.body.removeChild(portalEl.current);
@@ -238,9 +237,10 @@ export function SideMenuNav({
     };
   }, [scrollRootSelector]);
 
-  /** Scrollspy (IntersectionObserver for window scrolling) */
+  /** Scrollspy (IntersectionObserver bound to scroll root) */
   useEffect(() => {
-    if (!list.length) return;
+    if (!list.length || !scrollRootRef.current) return;
+    const rootEl = scrollRootRef.current;
 
     const io = new IntersectionObserver(
       entries => {
@@ -259,33 +259,25 @@ export function SideMenuNav({
         if (topMostIndex !== null) setActive(topMostIndex);
       },
       {
-        root: null, // Use viewport as root for window scrolling
-        rootMargin: "-20% 0px -60% 0px",
+        root: rootEl === document.documentElement ? null : rootEl,
+        rootMargin: "-30% 0px -55% 0px",
         threshold: [0, 0.25, 0.5, 0.75, 1],
       }
     );
 
-    // Add debug logging to see what's available
-    setTimeout(() => {
-      const allSections = document.querySelectorAll('[id]');
-      console.log('Available sections with IDs:', Array.from(allSections).map(el => el.id));
-    }, 1000);
-
-    list.forEach(s => { 
-      const el = document.getElementById(s.id); 
-      if (el) {
-        io.observe(el);
-        console.log(`✓ Found section: ${s.id}`);
-      } else {
-        console.warn(`✗ Element with id "${s.id}" not found for navigation`);
-      }
-    });
+    list.forEach(s => { const el = document.getElementById(s.id); if (el) io.observe(el); });
     return () => io.disconnect();
   }, [list]);
 
   /** Auto-hide side tab on scroll down (and show on scroll up) */
   useEffect(() => {
-    const getTop = () => window.scrollY || window.pageYOffset || 0;
+    if (!scrollRootRef.current) return;
+    const root = scrollRootRef.current;
+
+    const getTop = () =>
+      root === document.documentElement
+        ? (window.scrollY || window.pageYOffset || 0)
+        : root.scrollTop;
 
     let ticking = false;
     const onScroll = () => {
@@ -309,8 +301,8 @@ export function SideMenuNav({
       });
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    (root === document.documentElement ? window : root).addEventListener("scroll", onScroll, { passive: true });
+    return () => (root === document.documentElement ? window : root).removeEventListener("scroll", onScroll);
   }, [pinned]);
 
   /** ESC closes drawer */
@@ -320,8 +312,9 @@ export function SideMenuNav({
     return () => document.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
-  /** Smooth scroll with header offset - fixed for window scrolling */
+  /** Smooth scroll with header offset (works with custom scroll root) */
   const jumpTo = useCallback((id: string, index: number) => {
+    const root = scrollRootRef.current || document.documentElement;
     const el = document.getElementById(id);
     if (!el) {
       console.warn(`Section with id "${id}" not found`);
@@ -330,15 +323,19 @@ export function SideMenuNav({
 
     clickScrolling.current = true;
 
-    // Get the element's position relative to the document
-    const elementTop = el.offsetTop;
-    const dest = Math.max(0, elementTop - headerOffset - 20);
+    const rect = el.getBoundingClientRect();
+    const currentTop = root === document.documentElement 
+      ? (window.scrollY || window.pageYOffset || 0)
+      : root.scrollTop;
 
-    // Always scroll the window since VehicleDetails uses normal window scrolling
-    window.scrollTo({ 
-      top: dest, 
-      behavior: "smooth" 
-    });
+    const absoluteTop = rect.top + currentTop;
+    const dest = Math.max(0, absoluteTop - headerOffset - 20); // Extra 20px padding
+
+    if (root === document.documentElement) {
+      window.scrollTo({ top: dest, behavior: "smooth" });
+    } else {
+      root.scrollTo({ top: dest, behavior: "smooth" as ScrollBehavior });
+    }
 
     setActive(index);
     setDrawerOpen(false);
@@ -460,7 +457,7 @@ export function SideMenuNav({
 
       {/* Side tab (edge of screen). Auto-hides on scroll down unless pinned. Present on mobile & desktop. */}
       <div
-        className={`sm-tab sm-surface sm-shadow sm-nohighlight ${(pinned || autoVisible) ? "visible" : "hidden"}`}
+        className={`sm-tab sm-surface sm-shadow sm-nohighlight ${(!pinned && !autoVisible) ? "hidden" : "visible"}`}
         style={{ borderTopLeftRadius: 10, borderBottomLeftRadius: 10 }}
         role="navigation"
         aria-label="Open sections menu"
