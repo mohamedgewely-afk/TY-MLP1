@@ -25,7 +25,6 @@ const DEFAULT_SECTIONS: SectionItem[] = [
   { id: "offers", label: "Offers" },
   { id: "tech-experience", label: "Technology" },
   { id: "configuration", label: "Configure" },
-  { id: "preowned-similar", label: "Pre-Owned" },
   { id: "related", label: "Similar Models" },
   { id: "faq", label: "FAQs" },
 ];
@@ -285,17 +284,9 @@ export function SideMenuNav({
       ticking = true;
       requestAnimationFrame(() => {
         const y = getTop();
-        const goingDown = y > lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
-        const goingUp = y < lastScrollTop.current && Math.abs(y - lastScrollTop.current) > 5;
-        
+        const goingDown = y > lastScrollTop.current;
         // Only auto-hide if user didn't pin "Show"
-        if (!pinned) {
-          if (goingDown && y > 200) {
-            setAutoVisible(false);
-          } else if (goingUp || y <= 120) {
-            setAutoVisible(true);
-          }
-        }
+        if (!pinned) setAutoVisible(y < 120 || !goingDown);
         lastScrollTop.current = y;
         ticking = false;
       });
@@ -316,20 +307,17 @@ export function SideMenuNav({
   const jumpTo = useCallback((id: string, index: number) => {
     const root = scrollRootRef.current || document.documentElement;
     const el = document.getElementById(id);
-    if (!el) {
-      console.warn(`Section with id "${id}" not found`);
-      return;
-    }
+    if (!el) return;
+
+    const currentTop =
+      root === document.documentElement
+        ? (window.scrollY || window.pageYOffset || 0)
+        : root.scrollTop;
+
+    const absoluteTop = el.getBoundingClientRect().top + currentTop;
+    const dest = Math.max(0, absoluteTop - Math.max(0, headerOffset));
 
     clickScrolling.current = true;
-
-    const rect = el.getBoundingClientRect();
-    const currentTop = root === document.documentElement 
-      ? (window.scrollY || window.pageYOffset || 0)
-      : root.scrollTop;
-
-    const absoluteTop = rect.top + currentTop;
-    const dest = Math.max(0, absoluteTop - headerOffset - 20); // Extra 20px padding
 
     if (root === document.documentElement) {
       window.scrollTo({ top: dest, behavior: "smooth" });
@@ -339,11 +327,7 @@ export function SideMenuNav({
 
     setActive(index);
     setDrawerOpen(false);
-    
-    // Clear click scrolling flag after animation completes
-    setTimeout(() => {
-      clickScrolling.current = false;
-    }, 800);
+    window.setTimeout(() => (clickScrolling.current = false), 500);
   }, [headerOffset]);
 
   /** Filter (optional, simple contains) */

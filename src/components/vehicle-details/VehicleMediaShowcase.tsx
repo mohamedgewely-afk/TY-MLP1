@@ -145,29 +145,23 @@ function useDeepLinking(
   imageIndex: number,
   setSelectedMedia: (m: MediaItem | null) => void,
   setImageIndex: (i: number) => void,
-  mediaItems: MediaItem[],
-  isInitialized: boolean,
-  setIsInitialized: (initialized: boolean) => void
+  mediaItems: MediaItem[]
 ) {
-  // push state on change - only after initialization to prevent auto popup
+  // push state on change
   useEffect(() => {
-    if (!selectedMedia || !isInitialized) return;
+    if (!selectedMedia) return;
     const url = new URL(window.location.href);
     url.searchParams.set("media", selectedMedia.id);
     url.searchParams.set("img", String(imageIndex));
     window.history.replaceState({}, "", url.toString());
-  }, [selectedMedia, imageIndex, isInitialized]);
+  }, [selectedMedia, imageIndex]);
 
-  // read state on load - only if there's a media parameter to avoid auto popup
+  // read state on load
   useEffect(() => {
-    if (mediaItems.length === 0) return;
-    
     const url = new URL(window.location.href);
     const mediaId = url.searchParams.get("media");
     const imgIdx = url.searchParams.get("img");
-    
-    // Only open modal if explicitly requested via URL parameters AND user navigated here with intent
-    if (mediaId && document.referrer && document.referrer.includes('media=')) {
+    if (mediaId) {
       const found = mediaItems.find((m) => m.id === mediaId);
       if (found) {
         const rawIdx = Number(imgIdx);
@@ -177,13 +171,8 @@ function useDeepLinking(
         setImageIndex(safeIdx);
       }
     }
-    
-    // Mark as initialized after initial load
-    setTimeout(() => {
-      setIsInitialized(true);
-    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaItems, setIsInitialized]);
+  }, []);
 }
 
 /* =========================================================
@@ -197,10 +186,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Performance optimization - memoize media items
-  const mediaItems: MediaItem[] = useMemo(() => [
+  // --- Keep your original DAM-based items (unchanged) ---
+  const mediaItems: MediaItem[] = [
     {
       id: "performance",
       type: "image",
@@ -426,7 +414,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         },
       ],
     },
-  ], []);
+  ];
 
   // Early bail
   if (!mediaItems || mediaItems.length === 0) {
@@ -506,7 +494,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), activeIndex);
 
   // Deep linking: reflect activeIndex in URL and read on mount
-  useDeepLinking(selectedMedia, activeIndex, setSelectedMedia, setActiveIndex, mediaItems, isInitialized, setIsInitialized);
+  useDeepLinking(selectedMedia, activeIndex, setSelectedMedia, setActiveIndex, mediaItems);
 
   // Video controls (YouTube embed)
   const toggleMute = () => setIsMuted((m) => !m);
