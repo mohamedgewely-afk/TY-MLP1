@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Info, Play
+  Car, Smartphone, Volume2, Armchair, Sun, Wind, Lightbulb, X, Play, Pause
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils";
 
 const BRAND_RED = "#cb0017";
 
-/** Real interior photo for the tour spotlight */
-const TOUR_BG =
+/** Real interior photo (applies to all scenes, can be overridden per scene) */
+const INTERIOR_BG =
   "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true";
 
 /** Gallery defaults (swap via props if needed) */
@@ -37,13 +37,7 @@ const DEFAULT_IMG_B =
 /* TYPES                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type TabKey = "overview" | "tour" | "hotspots" | "images" | "videos";
-
-type Hotspot = {
-  x: number; y: number; // percent
-  title: string; body: string;
-  icon?: React.ComponentType<{ className?: string }>;
-};
+type TabKey = "overview" | "cineloop" | "images" | "videos";
 
 interface InteriorExperienceModalProps {
   isOpen: boolean;
@@ -51,8 +45,6 @@ interface InteriorExperienceModalProps {
   onBookTestDrive: () => void;
   videoIds?: string[];
   images?: { src: string; alt?: string }[];
-  hotspotImage?: { src: string; alt?: string };
-  hotspots?: Hotspot[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -184,183 +176,234 @@ const YoutubeInline: React.FC<{ videoId: string; title: string }> = ({ videoId, 
 };
 
 /* -------------------------------------------------------------------------- */
-/* HOTSPOTS                                                                   */
+/* CINELOOP (auto-play scenes, no tapping required)                            */
 /* -------------------------------------------------------------------------- */
 
-const HotspotsStage: React.FC<{
-  image: { src: string; alt?: string };
-  hotspots: Hotspot[];
-}> = ({ image, hotspots }) => {
-  const [active, setActive] = React.useState<number | null>(null);
-  const [show, setShow] = React.useState(true);
+type Scene = {
+  key: string;
+  title: string;
+  caption: string;
+  ambient: string;     // ambient bar color
+  audioLevel: number;  // 0..100
+  climate: "cool" | "warm" | "neutral";
+  roofPct: number;     // 0..100 (indicator only)
+  leftSeatHeat: 0 | 1 | 2;
+  rightSeatHeat: 0 | 1 | 2;
+  uiAccent?: string;
+  bg?: string;         // optional override image
+  micro?: { icon: React.ReactNode; label: string; value: string }[];
+};
 
-  return (
-    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" /> Tap a dot to learn more.
-        </div>
-        <button onClick={() => setShow(!show)} className="text-xs underline">{show ? "Hide hotspots" : "Show hotspots"}</button>
+const scenes: Scene[] = [
+  {
+    key: "commute",
+    title: "Morning Commute",
+    caption: "Quiet, focused start. Cool air, subtle light, balanced audio.",
+    ambient: "#0EA5E9",
+    audioLevel: 28,
+    climate: "cool",
+    roofPct: 0,
+    leftSeatHeat: 0,
+    rightSeatHeat: 0,
+    uiAccent: "#0EA5E9",
+    micro: [
+      { icon: <Wind className="h-3.5 w-3.5" />, label: "Air", value: "Fresh" },
+      { icon: <Lightbulb className="h-3.5 w-3.5" />, label: "Ambient", value: "Cool" },
+      { icon: <Volume2 className="h-3.5 w-3.5" />, label: "Audio", value: "28%" },
+    ],
+  },
+  {
+    key: "family",
+    title: "Family Trip",
+    caption: "Comfort for everyone. Gentle climate, roof ajar, playlists on.",
+    ambient: BRAND_RED,
+    audioLevel: 38,
+    climate: "neutral",
+    roofPct: 35,
+    leftSeatHeat: 1,
+    rightSeatHeat: 1,
+    uiAccent: BRAND_RED,
+    micro: [
+      { icon: <Armchair className="h-3.5 w-3.5" />, label: "Seats", value: "Warm L1" },
+      { icon: <Sun className="h-3.5 w-3.5" />, label: "Roof", value: "35%" },
+      { icon: <Smartphone className="h-3.5 w-3.5" />, label: "Charging", value: "Wireless" },
+    ],
+  },
+  {
+    key: "night",
+    title: "Night Drive",
+    caption: "Calm cabin. Warm LEDs, low fan, richer soundstage.",
+    ambient: "#4F46E5",
+    audioLevel: 22,
+    climate: "warm",
+    roofPct: 0,
+    leftSeatHeat: 0,
+    rightSeatHeat: 0,
+    uiAccent: "#4F46E5",
+    micro: [
+      { icon: <Lightbulb className="h-3.5 w-3.5" />, label: "Ambient", value: "Indigo" },
+      { icon: <Volume2 className="h-3.5 w-3.5" />, label: "Audio", value: "22%" },
+      { icon: <Car className="h-3.5 w-3.5" />, label: "Mode", value: "Comfort" },
+    ],
+  },
+];
+
+/* Non-positional overlays: no guessing exact seat/vent locations */
+const AmbientBar: React.FC<{ color: string }> = ({ color }) => (
+  <div className="absolute left-6 right-6 bottom-6 h-2 rounded-full" style={{ background: color, opacity: 0.9, filter: "blur(1px)" }} />
+);
+
+const RoofIndicator: React.FC<{ pct: number }> = ({ pct }) => (
+  <div className="absolute left-1/2 -translate-x-1/2 top-3 w-[60%] max-w-[420px] rounded-full bg-black/30 backdrop-blur text-white px-3 py-1.5 text-xs">
+    Panoramic roof: <span className="font-medium">{pct}%</span>
+    <div className="mt-1 h-1 w-full rounded bg-white/20 overflow-hidden">
+      <div className="h-full bg-white" style={{ width: `${pct}%` }} />
+    </div>
+  </div>
+);
+
+const AudioMeter: React.FC<{ level: number }> = ({ level }) => (
+  <div className="absolute right-3 bottom-3 rounded-md border bg-white/90 shadow px-2 py-1">
+    <div className="text-[10px] text-muted-foreground">JBL</div>
+    <div className="mt-1 h-1 w-24 rounded bg-black/10 overflow-hidden">
+      <div className="h-full" style={{ width: `${level}%`, background: "#111827" }} />
+    </div>
+  </div>
+);
+
+const SeatBadges: React.FC<{ left: 0|1|2; right: 0|1|2; accent: string }> = ({ left, right, accent }) => (
+  <div className="absolute left-3 bottom-3 flex gap-2">
+    {([left, right] as const).map((lvl, i) => (
+      <div key={i} className="rounded-md border bg-white/90 shadow px-2 py-1 text-xs flex items-center gap-1.5">
+        <Armchair className="h-3.5 w-3.5" style={{ color: accent }} />
+        <span>Seat {i === 0 ? "L" : "R"}</span>
+        <span className="ml-1 font-medium">{lvl === 0 ? "Off" : `Warm L${lvl}`}</span>
       </div>
+    ))}
+  </div>
+);
 
-      <div className="relative w-full overflow-hidden rounded-lg" style={{ paddingTop: "56.25%" }}>
-        <img src={image.src} alt={image.alt || ""} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-        {show && hotspots?.map((h, i) => {
-          const Icon = h.icon || Info;
-          return (
-            <div key={`${h.title}-${i}`} style={{ left: `${h.x}%`, top: `${h.y}%` }} className="absolute -translate-x-1/2 -translate-y-1/2">
-              <button
-                onClick={() => setActive(active === i ? null : i)}
-                className="h-5 w-5 rounded-full border bg-white/90 backdrop-blur shadow grid place-items-center"
-                style={{ borderColor: BRAND_RED }}
-                aria-label={h.title}
-              >
-                <span className="h-2 w-2 rounded-full" style={{ background: BRAND_RED }} />
-              </button>
+const ClimateWash: React.FC<{ type: Scene["climate"] }> = ({ type }) => {
+  // A soft, animated wash at mid-height: blue (cool) / red (warm) / subtle gray (neutral)
+  const color = type === "cool" ? "rgba(14,165,233,.25)" : type === "warm" ? "rgba(203,0,23,.20)" : "rgba(0,0,0,.10)";
+  return (
+    <motion.div
+      className="absolute left-0 right-0 top-1/3 h-1/3"
+      style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}
+      initial={{ opacity: 0.0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    />
+  );
+};
 
-              {active === i && (
-                <div className="mt-2 w-56 rounded-lg border bg-white shadow ring-1 ring-black/5 p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon className="h-4 w-4" style={{ color: BRAND_RED }} />
-                    <div className="font-medium text-sm">{h.title}</div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{h.body}</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
+const MicroStats: React.FC<{ items?: Scene["micro"]; accent?: string }> = ({ items, accent = BRAND_RED }) => {
+  if (!items?.length) return null;
+  return (
+    <div className="absolute left-3 top-3 rounded-md border bg-white/90 shadow px-2 py-1.5">
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((m) => (
+          <div key={m.label} className="flex items-center gap-1">
+            <span className="text-white p-1 rounded" style={{ background: accent }}>{m.icon}</span>
+            <span className="text-[10px] text-muted-foreground">{m.label}</span>
+            <span className="text-[11px] font-medium">{m.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* GUIDED TOUR (spotlight over photo)                                         */
-/* -------------------------------------------------------------------------- */
-
-type TourStep = {
-  key: string;
-  title: string;
-  body: string;
-  x: number; // 0..100 (percent of width)
-  y: number; // 0..100 (percent of height)
-  rx: number; // radiusX in %
-  ry?: number; // radiusY in %, defaults to rx
-  icon?: React.ComponentType<{ className?: string }>;
-  metric?: { label: string; value: string }[];
-};
-
-const TOUR_STEPS: TourStep[] = [
-  {
-    key: "seats",
-    title: "Premium Seating",
-    body: "Ergonomic seats with heating & ventilation keep you fresh on every drive.",
-    x: 30, y: 62, rx: 18, ry: 14,
-    icon: Armchair,
-    metric: [{ label: "Adjust", value: "8-way" }, { label: "Memory", value: "Driver" }],
-  },
-  {
-    key: "ambient",
-    title: "Ambient Lighting",
-    body: "Subtle LED accents set the tone—elegant by day, calming at night.",
-    x: 52, y: 44, rx: 28, ry: 10,
-    icon: Lightbulb,
-    metric: [{ label: "Palette", value: "Warm / Cool" }],
-  },
-  {
-    key: "airflow",
-    title: "Clean, Quiet Airflow",
-    body: "Smart climate routes air gently through the cabin for quiet comfort.",
-    x: 50, y: 40, rx: 18, ry: 12,
-    icon: Wind,
-    metric: [{ label: "Dual-Zone", value: "Yes" }],
-  },
-  {
-    key: "infotainment",
-    title: "Intuitive Infotainment",
-    body: "Seamless smartphone integration, wireless charging and voice control.",
-    x: 47, y: 52, rx: 10,
-    icon: Smartphone,
-    metric: [{ label: "Charging", value: "Wireless" }],
-  },
-  {
-    key: "audio",
-    title: "JBL Premium Audio",
-    body: "Concert-grade clarity tuned specifically for the Camry cabin.",
-    x: 18, y: 58, rx: 12,
-    icon: Volume2,
-    metric: [{ label: "Speakers", value: "9" }],
-  },
-  {
-    key: "roof",
-    title: "Panoramic Roof",
-    body: "Let in sky and light with one-touch open/close.",
-    x: 82, y: 18, rx: 16, ry: 8,
-    icon: Sun,
-    metric: [{ label: "Open", value: "One-touch" }],
-  },
-];
-
-const SpotlightMask: React.FC<{ x: number; y: number; rx: number; ry?: number; }> = ({ x, y, rx, ry }) => {
-  // We use CSS masks to cut a hole through a dark overlay.
-  // Position/size are in percent, responsive by design.
-  const rY = ry ?? rx;
-  const mask = `radial-gradient(${rx}% ${rY}% at ${x}% ${y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.6) 61%)`;
+const SceneCard: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const img = scene.bg || INTERIOR_BG;
   return (
-    <div className="absolute inset-0 pointer-events-none" style={{ WebkitMaskImage: mask, maskImage: mask, background: "rgba(0,0,0,0.64)" }} />
+    <div className="relative w-full overflow-hidden rounded-xl ring-1 ring-black/5 border bg-black/5" style={{ paddingTop: "56.25%" }}>
+      <img src={img} alt="Interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      <ClimateWash type={scene.climate} />
+      <AmbientBar color={scene.ambient} />
+      <RoofIndicator pct={scene.roofPct} />
+      <AudioMeter level={scene.audioLevel} />
+      <SeatBadges left={scene.leftSeatHeat} right={scene.rightSeatHeat} accent={scene.uiAccent || BRAND_RED} />
+      <MicroStats items={scene.micro} accent={scene.uiAccent || BRAND_RED} />
+    </div>
   );
 };
 
-const GuidedTour: React.FC<{ steps?: TourStep[]; bg?: string; }> = ({ steps = TOUR_STEPS, bg = TOUR_BG }) => {
-  const [i, setI] = React.useState(0);
-  const s = steps[i];
-  const canPrev = i > 0;
-  const canNext = i < steps.length - 1;
+const ProgressDots: React.FC<{ total: number; index: number; accent?: string }> = ({ total, index, accent = BRAND_RED }) => (
+  <div className="flex items-center justify-center gap-2">
+    {Array.from({ length: total }).map((_, i) => (
+      <div key={i} className="h-1.5 w-6 rounded-full" style={{ background: i === index ? accent : "rgba(0,0,0,.12)" }} />
+    ))}
+  </div>
+);
 
-  const Icon = s.icon || Info;
+const CineLoop: React.FC = () => {
+  const prefersReduced = useReducedMotion();
+  const [i, setI] = React.useState(0);
+  const [playing, setPlaying] = React.useState(true);
+
+  // Auto-advance every 4.5s (reduced motion = paused by default)
+  React.useEffect(() => {
+    if (prefersReduced || !playing) return;
+    const t = setInterval(() => setI((v) => (v + 1) % scenes.length), 4500);
+    return () => clearInterval(t);
+  }, [playing, prefersReduced]);
+
+  const scene = scenes[i];
+
+  // swipe to switch (mobile)
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    let startX = 0;
+    const onTouchStart = (e: TouchEvent) => (startX = e.touches[0].clientX);
+    const onTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) setI((v) => (dx < 0 ? (v + 1) % scenes.length : (v - 1 + scenes.length) % scenes.length));
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
 
   return (
-    <div className="rounded-xl border bg-white/70 backdrop-blur ring-1 ring-black/5 p-3">
-      {/* Stage */}
-      <div className="relative w-full overflow-hidden rounded-lg" style={{ paddingTop: "56.25%" }}>
-        <img src={bg} alt="Interior" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-        {/* Spotlight overlay */}
-        <SpotlightMask x={s.x} y={s.y} rx={s.rx} ry={s.ry} />
-        {/* Pulse dot at focus center */}
-        <div className="absolute -translate-x-1/2 -translate-y-1/2"
-             style={{ left: `${s.x}%`, top: `${s.y}%` }}>
-          <div className="h-4 w-4 rounded-full bg-white shadow ring-2 ring-white/80" />
-          <div className="absolute inset-0 rounded-full animate-ping" style={{ background: BRAND_RED, opacity: 0.35 }} />
+    <div ref={containerRef} className="rounded-2xl p-3 border bg-white/70 backdrop-blur ring-1 ring-black/5">
+      {/* Title + play/pause */}
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <div className="text-sm font-semibold" style={{ color: scene.uiAccent || BRAND_RED }}>{scene.title}</div>
+          <div className="text-xs text-muted-foreground">{scene.caption}</div>
         </div>
+        <button
+          className="rounded-full border bg-white/90 shadow px-2.5 py-1.5 text-sm inline-flex items-center gap-1"
+          onClick={() => setPlaying((p) => !p)}
+          aria-label={playing ? "Pause" : "Play"}
+        >
+          {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+          {playing ? "Pause" : "Play"}
+        </button>
       </div>
 
-      {/* Caption */}
-      <div className="mt-3 rounded-lg border bg-white/90 p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="p-2 rounded-md text-white" style={{ background: BRAND_RED }}>
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="font-semibold">{s.title}</div>
-        </div>
-        <p className="text-sm text-muted-foreground">{s.body}</p>
-        {!!s.metric?.length && (
-          <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {s.metric.map((m) => (
-              <div key={m.label} className="rounded-md border bg-white p-2 text-xs">
-                <div className="text-muted-foreground">{m.label}</div>
-                <div className="font-medium">{m.value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="mt-3 flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={!canPrev} onClick={() => setI((v) => Math.max(0, v - 1))}>Prev</Button>
-          <Button size="sm" onClick={() => setI((v) => Math.min(steps.length - 1, v + 1))} style={{ background: BRAND_RED }}>
-            Next
-          </Button>
-          <div className="ml-auto text-xs text-muted-foreground">{i + 1} / {steps.length}</div>
-        </div>
+      {/* Scene */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={scene.key}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35 }}
+        >
+          <SceneCard scene={scene} />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Dots */}
+      <div className="mt-3">
+        <ProgressDots total={scenes.length} index={i} accent={scene.uiAccent || BRAND_RED} />
       </div>
     </div>
   );
@@ -376,8 +419,6 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
   onBookTestDrive,
   videoIds = [],
   images,
-  hotspotImage,
-  hotspots,
 }) => {
   const prefersReduced = useReducedMotion();
   const enter = prefersReduced ? {} : { opacity: 0, y: 16 };
@@ -388,36 +429,25 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
     { src: DEFAULT_IMG_B, alt: "Interior highlight 2" },
   ];
 
-  const hotspotBg = hotspotImage || { src: DEFAULT_IMG_B, alt: "Interior with features" };
-  const hotspotItems: Hotspot[] = hotspots?.length ? hotspots : [
-    { x: 48, y: 70, title: "Wireless Charging", body: "Drop your phone on the pad to charge while you drive.", icon: Smartphone },
-    { x: 18, y: 62, title: "JBL Speakers", body: "Crisp highs and deep lows tuned for the cabin.", icon: Volume2 },
-    { x: 82, y: 26, title: "Panoramic Roof", body: "Let in sky and light with one-touch control.", icon: Sun },
-    { x: 52, y: 40, title: "Ambient Lighting", body: "Set the tone with subtle LED accents.", icon: Lightbulb },
-    { x: 30, y: 78, title: "Comfort Seats", body: "Heated/ventilated seats keep you fresh.", icon: Armchair },
-  ];
-
   const tabItems = (videoIds.length
     ? ([
-        { key: "overview", label: "Overview" as const },
-        { key: "tour",     label: "Guided Tour" as const },
-        { key: "hotspots", label: "Hotspots" as const },
-        { key: "images",   label: "Images" as const },
-        { key: "videos",   label: "Videos" as const },
+        { key: "overview",  label: "Overview" as const },
+        { key: "cineloop",  label: "CineLoop" as const },
+        { key: "images",    label: "Images" as const },
+        { key: "videos",    label: "Videos" as const },
       ])
     : ([
-        { key: "overview", label: "Overview" as const },
-        { key: "tour",     label: "Guided Tour" as const },
-        { key: "hotspots", label: "Hotspots" as const },
-        { key: "images",   label: "Images" as const },
+        { key: "overview",  label: "Overview" as const },
+        { key: "cineloop",  label: "CineLoop" as const },
+        { key: "images",    label: "Images" as const },
       ])) as { key: TabKey; label: string }[];
 
-  const [tab, setTab] = React.useState<TabKey>("tour");
+  const [tab, setTab] = React.useState<TabKey>("cineloop");
 
   return (
     <MobileOptimizedDialog open={isOpen} onOpenChange={onClose}>
       <MobileOptimizedDialogContent className="sm:max-w-6xl max-w-[1100px] w-[96vw]">
-        {/* Compact header */}
+        {/* Compact header (mobile-friendly) */}
         <MobileOptimizedDialogHeader className="px-3 py-2 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <MobileOptimizedDialogTitle className="text-lg font-semibold leading-tight sm:text-2xl sm:font-bold">
@@ -428,7 +458,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
             </Button>
           </div>
           <MobileOptimizedDialogDescription className="hidden sm:block text-base mt-1">
-            Step through a clean, focused tour — then explore hotspots, images, or videos.
+            Lean back—your interior comes alive automatically. Swipe to switch scenes anytime.
           </MobileOptimizedDialogDescription>
         </MobileOptimizedDialogHeader>
 
@@ -448,7 +478,7 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
                 <div className="lg:col-span-1 space-y-3">
                   <h3 className="text-xl lg:text-2xl font-bold">Crafted for you</h3>
                   <p className="text-sm text-muted-foreground">
-                    A focused, story-like walkthrough that highlights what matters — fast and clear.
+                    A smooth, hands-free showcase of real-world cabin moments.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center rounded-lg bg-white border p-2">
@@ -468,22 +498,15 @@ const InteriorExperienceModal: React.FC<InteriorExperienceModalProps> = ({
 
                 <div className="lg:col-span-2 space-y-3">
                   <Tabs active={tab} onChange={setTab} items={tabItems} />
-                  <div className="text-xs text-muted-foreground">Overview · Guided Tour · Hotspots · Images · Videos</div>
+                  <div className="text-xs text-muted-foreground">Overview · CineLoop · Images · Videos</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* TOUR TAB */}
-            {tab === "tour" && (
-              <motion.div key="tour" initial={enter} animate={entered}>
-                <GuidedTour />
-              </motion.div>
-            )}
-
-            {/* HOTSPOTS TAB */}
-            {tab === "hotspots" && (
-              <motion.div key="hotspots" initial={enter} animate={entered}>
-                <HotspotsStage image={hotspotBg} hotspots={hotspotItems} />
+            {/* CINELOOP TAB */}
+            {tab === "cineloop" && (
+              <motion.div key="cineloop" initial={enter} animate={entered}>
+                <CineLoop />
               </motion.div>
             )}
 
