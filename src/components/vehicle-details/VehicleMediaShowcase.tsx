@@ -1,9 +1,27 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Play, Pause, Volume2, VolumeX, ChevronLeft, ChevronRight,
-  Zap, Gauge, Shield, Cpu, Car, Navigation, Award, Sparkles, Info, Eye,
-  Wrench, Share2, Maximize2, Minimize2
+  X,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  Gauge,
+  Shield,
+  Cpu,
+  Car,
+  Navigation,
+  Award,
+  Sparkles,
+  Info,
+  Eye,
+  Wrench,
+  Share2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +33,6 @@ import { cn } from "@/lib/utils";
 
 /* =========================================================
    SafeImage: DAM-friendly with lazy + fallback, no-referrer
-   — FIX: wrapper now always has height unless ratioClass overrides
 ========================================================= */
 type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   fallbackText?: string;
@@ -32,24 +49,15 @@ const SafeImage: React.FC<SafeImageProps> = ({
   ...rest
 }) => {
   const [errored, setErrored] = useState(false);
-
-  // If ratioClass is provided, we rely on aspect-* for height; otherwise force h-full
-  const wrapperClass = cn("relative w-full", ratioClass ?? "h-full");
-
   return (
-    <div className={wrapperClass}>
+    <div className={cn("relative w-full", ratioClass)}>
       {!errored ? (
         <img
           src={src as string}
           alt={alt}
           loading="lazy"
-          decoding="async"
           referrerPolicy="no-referrer"
-          className={cn(
-            "w-full h-full",
-            fit === "cover" ? "object-cover" : "object-contain bg-black",
-            className
-          )}
+          className={cn("w-full h-full", fit === "cover" ? "object-cover" : "object-contain bg-black", className)}
           onError={() => setErrored(true)}
           {...rest}
         />
@@ -63,7 +71,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
 };
 
 /* =========================================================
-   Types
+   Types (backwards compatible with your data)
 ========================================================= */
 interface ImageDetailsOverride {
   specs?: string[];
@@ -104,7 +112,7 @@ interface VehicleMediaShowcaseProps {
 }
 
 /* =========================================================
-   Utilities
+   Small utilities
 ========================================================= */
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
@@ -131,6 +139,7 @@ function usePreloadNeighbors(list: string[], index: number) {
   }, [list, index]);
 }
 
+/** Deep linking: push state on change; read state on load (with clamping) */
 function useDeepLinking(
   selectedMedia: MediaItem | null,
   imageIndex: number,
@@ -149,14 +158,16 @@ function useDeepLinking(
     window.history.replaceState({}, "", url.toString());
   }, [selectedMedia, imageIndex, isInitialized]);
 
-  // read state on load without auto-opening unless explicitly requested
+  // read state on load - only if there's a media parameter to avoid auto popup
   useEffect(() => {
     if (mediaItems.length === 0) return;
+
     const url = new URL(window.location.href);
     const mediaId = url.searchParams.get("media");
     const imgIdx = url.searchParams.get("img");
 
-    if (mediaId) {
+    // Only open modal if explicitly requested via URL parameters AND user navigated here with intent
+    if (mediaId && document.referrer && document.referrer.includes("media=")) {
       const found = mediaItems.find((m) => m.id === mediaId);
       if (found) {
         const rawIdx = Number(imgIdx);
@@ -167,8 +178,10 @@ function useDeepLinking(
       }
     }
 
-    const t = setTimeout(() => setIsInitialized(true), 100);
-    return () => clearTimeout(t);
+    // Mark as initialized after initial load
+    setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaItems, setIsInitialized]);
 }
@@ -179,14 +192,14 @@ function useDeepLinking(
 const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
   const isMobile = useIsMobile();
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);    // mobile card index
-  const [activeIndex, setActiveIndex] = useState(0);      // modal image index
+  const [currentIndex, setCurrentIndex] = useState(0); // mobile card index
+  const [activeIndex, setActiveIndex] = useState(0); // <-- single source of truth for modal
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Data (unchanged)
+  // Performance optimization - memoize media items
   const mediaItems: MediaItem[] = useMemo(
     () => [
       {
@@ -372,7 +385,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       {
         id: "build-quality",
         type: "image",
-        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
+        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
         title: "Premium Build Quality",
         description: "Exceptional craftsmanship and attention to detail in every component",
         category: "Quality",
@@ -384,19 +397,19 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         },
         galleryImages: [
           {
-            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
+            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/50d87eac-d48e-42f3-81b6-dcaa8a7e052a/renditions/15967074-ba68-442a-b403-d7a62a10171f?binary=true&mformat=true",
             title: "Manufacturing Excellence",
             description: "State-of-the-art manufacturing processes ensuring consistent quality and precision in every vehicle",
             contentBlocks: [{ id: "qual-0-a", title: "Automation", body: "Robotic precision with human QA." }],
           },
           {
-            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
+            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
             title: "Material Quality",
             description: "Premium materials for durability, sustainability, and a luxurious feel",
             contentBlocks: [{ id: "qual-1-a", title: "Materials", body: "Corrosion-resistant coatings & sealants." }],
           },
           {
-            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0bcbeaea-ebe3-4f3e-9af6-040187f89ad8?binary=true&mformat=true",
+            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/a876132d-c35d-4d35-99c7-651e180dd8a1/renditions/98c1ac8c-a8bc-4f7c-8862-31fb9f7bff30?binary=true&mformat=true",
             title: "Finish Details",
             description: "Meticulous paint quality, panel gaps, and surface textures",
             contentBlocks: [{ id: "qual-2-a", title: "Finish", body: "Multi-stage paint with laser gap checks." }],
@@ -407,6 +420,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     []
   );
 
+  // Early bail
   if (!mediaItems || mediaItems.length === 0) {
     return <div className="p-8 text-center text-muted-foreground">No media available.</div>;
   }
@@ -418,6 +432,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     threshold: 40,
   });
 
+  // Open/close modal
   const handleMediaClick = (media: MediaItem) => {
     setSelectedMedia(media);
     setActiveIndex(0);
@@ -428,8 +443,10 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     setIsPlaying(false);
   }, []);
 
+  // Scroll lock when open
   useBodyScrollLock(!!selectedMedia);
 
+  // Keyboard navigation (changes activeIndex only)
   useEffect(() => {
     if (!selectedMedia) return;
     const onKey = (e: KeyboardEvent) => {
@@ -439,8 +456,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedMedia, closeModal]);
+  }, [selectedMedia, closeModal, activeIndex]);
 
+  // Prev/Next for modal
   const next = () => {
     const len = selectedMedia?.galleryImages?.length ?? 0;
     if (!len) return;
@@ -452,6 +470,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     setActiveIndex((p) => (p - 1 + len) % len);
   };
 
+  // Current asset + content (comes only from activeIndex; no scroll linkage)
   const currImg = useMemo(() => {
     if (!selectedMedia) return { url: "", title: "", description: "" };
     const g = selectedMedia.galleryImages;
@@ -459,9 +478,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       const clamped = Math.min(Math.max(0, activeIndex), g.length - 1);
       return g[clamped];
     }
+    // fallback to top-level media when no gallery provided
     return { url: selectedMedia.url, title: selectedMedia.title, description: selectedMedia.description };
   }, [selectedMedia, activeIndex]);
 
+  // Merge details: image overrides -> media-level fallback
   const mergedDetails = useMemo(() => {
     if (!selectedMedia) return undefined;
     const imgDetails = (currImg as GalleryImage).details;
@@ -473,13 +494,15 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     };
   }, [selectedMedia, currImg]);
 
+  // Preload neighbors for smooth image swaps
   usePreloadNeighbors((selectedMedia?.galleryImages || []).map((g) => g.url), activeIndex);
+
+  // Deep linking: reflect activeIndex in URL and read on mount
   useDeepLinking(selectedMedia, activeIndex, setSelectedMedia, setActiveIndex, mediaItems, isInitialized, setIsInitialized);
 
+  // Video controls (YouTube embed)
   const toggleMute = () => setIsMuted((m) => !m);
   const togglePlay = () => setIsPlaying((p) => !p);
-
-  // FIX: reliable 16:9 on mobile, fluid on desktop, proper inline playback
   const renderVideo = (url: string) => {
     const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,})/);
     const vid = m ? m[1] : "";
@@ -491,13 +514,13 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
           className="absolute inset-0 w-full h-full"
           src={`https://www.youtube.com/embed/${vid}${params}`}
           allow="autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
           referrerPolicy="no-referrer"
         />
       </div>
     );
   };
 
+  // Share deep link
   const onShare = async () => {
     const url = new URL(window.location.href);
     if (selectedMedia) {
@@ -539,10 +562,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 key={i}
                 onClick={() => setCurrentIndex(i)}
                 aria-label={`Go to item ${i + 1}`}
-                className={cn(
-                  "w-3 h-3 rounded-full transition-all",
-                  i === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                )}
+                className={cn("w-3 h-3 rounded-full transition-all", i === currentIndex ? "bg-primary scale-125" : "bg-muted-foreground/30")}
               />
             ))}
           </div>
@@ -580,7 +600,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               role="dialog"
               aria-modal="true"
             >
-              {/* Header */}
+              {/* Header (non-sticky) */}
               <div className="flex items-center justify-between p-4 md:p-6 border-b bg-background/95">
                 <div className="min-w-0">
                   <h3 className="text-lg md:text-2xl font-bold truncate">{selectedMedia.title}</h3>
@@ -617,26 +637,22 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 </div>
               </div>
 
-              {/* Content */}
+              {/* Content: mobile = stacked, md+ = two panes */}
               <div className="flex-1 grid md:grid-cols-2 min-h-0">
-                {/* Visual pane — FIX: predictable fit & centering */}
+                {/* Visual pane */}
                 <div className={cn("relative bg-black min-h-[42svh] md:min-h-0", isZoomed && "cursor-zoom-out")}>
+                  {/* Main visual */}
                   {selectedMedia.type === "video" ? (
                     renderVideo(selectedMedia.url)
                   ) : (
                     <div
-                      className={cn(
-                        "relative w-full h-full flex items-center justify-center",
-                        // enforce 16:9 on small screens where height is constrained
-                        "md:aspect-auto aspect-[16/9]",
-                        isZoomed ? "overflow-auto" : "overflow-hidden"
-                      )}
+                      className={cn("relative w-full h-full", "md:aspect-auto aspect-[16/10]", isZoomed ? "overflow-auto" : "overflow-hidden")}
                       onDoubleClick={() => setIsZoomed((z) => !z)}
                     >
                       <SafeImage
                         src={currImg.url}
                         alt={currImg.title}
-                        fit={isZoomed ? "cover" : "contain"} // contain by default for proper fit
+                        fit={isZoomed ? "cover" : "contain"}
                         className={cn("transition-transform duration-300", isZoomed ? "scale-105" : "")}
                       />
                     </div>
@@ -663,16 +679,13 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                       >
                         <ChevronRight className="h-5 w-5" />
                       </Button>
-                      <div
-                        aria-live="polite"
-                        className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs"
-                      >
+                      <div aria-live="polite" className="absolute bottom-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs">
                         {selectedMedia.galleryImages ? activeIndex + 1 : 1} / {selectedMedia.galleryImages?.length ?? 1}
                       </div>
                     </>
                   )}
 
-                  {/* Thumbs — FIX: thumbs fill their buttons correctly */}
+                  {/* Thumbs */}
                   {selectedMedia.galleryImages && selectedMedia.galleryImages.length > 1 && (
                     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur p-3">
                       <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Image thumbnails">
@@ -681,14 +694,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                             key={idx}
                             role="tab"
                             aria-selected={idx === activeIndex}
-                            onClick={() => setActiveIndex(idx)}
+                            onClick={() => setActiveIndex(idx)} // <-- only this changes content
                             aria-label={`Thumbnail ${idx + 1}`}
                             className={cn(
                               "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary/60",
                               idx === activeIndex ? "border-primary" : "border-transparent hover:border-primary/50"
                             )}
                           >
-                            <SafeImage src={img.url} alt={img.title} fit="cover" />
+                            <SafeImage src={img.url} alt={img.title} className="w-full h-full object-cover" />
                           </button>
                         ))}
                       </div>
@@ -696,8 +709,9 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   )}
                 </div>
 
-                {/* Text/content pane */}
+                {/* Text/content pane (bound to activeIndex only) */}
                 <div className="min-h-0 overflow-y-auto p-4 md:p-6">
+                  {/* Per-image heading + badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     {(currImg as GalleryImage).badges?.map((b) => (
                       <Badge key={b} variant="secondary" className="text-xs">
@@ -708,6 +722,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   <h4 className="font-semibold text-lg">{currImg.title || selectedMedia.title}</h4>
                   <p className="text-sm text-muted-foreground mt-1">{currImg.description || selectedMedia.description}</p>
 
+                  {/* Details (image overrides -> fallback to media-level) */}
                   <div className="grid md:grid-cols-3 gap-6 mt-5">
                     {mergedDetails?.specs && mergedDetails.specs.length > 0 && (
                       <div>
@@ -759,6 +774,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                     )}
                   </div>
 
+                  {/* Content blocks */}
                   {(currImg as GalleryImage).contentBlocks && (currImg as GalleryImage).contentBlocks!.length > 0 && (
                     <div className="space-y-3 pt-6 border-t mt-6">
                       {(currImg as GalleryImage).contentBlocks!.map((b) => (
@@ -783,7 +799,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
 };
 
 /* =========================================================
-   Media Card — FIX: use aspect ratio for consistent fit
+   Media Card (runtime-safe)
 ========================================================= */
 interface MediaCardProps {
   media?: MediaItem | null;
@@ -797,17 +813,11 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
   const is360 = media.type === "360";
 
   return (
-    <motion.div
-      whileHover={{ scale: isMobile ? 1 : 1.02, y: isMobile ? 0 : -4 }}
-      whileTap={{ scale: 0.98 }}
-      className="cursor-pointer"
-      onClick={onClick}
-    >
+    <motion.div whileHover={{ scale: isMobile ? 1 : 1.02, y: isMobile ? 0 : -4 }} whileTap={{ scale: 0.98 }} className="cursor-pointer" onClick={onClick}>
       <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-background to-muted/20 hover:shadow-2xl transition-all duration-300">
         <div className="relative">
-          {/* Use aspect to keep consistent scaling and avoid crop surprises */}
-          <div className="relative w-full aspect-[16/9] overflow-hidden">
-            <SafeImage src={media.url} alt={media.title} fit="cover" className="transition-transform duration-500 hover:scale-105" />
+          <div className="relative h-64 md:h-80 overflow-hidden">
+            <SafeImage src={media.url} alt={media.title} className="transition-transform duration-500 hover:scale-105" fit="cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
             <div className="absolute top-3 right-3 flex gap-2">
