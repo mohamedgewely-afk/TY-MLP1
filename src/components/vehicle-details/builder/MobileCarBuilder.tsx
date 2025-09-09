@@ -561,9 +561,27 @@ const SpinViewer: React.FC<SpinViewerProps> = ({ frames, fallbackStill, classNam
   const onPointerMove = (e: React.PointerEvent) => { if (startXRef.current == null) return; const dx = e.clientX - startXRef.current; if (Math.abs(dx) >= SENS) { const framesDelta = Math.trunc(dx / SENS); step(framesDelta); startXRef.current = e.clientX; } };
   const onPointerUp = (e: React.PointerEvent) => { (e.target as Element).releasePointerCapture?.(e.pointerId); startXRef.current = null; };
   const onWheel = (e: React.WheelEvent) => { if (!hasFrames) return; e.preventDefault(); const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; step(delta > 0 ? 1 : -1); };
-  useEffect(() => { const el = containerRef.current; if (!el) return; const onKey = (e: KeyboardEvent) => { if (e.key === "ArrowRight") step(1); if (e.key === "ArrowLeft") step(-1); }; el.addEventListener("keydown", onKey); return () => el.removeEventListener("keydown", onKey); }, [step]);
-  useEffect(() => { setIndex(0); }, [frames]);
-  if (!hasFrames) { return (<img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} loading="lazy" decoding="async" />); }
+  
+  useEffect(() => { 
+    const el = containerRef.current; 
+    if (!el) return; 
+    const onKey = (e: KeyboardEvent) => { 
+      if (e.key === "ArrowRight") step(1); 
+      if (e.key === "ArrowLeft") step(-1); 
+    }; 
+    el.addEventListener("keydown", onKey); 
+    return () => el.removeEventListener("keydown", onKey); 
+  }, [step]);
+  
+  useEffect(() => { 
+    setIndex(0); 
+  }, [frames]);
+  
+  // Early return AFTER all hooks
+  if (!hasFrames) { 
+    return (<img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} loading="lazy" decoding="async" />); 
+  }
+  
   return (
     <div ref={containerRef} className="w-full h-full outline-none" role="img" aria-label={alt} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onWheel={onWheel}>
       <img src={frames[index]} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} loading="lazy" decoding="async" />
