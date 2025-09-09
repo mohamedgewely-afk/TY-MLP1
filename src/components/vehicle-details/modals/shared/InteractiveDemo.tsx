@@ -124,6 +124,7 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
     return () => clearInterval(interval);
   }, [isPlaying, currentStep, defaultDemoSteps]);
 
+  // Early return AFTER all hooks
   if (!defaultDemoSteps.length) {
     return <div className="aspect-video bg-muted rounded-2xl flex items-center justify-center">
       <p className="text-muted-foreground">Demo content loading...</p>
