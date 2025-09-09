@@ -337,62 +337,123 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
           </motion.div>
 
           {/* Engine selection */}
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-8 lg:mb-12" variants={adaptiveVariants.fadeInUp}>
-            <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
-              <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
-            </div>
+          {/* Engine selection */}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  className="mb-8 lg:mb-12"
+  variants={adaptiveVariants.fadeInUp}
+>
+  <div className="flex items-center justify-between mb-6 lg:mb-8 px-4 lg:px-0">
+    <h3 className="text-lg sm:text-xl lg:text-3xl font-bold">Step 1: Choose Your Powertrain</h3>
+  </div>
 
-            <div className={`${isMobile ? "grid grid-cols-2 gap-2 px-4" : "grid md:grid-cols-2 gap-6"} max-w-4xl mx-auto`}>
-              {engines.map((engine) => (
-                <motion.div
-                  key={engine.name}
-                  whileHover={performanceConfig.animations.enabled ? microAnimations.buttonHover : undefined}
-                  whileTap={{ scale: 0.98 }}
-                  className={`relative cursor-pointer transition-all duration-200 ${engine.selected ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => handleEngineChange(engine.name)}
+  {/* Mobile: compact 2-up tiles */}
+  {isMobile ? (
+    <div className="grid grid-cols-2 gap-2 px-4 max-w-4xl mx-auto">
+      {engines.map((engine) => {
+        const selected = engine.selected;
+        return (
+          <motion.button
+            key={engine.name}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleEngineChange(engine.name)}
+            className={[
+              "group relative rounded-xl border text-left transition-all",
+              "p-3 min-h-0 h-auto",
+              selected ? "border-primary ring-2 ring-primary/60 shadow-sm" : "border-border hover:border-primary/50",
+            ].join(" ")}
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={[
+                  "inline-flex shrink-0 items-center justify-center rounded-full",
+                  "h-7 w-7",
+                  selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                ].join(" ")}
+              >
+                {React.cloneElement(engine.icon, { className: "h-3.5 w-3.5" })}
+              </span>
+
+              <div className="min-w-0">
+                <div className="text-xs font-bold truncate">
+                  {engine.name.replace("L ", "")}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">
+                  {engine.power} • {engine.efficiency}
+                </div>
+              </div>
+
+              {/* Tick on select */}
+              {selected && (
+                <span className="ml-auto inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary">
+                  <Check className="h-3 w-3 text-primary-foreground" />
+                </span>
+              )}
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  ) : (
+    /* Desktop / tablet stays as-is */
+    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {engines.map((engine) => (
+        <motion.div
+          key={engine.name}
+          whileHover={performanceConfig.animations.enabled ? microAnimations.buttonHover : undefined}
+          whileTap={{ scale: 0.98 }}
+          className={`relative cursor-pointer transition-all duration-200 ${
+            engine.selected ? "ring-2 ring-primary" : ""
+          }`}
+          onClick={() => handleEngineChange(engine.name)}
+        >
+          <Card className={`h-full ${engine.selected ? "border-primary shadow-lg" : "border-border hover:border-primary/50"}`}>
+            <CardContent className="px-6 py-4">
+              <div className="flex items-start justify-between mb-2">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    engine.selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}
                 >
-                  <Card className={`h-full ${engine.selected ? "border-primary shadow-lg" : "border-border hover:border-primary/50"}`}>
-                    <CardContent className={isMobile ? "p-2" : "px-6 py-4"}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className={`${isMobile ? "w-5 h-5" : "w-12 h-12"} rounded-full flex items-center justify-center ${engine.selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                          {React.cloneElement(engine.icon, { className: isMobile ? "h-3 w-3" : "h-6 w-6" })}
-                        </div>
-                        <AnimatePresence>
-                          {engine.selected && (
-                            <motion.div
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: performanceConfig.animations.duration }}
-                              className={`${isMobile ? "w-3 h-3" : "w-6 h-6"} bg-primary rounded-full flex items-center justify-center`}
-                            >
-                              <Check className={`${isMobile ? "h-2 w-2" : "h-4 w-4"} text-primary-foreground`} />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                  {React.cloneElement(engine.icon, { className: "h-6 w-6" })}
+                </div>
+                <AnimatePresence>
+                  {engine.selected && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ duration: performanceConfig.animations.duration }}
+                      className="w-6 h-6 bg-primary rounded-full flex items-center justify-center"
+                    >
+                      <Check className="h-4 w-4 text-primary-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-                      <h4 className={`${isMobile ? "text-xs" : "text-lg lg:text-xl"} font-bold mb-1`}>{isMobile ? engine.name.replace("L ", "") : engine.name}</h4>
+              <h4 className="text-lg lg:text-xl font-bold mb-1">{engine.name}</h4>
+              <p className="text-sm text-muted-foreground mb-3">{engine.description}</p>
 
-                      {!isMobile && <p className="text-sm text-muted-foreground mb-3">{engine.description}</p>}
-                      {isMobile && <p className="text-xs text-muted-foreground mb-2">{engine.shortDescription}</p>}
-
-                      <div className={`flex justify-between ${isMobile ? "text-xs" : "text-sm"}`}>
-                        <div>
-                          <div className="font-semibold">{engine.power}</div>
-                          {!isMobile && <div className="text-muted-foreground text-xs">POWER</div>}
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold">{engine.efficiency}</div>
-                          {!isMobile && <div className="text-muted-foreground text-xs">EFFICIENCY</div>}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+              <div className="flex justify-between text-sm">
+                <div>
+                  <div className="font-semibold">{engine.power}</div>
+                  <div className="text-muted-foreground text-xs">POWER</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold">{engine.efficiency}</div>
+                  <div className="text-muted-foreground text-xs">EFFICIENCY</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  )}
+</motion.div>
 
           {/* Grade selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-8 lg:mb-12" variants={adaptiveVariants.fadeInUp}>
