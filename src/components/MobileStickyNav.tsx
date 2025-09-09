@@ -448,27 +448,35 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const attractVariants = {
     rest: { scale: 1, rotate: 0, filter: "drop-shadow(0 0 0 rgba(235,10,30,0))" },
     attract: reduceMotion
-      ? { scale: 1 }
+      ? { scale: 1, rotate: 0, filter: "drop-shadow(0 0 0 rgba(235,10,30,0))" }
       : {
           scale: [1, 1.06, 1],
-          rotate: [0, -4, 0, 4, 0],
+          rotate: [0, -4, 4, 0],
           filter: [
             "drop-shadow(0 0 0 rgba(235,10,30,0))",
             "drop-shadow(0 6px 12px rgba(235,10,30,.35))",
             "drop-shadow(0 0 0 rgba(235,10,30,0))",
           ],
-          transition: { duration: 0.9, times: [0, 0.5, 1] },
+          transition: { 
+            duration: 0.9, 
+            times: [0, 0.5, 1],
+            ease: "easeInOut"
+          },
         },
   };
 
   const pulseVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     show: reduceMotion
-      ? { opacity: 0 }
+      ? { opacity: 0, scale: 0.8 }
       : {
           opacity: [0, 0.8, 0],
           scale: [1, 1.6, 2],
-          transition: { duration: 1.2 },
+          transition: { 
+            duration: 1.2,
+            times: [0, 0.5, 1],
+            ease: "easeInOut"
+          },
         },
   };
 
