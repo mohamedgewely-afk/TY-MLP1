@@ -339,7 +339,6 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   };
 
   const shouldShowNav = deviceInfo.isInitialized && deviceInfo.isMobile;
-  if (!shouldShowNav) return null;
 
   const spring = isGR
     ? { type: "spring", stiffness: 420, damping: 28, mass: 0.7 }
@@ -472,6 +471,9 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           transition: { duration: 1.2 },
         },
   };
+
+  // Early return AFTER all hooks have been called
+  if (!shouldShowNav) return null;
 
   return (
     <>
