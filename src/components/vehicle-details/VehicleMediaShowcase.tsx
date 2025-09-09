@@ -292,7 +292,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       {
         id: "safety",
         type: "video",
-        url: "https://www.youtube.com/watch?v=xEKrrzLvya8",
+        url: "https://www.youtube.com/watch?v=NCSxxuPE6wM",
         thumbnail:
           "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
         title: "Toyota Safety Sense",
@@ -317,7 +317,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
       {
         id: "handling",
         type: "image",
-        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/789539dd-acfe-43aa-98a0-9ce5202ad482/renditions/2c61418f-a1b7-4899-93a8-65582ee09a0?binary=true&mformat=true",
+        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
         title: "Dynamic Handling",
         description: "Precision engineering delivers exceptional road feel and control",
         category: "Performance",
@@ -329,13 +329,13 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
         },
         galleryImages: [
           {
-            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/b597478a-f34f-439d-a904-61fc6d458a66/renditions/a44596eb-4eff-4aba-bb21-ef59b730358f?binary=true&mformat=true",
+            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
             title: "Suspension System",
             description: "Advanced adaptive suspension technology providing optimal balance between comfort and performance",
             contentBlocks: [{ id: "hand-0-a", title: "Adaptive Dampers", body: "Millisecond-level response for composure." }],
           },
           {
-            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/4d591b47-2866-457a-816a-a808ca9a364e/renditions/d8f9f2ed-a09d-4ecf-9586-02af429a86c2?binary=true&mformat=true",
+            url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
             title: "Wheel Design",
             description: "Performance-oriented wheel design with advanced brake cooling and aerodynamic efficiency",
             contentBlocks: [{ id: "hand-1-a", title: "Cooling Vanes", body: "Ducted flow reduces fade on track days." }],
