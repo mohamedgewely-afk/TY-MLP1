@@ -1,21 +1,20 @@
-
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
-import { 
-  ChevronDown, 
-  ChevronRight, 
+import {
+  ChevronDown,
+  ChevronRight,
   ChevronLeft,
-  HelpCircle, 
-  Car, 
-  Wrench, 
-  Shield, 
-  CreditCard, 
+  HelpCircle,
+  Car,
+  Wrench,
+  Shield,
+  CreditCard,
   Users,
-  Search
+  Search,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -24,96 +23,146 @@ interface VehicleFAQProps {
 }
 
 const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [currentFAQIndex, setCurrentFAQIndex] = useState(0);
   const isMobile = useIsMobile();
 
-  const categories = [
-    { name: "All", icon: <HelpCircle className="h-4 w-4" />, count: 12 },
-    { name: "Vehicle Features", icon: <Car className="h-4 w-4" />, count: 4 },
-    { name: "Maintenance", icon: <Wrench className="h-4 w-4" />, count: 3 },
-    { name: "Warranty", icon: <Shield className="h-4 w-4" />, count: 2 },
-    { name: "Financing", icon: <CreditCard className="h-4 w-4" />, count: 3 }
-  ];
+  // --- FAQ data ---
+  const faqs = useMemo(
+    () => [
+      {
+        category: "Vehicle Features",
+        question: `What are the key features of the ${vehicle.name}?`,
+        answer: `The ${vehicle.name} comes with Toyota Safety Sense 3.0, advanced infotainment system, premium audio, wireless connectivity, and comprehensive driver assistance features. It also includes LED lighting, dual-zone climate control, and premium interior materials.`,
+      },
+      {
+        category: "Vehicle Features",
+        question: "Does it come with hybrid technology?",
+        answer:
+          "Yes, the hybrid variant features Toyota's advanced Hybrid Synergy Drive system, delivering exceptional fuel efficiency of up to 25.2 km/L while maintaining powerful performance with 218 HP combined output.",
+      },
+      {
+        category: "Vehicle Features",
+        question: "What safety features are included?",
+        answer:
+          "Standard safety features include Pre-Collision System, Lane Departure Alert with Steering Assist, Dynamic Radar Cruise Control, Automatic High Beams, and Blind Spot Monitor with Cross-Traffic Alert.",
+      },
+      {
+        category: "Vehicle Features",
+        question: "What infotainment options are available?",
+        answer:
+          "The vehicle features a 12.3-inch touchscreen display with wireless Apple CarPlay and Android Auto, premium JBL audio system, cloud-based navigation, and Toyota's Remote Connect services.",
+      },
+      {
+        category: "Maintenance",
+        question: "What is the recommended service interval?",
+        answer:
+          "We recommend servicing every 10,000 km or 6 months, whichever comes first. This ensures optimal performance and maintains your warranty coverage.",
+      },
+      {
+        category: "Maintenance",
+        question: "Where can I get my vehicle serviced?",
+        answer:
+          "You can service your vehicle at any authorized Toyota service center across the UAE. We have over 25 locations offering genuine parts and certified technicians.",
+      },
+      {
+        category: "Maintenance",
+        question: "What maintenance is covered under warranty?",
+        answer:
+          "Basic maintenance items like oil changes, filter replacements, and routine inspections are covered for the first 2 years or 40,000 km under our comprehensive warranty program.",
+      },
+      {
+        category: "Warranty",
+        question: "What warranty is provided?",
+        answer:
+          "All new Toyota vehicles come with a 3-year/100,000 km comprehensive warranty, plus an additional 2-year extended warranty option. Hybrid components are covered for 8 years/195,000 km.",
+      },
+      {
+        category: "Warranty",
+        question: "Does the warranty cover hybrid components?",
+        answer:
+          "Yes, hybrid system components including the battery, inverter, and electric motors are covered under our exclusive 8-year/195,000 km Hybrid Vehicle Warranty.",
+      },
+      {
+        category: "Financing",
+        question: "What financing options are available?",
+        answer:
+          "We offer conventional loans, Islamic financing (Sharia-compliant), balloon payment plans, and leasing options. Interest rates start from 3.5% APR with flexible terms up to 7 years.",
+      },
+      {
+        category: "Financing",
+        question: "Can I trade in my current vehicle?",
+        answer:
+          "Absolutely! We offer competitive trade-in values for your current vehicle. Our team will provide a free evaluation and apply the value towards your new purchase.",
+      },
+      {
+        category: "Financing",
+        question: "What documents do I need for financing?",
+        answer:
+          "You'll need a valid UAE driving license, Emirates ID, salary certificate, bank statements for the last 3 months, and a down payment. Our finance team will guide you through the process.",
+      },
+    ],
+    [vehicle.name]
+  );
 
-  const faqs = [
-    {
-      category: "Vehicle Features",
-      question: `What are the key features of the ${vehicle.name}?`,
-      answer: `The ${vehicle.name} comes with Toyota Safety Sense 3.0, advanced infotainment system, premium audio, wireless connectivity, and comprehensive driver assistance features. It also includes LED lighting, dual-zone climate control, and premium interior materials.`
-    },
-    {
-      category: "Vehicle Features",
-      question: "Does it come with hybrid technology?",
-      answer: "Yes, the hybrid variant features Toyota's advanced Hybrid Synergy Drive system, delivering exceptional fuel efficiency of up to 25.2 km/L while maintaining powerful performance with 218 HP combined output."
-    },
-    {
-      category: "Vehicle Features",
-      question: "What safety features are included?",
-      answer: "Standard safety features include Pre-Collision System, Lane Departure Alert with Steering Assist, Dynamic Radar Cruise Control, Automatic High Beams, and Blind Spot Monitor with Cross-Traffic Alert."
-    },
-    {
-      category: "Vehicle Features",
-      question: "What infotainment options are available?",
-      answer: "The vehicle features a 12.3-inch touchscreen display with wireless Apple CarPlay and Android Auto, premium JBL audio system, cloud-based navigation, and Toyota's Remote Connect services."
-    },
-    {
-      category: "Maintenance",
-      question: "What is the recommended service interval?",
-      answer: "We recommend servicing every 10,000 km or 6 months, whichever comes first. This ensures optimal performance and maintains your warranty coverage."
-    },
-    {
-      category: "Maintenance",
-      question: "Where can I get my vehicle serviced?",
-      answer: "You can service your vehicle at any authorized Toyota service center across the UAE. We have over 25 locations offering genuine parts and certified technicians."
-    },
-    {
-      category: "Maintenance",
-      question: "What maintenance is covered under warranty?",
-      answer: "Basic maintenance items like oil changes, filter replacements, and routine inspections are covered for the first 2 years or 40,000 km under our comprehensive warranty program."
-    },
-    {
-      category: "Warranty",
-      question: "What warranty is provided?",
-      answer: "All new Toyota vehicles come with a 3-year/100,000 km comprehensive warranty, plus an additional 2-year extended warranty option. Hybrid components are covered for 8 years/195,000 km."
-    },
-    {
-      category: "Warranty",
-      question: "Does the warranty cover hybrid components?",
-      answer: "Yes, hybrid system components including the battery, inverter, and electric motors are covered under our exclusive 8-year/195,000 km Hybrid Vehicle Warranty."
-    },
-    {
-      category: "Financing",
-      question: "What financing options are available?",
-      answer: "We offer conventional loans, Islamic financing (Sharia-compliant), balloon payment plans, and leasing options. Interest rates start from 3.5% APR with flexible terms up to 7 years."
-    },
-    {
-      category: "Financing",
-      question: "Can I trade in my current vehicle?",
-      answer: "Absolutely! We offer competitive trade-in values for your current vehicle. Our team will provide a free evaluation and apply the value towards your new purchase."
-    },
-    {
-      category: "Financing",
-      question: "What documents do I need for financing?",
-      answer: "You'll need a valid UAE driving license, Emirates ID, salary certificate, bank statements for the last 3 months, and a down payment. Our finance team will guide you through the process."
+  // --- Category model (without "All") ---
+  const iconByCategory: Record<string, JSX.Element> = {
+    "Vehicle Features": <Car className="h-4 w-4" />,
+    Maintenance: <Wrench className="h-4 w-4" />,
+    Warranty: <Shield className="h-4 w-4" />,
+    Financing: <CreditCard className="h-4 w-4" />,
+  };
+
+  const categoryOrder = ["Vehicle Features", "Maintenance", "Warranty", "Financing"] as const;
+
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of categoryOrder) map.set(c, 0);
+    faqs.forEach((f) => map.set(f.category, (map.get(f.category) ?? 0) + 1));
+    return map;
+  }, [faqs]);
+
+  const categories = useMemo(
+    () =>
+      categoryOrder
+        .filter((c) => counts.get(c)! > 0)
+        .map((c) => ({
+          name: c,
+          icon: iconByCategory[c],
+          count: counts.get(c)!,
+        })),
+    [counts]
+  );
+
+  // Default to first real category
+  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0]?.name ?? "Vehicle Features");
+
+  // Keep selection in sync if the data changes
+  React.useEffect(() => {
+    if (!categories.find((c) => c.name === selectedCategory)) {
+      setSelectedCategory(categories[0]?.name ?? "Vehicle Features");
     }
-  ];
+  }, [categories, selectedCategory]);
 
-  const filteredFAQs = selectedCategory === "All" 
-    ? faqs 
-    : faqs.filter(faq => faq.category === selectedCategory);
+  const filteredFAQs = useMemo(
+    () => faqs.filter((faq) => faq.category === selectedCategory),
+    [faqs, selectedCategory]
+  );
 
   const nextCategory = () => {
-    const currentIndex = categories.findIndex(cat => cat.name === selectedCategory);
+    const currentIndex = categories.findIndex((cat) => cat.name === selectedCategory);
     const nextIndex = (currentIndex + 1) % categories.length;
     setSelectedCategory(categories[nextIndex].name);
+    setOpenFAQ(null);
+    setCurrentFAQIndex(0);
   };
 
   const prevCategory = () => {
-    const currentIndex = categories.findIndex(cat => cat.name === selectedCategory);
+    const currentIndex = categories.findIndex((cat) => cat.name === selectedCategory);
     const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
     setSelectedCategory(categories[prevIndex].name);
+    setOpenFAQ(null);
+    setCurrentFAQIndex(0);
   };
 
   const nextFAQ = () => {
@@ -148,7 +197,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
           <h2 className="text-2xl lg:text-4xl font-black text-foreground mb-4 leading-tight">
             Everything You Need to Know About{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-              {vehicle.name.split(' ').pop()}
+              {vehicle.name.split(" ").pop()}
             </span>
           </h2>
           <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -156,7 +205,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
           </p>
         </motion.div>
 
-        {/* Category Filter */}
+        {/* Category Filter (no "All") */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -173,19 +222,19 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                
+
                 <div className="text-center flex-1 mx-4">
                   <div className="bg-white rounded-lg shadow-md border p-3">
                     <div className="flex items-center justify-center space-x-2 mb-1">
-                      {categories.find(cat => cat.name === selectedCategory)?.icon}
+                      {categories.find((cat) => cat.name === selectedCategory)?.icon}
                       <span className="font-semibold text-sm">{selectedCategory}</span>
                     </div>
                     <Badge variant="secondary" className="text-xs">
-                      {categories.find(cat => cat.name === selectedCategory)?.count} Questions
+                      {categories.find((cat) => cat.name === selectedCategory)?.count} Questions
                     </Badge>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={nextCategory}
                   className="p-2 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -193,17 +242,15 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              
+
               {/* Category Indicators */}
               <div className="flex justify-center space-x-2">
-                {categories.map((category, index) => (
+                {categories.map((category) => (
                   <button
                     key={category.name}
                     onClick={() => setSelectedCategory(category.name)}
                     className={`h-2 rounded-full transition-all ${
-                      selectedCategory === category.name 
-                        ? 'bg-primary w-6' 
-                        : 'bg-muted-foreground/30 w-2'
+                      selectedCategory === category.name ? "bg-primary w-6" : "bg-muted-foreground/30 w-2"
                     }`}
                   />
                 ))}
@@ -220,8 +267,8 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                   onClick={() => setSelectedCategory(category.name)}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
                     selectedCategory === category.name
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border hover:border-primary/50 bg-white'
+                      ? "border-primary bg-primary/5 shadow-md"
+                      : "border-border hover:border-primary/50 bg-white"
                   }`}
                 >
                   {category.icon}
@@ -254,7 +301,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                
+
                 <div className="text-center">
                   <div className="text-sm text-muted-foreground mb-1">
                     Question {currentFAQIndex + 1} of {filteredFAQs.length}
@@ -264,13 +311,13 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                       <div
                         key={index}
                         className={`h-1 w-6 rounded-full ${
-                          index === currentFAQIndex ? 'bg-primary' : 'bg-muted-foreground/30'
+                          index === currentFAQIndex ? "bg-primary" : "bg-muted-foreground/30"
                         }`}
                       />
                     ))}
                   </div>
                 </div>
-                
+
                 <button
                   onClick={nextFAQ}
                   className="p-3 rounded-full bg-white shadow-lg border hover:shadow-xl transition-all min-h-[44px] min-w-[44px]"
@@ -279,7 +326,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${selectedCategory}-${currentFAQIndex}`}
@@ -342,7 +389,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                               <ChevronDown className="h-5 w-5 text-muted-foreground" />
                             </motion.div>
                           </div>
-                          
+
                           <AnimatePresence>
                             {openFAQ === index && (
                               <motion.div
@@ -353,9 +400,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
                                 className="overflow-hidden"
                               >
                                 <div className="pt-4 border-t border-border mt-4">
-                                  <p className="text-muted-foreground leading-relaxed">
-                                    {faq.answer}
-                                  </p>
+                                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
                                 </div>
                               </motion.div>
                             )}
@@ -370,7 +415,7 @@ const VehicleFAQ: React.FC<VehicleFAQProps> = ({ vehicle }) => {
           )}
         </motion.div>
 
-        {/* Contact CTA */}
+        {/* Contact CTA (unchanged) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
