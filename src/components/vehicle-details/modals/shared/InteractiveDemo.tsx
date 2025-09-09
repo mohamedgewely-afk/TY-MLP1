@@ -117,9 +117,12 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
   React.useEffect(() => {
     if (!isPlaying || !defaultDemoSteps.length) return;
 
+    const currentStepData = defaultDemoSteps[currentStep];
+    if (!currentStepData) return;
+
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % defaultDemoSteps.length);
-    }, defaultDemoSteps[currentStep]?.duration || 3000);
+    }, currentStepData.duration || 3000);
 
     return () => clearInterval(interval);
   }, [isPlaying, currentStep, defaultDemoSteps]);
@@ -129,6 +132,17 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
     return <div className="aspect-video bg-muted rounded-2xl flex items-center justify-center">
       <p className="text-muted-foreground">Demo content loading...</p>
     </div>;
+  }
+
+  const currentStepData = defaultDemoSteps[currentStep];
+  
+  // Safety check to prevent null/undefined animation values
+  if (!currentStepData) {
+    return (
+      <div className="aspect-video bg-muted rounded-2xl flex items-center justify-center">
+        <p className="text-muted-foreground">Loading demo...</p>
+      </div>
+    );
   }
 
   return (
@@ -151,17 +165,17 @@ const InteractiveDemo: React.FC<InteractiveDemoProps> = ({
             className="aspect-video relative"
           >
             <img
-              src={defaultDemoSteps[currentStep]?.image}
-              alt={defaultDemoSteps[currentStep]?.title}
+              src={currentStepData.image}
+              alt={currentStepData.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 right-6 text-white">
               <h4 className="text-xl font-bold mb-2">
-                {defaultDemoSteps[currentStep]?.title}
+                {currentStepData.title}
               </h4>
               <p className="text-white/90">
-                {defaultDemoSteps[currentStep]?.description}
+                {currentStepData.description}
               </p>
             </div>
           </motion.div>
