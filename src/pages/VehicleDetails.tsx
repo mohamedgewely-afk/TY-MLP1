@@ -11,6 +11,8 @@ import VehicleConfiguration from "@/components/vehicle-details/VehicleConfigurat
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import ModernSectionNavigation from "@/components/vehicle-details/ModernSectionNavigation";
 import EnhancedLoading from "@/components/ui/enhanced-loading";
+import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
+import { HeroSkeleton } from "@/components/ui/performance-skeleton";
 import OffersSection from "@/components/home/OffersSection";
 
 import { usePersona } from "@/contexts/PersonaContext";
@@ -22,6 +24,7 @@ import { useEnhancedGestures } from "@/hooks/use-enhanced-gestures";
 import { useImageCarousel } from "@/hooks/use-image-carousel";
 import { useOptimizedDeviceInfo } from "@/hooks/use-optimized-device-info";
 import { useWebVitalsOptimized, useMemoryPressure } from "@/utils/performance-web-vitals";
+import { useCoreWebVitals } from "@/utils/performance-core-vitals";
 import { createLazyComponent, preloadOnFastNetwork } from "@/utils/lazy-components";
 import { cn } from "@/lib/utils";
 
@@ -101,6 +104,7 @@ const VehicleDetails = () => {
   const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
   const { reportMetric } = useWebVitalsOptimized();
   const { isLowMemory } = useMemoryPressure();
+  const { getMetricsSummary } = useCoreWebVitals();
 
   const { currentImageIndex, nextImage, previousImage, setCurrentImageIndex } = useImageCarousel({
     images: galleryImages
@@ -129,7 +133,7 @@ const VehicleDetails = () => {
     }
   }), []);
 
-  // Performance monitoring
+  // Performance monitoring with Core Web Vitals
   React.useEffect(() => {
     const startTime = performance.now();
     reportMetric({
@@ -138,17 +142,27 @@ const VehicleDetails = () => {
       rating: 'good',
       delta: 0
     });
+
+    // Initialize page load monitoring
+    import('@/utils/performance-optimization').then(({ performanceMonitor }) => {
+      performanceMonitor.measurePageLoad();
+    });
     
     return () => {
       const endTime = performance.now();
+      const duration = endTime - startTime;
       reportMetric({
         name: 'vehicle-details-unmount',
-        value: endTime - startTime,
-        rating: endTime - startTime < 1000 ? 'good' : 'needs-improvement',
+        value: duration,
+        rating: duration < 1000 ? 'good' : 'needs-improvement',
         delta: 0
       });
+
+      // Log performance summary on unmount
+      const summary = getMetricsSummary();
+      console.log('🚗 Vehicle Details Performance Summary:', summary);
     };
-  }, [reportMetric]);
+  }, [reportMetric, getMetricsSummary]);
 
   // Enhanced gesture handlers with performance optimization
   const gesturesRef = useEnhancedGestures({
@@ -217,51 +231,55 @@ const VehicleDetails = () => {
         </a>
 
         <div id="main-content">
-          <section id="hero">
-            <EnhancedHeroSection
-              vehicle={vehicle}
-              galleryImages={galleryImages}
-              isFavorite={isFavorite}
-              onToggleFavorite={toggleFavorite}
-              onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
-              onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
-              monthlyEMI={monthlyEMI}
-            />
-          </section>
+          <PerformanceErrorBoundary fallback={<HeroSkeleton />}>
+            <section id="hero">
+              <EnhancedHeroSection
+                vehicle={vehicle}
+                galleryImages={galleryImages}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
+                onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+                onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
+                monthlyEMI={monthlyEMI}
+              />
+            </section>
+          </PerformanceErrorBoundary>
 
           {shouldRenderHeavyContent ? (
             shouldUseSuspense ? (
-              <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
-                <section id="virtual-showroom">
-                  <VirtualShowroom vehicle={vehicle} />
-                </section>
-                
-                <section id="media-showcase">
-                  <VehicleMediaShowcase vehicle={vehicle} />
-                </section>
+              <PerformanceErrorBoundary>
+                <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
+                  <section id="virtual-showroom">
+                    <VirtualShowroom vehicle={vehicle} />
+                  </section>
+                  
+                  <section id="media-showcase">
+                    <VehicleMediaShowcase vehicle={vehicle} />
+                  </section>
 
-                <StorytellingSection
-                  galleryImages={galleryImages}
-                  monthlyEMI={monthlyEMI}
-                  setIsBookingOpen={(value: boolean) => modalHandlers.updateModal('isBookingOpen', value)}
-                  navigate={navigate}
-                  setIsFinanceOpen={(value: boolean) => modalHandlers.updateModal('isFinanceOpen', value)}
-                  onSafetyExplore={modalHandlers.handleSafetyExplore}
-                  onConnectivityExplore={modalHandlers.handleConnectivityExplore}
-                  onHybridTechExplore={modalHandlers.handleHybridTechExplore}
-                  onInteriorExplore={modalHandlers.handleInteriorExplore}
-                />
+                  <StorytellingSection
+                    galleryImages={galleryImages}
+                    monthlyEMI={monthlyEMI}
+                    setIsBookingOpen={(value: boolean) => modalHandlers.updateModal('isBookingOpen', value)}
+                    navigate={navigate}
+                    setIsFinanceOpen={(value: boolean) => modalHandlers.updateModal('isFinanceOpen', value)}
+                    onSafetyExplore={modalHandlers.handleSafetyExplore}
+                    onConnectivityExplore={modalHandlers.handleConnectivityExplore}
+                    onHybridTechExplore={modalHandlers.handleHybridTechExplore}
+                    onInteriorExplore={modalHandlers.handleInteriorExplore}
+                  />
 
-                <section id="offers">
-                  <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
-                </section>
-                
-                <section id="tech-experience">
-                  <RefinedTechExperience vehicle={vehicle} />
-                </section>
-              </Suspense>
+                  <section id="offers">
+                    <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+                  </section>
+                  
+                  <section id="tech-experience">
+                    <RefinedTechExperience vehicle={vehicle} />
+                  </section>
+                </Suspense>
+              </PerformanceErrorBoundary>
             ) : (
-              <>
+              <PerformanceErrorBoundary>
                 <section id="virtual-showroom">
                   <VirtualShowroom vehicle={vehicle} />
                 </section>
@@ -295,7 +313,7 @@ const VehicleDetails = () => {
                     <RefinedTechExperience vehicle={vehicle} />
                   </Suspense>
                 </section>
-              </>
+              </PerformanceErrorBoundary>
             )
           ) : (
             // Lightweight version for slow connections/low memory

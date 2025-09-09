@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useInView, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
@@ -19,6 +19,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import YouTubeEmbed from "@/components/ui/youtube-embed";
 import AnimatedCounter from "@/components/ui/animated-counter";
 import { openTestDrivePopup } from "@/utils/testDriveUtils";
+import { OptimizedMotionImage } from "@/components/ui/optimized-motion-image";
+import { optimizedSprings } from "@/utils/animation-performance";
 
 interface EnhancedHeroSectionProps {
   vehicle: VehicleModel;
@@ -46,14 +48,16 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   const [touchEnd, setTouchEnd] = useState(0);
   const isMobile = useIsMobile();
   const heroRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
   
-  const y = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.3], [1, 1.05]);
+  // Reduced parallax intensity for better performance
+  const y = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -50]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, prefersReducedMotion ? 1 : 0.7]);
+  const scale = useTransform(scrollYProgress, [0, 0.3], [1, prefersReducedMotion ? 1 : 1.02]);
   
   const heroImageRef = useRef<HTMLDivElement>(null);
-  const isHeroInView = useInView(heroImageRef);
+  const isHeroInView = useInView(heroImageRef, { margin: '100px' });
 
   // Auto-rotate gallery images
   useEffect(() => {
@@ -133,17 +137,17 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         onTouchEnd={handleTouchEnd}
       >
         {/* Loading Skeleton */}
-        <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
+        <div className="hero-skeleton absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
         
         {/* Vehicle Images or Video */}
         <AnimatePresence mode="wait">
           {showVideo ? (
             <motion.div
               key="video"
-              initial={{ opacity: 0, scale: 1.1 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              transition={prefersReducedMotion ? { duration: 0.1 } : optimizedSprings.smooth}
               className="absolute inset-0 w-full h-full"
             >
               <YouTubeEmbed
@@ -155,18 +159,19 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
               />
             </motion.div>
           ) : (
-            <motion.img
+            <OptimizedMotionImage
               key={currentImageIndex}
               src={galleryImages[currentImageIndex]}
               alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
-              className="absolute inset-0 w-full h-full object-cover"
-              initial={{ opacity: 0, scale: 1.1 }}
+              className="absolute inset-0 w-full h-full"
+              priority={true}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 1.03 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-              loading="lazy"
-              onLoad={(e) => {
-                const skeleton = e.currentTarget.previousElementSibling as HTMLElement;
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.97 }}
+              transition={prefersReducedMotion ? { duration: 0.1 } : optimizedSprings.fast}
+              enableGPU={!prefersReducedMotion}
+              onLoad={() => {
+                const skeleton = document.querySelector('.hero-skeleton') as HTMLElement;
                 if (skeleton) {
                   skeleton.style.display = 'none';
                 }
@@ -225,9 +230,9 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
 
           {/* Badges */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.3, ...optimizedSprings.fast }}
             className="flex flex-wrap gap-1 justify-center mb-2"
           >
             {isBestSeller && (

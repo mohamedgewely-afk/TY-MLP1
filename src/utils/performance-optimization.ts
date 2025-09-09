@@ -43,12 +43,14 @@ export const usePerformanceConfig = (): PerformanceConfig => {
   };
 };
 
-// GPU-optimized CSS properties
+// GPU-optimized CSS properties with performance monitoring
 export const gpuOptimizedStyles = {
   transform: 'translate3d(0, 0, 0)',
   willChange: 'transform',
   backfaceVisibility: 'hidden' as const,
-  perspective: 1000
+  perspective: 1000,
+  // Add containment for better performance isolation
+  contain: 'layout style paint' as const
 };
 
 // Accessibility utilities
@@ -77,15 +79,36 @@ export const performanceMonitor = {
       return () => {
         performance.mark(`${name}-end`);
         performance.measure(name, `${name}-start`, `${name}-end`);
+        
+        // Log slow interactions
+        const measure = performance.getEntriesByName(name)[0];
+        if (measure && measure.duration > 100) {
+          console.warn(`🚗 Slow interaction detected: ${name} took ${measure.duration.toFixed(2)}ms`);
+        }
       };
     }
     return () => {};
   },
   
-  logWebVitals: () => {
-    if ('web-vitals' in window) {
-      // Web Vitals integration would go here
-      console.log('Web Vitals monitoring active');
+  measurePageLoad: () => {
+    if ('performance' in window) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          if (navigation) {
+            console.log('🚗 Toyota Page Performance:', {
+              domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+              loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
+              totalPageLoad: navigation.loadEventEnd - navigation.fetchStart,
+              timeToFirstByte: navigation.responseStart - navigation.requestStart
+            });
+          }
+        }, 0);
+      });
     }
+  },
+  
+  logWebVitals: () => {
+    console.log('🚗 Toyota Web Vitals monitoring active');
   }
 };

@@ -85,6 +85,7 @@ export const PerformanceOptimizedImage: React.FC<PerformanceOptimizedImageProps>
           )}
           sizes={sizes || imageConfig.sizes}
           loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
