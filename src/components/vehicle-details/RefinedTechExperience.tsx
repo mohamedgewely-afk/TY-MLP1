@@ -1,13 +1,12 @@
 // src/components/vehicle-details/RefinedTechExperience.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import {
   Zap, Shield, Smartphone, Wind,
-  Settings, ChevronLeft, ChevronRight, Check
+  Settings, Check, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 interface RefinedTechExperienceProps {
@@ -19,8 +18,8 @@ interface TechFeature {
   title: string;
   description: string;
   icon: React.ReactNode;
-  color: string;      // tailwind gradient color segment e.g. "from-primary to-primary/80"
-  bgPattern: string;  // tailwind bg classes e.g. "bg-gradient-to-br from-primary/5 to-primary/10"
+  color: string;      // "from-primary to-primary/80"
+  bgPattern: string;  // "bg-gradient-to-br from-primary/5 to-primary/10"
   features: string[];
   media: { type: string; url: string; thumbnail?: string }[];
   engineSpecific?: string[];
@@ -33,19 +32,17 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
   const [selectedGrade, setSelectedGrade] = useState<string>("Base");
   const [selectedFeature, setSelectedFeature] = useState<number>(0);
 
-  // Engines (kept simple)
+  // Engines
   const engines = [
     { name: "3.5L", power: "268 HP", torque: "336 Nm" },
     { name: "4.0L", power: "301 HP", torque: "365 Nm" }
   ] as const;
 
-  // Grade resolver
-  const getGradesForEngine = (engine: string) => {
-    if (engine === "4.0L") return ["Limited", "Platinum"];
-    return ["Base", "SE", "XLE", "Limited"];
-  };
+  // Grades
+  const getGradesForEngine = (engine: string) =>
+    engine === "4.0L" ? ["Limited", "Platinum"] : ["Base", "SE", "XLE", "Limited"];
 
-  // Tech features
+  // Features
   const techFeatures: TechFeature[] = [
     {
       id: "hybrid-drive",
@@ -61,10 +58,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
         "Hybrid battery monitoring"
       ],
       media: [
-        {
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true"
-        }
+        { type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true" }
       ],
       engineSpecific:
         selectedEngine === "4.0L"
@@ -92,10 +86,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
         "Road Sign Assist"
       ],
       media: [
-        {
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true"
-        }
+        { type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true" }
       ],
       gradeSpecific: {
         Base: ["Standard TSS 3.0", "Basic collision avoidance"],
@@ -119,18 +110,8 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
         "Remote vehicle start"
       ],
       media: [
-        {
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true"
-        }
-      ],
-      gradeSpecific: {
-        Base: ["8-inch touchscreen", "Basic connectivity"],
-        SE: ["8-inch touchscreen", "Enhanced audio"],
-        XLE: ["9-inch touchscreen", "Premium JBL audio"],
-        Limited: ["10-inch touchscreen", "Premium JBL with 12 speakers"],
-        Platinum: ["12-inch touchscreen", "Mark Levinson premium audio"]
-      }
+        { type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true" }
+      ]
     },
     {
       id: "climate-control",
@@ -146,10 +127,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
         "Eco-mode optimization"
       ],
       media: [
-        {
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true"
-        }
+        { type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true" }
       ]
     }
   ];
@@ -158,7 +136,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
   const currentGradeFeatures =
     currentFeature.gradeSpecific?.[selectedGrade] || currentFeature.features;
 
-  // --- Swipe support and nav helpers ---
+  // --- Swipe + Guidance ---
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const SWIPE_THRESHOLD = 40;
 
@@ -170,6 +148,8 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
 
   const onTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
     setTouchStartX(e.touches[0].clientX);
+    // hide hint on first interaction
+    if (showSwipeHint) setShowSwipeHint(false);
   };
 
   const onTouchEnd: React.TouchEventHandler<HTMLDivElement> = (e) => {
@@ -181,6 +161,15 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
     }
     setTouchStartX(null);
   };
+
+  // Swipe hint (mobile only)
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+  useEffect(() => {
+    // auto-hide after 4s to avoid nagging
+    const t = setTimeout(() => setShowSwipeHint(false), 4000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
@@ -208,84 +197,76 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
         </motion.div>
 
         {/* Engine & Grade Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 lg:mb-16"
-        >
-          <Card className="max-w-4xl mx-auto">
-            <CardContent className="p-6 lg:p-8">
-              {/* Engine Selection (compact, 2-up on mobile) */}
-              <div className="mb-8">
-                <h3 className="text-xl font-bold mb-4">Select Engine</h3>
-                <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4">
-                  {engines.map((engine) => {
-                    const isSelected = selectedEngine === engine.name;
-                    return (
-                      <motion.button
-                        key={engine.name}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setSelectedEngine(engine.name);
-                          const available = getGradesForEngine(engine.name);
-                          if (!available.includes(selectedGrade)) {
-                            setSelectedGrade(available[0]);
-                          }
-                        }}
-                        className={[
-                          "p-3 md:p-4 rounded-xl text-left transition-all border-2",
-                          isSelected
-                            ? "bg-primary/10 border-primary shadow-sm"
-                            : "bg-card border-border hover:border-primary/50",
-                        ].join(" ")}
-                        aria-pressed={isSelected}
-                      >
-                        <div className="text-xs md:text-lg font-bold leading-tight">
-                          {engine.name}
-                        </div>
-                        <div className="text-[11px] md:text-sm text-primary">
-                          {engine.power} • {engine.torque}
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
+        <Card className="max-w-4xl mx-auto mb-12 lg:mb-16">
+          <CardContent className="p-6 lg:p-8">
+            {/* Engine Selection (compact, 2-up on mobile) */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4">Select Engine</h3>
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4">
+                {engines.map((engine) => {
+                  const isSelected = selectedEngine === engine.name;
+                  return (
+                    <motion.button
+                      key={engine.name}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedEngine(engine.name);
+                        const available = getGradesForEngine(engine.name);
+                        if (!available.includes(selectedGrade)) {
+                          setSelectedGrade(available[0]);
+                        }
+                      }}
+                      className={[
+                        "p-3 md:p-4 rounded-xl text-left transition-all border-2",
+                        isSelected
+                          ? "bg-primary/10 border-primary shadow-sm"
+                          : "bg-card border-border hover:border-primary/50",
+                      ].join(" ")}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="text-xs md:text-lg font-bold leading-tight">
+                        {engine.name}
+                      </div>
+                      <div className="text-[11px] md:text-sm text-primary">
+                        {engine.power} • {engine.torque}
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Grade Selection */}
-              <div>
-                <h3 className="text-xl font-bold mb-4">Select Grade</h3>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-                  {getGradesForEngine(selectedEngine).map((grade) => {
-                    const isSelected = selectedGrade === grade;
-                    return (
-                      <motion.button
-                        key={grade}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className={[
-                          "p-3 rounded-xl font-semibold transition-all",
-                          isSelected
-                            ? "bg-primary text-primary-foreground shadow-lg"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        ].join(" ")}
-                        onClick={() => setSelectedGrade(grade)}
-                        aria-pressed={isSelected}
-                      >
-                        {grade}
-                      </motion.button>
-                    );
-                  })}
-                </div>
+            {/* Grade Selection */}
+            <div>
+              <h3 className="text-xl font-bold mb-4">Select Grade</h3>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+                {getGradesForEngine(selectedEngine).map((grade) => {
+                  const isSelected = selectedGrade === grade;
+                  return (
+                    <motion.button
+                      key={grade}
+                      whileTap={{ scale: 0.97 }}
+                      className={[
+                        "p-3 rounded-xl font-semibold transition-all",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-lg"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ].join(" ")}
+                      onClick={() => setSelectedGrade(grade)}
+                      aria-pressed={isSelected}
+                    >
+                      {grade}
+                    </motion.button>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Tech Features Display / Carousel */}
+        {/* Tech Features Display */}
         <div
-          className="relative pb-10 md:pb-12" // padding bottom so arrows/dots never overlap content
+          className="relative pb-10 md:pb-12"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
@@ -298,15 +279,54 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
               transition={{ duration: 0.5 }}
               className="grid lg:grid-cols-2 gap-8 lg:gap-12"
             >
-              {/* Feature Image */}
+              {/* Feature Image + desktop arrows inside the image column ONLY */}
               <div className="relative">
                 <motion.img
                   src={currentFeature.media[0]?.url}
                   alt={currentFeature.title}
                   className="w-full h-80 lg:h-96 object-cover rounded-2xl"
-                  layoutId={`feature-image-${selectedFeature}`}
                 />
                 <div className={`absolute inset-0 bg-gradient-to-br ${currentFeature.color} opacity-20 rounded-2xl`} />
+
+                {/* Desktop arrows (not on mobile), positioned inside image column so they never cover details */}
+                <button
+                  onClick={handlePrev}
+                  className="hidden md:flex items-center justify-center absolute left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/90 shadow-lg border border-gray-200 hover:bg-white"
+                  aria-label="Previous feature"
+                >
+                  <ChevronLeft className="h-6 w-6 text-gray-700" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="hidden md:flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/90 shadow-lg border border-gray-200 hover:bg-white"
+                  aria-label="Next feature"
+                >
+                  <ChevronRight className="h-6 w-6 text-gray-700" />
+                </button>
+
+                {/* Mobile swipe hint (auto-hides; hidden on md+) */}
+                {showSwipeHint && (
+                  <div className="md:hidden absolute bottom-3 left-1/2 -translate-x-1/2">
+                    <motion.div
+                      className="flex items-center gap-2 rounded-full bg-black/40 text-white px-3 py-1.5 backdrop-blur-sm"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      {/* animated chevrons */}
+                      <motion.span
+                        aria-hidden
+                        className="inline-flex"
+                        animate={{ x: [0, 10, 0] }}
+                        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <ChevronLeft className="w-4 h-4 opacity-80" />
+                        <ChevronRight className="w-4 h-4 -ml-1 opacity-80" />
+                      </motion.span>
+                      <span className="text-xs font-medium">Swipe</span>
+                    </motion.div>
+                  </div>
+                )}
               </div>
 
               {/* Feature Details */}
@@ -358,24 +378,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation Arrows (kept visible on all; add 'hidden sm:flex' if you want to hide on mobile) */}
-          <button
-            onClick={handlePrev}
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl hover:scale-110"
-            aria-label="Previous feature"
-          >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6 text-gray-700" />
-          </button>
-
-          <button
-            onClick={handleNext}
-            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/90 shadow-lg border border-gray-200 transition-all hover:bg-white hover:shadow-xl hover:scale-110"
-            aria-label="Next feature"
-          >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6 text-gray-700" />
-          </button>
-
-          {/* Dots moved below (no overlay), safe-area aware */}
+          {/* Dots (below, safe-area aware) */}
           <div
             className="mt-4 flex justify-center gap-2 px-4"
             style={{ paddingBottom: "max(0px, env(safe-area-inset-bottom))" }}
