@@ -46,7 +46,10 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
     () =>
       relatedVehicles.map((v, i) => ({
         ...v,
-        image: v.image && v.image.trim() ? v.image : FALLBACKS[i % FALLBACKS.length],
+        image:
+          v.image && v.image.trim()
+            ? v.image
+            : FALLBACKS[i % FALLBACKS.length],
       })),
     [relatedVehicles]
   );
@@ -76,93 +79,98 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
 
   return (
     <section className={cn("py-12", className)}>
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {title}
-        </h2>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            onClick={() => scroll("left")}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            onClick={() => scroll("right")}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+      {/* ✅ Centered wrapper */}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {title}
+          </h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              onClick={() => scroll("left")}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              onClick={() => scroll("right")}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent z-10 rounded-l-2xl" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent z-10 rounded-r-2xl" />
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent z-10 rounded-l-2xl" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent z-10 rounded-r-2xl" />
 
-        <div
-          ref={bindScrollable}
-          className="flex gap-7 overflow-x-auto pb-5 pr-3 pl-3 snap-x snap-mandatory scroll-smooth hide-scrollbar"
-          role="listbox"
-        >
-          {enhancedVehicles.map((vehicle) => {
-            const slug = vehicle.id;
-            const href = `/vehicle/${slug}`;
+          <div
+            ref={bindScrollable}
+            className="flex gap-7 overflow-x-auto pb-5 pr-3 pl-3 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+            role="listbox"
+          >
+            {enhancedVehicles.map((vehicle) => {
+              const slug = vehicle.id;
+              const href = `/vehicle/${slug}`;
 
-            return (
-              <article
-                key={vehicle.id}
-                className="group relative flex-shrink-0 w-[92vw] max-w-[620px] md:w-[500px] lg:w-[560px] xl:w-[600px] snap-start rounded-2xl"
-              >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300">
-                  <Link to={href}>
-                    <div className="relative w-full aspect-[16/9] bg-gray-50 dark:bg-gray-900">
-                      <img
-                        src={vehicle.image}
-                        alt={vehicle.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                      />
-                      <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-40px_60px_-40px_rgb(0_0_0_/0.28)] rounded-b-2xl" />
-                    </div>
-                  </Link>
+              return (
+                <article
+                  key={vehicle.id}
+                  className="group relative flex-shrink-0 w-[92vw] max-w-[620px] md:w-[500px] lg:w-[560px] xl:w-[600px] snap-start rounded-2xl"
+                >
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300">
+                    <Link to={href}>
+                      <div className="relative w-full aspect-[16/9] bg-gray-50 dark:bg-gray-900">
+                        <img
+                          src={vehicle.image}
+                          alt={vehicle.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        />
+                        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-40px_60px_-40px_rgb(0_0_0_/0.28)] rounded-b-2xl" />
+                      </div>
+                    </Link>
 
-                  <div className="p-6">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-xl text-gray-900 dark:text-white truncate">
-                          {vehicle.name}
-                        </h3>
-                        {vehicle.category && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                            {vehicle.category}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-xl text-gray-900 dark:text-white truncate">
+                            {vehicle.name}
+                          </h3>
+                          {vehicle.category && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                              {vehicle.category}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            From
                           </p>
-                        )}
+                          <p className="font-semibold text-toyota-red">
+                            AED {AED.format(vehicle.price)}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
-                        <p className="font-semibold text-toyota-red">
-                          AED {AED.format(vehicle.price)}
-                        </p>
+                      <div className="mt-5 flex items-center gap-3">
+                        <Button asChild className="w-full">
+                          <Link to={href}>View model</Link>
+                        </Button>
                       </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center gap-3">
-                      <Button asChild className="w-full">
-                        <Link to={href}>View model</Link>
-                      </Button>
                     </div>
                   </div>
-                </div>
-              </article>
-            );
-          })}
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
