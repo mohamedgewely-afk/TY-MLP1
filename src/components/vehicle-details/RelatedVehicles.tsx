@@ -45,6 +45,7 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b376e31a-ea8e-4cfc-a37c-76facfe281fb/items/d62b7086-fa7a-4867-bf76-3243fc018d7b/renditions/10f89ffa-4588-4cf3-b421-379905d8d95c?binary=true&mformat=true",
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/9c85f040-9909-4849-a7ae-ec4ad5e58fc9/items/c3299bde-9daf-4e4c-b414-b6fd46451f1a/renditions/5625cce1-79a1-4c27-9782-1c159c91669c?binary=true&mformat=true",
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/aa687942-b6eb-4c47-b8c8-307ef0fbea09/items/362c4e6c-953c-4532-8b1b-e31dd9948f60/renditions/716f5b2f-42f4-4419-baa8-9e8207d332fd?binary=true&mformat=true",
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/60c33b57-b0c0-4c7d-8ac0-2e5e0b482da9/items/0fb9bbea-94e8-401f-ae80-138334d54472/renditions/df97b136-cd9b-4cc2-a5d8-467adfa27bfc?binary=true&mformat=true",
     ];
 
     return relatedVehicles.map((vehicle, index) => ({
