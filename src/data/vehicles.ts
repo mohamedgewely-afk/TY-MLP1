@@ -43,7 +43,7 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/rav4",
     configureUrl: "/configure/rav4-hybrid",
     price: 139900,
-    category: "Hybrid",
+    category: "SUV",
     features: ["2.5L Hybrid Engine", "AWD System", "Panoramic Roof"],
     specifications: {
       engine: "2.5L Dynamic Force 4-Cylinder Hybrid",
@@ -60,7 +60,7 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/highlander",
     configureUrl: "/configure/highlander-hybrid",
     price: 179900,
-    category: "Hybrid",
+    category: "SUV",
     features: ["3.5L Hybrid V6", "7-Seater", "Premium Interior"],
     specifications: {
       engine: "3.5L V6 Hybrid",
