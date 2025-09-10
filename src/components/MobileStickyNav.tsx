@@ -294,11 +294,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const getTouchTargetSize = () => {
     switch (deviceInfo.deviceCategory) {
       case "smallMobile":
-        return "min-h-[44px] min-w-[44px]";
+        return "min-h-[44px] min-w-[44px] p-2"; // Enhanced touch targets
       case "standardMobile":
-        return "min-h-[48px] min-w-[48px]";
+        return "min-h-[48px] min-w-[48px] p-2.5";
       default:
-        return "min-h-[52px] min-w-[52px]";
+        return "min-h-[52px] min-w-[52px] p-3";
     }
   };
 

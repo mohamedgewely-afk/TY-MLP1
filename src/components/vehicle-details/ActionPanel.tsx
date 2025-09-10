@@ -204,10 +204,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               <Button
                 onClick={handleTestDrive}
                 className={[
-                  "h-9 md:h-10 px-3 md:px-4 rounded-lg shadow-lg text-xs md:text-sm",
+                  "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]", // Enhanced touch targets
                   isGR
-                    ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226]"
-                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground",
+                    ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
+                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground focus:ring-2 focus:ring-primary",
                 ].join(" ")}
                 style={isGR ? carbonMatte : undefined}
               >
@@ -219,10 +219,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 onClick={onCarBuilder}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-9 md:h-10 px-3 md:px-4 rounded-lg text-xs md:text-sm",
+                  "h-11 md:h-12 px-4 md:px-6 rounded-lg text-sm md:text-base min-w-[120px]", // Enhanced touch targets
                   isGR
-                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
-                    : "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/50 backdrop-blur-sm",
+                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
+                    : "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary",
                 ].join(" ")}
                 style={isGR ? carbonMatte : undefined}
               >
@@ -237,10 +237,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 onClick={onFinanceCalculator}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-9 w-9 md:h-10 md:w-10 p-0 rounded-lg",
+                  "h-11 w-11 md:h-12 md:w-12 p-0 rounded-lg", // Enhanced touch targets
                   isGR
-                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
-                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm",
+                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary",
                 ].join(" ")}
                 aria-label="Finance"
                 title="Finance"

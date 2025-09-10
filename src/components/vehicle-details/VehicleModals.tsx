@@ -9,6 +9,11 @@ import SafetySuiteModal from "./modals/SafetySuiteModal";
 import ConnectivityModal from "./modals/ConnectivityModal";
 import HybridTechModal from "./modals/HybridTechModal";
 import InteriorExperienceModal from "./modals/InteriorExperienceModal";
+import { 
+  useOptimizedModal, 
+  MODAL_PRIORITIES,
+  useModalKeyboardHandler 
+} from "@/components/ui/optimized-modal-manager";
 
 interface VehicleModalsProps {
   vehicle: VehicleModel;
@@ -55,6 +60,11 @@ const VehicleModals: React.FC<VehicleModalsProps> = ({
   setIsInteriorModalOpen,
   carBuilderInitialGrade
 }) => {
+  const { isModalActive } = useOptimizedModal();
+  
+  // Enable keyboard handling for modal stack
+  useModalKeyboardHandler();
+
   const handleModalClose = (modalSetter: (open: boolean) => void) => {
     modalSetter(false);
   };

@@ -27,6 +27,10 @@ import { useWebVitalsOptimized, useMemoryPressure } from "@/utils/performance-we
 import { useCoreWebVitals } from "@/utils/performance-core-vitals";
 import { createLazyComponent, preloadOnFastNetwork } from "@/utils/lazy-components";
 import { cn } from "@/lib/utils";
+import { UnifiedPerformanceMonitor } from '@/components/ui/unified-performance-monitor';
+import { OptimizedModalProvider } from '@/components/ui/optimized-modal-manager';
+import { SkipLinks } from '@/components/ui/enhanced-accessibility';
+import { ProgressiveLoader } from '@/components/ui/enhanced-loading-states';
 
 // Lazy load heavy components with intelligent preloading
 const VehicleSpecs = createLazyComponent(
@@ -204,15 +208,19 @@ const VehicleDetails = () => {
   }
 
   return (
-    <ToyotaLayout
-      activeNavItem="models"
-      vehicle={vehicle}
-      isFavorite={isFavorite}
-      onToggleFavorite={toggleFavorite}
-      onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
-      onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
-      onFinanceCalculator={() => modalHandlers.updateModal('isFinanceOpen', true)}
-    >
+    <OptimizedModalProvider>
+      <PerformanceErrorBoundary>
+        <UnifiedPerformanceMonitor />
+        <SkipLinks />
+        <ToyotaLayout
+          activeNavItem="models"
+          vehicle={vehicle}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+          onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
+          onFinanceCalculator={() => modalHandlers.updateModal('isFinanceOpen', true)}
+        >
       <div
         ref={gesturesRef as React.RefObject<HTMLDivElement>}
         className={cn(
@@ -392,7 +400,9 @@ const VehicleDetails = () => {
         setIsInteriorModalOpen={(value) => modalHandlers.updateModal('isInteriorModalOpen', value)}
         carBuilderInitialGrade={carBuilderInitialGrade}
       />
-    </ToyotaLayout>
+        </ToyotaLayout>
+      </PerformanceErrorBoundary>
+    </OptimizedModalProvider>
   );
 };
 
