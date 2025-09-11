@@ -26,7 +26,7 @@ const carbonMatte: React.CSSProperties = {
     "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(" + CARBON_URL + ")",
   backgroundBlendMode: "multiply, normal",
   backgroundSize: "180px 180px, 180px 180px",
-  backgroundRepeat: "no-repeat, repeat",   // dark overlay not repeating; weave repeats
+  backgroundRepeat: "no-repeat, repeat",
   backgroundPosition: "center, center",
   backgroundColor: GR_SURFACE,
 };
@@ -80,7 +80,9 @@ interface ActionPanelProps {
   /** @deprecated – kept for backward compatibility */
   onToggleFavorite?: () => void;
 }
+
 const PANEL_H = {
+  // replaced later by CSS vars using clamp()
   base: "64px",
   md: "80px",
 };
@@ -105,7 +107,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   );
 
   const handleTestDrive = () => {
-    // Keep existing popup util
     openTestDrivePopup(vehicle);
   };
 
@@ -118,7 +119,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     };
 
     try {
-      // Some browsers expose navigator.canShare
       if ((navigator as any).canShare && (navigator as any).canShare(sharePayload)) {
         await (navigator as any).share(sharePayload);
         return;
@@ -127,11 +127,9 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         await (navigator as any).share(sharePayload);
         return;
       }
-      // Fallback: copy to clipboard
       await navigator.clipboard.writeText(sharePayload.url);
       toast({ title: "Link copied", description: "URL copied to clipboard." });
     } catch {
-      // Final fallback prompt (in case clipboard permission is blocked)
       try {
         const ok = window.confirm("Sharing not available. Copy link to clipboard?");
         if (ok) {
@@ -164,14 +162,33 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
   if (isMobile) return null;
 
+  // 🔧 Responsive sizing via CSS vars (no logic change)
   const panelStyle: React.CSSProperties = {
+    // Panel height scales with viewport width, clamped to sensible bounds
+    // sm-ish: ~60px, up to ~84px on large screens
     // @ts-ignore – CSS var is fine
-    "--panel-h": PANEL_H.base,
-    "--panel-h-md": PANEL_H.md,
+    "--panel-h": "clamp(56px, 6.5vw, 72px)",
+    "--panel-h-md": "clamp(64px, 5.5vw, 84px)",
+
+    // Button heights/paddings shrink slightly and scale up gracefully
+    "--btn-h": "clamp(36px, 3.2vw, 44px)",
+    "--btn-h-md": "clamp(40px, 2.8vw, 48px)",
+    "--btn-px": "clamp(10px, 1.8vw, 16px)",
+    "--btn-px-md": "clamp(12px, 1.6vw, 18px)",
+
+    // Minimum widths trimmed so CTAs look tighter
+    "--btn-minw-primary": "clamp(112px, 12vw, 140px)",
+    "--btn-minw-secondary": "clamp(104px, 11vw, 130px)",
+    "--btn-minw-brochure": "clamp(116px, 12vw, 140px)",
+    "--btn-icon": "clamp(34px, 3.2vw, 40px)",
+
+    // Icon sizes (kept subtle)
+    "--icon": "clamp(14px, 1.4vw, 16px)",
+
     ...(isGR
       ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" }
       : {}),
-  };
+  } as React.CSSProperties;
 
   return (
     <motion.div
@@ -188,14 +205,16 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       ].join(" ")}
       aria-label="Vehicle action panel"
     >
-      <div className="w-full max-w-[2560px] mx-auto h-full px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-12">
-        <div className="h-full flex items-center gap-2 md:gap-3">
+      <div className="w-full max-w-[2560px] mx-auto h-full px-2.5 sm:px-3.5 lg:px-6 xl:px-8 2xl:px-12">
+        <div className="h-full flex items-center gap-1.5 md:gap-3">
           {/* Price cluster */}
           <div className="min-w-0">
             <div className="flex items-baseline gap-2 leading-none">
               <span
                 className={[
-                  "text-lg md:text-xl font-black truncate",
+                  "font-black truncate",
+                  // slightly smaller and fluid
+                  "text-[clamp(14px,1.6vw,18px)] md:text-[clamp(16px,1.4vw,20px)]",
                   isGR ? "text-red-300" : "text-primary",
                 ].join(" ")}
               >
@@ -203,7 +222,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               </span>
               <span
                 className={[
-                  "text-[10px] md:text-xs line-through",
+                  "line-through",
+                  "text-[clamp(9px,1vw,12px)] md:text-[clamp(10px,0.9vw,13px)]",
                   isGR ? "text-neutral-400/80" : "text-muted-foreground",
                 ].join(" ")}
               >
@@ -212,7 +232,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             </div>
             <p
               className={[
-                "hidden md:block text-[11px] leading-none mt-1",
+                "hidden md:block leading-none mt-1",
+                "text-[clamp(10px,0.9vw,12px)]",
                 isGR ? "text-neutral-400" : "text-muted-foreground",
               ].join(" ")}
             >
@@ -221,54 +242,72 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex-1 flex items-center justify-end gap-1.5 md:gap-2 min-w-0">
+          <div
+            className={[
+              "flex-1 flex items-center justify-end",
+              // allow wrap on narrower desktops so CTAs don’t overflow
+              "flex-wrap gap-1.5 md:gap-2",
+            ].join(" ")}
+          >
             {/* Primary buttons */}
             <div className="flex items-center gap-1.5 md:gap-2">
-             <Button
-  onClick={handleTestDrive}
-  className={[
-    "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px] transition-colors duration-200",
-    isGR
-      ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
-      : "bg-transparent border border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus:ring-2 focus:ring-[#EB0A1E]",
-  ].join(" ")}
-  style={isGR ? carbonMatte : undefined}
->
-  <Car
-    className={[
-      "h-3.5 w-3.5 md:h-4 md:w-4 mr-1 transition-colors duration-200",
-      isGR ? "text-white" : "text-[#EB0A1E] group-hover:text-white",
-    ].join(" ")}
-  />
-  Book Test Drive
-</Button>
-
+              <Button
+                onClick={handleTestDrive}
+                className={[
+                  "rounded-lg shadow-lg transition-colors duration-200",
+                  // use CSS vars for compact sizing
+                  "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
+                  "px-[var(--btn-px)] md:px-[var(--btn-px-md)]",
+                  "text-[clamp(12px,1.1vw,14px)]",
+                  "min-w-[var(--btn-minw-primary)]",
+                  isGR
+                    ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
+                    : "bg-transparent border border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus:ring-2 focus:ring-[#EB0A1E]",
+                ].join(" ")}
+                style={isGR ? carbonMatte : undefined}
+              >
+                <Car
+                  className="mr-1"
+                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                />
+                Book Test Drive
+              </Button>
 
               <Button
                 onClick={onCarBuilder}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-11 md:h-12 px-4 md:px-6 rounded-lg text-sm md:text-base min-w-[120px]",
+                  "rounded-lg",
+                  "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
+                  "px-[var(--btn-px)] md:px-[var(--btn-px-md)]",
+                  "text-[clamp(12px,1.1vw,14px)]",
+                  "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
                     : "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary",
                 ].join(" ")}
                 style={isGR ? carbonMatte : undefined}
               >
-                <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                <Settings
+                  className="mr-1"
+                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                />
                 Build & Price
               </Button>
             </div>
 
             {/* Icon actions */}
             <div className="flex items-center gap-1.5 md:gap-2">
-              {/* ✅ Finance: bigger, labeled, more contrast */}
+              {/* Finance */}
               <Button
                 onClick={onFinanceCalculator}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  // increased size + label
-                  "h-11 md:h-12 px-3 md:px-4 rounded-lg text-sm md:text-base min-w-[130px] flex items-center justify-center",
+                  "rounded-lg flex items-center justify-center font-semibold",
+                  "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
+                  "px-[calc(var(--btn-px)-2px)] md:px-[calc(var(--btn-px-md)-2px)]",
+                  "text-[clamp(12px,1.1vw,14px)]",
+                  "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-red-300 border-2 border-[#C4252A] hover:bg-[#141618] focus:ring-2 focus:ring-red-500"
                     : "border-2 border-primary text-primary hover:bg-primary hover:text-white bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-primary",
@@ -276,16 +315,23 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 aria-label="Finance calculator"
                 title="Finance calculator"
               >
-                <Calculator className="h-4 w-4 mr-1.5" />
-                <span className="font-semibold">Finance</span>
+                <Calculator
+                  className="mr-1.5"
+                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                />
+                <span>Finance</span>
               </Button>
 
-              {/* ✅ Brochure: bigger, labeled, clear PDF affordance */}
+              {/* Brochure */}
               <Button
                 onClick={handleDownloadBrochure}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-11 md:h-12 px-3 md:px-4 rounded-lg text-sm md:text-base min-w-[140px] flex items-center justify-center",
+                  "rounded-lg flex items-center justify-center font-semibold",
+                  "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
+                  "px-[calc(var(--btn-px)-1px)] md:px-[calc(var(--btn-px-md)-1px)]",
+                  "text-[clamp(12px,1.1vw,14px)]",
+                  "min-w-[var(--btn-minw-brochure)]",
                   isGR
                     ? "text-neutral-100 bg-[#1D1F22] border border-[#1F2124] hover:bg-[#202328]"
                     : "bg-primary text-white hover:bg-primary/90 border border-primary",
@@ -293,16 +339,20 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 aria-label="Download brochure (PDF)"
                 title="Download brochure (PDF)"
               >
-                <FileText className="h-4 w-4 mr-1.5" />
-                <span className="font-semibold">Brochure</span>
+                <FileText
+                  className="mr-1.5"
+                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                />
+                <span>Brochure</span>
               </Button>
 
-              {/* Share (functionality hardened above) */}
+              {/* Share */}
               <Button
                 onClick={handleShare}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-9 w-9 md:h-10 md:w-10 p-0 rounded-lg",
+                  "p-0 rounded-lg",
+                  "h-[var(--btn-icon)] w-[var(--btn-icon)] md:h-[calc(var(--btn-icon)+2px)] md:w-[calc(var(--btn-icon)+2px)]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
                     : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm",
@@ -310,7 +360,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 aria-label="Share"
                 title="Share"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 style={{ width: "var(--icon)", height: "var(--icon)" }} />
               </Button>
 
               {/* GR toggle chip (desktop only) */}
@@ -321,7 +371,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 aria-checked={isGR}
                 title="Toggle GR Performance mode"
                 className={[
-                  "hidden md:inline-flex items-center h-9 md:h-10 rounded-full px-3 text-xs md:text-sm font-semibold",
+                  "hidden md:inline-flex items-center rounded-full",
+                  "h-[calc(var(--btn-h)-2px)] md:h-[calc(var(--btn-h-md)-2px)]",
+                  "px-[calc(var(--btn-px)-4px)] md:px-[calc(var(--btn-px-md)-4px)]",
+                  "text-[clamp(11px,1vw,13px)] font-semibold",
                   "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
                   isGR
                     ? "border border-[#17191B] text-red-300"
@@ -338,7 +391,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         {/* Quick info row */}
         <div
           className={[
-            "hidden xl:flex absolute left-1/2 -translate-x-1/2 bottom-1 text-xs items-center gap-3 pointer-events-none",
+            "hidden xl:flex absolute left-1/2 -translate-x-1/2 bottom-1 items-center gap-3 pointer-events-none",
+            "text-[clamp(10px,0.85vw,12px)]",
             isGR ? "text-neutral-400" : "text-muted-foreground",
           ].join(" ")}
         >
