@@ -127,7 +127,6 @@ const SafeImage: React.FC<SafeImageProps> = ({ src, alt, className, fit = "cover
           alt={alt}
           loading="lazy"
           decoding="async"
-          referrerPolicy="no-referrer"
           className={cn("w-full h-full transition-opacity duration-300 opacity-0 data-[loaded=true]:opacity-100", fit === "cover" ? "object-cover" : "object-contain bg-black", className)}
           onLoad={(e) => (e.currentTarget.dataset.loaded = "true")}
           onError={() => setErr(true)}
@@ -178,7 +177,7 @@ const MosaicCard: React.FC<MosaicCardProps> = ({ item, size, onOpen }) => {
     >
       <Card className={cn("overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all", TOKENS.border, radius)}>
         <button onClick={() => onOpen(item)} className="block w-full text-left focus:outline-none">
-          <div className={cn("relative", size === "xl" ? "aspect-[16/9]" : size === "md" ? "aspect-[4/3]" : "aspect-[16/10]") }>
+          <div className={cn("relative w-full", size === "xl" ? "min-h-[220px] md:min-h-[360px]" : "min-h-[180px] md:min-h-[260px]")} style={{ aspectRatio: size === "xl" ? "16/9" : size === "md" ? "4/3" : "16/10" }}>
             <SafeImage src={poster as string} alt={item.title} fit="cover" className="absolute inset-0" />
             {/* Play */}
             {isVideo && (
@@ -368,7 +367,7 @@ const ToyotaMediaStudioPro: React.FC<ToyotaMediaStudioProProps> = ({ title = "Hi
                   <div className="absolute bottom-0 left-0 right-0 bg-white/95 border-t p-3">
                     <div className="flex gap-2 overflow-x-auto">
                       {open.gallery.map((g, i) => (
-                        <button key={i} aria-label={`Image ${i + 1}`} onClick={() => setIndex(i)} className={cn("flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2", i === index ? "border-[" + TOKENS.red + "]" : "border-transparent hover:border-neutral-300")}>
+                        <button key={i} aria-label={`Image ${i + 1}`} onClick={() => setIndex(i)} className={cn("flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 hover:ring-1 hover:ring-neutral-300")} style={{ borderColor: i === index ? TOKENS.red : "transparent" }}>
                           <SafeImage src={g.url} alt={g.title} fit="cover" />
                         </button>
                       ))}
