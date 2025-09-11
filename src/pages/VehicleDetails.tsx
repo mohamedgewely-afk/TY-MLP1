@@ -31,7 +31,6 @@ import { UnifiedPerformanceMonitor } from '@/components/ui/unified-performance-m
 import { OptimizedModalProvider } from '@/components/ui/optimized-modal-manager';
 import { SkipLinks } from '@/components/ui/enhanced-accessibility';
 import { ProgressiveLoader } from '@/components/ui/enhanced-loading-states';
-import ImmersiveMediaStudio from "@/components/vehicle-details/ImmersiveMediaStudio";
 <ImmersiveMediaStudio
   title="Highlights"
   topVideo={{ mediaId: "kvdhnonllm", aspect: 16/9 }}
