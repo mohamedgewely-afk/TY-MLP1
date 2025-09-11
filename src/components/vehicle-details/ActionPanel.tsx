@@ -16,23 +16,20 @@ const GR_EDGE = "#17191B";
 const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#A8ACB0";
 // Use your uploaded carbon weave image
-const CARBON_URL = "/lovable-uploads/eb8bd813-e55b-407b-81c5-81044ab5a4a8.png";
+const CARBON_URL =
+  "https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/f33badf4-a2df-4400-81f4-80b38a5461f7/items/6949214d-eddd-4a97-8e93-8c4ed9563ffc/renditions/3d30ccb3-dd72-4e9d-b02a-aa9759450957?binary=true";
 
 // Gradient FIRST (on top), image SECOND (underneath).
 // 'multiply' is more predictable than 'overlay' across browsers.
 const carbonMatte: React.CSSProperties = {
-  backgroundImage: `
-    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-    url('${https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/f33badf4-a2df-4400-81f4-80b38a5461f7/items/6949214d-eddd-4a97-8e93-8c4ed9563ffc/renditions/3d30ccb3-dd72-4e9d-b02a-aa9759450957?binary=true}')
-  `,
+  backgroundImage:
+    "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(" + CARBON_URL + ")",
   backgroundBlendMode: "multiply, normal",
   backgroundSize: "180px 180px, 180px 180px",
   backgroundRepeat: "no-repeat, repeat",   // dark overlay not repeating; weave repeats
   backgroundPosition: "center, center",
   backgroundColor: GR_SURFACE,
 };
-
-
 
 /** Shared localStorage key so MobileStickyNav can read the same state */
 const GR_STORAGE_KEY = "toyota.grMode";
