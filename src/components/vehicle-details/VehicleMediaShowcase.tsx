@@ -2,8 +2,7 @@
 // React-only, no external UI libs. Autoplay Wistia via iframe (reliable in sandboxes/SSR).
 import React, { CSSProperties, useEffect, useMemo, useState } from "react";
 
-/* ───────────── helpers / tiny UI ───────────── */
-const cn = (...xs: Array<string | false | null | undefined>) => xs.filter(Boolean).join(" ");
+/* ───────── helpers / tiny UI ───────── */
 const cardStyle: CSSProperties = { background: "#fff", border: "1px solid #e5e7eb", borderRadius: 16, boxShadow: "0 1px 2px rgba(15,23,42,.06)" };
 const btnStyle: CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 10, padding: "8px 12px", fontSize: 14, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" };
 const badgeStyle: CSSProperties = { display: "inline-flex", alignItems: "center", borderRadius: 10, padding: "3px 8px", fontSize: 11, border: "1px solid #d1d5db", color: "#111827" };
@@ -11,17 +10,17 @@ const EdgeAccent: React.FC<{ width?: number; color?: string }> = ({ width = 96, 
   <div style={{ position: "absolute", left: 0, top: 0, height: 6, width, background: color }} />
 );
 
-/* ───────────── types (loose to avoid path deps) ───────────── */
+/* ───────── types (loose to avoid path deps) ───────── */
 type MediaType = "image" | "video";
 type VehicleLike = { name?: string } | any;
 type MediaItem = { id: string; type: MediaType; url: string; title: string; description?: string; category?: string };
 
 interface Props {
-  vehicle?: VehicleLike; // your VehicleModel passes fine
-  wistiaMediaId?: string; // e.g., "kvdhnonllm"
+  vehicle?: VehicleLike;      // your VehicleModel passes fine
+  wistiaMediaId?: string;     // e.g., "kvdhnonllm"
 }
 
-/* ───────────── SafeImage ───────────── */
+/* ───────── SafeImage ───────── */
 const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain"; aspect?: number; minHeight?: number }> = ({
   src, alt, fit = "cover", aspect = 16 / 10, minHeight = 180,
 }) => {
@@ -29,7 +28,11 @@ const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain
   return (
     <div style={{ position: "relative", width: "100%", aspectRatio: String(aspect), minHeight, overflow: "hidden" }}>
       {!err ? (
-        <img src={src} alt={alt} loading="lazy" decoding="async"
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
           onError={() => setErr(true)}
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: fit, background: fit === "contain" ? "#000" : undefined }}
         />
@@ -42,7 +45,7 @@ const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain
   );
 };
 
-/* ───────────── Wistia (iframe, no custom element) ───────────── */
+/* ───────── Wistia (iframe, no custom element) ───────── */
 const WistiaVideo: React.FC<{ mediaId: string; autoPlay?: boolean; muted?: boolean; controls?: boolean; aspect?: number }> = ({
   mediaId, autoPlay = true, muted = true, controls = true, aspect = 16 / 9,
 }) => {
@@ -65,9 +68,11 @@ const WistiaVideo: React.FC<{ mediaId: string; autoPlay?: boolean; muted?: boole
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
       />
       {isMuted && autoPlay && (
-        <button onClick={() => setIsMuted(false)}
+        <button
+          onClick={() => setIsMuted(false)}
           style={{ ...btnStyle, position: "absolute", right: 12, top: 12, background: "rgba(255,255,255,.9)", backdropFilter: "saturate(180%) blur(6px)" }}
-          title="Unmute">
+          title="Unmute"
+        >
           Unmute
         </button>
       )}
@@ -75,7 +80,7 @@ const WistiaVideo: React.FC<{ mediaId: string; autoPlay?: boolean; muted?: boole
   );
 };
 
-/* ───────────── demo items (your DAM) ───────────── */
+/* ───────── demo items (your DAM) ───────── */
 const DEMO: MediaItem[] = [
   { id: "perf", type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true", title: "Chassis Dynamics", description: "Adaptive damping and precise control.", category: "Performance" },
   { id: "interior", type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true", title: "Driver-Focused Cabin", description: "Premium materials, intuitive controls.", category: "Interior" },
@@ -85,11 +90,12 @@ const DEMO: MediaItem[] = [
   { id: "safety", type: "image", url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Sensor Coverage", description: "Wide FOV camera + radar.", category: "Safety" },
 ];
 
-/* ───────────── card + drawer ───────────── */
+/* ───────── card + drawer ───────── */
 const CardTile: React.FC<{ item: MediaItem; index: number; onClick: (m: MediaItem) => void }> = ({ item, index, onClick }) => {
   const aspect = index % 3 === 0 ? 21 / 9 : index % 3 === 1 ? 4 / 3 : 16 / 10;
   return (
-    <div onClick={() => onClick(item)}
+    <div
+      onClick={() => onClick(item)}
       style={{ ...cardStyle, overflow: "hidden", cursor: "pointer", transition: "transform .2s ease" }}
       onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
       onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
@@ -111,8 +117,7 @@ const CardTile: React.FC<{ item: MediaItem; index: number; onClick: (m: MediaIte
 const Drawer: React.FC<{ open: boolean; item?: MediaItem; onClose: () => void }> = ({ open, item, onClose }) => {
   if (!open || !item) return null;
   return (
-    <aside role="dialog" aria-modal="true"
-      style={{ position: "fixed", inset: "0 0 0 auto", width: "min(560px, 100%)", background: "#fff", boxShadow: "-12px 0 24px rgba(0,0,0,.1)", zIndex: 50 }}>
+    <aside role="dialog" aria-modal="true" style={{ position: "fixed", inset: "0 0 0 auto", width: "min(560px, 100%)", background: "#fff", boxShadow: "-12px 0 24px rgba(0,0,0,.1)", zIndex: 50 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, borderBottom: "1px solid #e5e7eb" }}>
         <div>
           <div style={{ fontSize: 12, color: "#6b7280" }}>Feature</div>
@@ -134,7 +139,7 @@ const Drawer: React.FC<{ open: boolean; item?: MediaItem; onClose: () => void }>
   );
 };
 
-/* ───────────── responsive helper ───────────── */
+/* ───────── responsive helper ───────── */
 const useIsDesktop = () => {
   const [desktop, setDesktop] = useState<boolean>(() => (typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false));
   useEffect(() => {
@@ -147,11 +152,12 @@ const useIsDesktop = () => {
   return desktop;
 };
 
-/* ───────────── main export ───────────── */
+/* ───────── main export ───────── */
 const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhnonllm" }) => {
   const brand = vehicle?.name ?? "Toyota";
   const isDesktop = useIsDesktop();
   const items: MediaItem[] = useMemo(() => DEMO, []);
+  const [drawerItem, setDrawerItem] = useState<MediaItem | undefined>(undefined);
 
   /* layout styles */
   const headerWrap: CSSProperties = { padding: "32px 16px 0" };
@@ -187,7 +193,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhn
 
         <div style={{ display: "grid", gap: 20, gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : "repeat(1, minmax(0, 1fr))" }}>
           {items.map((m, i) => (
-            <CardTile key={m.id} item={m} index={i} onClick={() => setDrawer(m)} />
+            <CardTile key={m.id} item={m} index={i} onClick={(it) => setDrawerItem(it)} />
           ))}
         </div>
 
@@ -202,13 +208,9 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhn
         )}
       </div>
 
-      <Drawer open={!!drawerItem} item={drawerItem} onClose={() => setDrawer(undefined)} />
+      <Drawer open={!!drawerItem} item={drawerItem} onClose={() => setDrawerItem(undefined)} />
     </section>
   );
-
-  function setDrawer(m?: MediaItem) { setDrawerItem(m); }
-  function setDrawerItem(m?: MediaItem) { _setDrawerItem(m); }
-  const [_drawerItem, _setDrawerItem] = useState<MediaItem | undefined>(undefined);
 };
 
 export default React.memo(VehicleMediaShowcase);
