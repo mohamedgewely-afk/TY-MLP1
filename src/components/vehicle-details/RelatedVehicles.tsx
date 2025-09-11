@@ -82,17 +82,15 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
         </h2>
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
             size="icon"
-            className="rounded-full"
+            className="rounded-full bg-black text-white hover:bg-black/90"
             onClick={() => scroll("left")}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <Button
-            variant="outline"
             size="icon"
-            className="rounded-full"
+            className="rounded-full bg-black text-white hover:bg-black/90"
             onClick={() => scroll("right")}
           >
             <ChevronRight className="h-5 w-5" />
@@ -154,7 +152,7 @@ const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
                     </div>
 
                     <div className="mt-5 flex items-center gap-3">
-                      <Button asChild className="w-full">
+                      <Button asChild className="w-full bg-black text-white hover:bg-black/90">
                         <Link to={href}>View model</Link>
                       </Button>
                     </div>
