@@ -225,18 +225,19 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             {/* Primary buttons */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
-                onClick={handleTestDrive}
-                className={[
-                  "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]",
-                  isGR
-                    ? "bg-[#1D1F22] text-white hover:bg[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
-                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground focus:ring-2 focus:ring-primary",
-                ].join(" ")}
-                style={isGR ? carbonMatte : undefined}
-              >
-                <Car className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
-                Book Test Drive
-              </Button>
+  onClick={handleTestDrive}
+  className={[
+    "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]",
+    isGR
+      ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
+      : "bg-[#EB0A1E] hover:bg-[#d60a1c] text-white focus:ring-2 focus:ring-[#EB0A1E]",
+  ].join(" ")}
+  style={isGR ? carbonMatte : undefined}
+>
+  <Car className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+  Book Test Drive
+</Button>
+
 
               <Button
                 onClick={onCarBuilder}
