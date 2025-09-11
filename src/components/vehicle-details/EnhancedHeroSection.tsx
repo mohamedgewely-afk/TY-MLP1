@@ -332,7 +332,8 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             <Button 
   onClick={handleTestDrive}
   size="sm"
-  className="bg-[#EB0A1E] hover:bg-[#c10e18] text-white font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
+  className="bg-[#EB0A1E] hover:bg-[#c10e18] text-white font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group 
+             w-full sm:w-auto sm:px-6 sm:py-3 mx-auto"
 >
   <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
   Book Test Drive
@@ -345,7 +346,8 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
   onClick={onCarBuilder}
   variant="outline"
   size="sm"
-  className="border-2 border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group w-full"
+  className="border-2 border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group 
+             w-full sm:w-auto sm:px-6 sm:py-3 mx-auto"
 >
   <Settings className="h-3.5 w-3.5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
   Configure Your Car
