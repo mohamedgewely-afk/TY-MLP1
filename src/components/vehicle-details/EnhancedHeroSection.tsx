@@ -330,26 +330,26 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             className="flex flex-col gap-2"
           >
             <Button 
-              onClick={handleTestDrive}
-              size="sm"
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
-            >
-              <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
-              Book Test Drive
-              <div className="ml-2 animate-pulse">
-                <ArrowRight className="h-3.5 w-3.5" />
-              </div>
-            </Button>
+  onClick={handleTestDrive}
+  size="sm"
+  className="bg-[#EB0A1E] hover:bg-[#c10e18] text-white font-bold px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group w-full"
+>
+  <Calendar className="h-3.5 w-3.5 mr-2 group-hover:scale-110 transition-transform" />
+  Book Test Drive
+  <div className="ml-2 animate-pulse">
+    <ArrowRight className="h-3.5 w-3.5" />
+  </div>
+</Button>
             
             <Button 
-              onClick={onCarBuilder}
-              variant="outline"
-              size="sm"
-              className="border border-white/40 text-white hover:bg-white hover:text-gray-900 font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group bg-white/10 backdrop-blur-sm w-full"
-            >
-              <Settings className="h-3.5 w-3.5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-              Configure Your Car
-            </Button>
+  onClick={onCarBuilder}
+  variant="outline"
+  size="sm"
+  className="border-2 border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white font-bold px-4 py-2.5 rounded-lg transition-all duration-300 group w-full"
+>
+  <Settings className="h-3.5 w-3.5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+  Configure Your Car
+</Button>
           </motion.div>
         </div>
       </div>
