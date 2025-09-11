@@ -11,25 +11,27 @@ const TOK = {
 };
 const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
+/* Fallback SVG (never blank) */
+const FALLBACK_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><rect width='100%' height='100%' fill='#f4f4f5'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9ca3af' font-family='system-ui' font-size='14'>Image unavailable</text></svg>`
+  );
+
 /* ---------------- Safe image (DAM-only) ---------------- */
 const ImageSafe: React.FC<
   React.ImgHTMLAttributes<HTMLImageElement> & { fallbackSrc?: string; fit?: "contain" | "cover" }
 > = ({ src, alt, className, fallbackSrc, fit = "cover", ...rest }) => {
   const [err, setErr] = useState(!src);
-  const resolved = !err ? src : fallbackSrc;
-  if (!resolved) {
-    return (
-      <div className={cx("grid place-items-center bg-zinc-100 text-[11px] text-zinc-400", className)}>
-        Image unavailable
-      </div>
-    );
-  }
+  const resolved = !err ? src : fallbackSrc || FALLBACK_SVG;
   return (
     <img
       {...rest}
       src={resolved}
       alt={alt}
       loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
       onError={() => setErr(true)}
       className={cx("block w-full h-full", fit === "cover" ? "object-cover" : "object-contain", className)}
     />
@@ -107,7 +109,7 @@ const ITEMS: MediaItem[] = [
         },
         hotspots: [
           { x: 22, y: 35, label: "Charge cooler", body: "Low temp circuit for intake air." },
-          { x: 76, y: 48, label: "VGT", body: "Variable geometry turbines reduce lag." },
+          { x: 76, y: 48, label: "VGT", body: "Variable geometry turbines minimize lag." },
         ],
       },
       {
@@ -251,64 +253,6 @@ const useBodyLock = (locked: boolean) => {
 };
 
 /* ---------------- Variant widgets (distinct looks) ---------------- */
-const VARIANT: Record<
-  Variant,
-  {
-    accent: string;
-    headerStripe?: boolean;
-    renderExtras?: (ctx: {
-      item: MediaItem;
-      idx: number;
-      slide?: Slide | null;
-      mode: string;
-      setMode: (m: string) => void;
-      isMobile: boolean;
-    }) => React.ReactNode;
-  }
-> = {
-  performance: {
-    accent: "text-red-600",
-    headerStripe: true,
-    renderExtras: ({ isMobile }) => (
-      <div className={cx("grid", isMobile ? "grid-cols-3 gap-2" : "grid-cols-3 gap-3")}>
-        <KpiChip label="Power" value="400+ hp" />
-        <KpiChip label="0–100" value="4.2 s" />
-        <KpiChip label="Efficiency" value="28 mpg" />
-      </div>
-    ),
-  },
-  safety: {
-    accent: "text-blue-700",
-    renderExtras: ({ slide }) => (
-      <Checklist items={slide?.details?.specs || ["Pre-Collision System", "Lane Tracing Assist", "Adaptive Cruise", "Blind Spot Monitor"]} />
-    ),
-  },
-  interior: {
-    accent: "text-amber-700",
-    renderExtras: ({ item, slide, setMode }) => (
-      <Swatches
-        images={(item.gallery || []).map((g) => g.url)}
-        active={slide?.url}
-        onPick={(u) => setMode(u)}
-      />
-    ),
-  },
-  quality: {
-    accent: "text-zinc-700",
-    renderExtras: () => <Timeline steps={["Materials", "Assembly", "QA"]} />,
-  },
-  technology: {
-    accent: "text-cyan-700",
-    renderExtras: () => <Tiles items={["CarPlay", "Android Auto", "Wi-Fi", "OTA"]} />,
-  },
-  handling: {
-    accent: "text-rose-700",
-    renderExtras: ({ mode, setMode }) => (
-      <ModePills modes={["Eco", "Normal", "Sport"]} active={mode} onChange={setMode} />
-    ),
-  },
-};
-
 const KpiChip: React.FC<{ label: string; value: string }> = ({ label, value }) => (
   <div className="rounded-xl border px-3 py-2 text-center">
     <div className="text-[11px] text-zinc-500">{label}</div>
@@ -316,16 +260,28 @@ const KpiChip: React.FC<{ label: string; value: string }> = ({ label, value }) =
   </div>
 );
 
-const Checklist: React.FC<{ items: string[] }> = ({ items }) => (
-  <div className="grid grid-cols-2 gap-2">
-    {items.map((t) => (
-      <div key={t} className="flex items-center gap-2">
-        <span className="inline-grid place-items-center h-4 w-4 rounded-full border border-green-600 text-green-700 text-[10px]">✓</span>
-        <span className="text-sm">{t}</span>
-      </div>
-    ))}
-  </div>
-);
+const Checklist: React.FC<{ items: string[] }> = ({ items }) => {
+  const [active, setActive] = useState<Record<string, boolean>>({});
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((t) => {
+        const on = !!active[t];
+        return (
+          <button
+            key={t}
+            onClick={() => setActive((s) => ({ ...s, [t]: !on }))}
+            className={cx(
+              "px-3 py-1.5 rounded-full border text-sm",
+              on ? "bg-green-600 text-white border-green-600" : "hover:bg-zinc-100"
+            )}
+          >
+            {t}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 const Swatches: React.FC<{ images: string[]; active?: string; onPick: (u: string) => void }> = ({ images, active, onPick }) => (
   <div className="flex gap-2 overflow-x-auto">
@@ -341,18 +297,29 @@ const Swatches: React.FC<{ images: string[]; active?: string; onPick: (u: string
   </div>
 );
 
-const Timeline: React.FC<{ steps: string[] }> = ({ steps }) => (
-  <div className="flex items-center gap-3">
-    {steps.map((s, i) => (
-      <React.Fragment key={s}>
-        <div className="text-sm font-medium">{s}</div>
-        {i < steps.length - 1 && <div className="h-px w-6 bg-zinc-300" />}
-      </React.Fragment>
-    ))}
-  </div>
-);
+const Timeline: React.FC<{ steps: string[] }> = ({ steps }) => {
+  const [i, setI] = useState(0);
+  return (
+    <div className="flex items-center gap-3">
+      {steps.map((s, idx) => (
+        <React.Fragment key={s}>
+          <button
+            onClick={() => setI(idx)}
+            className={cx(
+              "text-sm font-medium px-2 py-1 rounded",
+              i === idx ? "bg-zinc-900 text-white" : "hover:bg-zinc-100"
+            )}
+          >
+            {s}
+          </button>
+          {idx < steps.length - 1 && <div className="h-px w-6 bg-zinc-300" />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
-const Tiles: React.FC<{ items: string[] }> = ({ items }) => (
+const Tiles: React.FC<{ items: string[]; mode?: string; onMode?: (m: string) => void }> = ({ items }) => (
   <div className="grid grid-cols-2 gap-2">
     {items.map((t) => (
       <div key={t} className="rounded-xl border px-3 py-3 text-sm">{t}</div>
@@ -377,34 +344,81 @@ const ModePills: React.FC<{ modes: string[]; active: string; onChange: (m: strin
   </div>
 );
 
+/* For performance modal: hotspot bubble */
+const HotBubble: React.FC<{ x: number; y: number; label: string; body?: string; onClose: () => void }> = ({
+  x,
+  y,
+  label,
+  body,
+  onClose,
+}) => (
+  <div
+    className="absolute z-20 max-w-[220px] bg-white border rounded-xl shadow p-3 text-xs"
+    style={{ left: `calc(${x}% + 8px)`, top: `calc(${y}% - 8px)` }}
+  >
+    <div className="flex items-center justify-between gap-3 mb-1">
+      <strong className="text-zinc-800">{label}</strong>
+      <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600">×</button>
+    </div>
+    <div className="text-zinc-600">{body}</div>
+  </div>
+);
+
+/* Variant registry */
+const VARIANT = {
+  performance: {
+    accent: "text-red-600",
+    stripe: true,
+  },
+  safety: { accent: "text-blue-700" },
+  interior: { accent: "text-amber-700" },
+  quality: { accent: "text-zinc-700" },
+  technology: { accent: "text-cyan-700" },
+  handling: { accent: "text-rose-700" },
+} as const;
+
+/* ---------------- Responsive hook (no external dep) ---------------- */
+const useIsMobile = () => {
+  const [m, setM] = useState<boolean>(() => (typeof window !== "undefined" ? window.innerWidth < 768 : false));
+  useEffect(() => {
+    const onR = () => setM(window.innerWidth < 768);
+    window.addEventListener("resize", onR);
+    return () => window.removeEventListener("resize", onR);
+  }, []);
+  return m;
+};
+
 /* ---------------- Component ---------------- */
-const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
+const VehicleMediaShowcase: React.FC<{ vehicle: VehicleModel }> = ({ vehicle }) => {
   const items = useMemo(() => ITEMS.slice(0, 6), [vehicle]);
-  const topWistiaId = "kvdhnonllm";
+  const isMobile = useIsMobile();
 
   /* Modal state */
   const [open, setOpen] = useState<MediaItem | null>(null);
-  const [idx, setIdx] = useState(0); // 0 = video (if exists) else first slide; images follow
+  const [idx, setIdx] = useState(0); // 0 = video (if exists)
   const [tab, setTab] = useState<"overview" | "specs" | "features" | "tech">("overview");
-  const [page, setPage] = useState(0); // for paginating bullets (no vertical scroll)
-  const [mode, setMode] = useState("Normal"); // used by handling/interior variants
-  const isMobile = useIsMobile();
+  const [page, setPage] = useState(0);
+  const [mode, setMode] = useState("Normal");
+  const [hot, setHot] = useState<number | null>(null);
+
   useBodyLock(!!open);
 
   const hasVideo = !!open?.video;
   const slides = open?.gallery ?? [];
   const isVideoFrame = hasVideo && idx === 0;
   const slide = !isVideoFrame ? slides[hasVideo ? idx - 1 : idx] : undefined;
+  const variant = open ? VARIANT[open.variant] : null;
 
-  const resetModalState = (m: MediaItem) => {
+  const resetModal = (m: MediaItem) => {
     setOpen(m);
     setIdx(0);
     setTab("overview");
     setPage(0);
     setMode("Normal");
+    setHot(null);
   };
 
-  /* Swipe navigation with angle guard */
+  /* Swipe with angle guard */
   const tStart = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
@@ -415,7 +429,6 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     const dx = e.changedTouches[0].clientX - tStart.current.x;
     const dy = e.changedTouches[0].clientY - tStart.current.y;
     const angle = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
-    // Only horizontal swipes (ignore vertical scroll gestures)
     if (Math.abs(dx) > 40 && (angle < 35 || angle > 145)) {
       dx > 0 ? prev() : next();
     }
@@ -427,6 +440,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     const total = slides.length + (hasVideo ? 1 : 0);
     setIdx((p) => (p + 1) % Math.max(1, total));
     setPage(0);
+    setHot(null);
   }, [open, slides.length, hasVideo]);
 
   const prev = useCallback(() => {
@@ -434,6 +448,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     const total = slides.length + (hasVideo ? 1 : 0);
     setIdx((p) => (p - 1 + Math.max(1, total)) % Math.max(1, total));
     setPage(0);
+    setHot(null);
   }, [open, slides.length, hasVideo]);
 
   /* Keyboard shortcuts */
@@ -447,20 +462,6 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
-
-  /* Tiles mobile carousel index */
-  const mobWrapRef = useRef<HTMLDivElement>(null);
-  const [mobIndex, setMobIndex] = useState(0);
-  useEffect(() => {
-    const el = mobWrapRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
-      setMobIndex(Math.round(el.scrollLeft / (w + 16)));
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
 
   /* CTA bridge */
   const openBooking = () => {
@@ -477,13 +478,34 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     if (tab === "specs") return slide.details?.specs || [];
     if (tab === "features") return slide.details?.features || [];
     if (tab === "tech") return slide.details?.tech || [];
-    return []; // overview is paragraph
+    return [];
   })();
   const totalPages = Math.max(1, Math.ceil((bullets?.length || 0) / PER_PAGE));
   const pageBullets = slicePage(bullets, page, PER_PAGE);
 
-  /* Variant extras */
-  const variant = open ? VARIANT[open.variant] : null;
+  /* Mobile carousel index */
+  const mobWrapRef = useRef<HTMLDivElement>(null);
+  const [mobIndex, setMobIndex] = useState(0);
+  useEffect(() => {
+    const el = mobWrapRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
+      setMobIndex(Math.round(el.scrollLeft / (w + 16)));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* Helpers for interior swatches -> change slide by url */
+  const goToSlideByUrl = (u: string) => {
+    if (!open) return;
+    const index = open.gallery.findIndex((g) => g.url === u);
+    if (index >= 0) setIdx((hasVideo ? 1 : 0) + index);
+  };
+
+  /* Header stripe style */
+  const headerStripe = variant?.stripe ? <div className="absolute top-0 left-0 h-1 w-28" style={{ background: TOK.red }} /> : null;
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 md:px-6">
@@ -498,17 +520,22 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
         <WistiaEmbed id="kvdhnonllm" aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
       </div>
 
-      {/* Mobile: 6-tile carousel */}
+      {/* Mobile: 6-tile carousel — FIXED widths */}
       <div className="md:hidden mb-6">
         <div
           ref={mobWrapRef}
-          className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-4 px-4 pb-2"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 pb-2"
+          style={{ scrollSnapStop: "always" }}
         >
           {items.map((m) => (
             <button
               key={m.id}
-              onClick={() => resetModalState(m)}
-              className={cx(TOK.card, TOK.radius, "snap-center w-[85%] text-left overflow-hidden")}
+              onClick={() => resetModal(m)}
+              className={cx(
+                TOK.card,
+                TOK.radius,
+                "shrink-0 snap-start min-w-[88vw] text-left overflow-hidden hover:shadow-md transition-shadow"
+              )}
             >
               <div className="relative">
                 <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-48 object-cover" />
@@ -543,7 +570,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
         {items.map((m) => (
           <button
             key={m.id}
-            onClick={() => resetModalState(m)}
+            onClick={() => resetModal(m)}
             className={cx(TOK.card, TOK.radius, "text-left overflow-hidden hover:shadow-md transition-shadow")}
           >
             <div className="relative">
@@ -573,17 +600,17 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
           aria-modal="true"
         >
           <div
-            className={cx("bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden flex flex-col")}
+            className="bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header (no CTA duplicates) */}
-            <div className={cx("h-14 md:h-16 px-3 md:px-6 border-b bg-white flex items-center justify-between", variant?.headerStripe ? "relative" : "")}>
-              {variant?.headerStripe && (
-                <div className="absolute top-0 left-0 h-1 w-28" style={{ background: TOK.red }} />
-              )}
+            {/* Header */}
+            <div className="relative h-14 md:h-16 px-3 md:px-6 border-b bg-white flex items-center justify-between">
+              {headerStripe}
               <div className="min-w-0">
                 <div className="text-[12px] text-zinc-500">{open.category}</div>
-                <div className={cx("font-bold truncate", isMobile ? "text-base" : "text-2xl")}>{open.title}</div>
+                <div className={cx("font-bold truncate", isMobile ? "text-base" : "text-2xl", variant?.accent)}>
+                  {open.title}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
@@ -593,9 +620,9 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
               </div>
             </div>
 
-            {/* Body: **no vertical scroll**, we use tabs + paging */}
+            {/* Body: grid, no vertical scroll */}
             <div className="flex-1 grid md:grid-cols-2 overflow-hidden select-none" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-              {/* Left: Visual area (fills available space) */}
+              {/* Left: Visual with overlays */}
               <div className="relative bg-black">
                 {isVideoFrame ? (
                   open.video?.provider === "wistia" ? (
@@ -620,7 +647,28 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                   />
                 )}
 
-                {/* Thumbs (desktop) */}
+                {/* Handling: mode pills overlay */}
+                {open.variant === "handling" && (
+                  <div className="absolute top-3 left-3">
+                    <ModePills modes={["Eco", "Normal", "Sport"]} active={mode} onChange={setMode} />
+                  </div>
+                )}
+
+                {/* Performance: hotspots */}
+                {open.variant === "performance" && slide?.hotspots?.map((h, i) => (
+                  <React.Fragment key={i}>
+                    <button
+                      className="absolute z-10 h-5 w-5 -mt-2 -ml-2 rounded-full bg-white text-[10px] font-bold"
+                      style={{ left: `${h.x}%`, top: `${h.y}%` }}
+                      onClick={() => setHot(i === hot ? null : i)}
+                    >
+                      i
+                    </button>
+                    {hot === i && <HotBubble x={h.x} y={h.y} label={h.label} body={h.body} onClose={() => setHot(null)} />}
+                  </React.Fragment>
+                ))}
+
+                {/* Desktop thumbs */}
                 <div className="hidden md:flex absolute top-3 left-3 flex-col gap-2">
                   {hasVideo && (
                     <button
@@ -635,7 +683,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                     return (
                       <button
                         key={s.url + i}
-                        onClick={() => setIdx(real)}
+                        onClick={() => { setIdx(real); setHot(null); }}
                         className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "")}
                       >
                         <ImageSafe src={s.url} alt={s.title} className="h-full w-full object-cover" />
@@ -676,7 +724,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                     return (
                       <button
                         key={s.url + i}
-                        onClick={() => setIdx(real)}
+                        onClick={() => { setIdx(real); setHot(null); }}
                         className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "")}
                       >
                         <ImageSafe src={s.url} alt={s.title} className="h-full w-full object-cover" />
@@ -686,7 +734,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                 </div>
               </div>
 
-              {/* Right: Content area (no scroll -> tabs + pagination) */}
+              {/* Right: Content (no scroll -> tabs + pagination) */}
               <div className="flex flex-col p-4 md:p-6 overflow-hidden">
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -697,7 +745,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                   ))}
                 </div>
 
-                {/* Slide title & description (single line / two lines max to avoid overflow) */}
+                {/* Slide title & description */}
                 <div className="mb-3">
                   <h5 className={cx("font-semibold", isMobile ? "text-lg" : "text-xl", variant?.accent)}>{(slide?.title || open.title) as string}</h5>
                   {(slide?.description || open.summary) && (
@@ -705,12 +753,36 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                   )}
                 </div>
 
-                {/* Variant specific extras (unique per modal) */}
+                {/* Variant-specific extras */}
                 <div className="mb-3">
-                  {variant?.renderExtras?.({ item: open, idx, slide: slide || null, mode, setMode, isMobile }) || null}
+                  {open.variant === "performance" && (
+                    <div className="grid grid-cols-3 gap-2">
+                      <KpiChip label="Power" value="400+ hp" />
+                      <KpiChip label="0–100" value="4.2 s" />
+                      <KpiChip label="Efficiency" value="28 mpg" />
+                    </div>
+                  )}
+
+                  {open.variant === "safety" && (
+                    <Checklist items={slide?.details?.specs || ["Pre-Collision System", "Lane Tracing Assist", "Adaptive Cruise", "Blind Spot Monitor"]} />
+                  )}
+
+                  {open.variant === "interior" && (
+                    <Swatches
+                      images={(open.gallery || []).map((g) => g.url)}
+                      active={slide?.url}
+                      onPick={goToSlideByUrl}
+                    />
+                  )}
+
+                  {open.variant === "quality" && <Timeline steps={["Materials", "Assembly", "QA"]} />}
+
+                  {open.variant === "technology" && <Tiles items={["Connect", "OTA", "Cloud"]} />}
+
+                  {open.variant === "handling" && <div className="text-sm text-zinc-600">Mode: <strong>{mode}</strong></div>}
                 </div>
 
-                {/* Tabs (no vertical scroll) */}
+                {/* Tabs */}
                 <div className="mb-3">
                   <div className="inline-flex rounded-full border p-1 bg-zinc-50">
                     {(["overview", "specs", "features", "tech"] as const).map((t) => (
@@ -731,9 +803,8 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                   </div>
                 </div>
 
-                {/* Tab content area (fixed height; no overflow) */}
+                {/* Tab content and footer (no overflow) */}
                 <div className="flex-1 grid content-between">
-                  {/* Top chunk */}
                   <div>
                     {tab === "overview" ? (
                       <div className={cx(TOK.card, TOK.radius, "p-4")}>
@@ -741,9 +812,8 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                         <p className="text-zinc-600 text-sm">
                           {slide?.details?.overview || open.summary}
                         </p>
-                        {/* Hotspots hint when present */}
                         {slide?.hotspots && slide.hotspots.length > 0 && (
-                          <div className="mt-3 text-[12px] text-zinc-500">Tap the labeled points on the image to learn more.</div>
+                          <div className="mt-3 text-[12px] text-zinc-500">Tap the “i” markers on the image to learn more.</div>
                         )}
                       </div>
                     ) : (
@@ -764,24 +834,16 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                     )}
                   </div>
 
-                  {/* Bottom: pagination for lists + CTA */}
                   <div className="flex items-center justify-between gap-3">
-                    {/* Paginator (only for non-overview tabs with multi pages) */}
-                    {tab !== "overview" && totalPages > 1 ? (
+                    {tab !== "overview" && Math.ceil((bullets?.length || 0) / PER_PAGE) > 1 ? (
                       <div className="inline-flex items-center gap-2 text-sm">
-                        <button
-                          className="px-3 py-1 rounded-full border hover:bg-zinc-50"
-                          onClick={() => setPage((p) => Math.max(0, p - 1))}
-                        >
+                        <button className="px-3 py-1 rounded-full border hover:bg-zinc-50" onClick={() => setPage((p) => Math.max(0, p - 1))}>
                           Prev
                         </button>
                         <span className="text-zinc-500">
-                          Page {page + 1}/{totalPages}
+                          Page {page + 1}/{Math.max(1, Math.ceil((bullets?.length || 0) / PER_PAGE))}
                         </span>
-                        <button
-                          className="px-3 py-1 rounded-full border hover:bg-zinc-50"
-                          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                        >
+                        <button className="px-3 py-1 rounded-full border hover:bg-zinc-50" onClick={() => setPage((p) => Math.min(Math.max(1, Math.ceil((bullets?.length || 0) / PER_PAGE)) - 1, p + 1))}>
                           Next
                         </button>
                       </div>
@@ -789,7 +851,6 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                       <div />
                     )}
 
-                    {/* Single, compact CTA (no duplicates) */}
                     <button
                       onClick={openBooking}
                       className="h-10 px-4 rounded-full text-sm font-semibold text-white"
@@ -801,23 +862,11 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                 </div>
               </div>
             </div>
-            {/* Footer kept minimal (nothing duplicated here) */}
           </div>
         </div>
       )}
     </section>
   );
-};
-
-/* ---------------- Responsive hook (no external dep) ---------------- */
-const useIsMobile = () => {
-  const [m, setM] = useState<boolean>(() => typeof window !== "undefined" ? window.innerWidth < 768 : false);
-  useEffect(() => {
-    const onR = () => setM(window.innerWidth < 768);
-    window.addEventListener("resize", onR);
-    return () => window.removeEventListener("resize", onR);
-  }, []);
-  return m;
 };
 
 export default VehicleMediaShowcase;
