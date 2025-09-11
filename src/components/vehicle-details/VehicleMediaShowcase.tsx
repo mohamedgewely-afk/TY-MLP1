@@ -62,24 +62,28 @@ const MediaVisual: React.FC<{ visual: Visual; className?: string }> = ({ visual,
       controlsVisibleOnLoad: "true",
     }).toString();
     return (
-      <iframe
-        className={cx("h-full w-full", className)}
-        src={`https://fast.wistia.net/embed/iframe/${visual.id}?${qs}`}
-        title="Wistia video"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
+      <div className={cx("relative h-full w-full", className)} style={{ aspectRatio: '16/9' }}>
+        <iframe
+          className="absolute inset-0 h-full w-full"
+          src={`https://fast.wistia.net/embed/iframe/${visual.id}?${qs}`}
+          title="Wistia video"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
     );
   }
   if (visual.type === "youtube" && visual.id) {
     return (
-      <iframe
-        className={cx("h-full w-full", className)}
-        src={`https://www.youtube.com/embed/${visual.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
-        title="YouTube video"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
+      <div className={cx("relative h-full w-full", className)} style={{ aspectRatio: '16/9' }}>
+        <iframe
+          className="absolute inset-0 h-full w-full"
+          src={`https://www.youtube.com/embed/${visual.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
+          title="YouTube video"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
     );
   }
   return <ImageSafe src={visual.url} alt={visual.title} cover className={cx("h-full w-full", className)} />;
@@ -262,7 +266,7 @@ const InteriorModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   const slides = item.gallery;
   return (
     <div className="relative h-full bg-black">
-      <MediaVisual visual={{ url: slides[active].url, title: slides[active].title, type: 'image' }} className="h-full w-full object-cover" />
+      <ImageSafe src={slides[active].url} alt={slides[active].title} cover className="h-full w-full object-cover" />
       <div className="absolute inset-0 bg-black/50 p-6 md:p-12 flex flex-col justify-end">
         <h3 className="text-4xl font-black text-white mb-2">{item.title}</h3>
         <p className="text-white/80 max-w-2xl">{item.summary}</p>
@@ -285,7 +289,7 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
       <div className="relative bg-black flex justify-center items-center overflow-hidden">
-        <MediaVisual visual={{ url: item.gallery[0].url, title: item.gallery[0].title, type: 'image' }} />
+        <ImageSafe src={item.gallery[0].url} alt={item.gallery[0].title} cover className="h-full w-full" />
       </div>
       <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
         <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
@@ -311,7 +315,7 @@ function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 h-full">
         <div className="bg-black relative">
-          <MediaVisual visual={visual} />
+          <MediaVisual visual={visual} className="h-full w-full" />
         </div>
         <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
           <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
@@ -394,7 +398,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         <div className="mb-3 flex items-center gap-3">
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
         </div>
-        <div className="md:max-h-[420px] overflow-hidden rounded-xl">
+        <div className="rounded-xl overflow-hidden bg-black">
           <MediaVisual visual={{ url: '', title: 'Main Highlights', type: 'wistia', id: 'kvdhnonllm' }} />
         </div>
       </div>
@@ -474,10 +478,10 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Main Modal Content */}
-              <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,56svh)_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
+              <div className="flex-1 overflow-y-auto md:overflow-hidden grid grid-cols-1 md:grid-cols-2">
                 {/* Visuals */}
-                <div className="relative select-none bg-black md:rounded-l-2xl">
-                  <MediaVisual visual={open.visuals[open.index]} />
+                <div className="bg-black relative aspect-video md:aspect-auto">
+                  <MediaVisual visual={open.visuals[open.index]} className="h-full w-full" />
                   {total > 1 && (
                     <>
                       <button
@@ -511,7 +515,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                   Book a Test Drive
                 </button>
                 <button
-                  className="ml-3 hidden md:inline-flex rounded-full border px-6 py-3 text-sm hover:bg-zinc-50"
+                  className="ml-3 rounded-full border px-6 py-3 text-sm hover:bg-zinc-50"
                   onClick={() => setOpen(null)}>
                   Close
                 </button>
