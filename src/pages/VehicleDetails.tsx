@@ -276,9 +276,12 @@ const VehicleDetails = () => {
                     <VirtualShowroom vehicle={vehicle} />
                   </section>
                   
-                  <section id="media-showcase">
-                    <VehicleMediaShowcase vehicle={vehicle} />
-                  </section>
+                  section id="media-showcase">
+  <VehicleMediaShowcase
+    vehicle={vehicle}
+    onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+  />
+</section>
 
                   <StorytellingSection
                     galleryImages={galleryImages}
