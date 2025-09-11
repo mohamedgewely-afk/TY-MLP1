@@ -1,50 +1,68 @@
-// VehicleMediaShowcase.tsx
-// React-only, no external UI libs. Sticky autoplay Wistia + journey overlay.
-// Mobile: single-row horizontal snap rail to cut scroll.
-// Desktop: large hero card + bigger tiles.
-// Click → Journey overlay: per-step image/video + linked content.
+// src/components/vehicle-details/VehicleMediaShowcase.tsx
+// React-only, zero external deps. Sticky autoplay Wistia + “Journey” overlay.
+// Mobile overlay is a full-screen sheet with swipe navigation.
 
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 
-/* ─────────── tiny UI primitives ─────────── */
+/* ───────── tiny UI ───────── */
 const card: CSSProperties = { background: "#fff", border: "1px solid #e5e7eb", borderRadius: 16, boxShadow: "0 1px 2px rgba(15,23,42,.06)" };
-const btn: CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 10, padding: "8px 12px", fontSize: 14, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" };
+const btn: CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 10, padding: "10px 14px", fontSize: 14, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" };
 const chip: CSSProperties = { display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "6px 12px", fontSize: 12, border: "1px solid #d1d5db", background: "#fff" };
 const badge: CSSProperties = { display: "inline-flex", alignItems: "center", borderRadius: 10, padding: "3px 8px", fontSize: 11, border: "1px solid #d1d5db", color: "#111827" };
 const Edge: React.FC<{ w?: number; c?: string }> = ({ w = 120, c = "#EB0A1E" }) => <div style={{ position: "absolute", left: 0, top: 0, height: 6, width: w, background: c }} />;
 
-/* ─────────── types ─────────── */
+/* ───────── helpers ───────── */
+const useIsDesktop = () => {
+  const [desk, setDesk] = useState<boolean>(() => (typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false));
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const on = () => setDesk(mq.matches);
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return desk;
+};
+
+const useBodyScrollLock = (locked: boolean) => {
+  useEffect(() => {
+    if (!locked) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [locked]);
+};
+
+/* ───────── types ───────── */
 type VehicleLike = { name?: string } | any;
 type MediaType = "image" | "video";
 
 type JourneyStep = {
-  url?: string;                   // image url
+  url?: string;
   title?: string;
   body?: string;
   bullets?: string[];
-  video?: {                       // optional video step
-    kind: "wistia" | "youtube";
-    id: string;                   // e.g. wistia "kvdhnonllm" or youtube "NCSxxuPE6wM"
-    aspect?: number;              // default 16/9
-  };
+  video?: { kind: "wistia" | "youtube"; id: string; aspect?: number };
 };
 
 type MediaItem = {
   id: string;
   type: MediaType;
-  url: string;                    // cover image (or representative)
+  url: string;         // cover image
   title: string;
   description?: string;
   category?: string;
-  journey?: JourneyStep[];        // steps for the journey overlay
+  journey?: JourneyStep[];
 };
 
 interface Props {
   vehicle?: VehicleLike;
-  wistiaMediaId?: string;         // sticky dock video (autoplay, muted)
+  wistiaMediaId?: string; // sticky dock
 }
 
-/* ─────────── SafeImage ─────────── */
+/* ───────── media widgets ───────── */
 const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain"; aspect?: number; minH?: number; style?: CSSProperties }> = ({
   src, alt, fit = "cover", aspect = 16 / 10, minH = 180, style
 }) => {
@@ -52,14 +70,8 @@ const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain
   return (
     <div style={{ position: "relative", width: "100%", aspectRatio: String(aspect), minHeight: minH, overflow: "hidden", ...style }}>
       {!err ? (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onError={() => setErr(true)}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: fit, background: fit === "contain" ? "#000" : undefined }}
-        />
+        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setErr(true)}
+             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: fit, background: fit === "contain" ? "#000" : undefined }} />
       ) : (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "#f3f4f6", color: "#6b7280", fontSize: 12 }}>
           Image unavailable
@@ -69,21 +81,13 @@ const SafeImage: React.FC<{ src?: string; alt?: string; fit?: "cover" | "contain
   );
 };
 
-/* ─────────── Videos (Wistia + YouTube) ─────────── */
 const WistiaVideo: React.FC<{ id: string; autoPlay?: boolean; muted?: boolean; controls?: boolean; aspect?: number; style?: CSSProperties }> = ({
   id, autoPlay = true, muted = true, controls = true, aspect = 16 / 9, style
 }) => {
   const [m, setM] = useState(muted);
   const qs = new URLSearchParams({
-    seo: "false",
-    autoplay: autoPlay ? "1" : "0",
-    muted: m ? "1" : "0",
-    playsinline: "1",
-    dnt: "1",
-    controlsVisibleOnLoad: controls ? "true" : "false",
-    playbar: controls ? "true" : "false",
-    volumeControl: controls ? "true" : "false",
-    fullscreenButton: controls ? "true" : "false",
+    seo: "false", autoplay: autoPlay ? "1" : "0", muted: m ? "1" : "0", playsinline: "1", dnt: "1",
+    controlsVisibleOnLoad: controls ? "true" : "false", playbar: controls ? "true" : "false", volumeControl: controls ? "true" : "false", fullscreenButton: controls ? "true" : "false",
   });
   const src = `https://fast.wistia.net/embed/iframe/${id}?${qs.toString()}`;
   return (
@@ -102,14 +106,7 @@ const WistiaVideo: React.FC<{ id: string; autoPlay?: boolean; muted?: boolean; c
 const YouTubeVideo: React.FC<{ id: string; autoPlay?: boolean; muted?: boolean; aspect?: number; style?: CSSProperties }> = ({
   id, autoPlay = true, muted = true, aspect = 16 / 9, style
 }) => {
-  // YouTube autoplay on mobile requires muted
-  const params = new URLSearchParams({
-    autoplay: autoPlay ? "1" : "0",
-    mute: muted ? "1" : "0",
-    rel: "0",
-    modestbranding: "1",
-    playsinline: "1",
-  });
+  const params = new URLSearchParams({ autoplay: autoPlay ? "1" : "0", mute: muted ? "1" : "0", rel: "0", modestbranding: "1", playsinline: "1" });
   const src = `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
   return (
     <div style={{ position: "relative", width: "100%", aspectRatio: String(aspect), overflow: "hidden", borderRadius: 16, ...style }}>
@@ -119,7 +116,7 @@ const YouTubeVideo: React.FC<{ id: string; autoPlay?: boolean; muted?: boolean; 
   );
 };
 
-/* ─────────── Demo data (DAM + journeys) ─────────── */
+/* ───────── demo data (DAM + journeys) ───────── */
 const DEMO: MediaItem[] = [
   {
     id: "performance",
@@ -227,27 +224,14 @@ const DEMO: MediaItem[] = [
   },
 ];
 
-/* ─────────── Cards ─────────── */
-const CardTile: React.FC<{
-  item: MediaItem;
-  index: number;
-  onClick: (m: MediaItem) => void;
-  big?: boolean;
-}> = ({ item, index, onClick, big }) => {
+/* ───────── tiles ───────── */
+const CardTile: React.FC<{ item: MediaItem; index: number; onClick: (m: MediaItem) => void; big?: boolean }> = ({ item, index, onClick, big }) => {
   const aspect = big ? 21 / 9 : index % 3 === 1 ? 4 / 3 : 16 / 10;
   return (
-    <div
-      onClick={() => onClick(item)}
-      style={{
-        ...card,
-        overflow: "hidden",
-        cursor: "pointer",
-        transition: "transform .2s ease",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-      data-sdk-card
-    >
+    <div onClick={() => onClick(item)}
+         style={{ ...card, overflow: "hidden", cursor: "pointer", transition: "transform .2s ease" }}
+         onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
+         onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}>
       <div style={{ position: "relative" }}>
         <Edge />
         <SafeImage src={item.url} alt={item.title} fit="cover" aspect={aspect} minH={big ? 260 : 200} />
@@ -261,15 +245,38 @@ const CardTile: React.FC<{
   );
 };
 
-/* ─────────── Journey Overlay ─────────── */
-const JourneyOverlay: React.FC<{
-  open: boolean;
-  item?: MediaItem;
-  onClose: () => void;
-}> = ({ open, item, onClose }) => {
+/* ───────── Journey Overlay (mobile-first) ───────── */
+const JourneyOverlay: React.FC<{ open: boolean; item?: MediaItem; onClose: () => void }> = ({ open, item, onClose }) => {
+  const isDesktop = useIsDesktop();
+  useBodyScrollLock(open);
+
   const [idx, setIdx] = useState(0);
   const railRef = useRef<HTMLDivElement | null>(null);
+
+  // swipe handling (touch + pointer)
+  const startX = useRef<number | null>(null);
+  const deltaX = useRef(0);
+  const THRESHOLD = 48;
+
+  const onStart = (x: number) => { startX.current = x; deltaX.current = 0; };
+  const onMove = (x: number) => { if (startX.current !== null) deltaX.current = x - startX.current; };
+  const onEnd = (len: number) => {
+    if (Math.abs(deltaX.current) > THRESHOLD && len > 1) {
+      setIdx((p) => {
+        const n = deltaX.current < 0 ? (p + 1) % len : (p - 1 + len) % len;
+        setTimeout(() => {
+          const el = railRef.current?.querySelector<HTMLButtonElement>(`[data-thumb='${n}']`);
+          el?.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
+        }, 0);
+        return n;
+      });
+    }
+    startX.current = null;
+    deltaX.current = 0;
+  };
+
   useEffect(() => { setIdx(0); }, [item]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!open) return;
@@ -282,46 +289,56 @@ const JourneyOverlay: React.FC<{
   }, [open, idx]);
 
   if (!open || !item) return null;
-  const steps = item.journey && item.journey.length ? item.journey : [{ url: item.url, title: item.title, body: item.description }];
+
+  const steps = item.journey?.length ? item.journey : [{ url: item.url, title: item.title, body: item.description }];
   const step = steps[Math.max(0, Math.min(idx, steps.length - 1))];
   const isVideo = !!step.video;
 
-  function next() { setIdx((p) => (p + 1) % steps.length); scrollThumb(p => p + 1); }
-  function prev() { setIdx((p) => (p - 1 + steps.length) % steps.length); scrollThumb(p => p - 1); }
-  function scrollThumb(f: (x: number) => number) {
-    const n = f(idx);
-    const el = railRef.current?.querySelector<HTMLButtonElement>(`[data-thumb='${((n%steps.length)+steps.length)%steps.length}']`);
-    el?.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
-  }
+  const overlayBackdrop: CSSProperties = { position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,.75)" };
+  const sheet: CSSProperties = isDesktop
+    ? { ...card, position: "fixed", inset: "24px", borderRadius: 20, display: "grid", gridTemplateColumns: "1fr 420px", gap: 16, maxWidth: 1400, margin: "0 auto", background: "#fff" }
+    : { position: "fixed", left: 0, right: 0, top: 0, bottom: 0, background: "#fff", display: "grid", gridTemplateRows: "auto 1fr auto", zIndex: 61 }; // full-screen mobile
+
+  const header: CSSProperties = isDesktop
+    ? { gridColumn: "1 / -1", display: "flex", alignItems: "center", justifyContent: "space-between", padding: 12, borderBottom: "1px solid #e5e7eb" }
+    : { position: "sticky", top: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #e5e7eb", background: "#fff" };
+
+  const visualWrap: CSSProperties = isDesktop ? { padding: 12 } : { padding: 12, overflow: "hidden", touchAction: "pan-y" };
+  const contentWrap: CSSProperties = isDesktop
+    ? { padding: 12, borderLeft: "1px solid #e5e7eb", display: "flex", flexDirection: "column", overflow: "auto" }
+    : { padding: "12px 16px", borderTop: "1px solid #e5e7eb", overflowY: "auto" };
+
+  function next() { setIdx((p) => (p + 1) % steps.length); }
+  function prev() { setIdx((p) => (p - 1 + steps.length) % steps.length); }
 
   return (
-    <div role="dialog" aria-modal="true" style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,.75)" }} onClick={onClose}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          ...card,
-          position: "fixed",
-          inset: "24px",
-          borderRadius: 20,
-          display: "grid",
-          gridTemplateColumns: "1fr 420px",
-          gap: 16,
-          maxWidth: 1400,
-          margin: "0 auto",
-          background: "#fff",
-        }}
-      >
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={overlayBackdrop}
+      // Desktop: click backdrop closes; Mobile: disable to avoid accidental closes while swiping
+      onClick={isDesktop ? onClose : undefined}
+    >
+      <div onClick={(e) => e.stopPropagation()} style={sheet}>
         {/* Header */}
-        <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", justifyContent: "space-between", padding: 12, borderBottom: "1px solid #e5e7eb" }}>
-          <div style={{ fontWeight: 800 }}>{item.title}</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <span style={{ ...chip }}>{idx + 1} / {steps.length}</span>
-            <button onClick={onClose} style={btn}>Close</button>
+        <div style={header}>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>{item.title}</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {steps.length > 1 && <span style={{ ...chip }}>{idx + 1} / {steps.length}</span>}
+            <button onClick={onClose} style={btn} aria-label="Close">Close</button>
           </div>
         </div>
 
-        {/* Visual */}
-        <div style={{ padding: 12 }}>
+        {/* Visual (swipe area on mobile) */}
+        <div
+          style={visualWrap}
+          onTouchStart={(e) => onStart(e.touches[0].clientX)}
+          onTouchMove={(e) => onMove(e.touches[0].clientX)}
+          onTouchEnd={() => onEnd(steps.length)}
+          onPointerDown={(e) => onStart(e.clientX)}
+          onPointerMove={(e) => onMove(e.clientX)}
+          onPointerUp={() => onEnd(steps.length)}
+        >
           {isVideo ? (
             step.video!.kind === "wistia" ? (
               <WistiaVideo id={step.video!.id} autoPlay muted aspect={step.video!.aspect ?? 16 / 9} />
@@ -329,7 +346,7 @@ const JourneyOverlay: React.FC<{
               <YouTubeVideo id={step.video!.id} autoPlay muted aspect={step.video!.aspect ?? 16 / 9} />
             )
           ) : (
-            <SafeImage src={step.url} alt={step.title} fit="contain" aspect={16 / 9} minH={360} />
+            <SafeImage src={step.url} alt={step.title} fit="contain" aspect={16 / 9} minH={isDesktop ? 360 : 220} />
           )}
 
           {/* Thumbnails */}
@@ -342,7 +359,8 @@ const JourneyOverlay: React.FC<{
                   onClick={() => setIdx(i)}
                   style={{
                     width: 72, height: 48, borderRadius: 8, overflow: "hidden",
-                    border: i === idx ? "2px solid #EB0A1E" : "1px solid #e5e7eb", background: "#fff", flex: "0 0 auto"
+                    border: i === idx ? "2px solid #EB0A1E" : "1px solid #e5e7eb",
+                    background: "#fff", flex: "0 0 auto"
                   }}
                   aria-label={`Step ${i + 1}`}
                 >
@@ -358,7 +376,7 @@ const JourneyOverlay: React.FC<{
         </div>
 
         {/* Content */}
-        <div style={{ padding: 12, borderLeft: "1px solid #e5e7eb", display: "flex", flexDirection: "column" }}>
+        <div style={contentWrap}>
           <div style={{ fontSize: 18, fontWeight: 800 }}>{step.title || item.title}</div>
           {step.body && <p style={{ marginTop: 8, fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{step.body}</p>}
           {step.bullets && step.bullets.length > 0 && (
@@ -367,10 +385,8 @@ const JourneyOverlay: React.FC<{
             </ul>
           )}
 
-          {/* Progress + controls */}
           {steps.length > 1 && (
             <>
-              <div style={{ marginTop: "auto" }} />
               <div style={{ marginTop: 12, height: 6, background: "#f3f4f6", borderRadius: 999 }}>
                 <div style={{ height: "100%", width: `${((idx + 1) / steps.length) * 100}%`, background: "#EB0A1E", borderRadius: 999, transition: "width .2s ease" }} />
               </div>
@@ -382,41 +398,17 @@ const JourneyOverlay: React.FC<{
           )}
         </div>
       </div>
-
-      {/* Mobile full-screen layout fallback */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 59,
-          display: "none",
-        }}
-      />
     </div>
   );
 };
 
-/* ─────────── responsive helpers ─────────── */
-const useIsDesktop = () => {
-  const [desk, setDesk] = useState<boolean>(() => (typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false));
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const on = () => setDesk(mq.matches);
-    mq.addEventListener?.("change", on);
-    return () => mq.removeEventListener?.("change", on);
-  }, []);
-  return desk;
-};
-
-/* ─────────── main component ─────────── */
+/* ───────── main component ───────── */
 const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhnonllm" }) => {
   const brand = vehicle?.name ?? "Toyota";
   const isDesktop = useIsDesktop();
   const items = useMemo<MediaItem[]>(() => DEMO, []);
   const [journeyOf, setJourneyOf] = useState<MediaItem | undefined>(undefined);
 
-  /* layout */
   const headerWrap: CSSProperties = { padding: "32px 16px 0" };
   const headerInner: CSSProperties = { display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, maxWidth: 1280, margin: "0 auto" };
   const title: CSSProperties = { fontSize: isDesktop ? 44 : 28, fontWeight: 900, letterSpacing: -0.5, marginTop: 12 };
@@ -438,7 +430,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhn
 
       {/* Video + Rail */}
       <div style={frame}>
-        {/* Sticky dock on desktop, top hero on mobile */}
+        {/* Sticky dock on desktop, hero on mobile */}
         <div style={{ ...(isDesktop ? { position: "sticky", top: 24 } : {}), ...card, overflow: "hidden" }}>
           <WistiaVideo id={wistiaMediaId} autoPlay muted aspect={16 / 9} />
         </div>
@@ -454,18 +446,11 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle, wistiaMediaId = "kvdhn
           </div>
         )}
 
-        {/* Desktop: large mosaic (bigger cards, hero span) */}
+        {/* Desktop: large mosaic (hero span) */}
         {isDesktop && (
-          <div
-            style={{
-              display: "grid",
-              gap: 20,
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              alignItems: "start",
-            }}
-          >
+          <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(3, minmax(0, 1fr))", alignItems: "start" }}>
             {items.map((m, i) => {
-              const big = i === 0; // hero card
+              const big = i === 0;
               return (
                 <div key={m.id} style={{ gridColumn: big ? "span 2" : undefined }} onClick={() => setJourneyOf(m)}>
                   <CardTile item={m} index={i} onClick={() => setJourneyOf(m)} big={big} />
