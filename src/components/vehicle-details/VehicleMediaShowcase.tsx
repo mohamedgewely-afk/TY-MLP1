@@ -30,6 +30,11 @@ const ImageSafe: React.FC<
   React.ImgHTMLAttributes<HTMLImageElement> & { cover?: boolean }
 > = ({ src, alt, className, cover, ...rest }) => {
   const [err, setErr] = useState(!src);
+  // Reset error state when src changes
+  useEffect(() => {
+    setErr(!src);
+  }, [src]);
+
   if (!src || err) {
     return (
       <div className={cx("grid place-items-center bg-zinc-100 text-[11px] text-zinc-400", className)}>
@@ -167,6 +172,9 @@ const DEMO: MediaItem[] = [
 /* ================= Custom Modals (unique & interactive) ================= */
 
 const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
+  const firstGalleryItem = item.gallery[0];
+  const secondGalleryItem = item.gallery[1];
+
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 md:p-12">
       <h3 className="text-4xl font-black text-zinc-900">{item.title}</h3>
@@ -192,7 +200,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Specifications</h4>
             <ul className="grid grid-cols-2 gap-2 text-sm">
-              {item.gallery[0]?.details?.specs?.map((spec, i) => (
+              {firstGalleryItem?.details?.specs?.map((spec, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{spec}</span>
@@ -205,7 +213,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Features</h4>
             <ul className="space-y-2 text-sm">
-              {item.gallery[0]?.details?.features?.map((feat, i) => (
+              {firstGalleryItem?.details?.features?.map((feat, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{feat}</span>
@@ -216,7 +224,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Key Technologies</h4>
             <ul className="space-y-2 text-sm">
-              {item.gallery[1]?.details?.specs?.map((tech, i) => (
+              {secondGalleryItem?.details?.specs?.map((tech, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{tech}</span>
@@ -237,7 +245,8 @@ const SafetyModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
       <div className="relative bg-zinc-900 flex justify-center items-center overflow-hidden p-6 md:p-12">
-        <ImageSafe src="https://i.imgur.com/example-blueprint.png" alt="Safety diagram" className="h-full w-full object-contain opacity-70" />
+        {/* Placeholder image for safety diagram - consider replacing with actual blueprint/diagram */}
+        <ImageSafe src="https://via.placeholder.com/600x400/000000/FFFFFF?text=Safety+Diagram" alt="Safety diagram" className="h-full w-full object-contain opacity-70" />
         <div className={cx("absolute h-10 w-10 bg-red-500 rounded-full opacity-60 animate-pulse", active === 'pcs' ? 'top-[40%] left-[20%]' : active === 'lta' ? 'top-[50%] right-[30%]' : 'bottom-[25%] left-[50%]')} />
       </div>
       <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
@@ -289,7 +298,7 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
       <div className="relative bg-black flex justify-center items-center overflow-hidden">
-        <ImageSafe src={item.gallery[0].url} alt={item.gallery[0].title} cover className="h-full w-full" />
+        <ImageSafe src={item.gallery[0]?.url} alt={item.gallery[0]?.title || item.title} cover className="h-full w-full" />
       </div>
       <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
         <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
@@ -297,7 +306,12 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
         <div className="flex-1 space-y-4">
           <h4 className="font-bold text-lg">Key Highlights</h4>
           <ul className="space-y-2">
-            {['Engineered for durability.', 'Tuned for ride comfort.', 'Built with precision.'].map((point, i) => (
+            {item.gallery[0]?.details?.features?.map((feat, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                <span className="text-zinc-700">{feat}</span>
+              </li>
+            )) || ['Engineered for durability.', 'Tuned for ride comfort.', 'Built with precision.'].map((point, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                 <span className="text-zinc-700">{point}</span>
@@ -310,7 +324,9 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   );
 };
 
+
 function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
+  // If the current visual is a video, display the video-specific layout
   if (visual.type !== 'image') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 h-full">
@@ -328,6 +344,8 @@ function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
     );
   }
 
+  // If the current visual is an image, display the item-specific modal
+  // We use item.id to select the specific modal component
   const panelMap = {
     'v6': <PerformanceModal item={item} />,
     'safety': <SafetyModal item={item} />,
@@ -339,8 +357,9 @@ function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
   return panelMap[item.id] || <DefaultModal item={item} />;
 }
 
+
 /* ================= Main Component ================= */
-interface Props { vehicle: VehicleModel; }
+interface Props { vehicle?: VehicleModel; } // Made vehicle optional as it's not used in the current demo
 
 const VehicleMediaShowcase: React.FC<Props> = () => {
   const items = useMemo(() => DEMO, []);
@@ -350,9 +369,13 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   useBodyScrollLock(!!open);
 
   const openModal = useCallback((item: MediaItem) => {
-    const visuals: Visual[] = item.video ? [{ url: '', title: item.title, type: item.video.provider, id: item.video.id }] : [];
+    // Construct visuals for the modal: prioritize video, then gallery images
+    const visuals: Visual[] = [];
+    if (item.video) {
+      visuals.push({ url: '', title: item.title, type: item.video.provider, id: item.video.id });
+    }
     visuals.push(...item.gallery.map(g => ({ url: g.url, title: g.title, type: 'image' as const })));
-    setOpen({ item, visuals, index: 0 });
+    setOpen({ item, visuals, index: 0 }); // Always start with the first visual
   }, []);
 
   const next = useCallback(() => setOpen(p => p ? { ...p, index: (p.index + 1) % total } : p), [total]);
@@ -381,9 +404,12 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     const el = mobWrapRef.current;
     if (!el) return;
     const onScroll = () => {
+      // Calculate scroll position to determine current item in carousel
       const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
-      const gap = 16;
-      setMobIndex(Math.round(el.scrollLeft / (w + gap)));
+      const gap = 16; // Gap between items
+      if (w > 0) { // Avoid division by zero
+        setMobIndex(Math.round(el.scrollLeft / (w + gap)));
+      }
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
@@ -399,6 +425,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
         </div>
         <div className="rounded-xl overflow-hidden bg-black">
+          {/* Main hero video - uses hardcoded Wistia ID for now */}
           <MediaVisual visual={{ url: '', title: 'Main Highlights', type: 'wistia', id: 'kvdhnonllm' }} />
         </div>
       </div>
@@ -506,16 +533,16 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               </div>
 
               {/* Fixed Bottom Bar */}
-              <div className="sticky bottom-0 z-20 flex items-center justify-between border-t p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+              <div className="sticky bottom-0 z-20 flex flex-col md:flex-row items-center justify-between border-t p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
                 <button
                   onClick={openBooking}
-                  className={cx("rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90", "w-full md:w-auto")}
+                  className={cx("rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90", "w-full md:w-auto mb-2 md:mb-0")}
                   style={{ background: TOK.red }}
                 >
                   Book a Test Drive
                 </button>
                 <button
-                  className="ml-3 rounded-full border px-6 py-3 text-sm hover:bg-zinc-50"
+                  className="rounded-full border px-6 py-3 text-sm hover:bg-zinc-50 w-full md:w-auto md:ml-3"
                   onClick={() => setOpen(null)}>
                   Close
                 </button>
