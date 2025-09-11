@@ -49,32 +49,40 @@ const ImageSafe: React.FC<
   );
 };
 
-const WistiaEmbed: React.FC<{
-  id: string;
-  aspect?: number;
-  autoPlay?: boolean;
-  muted?: boolean;
-  className?: string;
-}> = ({ id, aspect = 16 / 9, autoPlay, muted, className }) => {
-  const qs = new URLSearchParams({
-    seo: "false",
-    videoFoam: "true",
-    autoplay: autoPlay ? "true" : "false",
-    muted: muted ? "true" : "false",
-    controlsVisibleOnLoad: "true",
-  }).toString();
+/* ================= Media Visual Component (unified) ================= */
+type Visual = { url: string; title: string; type: "image" | "wistia" | "youtube"; id?: string };
 
-  return (
-    <div className={cx("relative w-full overflow-hidden", className)} style={{ aspectRatio: String(aspect) }}>
+const MediaVisual: React.FC<{ visual: Visual; className?: string }> = ({ visual, className }) => {
+  if (visual.type === "wistia" && visual.id) {
+    const qs = new URLSearchParams({
+      seo: "false",
+      videoFoam: "true",
+      autoplay: "true",
+      muted: "true",
+      controlsVisibleOnLoad: "true",
+    }).toString();
+    return (
       <iframe
-        className="absolute inset-0 h-full w-full"
-        src={`https://fast.wistia.net/embed/iframe/${id}?${qs}`}
+        className={cx("h-full w-full", className)}
+        src={`https://fast.wistia.net/embed/iframe/${visual.id}?${qs}`}
         title="Wistia video"
         allow="autoplay; encrypted-media; picture-in-picture"
         allowFullScreen
       />
-    </div>
-  );
+    );
+  }
+  if (visual.type === "youtube" && visual.id) {
+    return (
+      <iframe
+        className={cx("h-full w-full", className)}
+        src={`https://www.youtube.com/embed/${visual.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
+        title="YouTube video"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  return <ImageSafe src={visual.url} alt={visual.title} cover className={cx("h-full w-full", className)} />;
 };
 
 /* ================= Types & Mocks ================= */
@@ -83,10 +91,10 @@ type MediaItem = {
   category: string;
   title: string;
   summary: string;
-  kind: "image" | "video";
   thumbnail: string;
-  gallery: { url: string; title: string; details?: Record<string, string[]> }[];
-  video?: { provider: "wistia"; id: string; autoplay?: boolean };
+  gallery: { url: string; title: string; description?: string; details?: Record<string, string[]> }[];
+  video?: { provider: "wistia" | "youtube"; id: string };
+  badges?: string[];
 };
 
 const DEMO: MediaItem[] = [
@@ -94,107 +102,123 @@ const DEMO: MediaItem[] = [
     id: "v6",
     category: "Performance",
     title: "V6 Twin-Turbo",
-    summary: "Dynamic power and torque on demand.",
-    kind: "image",
+    summary: "400+ hp, broad torque band, efficient cruising.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true", title: "Engine" }],
+    gallery: [
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true", title: "Cooling Strategy", details: { specs: ["3.5L V6 TT", "400+ hp", "0–60 in 4.2s"], features: ["Direct injection", "VVT"] } },
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true", title: "Turbo Detail", details: { specs: ["VGT turbines"], features: ["Low-lag design"] } },
+    ],
+    badges: ["3.5L V6 TT", "400+ hp"],
   },
   {
     id: "safety",
     category: "Safety",
     title: "Toyota Safety Sense",
-    summary: "A suite of active safety systems.",
-    kind: "video",
+    summary: "Camera+radar fusion, assistance when you need it.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-    video: { provider: "wistia", id: "kvdhnonllm", autoplay: true },
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "PCS" }],
+    video: { provider: "wistia", id: "kvdhnonllm" },
+    gallery: [
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Sensors", details: { specs: ["PCS", "LTA", "ACC", "BSM"] } },
+    ],
+    badges: ["PCS", "LTA", "ACC"],
   },
   {
     id: "interior",
     category: "Interior",
     title: "Driver-Focused Cabin",
-    summary: "Comfort and intuitive technology.",
-    kind: "image",
+    summary: "Premium materials, intuitive controls, low distraction.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true", title: "Console" }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true", title: "Center Console", details: { specs: ['12.3" display'], features: ["Voice control", "Wireless charging"] } }],
+    badges: ['12.3" display', "Comfort"],
   },
   {
     id: "handling",
     category: "Performance",
     title: "Chassis Dynamics",
-    summary: "Responsive handling and ride comfort.",
-    kind: "image",
+    summary: "Adaptive damping and precise control.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Dampers" }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Adaptive Dampers", details: { specs: ["Active dampers"], features: ["AWD grip"] } }],
+    badges: ["AWD", "Sport mode"],
   },
   {
     id: "quality",
     category: "Quality",
     title: "Build Quality",
     summary: "High-strength materials and precise assembly.",
-    kind: "image",
-    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-87e5-c9a9c22fe929?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true", title: "Materials" }],
+    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true", title: "Materials", details: { specs: ["HS steel"], features: ["Robotic assembly"] } }],
+    badges: ["Durability", "Refinement"],
   },
   {
     id: "connect",
     category: "Technology",
     title: "Connected Services",
-    summary: "Stay connected with your vehicle.",
-    kind: "image",
+    summary: "CarPlay/Android Auto, OTA updates.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true", title: "Infotainment" }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true", title: "Infotainment", details: { specs: ["Apple CarPlay", "Android Auto"], features: ["OTA updates"] } }],
+    badges: ["CarPlay", "OTA"],
   },
 ];
 
-/* ================= Custom Modals (Unique & Interactive) ================= */
+/* ================= Custom Modals (unique & interactive) ================= */
 
-// Performance Modal: Dynamic, multi-panel design
-const PerformanceModal = () => {
-  const [active, setActive] = useState('hp');
-  const metrics = useMemo(() => ([
-    { id: 'hp', title: 'Horsepower', value: '400', unit: 'hp' },
-    { id: 'torque', title: 'Torque', value: '350', unit: 'lb-ft' },
-  ]), []);
-
-  const activeMetric = metrics.find(m => m.id === active)!;
-  const barHeight = { hp: 'h-[75%]', torque: 'h-[65%]' };
-  const graphText = "This chart visualizes the engine's power output.";
-
+const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8">
-        <h3 className="text-4xl font-black">Power & Efficiency</h3>
-        <p className="max-w-2xl text-zinc-500">The V6 Twin-Turbo is engineered for both exhilarating performance and practical efficiency, with a broad torque curve for instant acceleration.</p>
-
-        <div className="flex gap-4">
-          {metrics.map(m => (
-            <button
-              key={m.id}
-              onClick={() => setActive(m.id)}
-              className={cx("flex-1 p-4 text-left rounded-xl border transition-colors", active === m.id ? "bg-black text-white" : "bg-white border-zinc-200 hover:bg-zinc-50")}
-            >
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black" style={{ color: active === m.id ? 'white' : TOK.red }}>{m.value}</span>
-                <span className="text-lg font-semibold">{m.unit}</span>
-              </div>
-              <p className="mt-1 text-sm font-semibold">{m.title}</p>
-            </button>
-          ))}
+    <div className="flex flex-col h-full overflow-y-auto p-6 md:p-12">
+      <h3 className="text-4xl font-black text-zinc-900">{item.title}</h3>
+      <p className="max-w-xl text-zinc-500 mt-2">{item.summary}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div className="space-y-4">
+          <div className={cx(TOK.card, "p-6 rounded-xl")}>
+            <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Performance Snapshot</h4>
+            <div className="space-y-4">
+              {['Acceleration', 'Response', 'Efficiency'].map((label, i) => (
+                <div key={label} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold">{label}</span>
+                    <span className="text-zinc-500">{90 - (i * 10)}%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
+                    <div className="h-2 rounded-full transition-all duration-700 ease-out" style={{ width: `${90 - (i * 10)}%`, background: TOK.red }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className={cx(TOK.card, "p-6 rounded-xl")}>
+            <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Specifications</h4>
+            <ul className="grid grid-cols-2 gap-2 text-sm">
+              {item.gallery[0]?.details?.specs?.map((spec, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                  <span className="text-zinc-700 font-medium">{spec}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-
-        <div className="p-6 rounded-xl border border-zinc-200">
-          <h4 className="text-lg font-bold mb-4">Performance Visualization</h4>
-          <div className="relative flex items-end h-40 bg-zinc-50 rounded-lg p-2 gap-2">
-            <div className="flex-1 flex flex-col justify-end items-center">
-              <div className={cx("w-full bg-red-500 rounded-t-sm transition-[height] duration-500 ease-out", active === 'hp' ? 'h-[75%]' : 'h-[65%]')} />
-              <span className="text-xs mt-1 font-medium">Actual</span>
-            </div>
-            <div className="flex-1 flex flex-col justify-end items-center">
-              <div className="w-full h-[60%] bg-zinc-300 rounded-t-sm" />
-              <span className="text-xs mt-1 font-medium">Competitor</span>
-            </div>
-            <p className="absolute bottom-2 left-2 text-xs text-zinc-400">{graphText}</p>
+        <div className="flex flex-col gap-6">
+          <div className={cx(TOK.card, "p-6 rounded-xl")}>
+            <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Features</h4>
+            <ul className="space-y-2 text-sm">
+              {item.gallery[0]?.details?.features?.map((feat, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                  <span className="text-zinc-700 font-medium">{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className={cx(TOK.card, "p-6 rounded-xl")}>
+            <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Key Technologies</h4>
+            <ul className="space-y-2 text-sm">
+              {item.gallery[1]?.details?.specs?.map((tech, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                  <span className="text-zinc-700 font-medium">{tech}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -202,34 +226,29 @@ const PerformanceModal = () => {
   );
 };
 
-// Safety Modal: Interactive diagram with list
-const SafetyModal = () => {
-  const [activeFeature, setActiveFeature] = useState('pcs');
-  const features = useMemo(() => ([
-    { id: 'pcs', name: 'Pre-Collision System', desc: 'Warns of frontal collisions and applies brakes.' },
-    { id: 'lta', name: 'Lane Tracing Assist', desc: 'Helps keep the vehicle centered in its lane.' },
-    { id: 'bsm', name: 'Blind Spot Monitor', desc: 'Alerts you to vehicles in your blind spots.' },
-  ]), []);
-  const diagramUrl = "https://i.imgur.com/example-car.png";
+const SafetyModal: React.FC<{ item: MediaItem }> = ({ item }) => {
+  const [active, setActive] = useState('pcs');
+  const features = item.gallery[0]?.details?.specs || [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
-      <div className="relative bg-black flex justify-center items-center overflow-hidden">
-        <ImageSafe src={diagramUrl} alt="Safety diagram" className="h-full w-full object-contain" />
-        <div className={cx("absolute h-10 w-10 bg-red-500 rounded-full opacity-60 animate-pulse", activeFeature === 'pcs' ? 'top-1/2 left-1/4' : activeFeature === 'lta' ? 'top-1/4 right-1/4' : 'bottom-1/4 right-1/4')} />
+      <div className="relative bg-zinc-900 flex justify-center items-center overflow-hidden p-6 md:p-12">
+        <ImageSafe src="https://i.imgur.com/example-blueprint.png" alt="Safety diagram" className="h-full w-full object-contain opacity-70" />
+        <div className={cx("absolute h-10 w-10 bg-red-500 rounded-full opacity-60 animate-pulse", active === 'pcs' ? 'top-[40%] left-[20%]' : active === 'lta' ? 'top-[50%] right-[30%]' : 'bottom-[25%] left-[50%]')} />
       </div>
       <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
-        <h3 className="text-4xl font-black mb-6">Toyota Safety Sense</h3>
-        <p className="text-zinc-500 mb-8">Our suite of safety features is designed to give you peace of mind on the road.</p>
+        <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
+        <p className="text-zinc-500 mb-8">{item.summary}</p>
         <div className="flex-1 space-y-4">
-          {features.map(f => (
+          <h4 className="font-bold text-lg">Toyota Safety Sense Features</h4>
+          {features.map((f, i) => (
             <button
-              key={f.id}
-              onClick={() => setActiveFeature(f.id)}
-              className={cx("p-4 w-full text-left rounded-xl border border-zinc-200 transition-colors", activeFeature === f.id ? "bg-black text-white" : "hover:bg-zinc-50")}
+              key={f}
+              onClick={() => setActive(f.toLowerCase())}
+              className={cx("p-4 w-full text-left rounded-xl border border-zinc-200 transition-colors", active === f.toLowerCase() ? "bg-zinc-900 text-white" : "hover:bg-zinc-50")}
             >
-              <h4 className="font-semibold" style={{ color: activeFeature === f.id ? 'white' : TOK.red }}>{f.name}</h4>
-              <p className={cx("text-sm mt-1", activeFeature === f.id ? "text-zinc-300" : "text-zinc-600")}>{f.desc}</p>
+              <h4 className="font-semibold text-lg" style={{ color: active === f.toLowerCase() ? 'white' : TOK.red }}>{f}</h4>
+              <p className={cx("text-sm mt-1", active === f.toLowerCase() ? "text-zinc-300" : "text-zinc-600")}>Details for {f} assist here.</p>
             </button>
           ))}
         </div>
@@ -238,99 +257,82 @@ const SafetyModal = () => {
   );
 };
 
-// Interior Modal: Immersive full-screen overlay
-const InteriorModal = () => (
-  <div className="relative h-full bg-black">
-    <ImageSafe
-      src="https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true"
-      alt="Interior"
-      cover
-      className="h-full w-full object-cover"
-    />
-    <div className="absolute inset-0 bg-black/50 p-6 md:p-12 flex flex-col justify-end">
-      <h3 className="text-4xl font-black text-white mb-2">Driver-Focused Cabin</h3>
-      <p className="text-white/80 max-w-2xl">A spacious and intuitive cabin designed to put you in complete control. Every surface is crafted with a focus on quality and comfort.</p>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-        {[
-          { title: "Premium Leather", desc: "Crafted for a luxurious feel and durability." },
-          { title: "Intuitive HMI", desc: "Controls are where you need them, without distraction." },
-          { title: "Digital Cockpit", desc: "A customizable display for key information." },
-          { title: "Ambient Lighting", desc: "Set the mood with adjustable lighting." },
-        ].map((f, i) => (
-          <div key={i} className="p-4 rounded-xl border border-white/30 backdrop-blur-sm bg-white/10 text-white">
-            <h4 className="font-bold text-sm" style={{ color: TOK.red }}>{f.title}</h4>
-            <p className="text-xs text-white/80 mt-1">{f.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-// Tech Modal: Expandable Cards
-const TechnologyModal = () => {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const techFeatures = useMemo(() => ([
-    { id: 'carplay', title: 'Apple CarPlay', desc: 'Seamlessly integrate your iPhone for navigation, music, and more.' },
-    { id: 'ota', title: 'OTA Updates', desc: 'Receive software updates wirelessly, keeping your car current.' },
-    { id: 'connect', title: 'Connected Services', desc: 'Access remote start, vehicle health reports, and more from your phone.' },
-  ]), []);
-
+const InteriorModal: React.FC<{ item: MediaItem }> = ({ item }) => {
+  const [active, setActive] = useState(0);
+  const slides = item.gallery;
   return (
-    <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
-      <h3 className="text-4xl font-black mb-6">Innovative Technology</h3>
-      <p className="text-zinc-500 mb-8">Stay connected and in control with a suite of smart technology features.</p>
-      <div className="flex-1 space-y-4">
-        {techFeatures.map(f => (
-          <div key={f.id} className="p-4 rounded-xl border border-zinc-200">
-            <button onClick={() => setExpanded(expanded === f.id ? null : f.id)} className="flex justify-between items-center w-full text-left">
-              <h4 className="font-semibold text-lg" style={{ color: TOK.red }}>{f.title}</h4>
-              <span className="text-2xl">{expanded === f.id ? '−' : '+'}</span>
-            </button>
-            {expanded === f.id && (
-              <p className="text-sm text-zinc-600 mt-2 animate-fade-in-down">{f.desc}</p>
-            )}
+    <div className="relative h-full bg-black">
+      <MediaVisual visual={{ url: slides[active].url, title: slides[active].title, type: 'image' }} className="h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-black/50 p-6 md:p-12 flex flex-col justify-end">
+        <h3 className="text-4xl font-black text-white mb-2">{item.title}</h3>
+        <p className="text-white/80 max-w-2xl">{item.summary}</p>
+        <div className="flex-1 space-y-4 mt-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {slides.map((s, i) => (
+              <button key={s.url} onClick={() => setActive(i)} className={cx("rounded-xl p-4 text-left transition-all backdrop-blur-sm", i === active ? "bg-white/10 border border-white/20" : "bg-white/5 border border-transparent hover:bg-white/10")}>
+                <h4 className="font-bold text-sm text-white">{s.title}</h4>
+                <p className="text-xs text-white/70 mt-1">{s.description || 'Details unavailable.'}</p>
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
 };
 
-// Default Modals for the remaining tiles
-const DefaultModal = ({ title, summary, imageUrl }: { title: string; summary: string; imageUrl: string; }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 h-full">
-    <div className="relative bg-black flex justify-center items-center overflow-hidden">
-      <ImageSafe src={imageUrl} alt={title} className="h-full w-full object-contain" />
-    </div>
-    <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
-      <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{title}</h3>
-      <p className="text-zinc-500 mb-8">{summary}</p>
-      <div className="flex-1 space-y-4">
-        <h4 className="font-bold text-lg">Key Highlights</h4>
-        <ul className="space-y-2">
-          {["Built with high-strength materials.", "Ensures a confident and composed ride.", "Undergoes rigorous testing."].map((item, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
-              <span className="text-zinc-700">{item}</span>
-            </li>
-          ))}
-        </ul>
+const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+      <div className="relative bg-black flex justify-center items-center overflow-hidden">
+        <MediaVisual visual={{ url: item.gallery[0].url, title: item.gallery[0].title, type: 'image' }} />
+      </div>
+      <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
+        <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
+        <p className="text-zinc-500 mb-8">{item.summary}</p>
+        <div className="flex-1 space-y-4">
+          <h4 className="font-bold text-lg">Key Highlights</h4>
+          <ul className="space-y-2">
+            {['Engineered for durability.', 'Tuned for ride comfort.', 'Built with precision.'].map((point, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                <span className="text-zinc-700">{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-function ModalPanelContent({ item }: { item: MediaItem }) {
-  switch (item.id) {
-    case "v6": return <PerformanceModal />;
-    case "safety": return <SafetyModal />;
-    case "interior": return <InteriorModal />;
-    case "connect": return <TechnologyModal />;
-    case "handling": return <DefaultModal title={item.title} summary={item.summary} imageUrl={item.gallery[0].url} />;
-    case "quality": return <DefaultModal title={item.title} summary={item.summary} imageUrl={item.gallery[0].url} />;
-    default: return null;
+function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
+  if (visual.type !== 'image') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+        <div className="bg-black relative">
+          <MediaVisual visual={visual} />
+        </div>
+        <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
+          <h3 className="text-4xl font-black mb-6" style={{ color: TOK.red }}>{item.title}</h3>
+          <p className="text-zinc-500 mb-8">{item.summary}</p>
+          <div className="flex-1 space-y-4">
+            <p className="text-sm font-semibold">Video highlights: The video provides an overview of {item.title.toLowerCase()}.</p>
+          </div>
+        </div>
+      </div>
+    );
   }
+
+  const panelMap = {
+    'v6': <PerformanceModal item={item} />,
+    'safety': <SafetyModal item={item} />,
+    'interior': <InteriorModal item={item} />,
+    'handling': <DefaultModal item={item} />,
+    'quality': <DefaultModal item={item} />,
+    'connect': <DefaultModal item={item} />,
+  };
+  return panelMap[item.id] || <DefaultModal item={item} />;
 }
 
 /* ================= Main Component ================= */
@@ -338,22 +340,39 @@ interface Props { vehicle: VehicleModel; }
 
 const VehicleMediaShowcase: React.FC<Props> = () => {
   const items = useMemo(() => DEMO, []);
-  const topWistiaId = "kvdhnonllm";
-  const [open, setOpen] = useState<MediaItem | null>(null);
+  const [open, setOpen] = useState<{ item: MediaItem; visuals: Visual[]; index: number } | null>(null);
+  const total = open?.visuals.length || 0;
 
   useBodyScrollLock(!!open);
 
+  const openModal = useCallback((item: MediaItem) => {
+    const visuals: Visual[] = item.video ? [{ url: '', title: item.title, type: item.video.provider, id: item.video.id }] : [];
+    visuals.push(...item.gallery.map(g => ({ url: g.url, title: g.title, type: 'image' as const })));
+    setOpen({ item, visuals, index: 0 });
+  }, []);
+
+  const next = useCallback(() => setOpen(p => p ? { ...p, index: (p.index + 1) % total } : p), [total]);
+  const prev = useCallback(() => setOpen(p => p ? { ...p, index: (p.index - 1 + total) % total } : p), [total]);
+
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(null);
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+  }, [next, prev]);
+
+  useEffect(() => {
+    if (open) {
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }
+  }, [open, onKeyDown]);
+
   const openBooking = () => {
     console.log("Opening Test Drive Booking...");
-    try {
-      window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
-      (document.querySelector("[data-open-booking]") as HTMLButtonElement | null)?.click();
-    } catch { }
   };
 
   const mobWrapRef = useRef<HTMLDivElement>(null);
   const [mobIndex, setMobIndex] = useState(0);
-
   useEffect(() => {
     const el = mobWrapRef.current;
     if (!el) return;
@@ -375,8 +394,8 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         <div className="mb-3 flex items-center gap-3">
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
         </div>
-        <div className="md:max-h-[420px]">
-          <WistiaEmbed id={topWistiaId} aspect={16 / 9} muted autoPlay className="overflow-hidden rounded-xl" />
+        <div className="md:max-h-[420px] overflow-hidden rounded-xl">
+          <MediaVisual visual={{ url: '', title: 'Main Highlights', type: 'wistia', id: 'kvdhnonllm' }} />
         </div>
       </div>
 
@@ -392,7 +411,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
             {items.map((m) => (
               <button
                 key={m.id}
-                onClick={() => setOpen(m)}
+                onClick={() => openModal(m)}
                 className={cx(TOK.card, TOK.radius, TOK.ring, "snap-start min-w-[86%] overflow-hidden text-left")}
               >
                 <div className="relative">
@@ -422,7 +441,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
           {items.map((m) => (
             <button
               key={m.id}
-              onClick={() => setOpen(m)}
+              onClick={() => openModal(m)}
               className={cx(TOK.card, TOK.radius, TOK.ring, "overflow-hidden text-left transition-shadow hover:shadow-md")}
             >
               <div className="relative">
@@ -455,8 +474,31 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Main Modal Content */}
-              <div className="flex-1 overflow-y-auto">
-                <ModalPanelContent item={open} />
+              <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,56svh)_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
+                {/* Visuals */}
+                <div className="relative select-none bg-black md:rounded-l-2xl">
+                  <MediaVisual visual={open.visuals[open.index]} />
+                  {total > 1 && (
+                    <>
+                      <button
+                        aria-label="Previous" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow">‹</button>
+                      <button
+                        aria-label="Next" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow">›</button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                        {open.visuals.map((_, i) => (
+                          <span
+                            key={i}
+                            className={cx("h-1.5 w-1.5 rounded-full", i === open.index ? "" : "bg-white/50")}
+                            style={{ background: i === open.index ? TOK.red : undefined }} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                {/* Text Content */}
+                <div className="flex-1 overflow-y-auto">
+                  <ModalContent item={open.item} visual={open.visuals[open.index]} />
+                </div>
               </div>
 
               {/* Fixed Bottom Bar */}
@@ -468,8 +510,8 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                 >
                   Book a Test Drive
                 </button>
-                <button 
-                  className="ml-3 hidden md:inline-flex rounded-full border px-6 py-3 text-sm hover:bg-zinc-50" 
+                <button
+                  className="ml-3 hidden md:inline-flex rounded-full border px-6 py-3 text-sm hover:bg-zinc-50"
                   onClick={() => setOpen(null)}>
                   Close
                 </button>
