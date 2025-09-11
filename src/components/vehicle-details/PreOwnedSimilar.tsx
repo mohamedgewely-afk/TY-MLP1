@@ -7,7 +7,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipeable } from "@/hooks/use-swipeable";
 import { 
-  Calendar, Gauge, Fuel, MapPin, ArrowRight, Award,
+  Calendar, Gauge, MapPin, ArrowRight, Award,
   CheckCircle, Shield, ChevronLeft, ChevronRight, ShoppingCart
 } from "lucide-react";
 
@@ -15,21 +15,147 @@ interface PreOwnedSimilarProps {
   currentVehicle: VehicleModel;
 }
 
+const modelToken = (name: string) => {
+  const parts = (name || "").trim().split(/\s+/);
+  return parts[1] || parts[0] || "Model";
+};
+
 const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const isMobile = useIsMobile();
 
   // Extended mock pre-owned similar vehicles data (8 total)
-  const preOwnedVehicles = [/* ... same vehicles data as before ... */];
+  const preOwnedVehicles = [
+    {
+      id: 1,
+      name: `${modelToken(currentVehicle.name)} 2022`,
+      year: 2022,
+      mileage: "45,000 km",
+      price: Math.round(currentVehicle.price * 0.7),
+      originalPrice: Math.round(currentVehicle.price * 0.85),
+      location: "Dubai, UAE",
+      certification: "Toyota Certified",
+      warranty: "12 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+      features: ["Hybrid Engine", "Premium Interior", "Safety Sense 2.0"],
+      condition: "Excellent",
+      owners: 1
+    },
+    {
+      id: 2,
+      name: `${modelToken(currentVehicle.name)} 2021`,
+      year: 2021,
+      mileage: "62,000 km",
+      price: Math.round(currentVehicle.price * 0.6),
+      originalPrice: Math.round(currentVehicle.price * 0.75),
+      location: "Abu Dhabi, UAE",
+      certification: "Toyota Certified",
+      warranty: "12 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+      features: ["Excellent Condition", "Full Service History", "Single Owner"],
+      condition: "Very Good",
+      owners: 1
+    },
+    {
+      id: 3,
+      name: `${modelToken(currentVehicle.name)} 2020`,
+      year: 2020,
+      mileage: "78,000 km",
+      price: Math.round(currentVehicle.price * 0.5),
+      originalPrice: Math.round(currentVehicle.price * 0.65),
+      location: "Sharjah, UAE",
+      certification: "Toyota Certified",
+      warranty: "6 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
+      features: ["Great Value", "Well Maintained", "All Records Available"],
+      condition: "Good",
+      owners: 2
+    },
+    {
+      id: 4,
+      name: `${modelToken(currentVehicle.name)} 2019`,
+      year: 2019,
+      mileage: "95,000 km",
+      price: Math.round(currentVehicle.price * 0.4),
+      originalPrice: Math.round(currentVehicle.price * 0.55),
+      location: "Ajman, UAE",
+      certification: "Toyota Certified",
+      warranty: "6 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
+      features: ["Budget Friendly", "Recently Serviced", "Clean History"],
+      condition: "Good",
+      owners: 1
+    },
+    {
+      id: 5,
+      name: `${modelToken(currentVehicle.name)} 2023`,
+      year: 2023,
+      mileage: "28,000 km",
+      price: Math.round(currentVehicle.price * 0.85),
+      originalPrice: Math.round(currentVehicle.price * 0.95),
+      location: "Dubai, UAE",
+      certification: "Toyota Certified",
+      warranty: "18 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true",
+      features: ["Nearly New", "Full Warranty", "Latest Features"],
+      condition: "Excellent",
+      owners: 1
+    },
+    {
+      id: 6,
+      name: `${modelToken(currentVehicle.name)} 2018`,
+      year: 2018,
+      mileage: "112,000 km",
+      price: Math.round(currentVehicle.price * 0.35),
+      originalPrice: Math.round(currentVehicle.price * 0.45),
+      location: "Ras Al Khaimah, UAE",
+      certification: "Toyota Certified",
+      warranty: "3 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true",
+      features: ["Affordable", "Good Condition", "Reliable Transport"],
+      condition: "Good",
+      owners: 2
+    },
+    {
+      id: 7,
+      name: `${modelToken(currentVehicle.name)} 2021 Sport`,
+      year: 2021,
+      mileage: "58,000 km",
+      price: Math.round(currentVehicle.price * 0.65),
+      originalPrice: Math.round(currentVehicle.price * 0.78),
+      location: "Fujairah, UAE",
+      certification: "Toyota Certified",
+      warranty: "9 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/e661ede5-10d4-43d3-b507-3e9cf54d1e51?binary=true&mformat=true",
+      features: ["Sport Package", "Performance Tuned", "Premium Audio"],
+      condition: "Very Good",
+      owners: 1
+    },
+    {
+      id: 8,
+      name: `${modelToken(currentVehicle.name)} 2020 Limited`,
+      year: 2020,
+      mileage: "82,000 km",
+      price: Math.round(currentVehicle.price * 0.55),
+      originalPrice: Math.round(currentVehicle.price * 0.68),
+      location: "Abu Dhabi, UAE",
+      certification: "Toyota Certified",
+      warranty: "8 months",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
+      features: ["Limited Edition", "Luxury Package", "Heated Seats"],
+      condition: "Very Good",
+      owners: 1
+    }
+  ];
 
   // Calculate proper bounds for mobile vs desktop
-  const totalCards = preOwnedVehicles.length;
+  const totalCards = preOwnedVehicles.length; // 8 cards
   const cardsPerView = isMobile ? 1 : 3;
-  const maxIndex = isMobile ? totalCards - 1 : totalCards - cardsPerView;
-  const totalDots = isMobile ? totalCards : maxIndex + 1;
+  const maxIndex = isMobile ? totalCards - 1 : totalCards - cardsPerView; // Mobile: 0-7, Desktop: 0-5
+  const totalDots = isMobile ? totalCards : maxIndex + 1; // Mobile: 8 dots, Desktop: 6 dots
 
-  // Navigation functions
+  // Navigation functions with proper bounds
   const nextSlide = () => {
     setIsAutoPlaying(false);
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
@@ -91,6 +217,8 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          
+          {/* Overlays */}
           <div className="absolute top-4 left-4">
             <Badge className="bg-green-600 text-white text-sm">
               <CheckCircle className="h-3 w-3 mr-1" />
@@ -149,27 +277,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div>
-              <div className={`font-medium mb-2 ${isMobile ? 'text-sm' : 'text-xs'}`}>Key Features</div>
-              <div className="flex flex-wrap gap-2">
-                {vehicle.features.slice(0, isMobile ? 3 : 2).map((feature: string, idx: number) => (
-                  <Badge key={idx} variant="secondary" className={isMobile ? 'text-xs' : 'text-[10px]'}>
-                    {feature}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            
-            <div className={`flex items-center justify-between ${isMobile ? 'text-sm' : 'text-xs'}`}>
-              <div>
-                <span className="text-muted-foreground">Condition: </span>
-                <span className="font-medium">{vehicle.condition}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ✅ Buttons updated to black */}
+          {/* Buttons — black */}
           <div className={`flex space-x-3 pt-4 ${isMobile ? '' : 'flex-col space-x-0 space-y-2'}`}>
             <Button className={`bg-black text-white hover:bg-black/90 ${isMobile ? 'flex-1' : 'w-full text-xs py-2'}`}>
               View Details
@@ -208,13 +316,13 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             </span>
           </h2>
           <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover certified pre-owned {currentVehicle.name.split(' ')[1]} models with Toyota's quality assurance.
+            Discover certified pre-owned {modelToken(currentVehicle.name)} models with Toyota's quality assurance.
           </p>
         </motion.div>
 
         {/* Carousel Container */}
         <div className={`relative ${isMobile ? 'max-w-2xl mx-auto' : 'max-w-7xl mx-auto'}`}>
-          {/* ✅ Navigation Buttons black */}
+          {/* Navigation Buttons — black */}
           <button
             onClick={prevSlide}
             disabled={currentIndex === 0}
@@ -235,7 +343,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             <ChevronRight className="h-6 w-6" />
           </button>
 
-          {/* Cards */}
+          {/* Cards Display */}
           <div ref={swipeableRef} className="overflow-hidden">
             <div 
               className="flex transition-transform duration-500 ease-out"
@@ -247,7 +355,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             </div>
           </div>
 
-          {/* Dots */}
+          {/* Dots Indicator */}
           <div className="flex justify-center space-x-3 mt-6">
             {Array.from({ length: totalDots }).map((_, index) => (
               <button
@@ -262,7 +370,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
             ))}
           </div>
 
-          {/* Auto-play status */}
+          {/* Auto-play Status */}
           {isAutoPlaying && (
             <div className="flex justify-center mt-4">
               <div className="flex items-center bg-black/10 backdrop-blur-sm rounded-full px-3 py-1 text-muted-foreground text-xs">
@@ -273,7 +381,7 @@ const PreOwnedSimilar: React.FC<PreOwnedSimilarProps> = ({ currentVehicle }) => 
           )}
         </div>
 
-        {/* ✅ CTA Section black */}
+        {/* CTA Section — black button */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
