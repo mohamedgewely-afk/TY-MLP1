@@ -182,7 +182,6 @@ const Header: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TOYOTA</h1>
-                <p className="text-xs text-toyota-red font-medium">Hybrid Experience</p>
               </div>
             </div>
           </motion.div>
