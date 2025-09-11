@@ -15,20 +15,23 @@ const GR_SURFACE = "#0B0B0C";
 const GR_EDGE = "#17191B";
 const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#A8ACB0";
-const CARBON_URL =
-  "https://static.vecteezy.com/system/resources/previews/008/423/535/non_2x/3d-black-geometric-abstract-background-overlap-layer-on-dark-space-with-line-motion-style-effect-graphic-design-element-carbon-fiber-texture-concept-for-banner-flyer-card-brochure-cover-etc-vector.jpg";
+// Use your uploaded carbon weave image
+const CARBON_URL = "/lovable-uploads/eb8bd813-e55b-407b-81c5-81044ab5a4a8.png";
 
+// Gradient FIRST (on top), image SECOND (underneath).
+// 'multiply' is more predictable than 'overlay' across browsers.
 const carbonMatte: React.CSSProperties = {
   backgroundImage: `
-    url('${CARBON_URL}'),
-    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6))
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    url('${https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/f33badf4-a2df-4400-81f4-80b38a5461f7/items/6949214d-eddd-4a97-8e93-8c4ed9563ffc/renditions/3d30ccb3-dd72-4e9d-b02a-aa9759450957?binary=true}')
   `,
-  backgroundBlendMode: "overlay",   // blends dark overlay with weave
-  backgroundSize: "180px 180px",    // adjust weave density
-  backgroundRepeat: "repeat",       // tiles across large screens
-  backgroundPosition: "center",
+  backgroundBlendMode: "multiply, normal",
+  backgroundSize: "180px 180px, 180px 180px",
+  backgroundRepeat: "no-repeat, repeat",   // dark overlay not repeating; weave repeats
+  backgroundPosition: "center, center",
   backgroundColor: GR_SURFACE,
 };
+
 
 
 /** Shared localStorage key so MobileStickyNav can read the same state */
