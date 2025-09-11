@@ -21,26 +21,26 @@ function useBodyScrollLock(locked: boolean) {
     if (!locked) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, [locked]);
 }
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const m = window.matchMedia("(prefers-reduced-motion: reduce)");
     const upd = () => setReduced(!!m.matches);
-    upd();
-    m.addEventListener?.("change", upd);
+    upd(); m.addEventListener?.("change", upd);
     return () => m.removeEventListener?.("change", upd);
   }, []);
   return reduced;
 }
-
-function useFocusTrap(enabled: boolean, containerRef: React.RefObject<HTMLElement>, firstFocusRef?: React.RefObject<HTMLElement>, onRestore?: () => void) {
+function useFocusTrap(
+  enabled: boolean,
+  containerRef: React.RefObject<HTMLElement>,
+  firstFocusRef?: React.RefObject<HTMLElement>,
+  onRestore?: () => void
+) {
   useEffect(() => {
     if (!enabled) return;
     const container = containerRef.current;
@@ -55,19 +55,13 @@ function useFocusTrap(enabled: boolean, containerRef: React.RefObject<HTMLElemen
         )
       ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
       if (focusables.length === 0) return;
-
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       const active = document.activeElement as HTMLElement;
-
       if (e.shiftKey) {
-        if (active === first || !container.contains(active)) {
-          last.focus(); e.preventDefault();
-        }
+        if (active === first || !container.contains(active)) { last.focus(); e.preventDefault(); }
       } else {
-        if (active === last || !container.contains(active)) {
-          first.focus(); e.preventDefault();
-        }
+        if (active === last || !container.contains(active)) { first.focus(); e.preventDefault(); }
       }
     };
 
@@ -194,8 +188,12 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
         title: "Center Console",
         description: "Clear haptics with storage within reach.",
-        details: { overview: "Ergonomics tuned for clarity, reach, and minimal eye-off-road time.",
-          specs: ['12.3" display', "Tri-zone climate"], features: ["Voice control", "Wireless charging"], tech: ["Low-latency HMI", "OTA themes"] },
+        details: {
+          overview: "Ergonomics tuned for clarity, reach, and minimal eye-off-road time.",
+          specs: ['12.3" display', "Tri-zone climate"],
+          features: ["Voice control", "Wireless charging"],
+          tech: ["Low-latency HMI", "OTA themes"],
+        },
       },
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
@@ -320,20 +318,20 @@ const Bullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </li>
 );
 
-/** Build at least 2 image slides per modal (fallbacks to thumbnail/dup if needed) */
-function buildSlides(item: MediaItem): Slide[] {
+function buildSlides(item: MediaItem): (Slide & { _isVideo?: boolean })[] {
+  // If video exists, represent it as the first "slide"
   const imgs = [...(item.gallery || [])];
-  // ensure at least 2 image slides using thumbnail as extra when needed
   if (imgs.length < 2 && item.thumbnail) {
     imgs.push({ url: item.thumbnail, title: item.title + " — Overview", description: item.summary });
   }
   if (imgs.length < 2 && imgs[0]) {
     imgs.push({ ...imgs[0], title: imgs[0].title + " (detail)" });
   }
-  return imgs;
+  const slides = imgs;
+  return (item.video ? [{ url: "", title: "Video", description: "", details: {}, _isVideo: true } as any, ...slides] : slides) as any;
 }
 
-/* ================= Variant micro-interactions (simple & different) ================= */
+/* ================= Light, distinct interactions ================= */
 function PerformanceUX({ value, setValue }: { value: number; setValue: (n: number) => void }) {
   const reduced = usePrefersReducedMotion();
   const torque = Math.round(50 + value * 0.6);
@@ -346,32 +344,30 @@ function PerformanceUX({ value, setValue }: { value: number; setValue: (n: numbe
       </div>
       <input type="range" min={0} max={100} value={value} onChange={(e)=>setValue(Number(e.target.value))} className="w-full accent-red-600" aria-label="Boost"/>
       <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <div className="mb-1 flex items-center justify-between"><span>Torque</span><span>{torque}%</span></div>
-          <div className="h-2 rounded-full bg-zinc-100"><div className="h-2 rounded-full" style={{width:`${torque}%`, background:TOK.red, transition: reduced ? "none" : "width .4s"}}/></div>
-        </div>
-        <div>
-          <div className="mb-1 flex items-center justify-between"><span>Response</span><span>{resp}%</span></div>
-          <div className="h-2 rounded-full bg-zinc-100"><div className="h-2 rounded-full" style={{width:`${resp}%`, background:TOK.red, transition: reduced ? "none" : "width .4s"}}/></div>
-        </div>
+        {[
+          { label: "Torque", val: torque },
+          { label: "Response", val: resp },
+        ].map(({label, val}) => (
+          <div key={label}>
+            <div className="mb-1 flex items-center justify-between"><span>{label}</span><span>{val}%</span></div>
+            <div className="h-2 rounded-full bg-zinc-100"><div className="h-2 rounded-full" style={{width:`${val}%`, background:TOK.red, transition: reduced ? "none" : "width .4s"}}/></div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
 function SafetyUX() {
   const [scene, setScene] = useState<"city"|"highway"|"night">("city");
-  const presets = {
-    city: ["PCS", "LTA", "AEB pedestrian"],
-    highway: ["ACC", "LTA", "BSM"],
-    night: ["AHS", "PCS (low light)"]
-  } as const;
+  const presets = { city: ["PCS", "LTA", "AEB pedestrian"], highway: ["ACC", "LTA", "BSM"], night: ["AHS", "PCS (low light)"] } as const;
   return (
     <div className="rounded-xl border p-4">
       <div className="mb-2 text-sm font-semibold text-blue-700">Scenario</div>
       <div className="mb-3 flex flex-wrap gap-2">
         {(["city","highway","night"] as const).map(k=>(
-          <button key={k} onClick={()=>setScene(k)} className={cx("rounded-full border px-3 py-1 text-xs", scene===k ? "border-blue-300 bg-blue-50" : "hover:bg-zinc-50")}>{k[0].toUpperCase()+k.slice(1)}</button>
+          <button key={k} onClick={()=>setScene(k)} className={cx("rounded-full border px-3 py-1 text-xs", scene===k ? "border-blue-300 bg-blue-50" : "hover:bg-zinc-50")}>
+            {k[0].toUpperCase()+k.slice(1)}
+          </button>
         ))}
       </div>
       <ul className="grid grid-cols-2 gap-2 text-xs">
@@ -380,23 +376,16 @@ function SafetyUX() {
     </div>
   );
 }
-
-function InteriorUX() {
-  const [ambient, setAmbient] = useState(true);
-  const swatches = ["#111827","#4B5563","#D6D3D1","#E5E7EB"];
-  const [sel, setSel] = useState(0);
+function InteriorUX({ ambient, setAmbient }: { ambient: boolean; setAmbient: (b: boolean)=>void }) {
   return (
     <div className="rounded-xl border p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-sm font-semibold text-amber-700">Ambience</div>
-        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={ambient} onChange={(e)=>setAmbient(e.target.checked)} className="accent-amber-700"/><span>Ambient</span></label>
+        <label className="flex items-center gap-2 text-xs">
+          <input type="checkbox" checked={ambient} onChange={(e)=>setAmbient(e.target.checked)} className="accent-amber-700"/>
+          <span>Ambient lighting</span>
+        </label>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {swatches.map((c,i)=>(
-          <button key={c} onClick={()=>setSel(i)} className={cx("h-7 w-7 rounded-full border", sel===i ? "ring-2 ring-amber-400" : "")} style={{background:c}} aria-label={`Trim ${i+1}`}/>
-        ))}
-      </div>
-      {/* lightweight visual hint styles */}
       <style>{`
         .interior-ambient { background:
           radial-gradient(120px 80px at 20% 80%, rgba(255,200,0,.25), transparent 60%),
@@ -407,7 +396,6 @@ function InteriorUX() {
     </div>
   );
 }
-
 function QualityUX() {
   const steps = ["Materials","Paint","Assembly","QC"];
   const [i,setI] = useState(0);
@@ -419,11 +407,9 @@ function QualityUX() {
           <button key={s} onClick={()=>setI(idx)} className={cx("rounded-full border px-3 py-1 text-xs", i===idx ? "bg-zinc-50" : "hover:bg-zinc-50")}>{idx+1}. {s}</button>
         ))}
       </div>
-      <style>{`.quality-ring::after{content:"";position:absolute;inset:0;border:3px solid rgba(0,0,0,.08);border-radius:16px;pointer-events:none;}`}</style>
     </div>
   );
 }
-
 function TechnologyUX() {
   const [open, setOpen] = useState<Record<string, boolean>>({ carplay: true, android: false, ota: true, wifi: false });
   const row = (k:string, label:string, body:string) => (
@@ -443,7 +429,6 @@ function TechnologyUX() {
     </div>
   );
 }
-
 function HandlingUX({ mode, setMode }: { mode: "eco"|"normal"|"sport"|"trail"; setMode: (m:any)=>void }) {
   const opts = ["eco","normal","sport","trail"] as const;
   return (
@@ -478,19 +463,18 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   useBodyScrollLock(!!open);
   const openerRef = useRef<HTMLElement | null>(null);
 
-  // Derived slides per item: ensure >= 2 images
+  // Per-modal derived slides (include video as slide 0 if present)
   const slides = useMemo(() => (open ? buildSlides(open) : []), [open]);
 
-  // Interactivity state per modal (simple)
+  // Variant lightweight states
   const [perfBoost, setPerfBoost] = useState(60);
   const [handlingMode, setHandlingMode] = useState<"eco"|"normal"|"sport"|"trail">("normal");
   const [interiorAmbient, setInteriorAmbient] = useState(true);
 
-  // For items that also have video, we allow it as slide 0 if present
-  const hasVideo = !!open?.video;
-  const total = (slides.length || 0) + (hasVideo ? 1 : 0);
-  const visualIsVideo = hasVideo && idx === 0;
-  const currentSlide: Slide | null = !visualIsVideo ? slides[hasVideo ? idx - 1 : idx] : null;
+  const total = slides.length;
+  const visualIsVideo = open?.video && slides[idx]?._isVideo;
+
+  const currentSlide = slides[idx] || null;
 
   const next = useCallback(() => { if (!open) return; setIdx((p) => (p + 1) % total); }, [open, total]);
   const prev = useCallback(() => { if (!open) return; setIdx((p) => (p - 1 + total) % total); }, [open, total]);
@@ -549,7 +533,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   /* ================= Render ================= */
   return (
     <section className={TOK.container}>
-      {/* Top video (untouched) */}
+      {/* Video card (untouched) */}
       <div className={cx(TOK.card, TOK.radius, "relative z-0 p-3 md:p-4 mb-12 md:mb-16")}>
         <div className="mb-3 flex items-center gap-3">
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-semibold">Video</span>
@@ -560,7 +544,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         </div>
       </div>
 
-      {/* Mobile tiles (snap) */}
+      {/* MOBILE: ONLY the carousel (no tiles duplication) */}
       <div className="mb-6 md:hidden">
         <div ref={mobWrapRef} className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
           {items.map((m) => (
@@ -593,8 +577,8 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         </div>
       </div>
 
-      {/* Desktop grid */}
-      <div className="relative z-[1] grid grid-cols-2 gap-6 lg:grid-cols-3">
+      {/* DESKTOP/TABLET GRID (hidden on mobile) */}
+      <div className="relative z-[1] hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
         {items.map((m) => (
           <button
             key={m.id}
@@ -619,7 +603,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* MODAL – SIMPLE, MOBILE-FIRST */}
       {open && ReactDOM.createPortal(
         <div
           className="fixed inset-0 z-[1000] flex items-start md:items-center justify-center bg-black/70 backdrop-blur-sm p-0 md:p-6"
@@ -628,11 +612,12 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         >
           <div
             ref={modalRef}
-            className={cx("bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden",
-                         "flex flex-col")}
+            // Use dvh with svh fallback for mobile Safari; keep content scrollable and footer fixed
+            className={cx("bg-white w-full md:max-w-[1300px] md:rounded-2xl overflow-hidden flex flex-col")}
+            style={{ height: "100dvh" } as React.CSSProperties}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* HEADER (row 1) */}
+            {/* Header */}
             <div className="shrink-0 border-b bg-white/95 px-3 py-3 backdrop-blur md:px-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -646,13 +631,13 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               </div>
             </div>
 
-            {/* BODY GRID (row 2) */}
-            <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
-              {/* VISUAL (mobile top / desktop left) */}
+            {/* Body (ONLY this area scrolls) */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {/* Visual */}
               <div
-                className={cx("relative select-none bg-black md:rounded-l-2xl h-[min(52svh,420px)] md:h-auto",
-                              open.variant === "quality" ? "quality-ring" : "")}
-                onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+                className="relative bg-black"
+                onTouchStart={(e)=>{ const t=e.touches[0]?.clientX; (tStart as any).current = t; }}
+                onTouchEnd={(e)=>{ const s=tStart.current; if(s==null) return; const dx=e.changedTouches[0].clientX - s; if(dx>40) prev(); if(dx<-40) next(); tStart.current=null; }}
               >
                 {visualIsVideo ? (
                   open.video?.provider === "wistia" ? (
@@ -663,113 +648,90 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                     </div>
                   )
                 ) : (
-                  <div className={cx("relative h-full w-full",
-                    open.variant === "handling" ? `mode-${handlingMode}` : "",
-                  )}>
-                    <ImageSafe src={(currentSlide?.url || open.thumbnail) as string} alt={(currentSlide?.title || open.title) as string} cover className="h-full w-full" />
-                    {open.variant === "interior" && interiorAmbient && <div className="interior-ambient absolute inset-0" />}
+                  <div className={cx("relative w-full", "md:rounded-tl-2xl")}>
+                    <div className="w-full" style={{ aspectRatio: "16/9", maxHeight: "56dvh" }}>
+                      <ImageSafe
+                        src={(currentSlide?.url || open.thumbnail) as string}
+                        alt={(currentSlide?.title || open.title) as string}
+                        cover
+                        className={cx("h-full w-full", open.variant === "handling" ? `mode-${handlingMode}` : "")}
+                      />
+                      {open.variant === "interior" && interiorAmbient && <div className="interior-ambient absolute inset-0" />}
+                    </div>
                   </div>
                 )}
 
-                {/* Desktop thumbs */}
-                <div className="absolute left-3 top-3 hidden max-h-[90%] flex-col gap-2 overflow-auto md:flex">
-                  {hasVideo && (
-                    <button type="button" onClick={()=>setIdx(0)} className={cx("h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium", idx===0 && "ring-2 ring-red-500")}>Video</button>
-                  )}
-                  {slides.map((s, i) => {
-                    const real = hasVideo ? i + 1 : i;
-                    return (
-                      <button type="button" key={s.url+i} onClick={()=>setIdx(real)}
-                        className={cx("h-14 w-20 overflow-hidden rounded-md border", idx===real && "ring-2 ring-red-500")}>
-                        <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Arrows + dots */}
+                {/* Arrows (hide on very small screens to keep it clean) */}
                 {total > 1 && (
                   <>
-                    <button type="button" aria-label="Previous" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow">‹</button>
-                    <button type="button" aria-label="Next" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow">›</button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-                      {Array.from({ length: total }).map((_, i) => (
-                        <span key={i} className={cx("h-1.5 w-1.5 rounded-full", i === idx ? "" : "bg-white/50")} style={{ background: i === idx ? TOK.red : undefined }} />
-                      ))}
-                    </div>
+                    <button type="button" aria-label="Previous" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 hidden rounded-full bg-white px-3 py-2 text-zinc-900 shadow xs:block">‹</button>
+                    <button type="button" aria-label="Next" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 hidden rounded-full bg-white px-3 py-2 text-zinc-900 shadow xs:block">›</button>
                   </>
                 )}
-
-                {/* Mobile thumbs */}
-                <div className="absolute inset-x-0 bottom-0 md:hidden flex gap-2 overflow-x-auto bg-gradient-to-t from-black/50 to-transparent px-3 py-2 pointer-events-auto" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-                  {hasVideo && (
-                    <button type="button" onClick={()=>setIdx(0)} className={cx("h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium", idx===0 && "ring-2 ring-red-500")}>Video</button>
-                  )}
-                  {slides.map((s, i) => {
-                    const real = hasVideo ? i + 1 : i;
-                    return (
-                      <button type="button" key={s.url+i} onClick={()=>setIdx(real)}
-                        className={cx("h-12 w-16 overflow-hidden rounded-md border", idx===real && "ring-2 ring-red-500")}>
-                        <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
 
-              {/* CONTENT (mobile bottom / desktop right) */}
-              <div className="flex min-h-0 flex-col bg-white md:rounded-r-2xl">
-                {/* Badges */}
-                <div className="flex flex-wrap gap-2 p-4">
-                  {open.badges?.slice(0, 5).map((b) => (
-                    <span key={b} className={cx("rounded-full px-2 py-1 text-xs", VARIANT[open.variant].chip)}>{b}</span>
-                  ))}
+              {/* Slide tabs (Video + images) */}
+              {total > 1 && (
+                <div className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b">
+                  <div className="no-scrollbar flex gap-2 overflow-x-auto px-3 py-2 md:px-6">
+                    {slides.map((s, i) => (
+                      <button
+                        key={(s._isVideo ? "video" : s.url) + i}
+                        onClick={() => setIdx(i)}
+                        className={cx(
+                          "whitespace-nowrap rounded-full border px-3 py-1 text-xs",
+                          i === idx ? "border-zinc-900" : "hover:bg-zinc-50"
+                        )}
+                      >
+                        {s._isVideo ? "Video" : (s.title || `Slide ${i + 1}`)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                {/* Per-image content slab (title + desc) */}
-                <div className={cx("mx-4 mb-3 rounded-xl border p-4", VARIANT[open.variant].slab)}>
+              {/* Per-slide content */}
+              <div className="px-3 py-4 md:px-6">
+                <div className={cx("mb-3 rounded-xl border p-4", VARIANT[open.variant].slab)}>
                   <h5 className={cx("mb-1 text-lg font-semibold", VARIANT[open.variant].accent)}>{currentSlide?.title || open.title}</h5>
                   <p className={TOK.muted}>{currentSlide?.description || open.summary}</p>
                 </div>
 
-                {/* Scrollable panel with bullets + variant micro-interaction */}
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-                  {/* Per-image bullets (specs/features/tech) */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {currentSlide?.details?.specs && (
-                      <div className={cx(TOK.card,"rounded-xl p-4")}>
-                        <h6 className="mb-2 text-sm font-semibold">Specifications</h6>
-                        <ul className="space-y-1">{currentSlide.details.specs.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
-                      </div>
-                    )}
-                    {currentSlide?.details?.features && (
-                      <div className={cx(TOK.card,"rounded-xl p-4")}>
-                        <h6 className="mb-2 text-sm font-semibold">Features</h6>
-                        <ul className="space-y-1">{currentSlide.details.features.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
-                      </div>
-                    )}
-                    {currentSlide?.details?.tech && (
-                      <div className={cx(TOK.card,"rounded-xl p-4")}>
-                        <h6 className="mb-2 text-sm font-semibold">Technology</h6>
-                        <ul className="space-y-1">{currentSlide.details.tech.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
-                      </div>
-                    )}
-                  </div>
+                {/* Bullets by category */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {currentSlide?.details?.specs && (
+                    <div className={cx(TOK.card,"rounded-xl p-4")}>
+                      <h6 className="mb-2 text-sm font-semibold">Specifications</h6>
+                      <ul className="space-y-1">{currentSlide.details.specs.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
+                    </div>
+                  )}
+                  {currentSlide?.details?.features && (
+                    <div className={cx(TOK.card,"rounded-xl p-4")}>
+                      <h6 className="mb-2 text-sm font-semibold">Features</h6>
+                      <ul className="space-y-1">{currentSlide.details.features.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
+                    </div>
+                  )}
+                  {currentSlide?.details?.tech && (
+                    <div className={cx(TOK.card,"rounded-xl p-4")}>
+                      <h6 className="mb-2 text-sm font-semibold">Technology</h6>
+                      <ul className="space-y-1">{currentSlide.details.tech.slice(0,6).map((s,i)=>(<Bullet key={i}>{s}</Bullet>))}</ul>
+                    </div>
+                  )}
+                </div>
 
-                  {/* Variant micro-interaction (simple & different) */}
-                  <div className="mt-4 space-y-4">
-                    {open.variant === "performance" && <PerformanceUX value={perfBoost} setValue={setPerfBoost} />}
-                    {open.variant === "safety" && <SafetyUX />}
-                    {open.variant === "interior" && (<div onChange={(e)=>{}}><InteriorUX />{/* state hint for overlay */}{/* keep state in parent for visual */}{/* eslint-disable-next-line */}</div>)}
-                    {open.variant === "quality" && <QualityUX />}
-                    {open.variant === "technology" && <TechnologyUX />}
-                    {open.variant === "handling" && <HandlingUX mode={handlingMode} setMode={setHandlingMode} />}
-                  </div>
+                {/* Variant micro-interaction (simple & different per modal) */}
+                <div className="mt-4 space-y-4">
+                  {open.variant === "performance" && <PerformanceUX value={perfBoost} setValue={setPerfBoost} />}
+                  {open.variant === "safety" && <SafetyUX />}
+                  {open.variant === "interior" && <InteriorUX ambient={interiorAmbient} setAmbient={setInteriorAmbient} />}
+                  {open.variant === "quality" && <QualityUX />}
+                  {open.variant === "technology" && <TechnologyUX />}
+                  {open.variant === "handling" && <HandlingUX mode={handlingMode} setMode={setHandlingMode} />}
                 </div>
               </div>
             </div>
 
-            {/* FOOTER (row 3) — fixed, safe-area aware */}
+            {/* Footer (fixed) */}
             <div className="shrink-0 border-t bg-white/95 px-3 py-3 backdrop-blur md:px-6">
               <div className="flex items-center justify-between gap-3">
                 <button type="button" onClick={() => { setOpen(null); openerRef.current?.focus?.(); }} className="rounded-full border px-4 py-2 hover:bg-zinc-50">Close</button>
