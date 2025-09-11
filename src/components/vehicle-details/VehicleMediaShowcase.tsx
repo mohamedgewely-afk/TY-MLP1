@@ -1,326 +1,239 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  ChevronLeft,
-  ChevronRight,
-  Gauge,
-  Award,
-  Cpu,
-  Share2,
-} from "lucide-react";
+import { X, Play, Pause, Volume2, VolumeX, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { VehicleModel } from "@/types/vehicle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useSwipeable } from "@/hooks/use-swipeable";
 import { cn } from "@/lib/utils";
 
-/* -------------------------------------------------------
-   Toyota Media Studio (v2) – no 360°
-   Fixes:
-   - Video cards show thumbnails (no broken images)
-   - DAM width params are optional (no &w= breakage)
-   - Exactly 6 cards rendered (deterministic)
-   - Modal visual fits without black banding
-   - Stronger Toyota tone (clean, sharp)
--------------------------------------------------------- */
+/**
+ * ToyotaMediaStudioPro.tsx – v3
+ * Radical redesign: Mosaic grid (hero + mediums + smalls), Toyota tone, mobile-first, bulletproof media.
+ * • 6 cards always; uses demo items if none provided
+ * • DAM images + YouTube videos (auto poster) – no broken thumbnails
+ * • Distinct new look: asymmetrical mosaic, clean surfaces, red micro-accents, refined motion
+ */
 
-/********************* Brand tokens *********************/
-const TOYOTA = {
+/********************** Brand tokens **********************/
+const TOKENS = {
   red: "#EB0A1E",
-  text: "#1A1A1A",
-  subtle: "#F5F5F5",
-  radius: "rounded-lg",
+  ink: "#0F0F10",
+  text: "#101010",
+  radius: "rounded-xl",
+  border: "border border-neutral-200",
 };
 
-/********************* Types ****************************/
-interface ImageDetailsOverride {
-  specs?: string[];
-  benefits?: string[];
-  technology?: string[];
-}
-
-type ContentBlock = { id: string; title?: string; body?: string };
-
-interface GalleryImage {
-  url: string;
-  title: string;
-  description: string;
-  details?: ImageDetailsOverride;
-  contentBlocks?: ContentBlock[];
-  badges?: string[];
-}
-
-interface MediaItem {
+/********************** Types *****************************/
+export type MediaType = "image" | "video";
+export interface MediaItem {
   id: string;
-  type: "image" | "video";
-  url: string; // image URL or YouTube URL
-  thumbnail?: string; // for videos
+  type: MediaType;
+  url: string; // image URL or full YouTube URL
+  thumbnail?: string; // optional video poster
   title: string;
-  description: string;
-  category: string;
-  icon?: React.ComponentType<any>;
-  details: {
-    specs?: string[];
-    benefits?: string[];
-    technology?: string[];
-  };
-  galleryImages?: GalleryImage[];
+  description?: string;
+  category?: string;
+  gallery?: { url: string; title?: string; description?: string }[];
 }
 
-interface VehicleMediaStudioProps {
-  vehicle: VehicleModel;
-  media?: MediaItem[]; // optional external feed; fallback to demo
-  className?: string;
+export interface ToyotaMediaStudioProProps {
   title?: string;
+  subtitle?: string;
+  items?: MediaItem[]; // optional; demo used if omitted
+  className?: string;
 }
 
-/********************* Utilities ************************/
-const SUPPORTS_DAM_WIDTH = false; // set true if your DAM accepts &w= query
+/********************** Demo items (6) *******************/
+const DEMO_ITEMS: MediaItem[] = [
+  {
+    id: "performance",
+    type: "image",
+    url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/a2c5b39d-f2db-4f00-968c-e78f73a73652/renditions/4a3588b7-55f0-48f5-98dc-a219f5bfbaad?binary=true&mformat=true",
+    title: "V6 Twin‑Turbo",
+    description: "400+ hp, broad torque band, efficient cruising.",
+    category: "Performance",
+    gallery: [
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true", title: "Cooling Strategy", description: "Dual‑path cooling improves thermal stability under load." },
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true", title: "Turbo Detail", description: "Low‑inertia turbines widen usable torque." },
+    ],
+  },
+  {
+    id: "interior",
+    type: "image",
+    url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
+    title: "Driver‑Focused Cabin",
+    description: "Premium materials, intuitive controls, low distraction.",
+    category: "Interior",
+  },
+  {
+    id: "safety",
+    type: "video",
+    url: "https://www.youtube.com/watch?v=NCSxxuPE6wM",
+    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    title: "Toyota Safety Sense",
+    description: "Camera+radar fusion, assistance when you need it.",
+    category: "Safety",
+  },
+  {
+    id: "quality",
+    type: "image",
+    url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
+    title: "Build Quality",
+    description: "High-strength materials and precise assembly.",
+    category: "Quality",
+  },
+  {
+    id: "handling",
+    type: "image",
+    url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
+    title: "Chassis Dynamics",
+    description: "Adaptive damping and precise control.",
+    category: "Performance",
+  },
+  {
+    id: "connectivity",
+    type: "image",
+    url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
+    title: "Connected Services",
+    description: "CarPlay/Android Auto, OTA updates, cloud sync.",
+    category: "Technology",
+  },
+];
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(n, max));
-}
-
-function useBodyScrollLock(locked: boolean) {
-  useEffect(() => {
-    if (!locked) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [locked]);
-}
-
-/********************* SafeImage (robust) ***************/
-
-type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
-  fallbackText?: string;
-  ratioClass?: string; // e.g., "aspect-video"
-  fit?: "cover" | "contain";
-  widthPx?: number;
-  heightPx?: number;
+/********************** Utilities *************************/
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(n, max));
+const isBrowser = typeof window !== "undefined";
+const youTubeId = (url: string) => {
+  const m = url?.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,11})/);
+  return m ? m[1] : "";
 };
 
-const SafeImage: React.FC<SafeImageProps> = ({
-  src,
-  alt,
-  className,
-  fallbackText = "Image unavailable",
-  ratioClass,
-  fit = "cover",
-  widthPx = 1600,
-  heightPx = 900,
-  ...rest
-}) => {
-  const [errored, setErrored] = useState(false);
-  const srcSet = src && SUPPORTS_DAM_WIDTH
-    ? `${src}&w=480 480w, ${src}&w=768 768w, ${src}&w=1200 1200w, ${src}&w=1600 1600w`
-    : undefined;
+/********************** SafeImage *************************/
+interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  fit?: "cover" | "contain";
+  ratio?: string; // e.g. "aspect-video"
+  fallbackText?: string;
+}
 
+const SafeImage: React.FC<SafeImageProps> = ({ src, alt, className, fit = "cover", ratio, fallbackText = "Image unavailable", ...rest }) => {
+  const [err, setErr] = useState(false);
   return (
-    <div className={cn("relative w-full", ratioClass)}>
-      {!errored ? (
+    <div className={cn("relative w-full", ratio)}>
+      {!err ? (
         <img
           src={src as string}
-          srcSet={srcSet}
-          sizes="(max-width: 768px) 100vw, 50vw"
           alt={alt}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
-          width={widthPx}
-          height={heightPx}
-          className={cn(
-            "w-full h-full transition-opacity duration-300 opacity-0 data-[loaded=true]:opacity-100",
-            fit === "cover" ? "object-cover" : "object-contain bg-black",
-            className
-          )}
+          className={cn("w-full h-full transition-opacity duration-300 opacity-0 data-[loaded=true]:opacity-100", fit === "cover" ? "object-cover" : "object-contain bg-black", className)}
           onLoad={(e) => (e.currentTarget.dataset.loaded = "true")}
-          onError={() => setErrored(true)}
+          onError={() => setErr(true)}
           {...rest}
         />
       ) : (
-        <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground text-xs">
-          {fallbackText}
-        </div>
+        <div className="w-full h-full grid place-items-center bg-neutral-100 text-neutral-500 text-xs">{fallbackText}</div>
       )}
     </div>
   );
 };
 
-/********************* Main component *******************/
+/********************** Video (deferred) ******************/
+const VideoPlayer: React.FC<{ url: string; title: string; muted: boolean; playing: boolean } & React.HTMLAttributes<HTMLDivElement>> = ({ url, title, muted, playing, className }) => {
+  const id = youTubeId(url);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  return (
+    <div className={cn("relative w-full aspect-video bg-black", className)}>
+      {hydrated && (
+        <iframe
+          title={title}
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${muted ? "&mute=1" : ""}${playing ? "&autoplay=1" : ""}`}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="no-referrer"
+        />
+      )}
+    </div>
+  );
+};
 
-const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
-  vehicle,
-  media,
-  className,
-  title = "Highlights",
-}) => {
-  const isMobile = useIsMobile();
-  const [selected, setSelected] = useState<MediaItem | null>(null);
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [carouselIdx, setCarouselIdx] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+/********************** Mosaic Card **********************/
+interface MosaicCardProps {
+  item: MediaItem;
+  size: "xl" | "md" | "sm";
+  onOpen: (m: MediaItem) => void;
+}
 
-  // ---- Demo fallback: ensure exactly 6 cards ----
-  const fallback: MediaItem[] = [
-    {
-      id: "performance",
-      type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/a2c5b39d-f2db-4f00-968c-e78f73a73652/renditions/4a3588b7-55f0-48f5-98dc-a219f5bfbaad?binary=true&mformat=true",
-      title: "V6 Twin‑Turbo",
-      description: "400+ hp, broad torque band, efficient cruising.",
-      category: "Performance",
-      details: {
-        specs: ["3.5L V6 TT", "400+ hp", "0–60 in 4.2s", "EPA 28 mpg"],
-        benefits: ["Instant response", "High efficiency", "Lower emissions"],
-        technology: ["Direct injection", "VVT", "Smart boost control"],
-      },
-      galleryImages: [
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
-          title: "Cooling Strategy",
-          description: "Dual‑path cooling improves thermal stability under load.",
-        },
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
-          title: "Turbo Detail",
-          description: "Low‑inertia turbines widen usable torque.",
-        },
-      ],
-    },
-    {
-      id: "interior",
-      type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
-      title: "Driver‑Focused Cabin",
-      description: "Premium materials, intuitive controls, low distraction.",
-      category: "Interior",
-      details: {
-        specs: ['Leather seats', '12.3" display', 'Premium audio', 'Tri‑zone climate'],
-        benefits: ["Comfort", "Clarity", "Personalization"],
-        technology: ["Heated/ventilated seats", "Wireless charging", "Voice control"],
-      },
-      galleryImages: [
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
-          title: "Center Console",
-          description: "Ergonomic layout with clear haptics and storage.",
-        },
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-          title: "Seating",
-          description: "Supportive geometry; ventilation; memory functions.",
-        },
-      ],
-    },
-    {
-      id: "safety",
-      type: "video",
-      url: "https://www.youtube.com/watch?v=NCSxxuPE6wM",
-      thumbnail:
-        "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-      title: "Toyota Safety Sense",
-      description: "Camera+radar fusion, assistance when you need it.",
-      category: "Safety",
-      details: {
-        specs: ["PCS", "LTA", "ACC", "BSM"],
-        benefits: ["Avoidance", "Reduced fatigue", "Confidence"],
-        technology: ["Sensor fusion", "AI detection", "Predictive control"],
-      },
-      galleryImages: [
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
-          title: "Sensors",
-          description: "Wide FOV camera and radar coverage.",
-        },
-      ],
-    },
-    {
-      id: "quality",
-      type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
-      title: "Build Quality",
-      description: "High-strength materials and precise assembly.",
-      category: "Quality",
-      details: {
-        specs: ["HS steel", "Multi‑stage paint", "Laser gap checks"],
-        benefits: ["Durability", "Refinement", "Low maintenance"],
-        technology: ["Robotic assembly", "QA audits", "Corrosion protection"],
-      },
-      galleryImages: [
-        {
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
-          title: "Materials",
-          description: "Premium substrates and coatings.",
-        },
-      ],
-    },
-    {
-      id: "handling",
-      type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-      title: "Chassis Dynamics",
-      description: "Adaptive damping and precise control.",
-      category: "Performance",
-      details: {},
-    },
-    {
-      id: "connectivity",
-      type: "image",
-      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
-      title: "Connected Services",
-      description: "CarPlay/Android Auto, OTA updates, cloud sync.",
-      category: "Technology",
-      details: {},
-    },
-  ];
+const MosaicCard: React.FC<MosaicCardProps> = ({ item, size, onOpen }) => {
+  const isVideo = item.type === "video";
+  const poster = isVideo ? item.thumbnail || (youTubeId(item.url) ? `https://i.ytimg.com/vi/${youTubeId(item.url)}/hqdefault.jpg` : undefined) : item.url;
+  const radius = TOKENS.radius;
+  return (
+    <motion.article
+      whileHover={{ y: -2 }}
+      className={cn("group relative", size === "xl" ? "lg:col-span-4 col-span-2" : size === "md" ? "lg:col-span-2 col-span-2" : "lg:col-span-2 col-span-2")}
+    >
+      <Card className={cn("overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all", TOKENS.border, radius)}>
+        <button onClick={() => onOpen(item)} className="block w-full text-left focus:outline-none">
+          <div className={cn("relative", size === "xl" ? "aspect-[16/9]" : size === "md" ? "aspect-[4/3]" : "aspect-[16/10]") }>
+            <SafeImage src={poster as string} alt={item.title} fit="cover" className="absolute inset-0" />
+            {/* Play */}
+            {isVideo && (
+              <div className="absolute inset-0 grid place-items-center">
+                <span className="inline-flex items-center gap-2 text-xs md:text-sm bg-white/90 border px-3 py-2 rounded-full shadow-sm">
+                  <Play className="w-4 h-4" /> Watch
+                </span>
+              </div>
+            )}
+            {/* Edge accent */}
+            <div className="absolute left-0 top-0 h-1.5 w-24" style={{ background: TOKENS.red }} />
+          </div>
+          <div className="p-4 border-t">
+            {item.category && (
+              <div className="mb-1">
+                <span className="text-[11px] tracking-wide px-2 py-0.5 border rounded-full">{item.category}</span>
+              </div>
+            )}
+            <h3 className="text-base md:text-lg font-bold leading-snug">{item.title}</h3>
+            {item.description && <p className="text-sm text-neutral-600 line-clamp-2 mt-1">{item.description}</p>}
+          </div>
+        </button>
+      </Card>
+    </motion.article>
+  );
+};
 
-  const mediaItems: MediaItem[] = useMemo(() => {
-    const list = (media?.length ? media : fallback).slice(0, 6);
-    // pad to 6 if fewer provided
-    while (list.length < 6) list.push(fallback[list.length % fallback.length]);
-    return list;
-  }, [media]);
+/********************** Component *************************/
+const ToyotaMediaStudioPro: React.FC<ToyotaMediaStudioProProps> = ({ title = "Highlights", subtitle = "Engineered clarity. Effortless choice.", items, className }) => {
+  // normalize to 6 cards
+  const media = useMemo(() => {
+    const src = items?.length ? items : DEMO_ITEMS;
+    const six = src.slice(0, 6);
+    while (six.length < 6 && six.length > 0) six.push({ ...six[six.length - 1], id: six[six.length - 1].id + "_dup" });
+    return six;
+  }, [items]);
 
-  if (!mediaItems.length) {
-    return <div className="p-8 text-center text-muted-foreground">No media available.</div>;
-  }
+  const [open, setOpen] = useState<MediaItem | null>(null);
+  const [index, setIndex] = useState(0); // gallery index
+  const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(false);
 
-  /************* Mobile swipe for card carousel ***********/
-  const swipeableRef = useSwipeable<HTMLDivElement>({
-    onSwipeLeft: () => setCarouselIdx((p) => Math.min(p + 1, mediaItems.length - 1)),
-    onSwipeRight: () => setCarouselIdx((p) => Math.max(p - 1, 0)),
-    threshold: 40,
-  });
-
-  /******************* Open/close modal *******************/
-  const openMedia = (m: MediaItem) => {
-    setSelected(m);
-    setActiveIdx(0);
-    setIsPlaying(false);
-    if (typeof window !== "undefined") {
+  const onOpen = (m: MediaItem) => {
+    setOpen(m);
+    setIndex(0);
+    setPlaying(false);
+    if (isBrowser) {
       const url = new URL(window.location.href);
       url.searchParams.set("media", m.id);
       url.searchParams.set("img", "0");
       window.history.replaceState({}, "", url.toString());
     }
   };
-
-  const closeMedia = useCallback(() => {
-    setSelected(null);
-    setIsPlaying(false);
-    if (typeof window !== "undefined") {
+  const onClose = useCallback(() => {
+    setOpen(null);
+    setPlaying(false);
+    if (isBrowser) {
       const url = new URL(window.location.href);
       url.searchParams.delete("media");
       url.searchParams.delete("img");
@@ -328,401 +241,173 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
     }
   }, []);
 
-  useBodyScrollLock(!!selected);
-
-  /******************* Keyboard nav ***********************/
+  // deep link on load
   useEffect(() => {
-    if (!selected) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMedia();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [selected, closeMedia]);
-
-  const next = () => {
-    const len = selected?.galleryImages?.length ?? 0;
-    if (!len) return;
-    setActiveIdx((p) => (p + 1) % len);
-  };
-  const prev = () => {
-    const len = selected?.galleryImages?.length ?? 0;
-    if (!len) return;
-    setActiveIdx((p) => (p - 1 + len) % len);
-  };
-
-  /******************* Current image **********************/
-  const currImg = useMemo(() => {
-    if (!selected) return { url: "", title: "", description: "" } as GalleryImage;
-    const g = selected.galleryImages;
-    if (g && g.length > 0) {
-      const clamped = clamp(activeIdx, 0, g.length - 1);
-      return g[clamped];
-    }
-    return { url: selected.url, title: selected.title, description: selected.description } as GalleryImage;
-  }, [selected, activeIdx]);
-
-  const mergedDetails = useMemo(() => {
-    if (!selected) return undefined;
-    const imgDetails = (currImg as GalleryImage).details;
-    const base = selected.details || {};
-    return {
-      specs: imgDetails?.specs ?? base.specs,
-      benefits: imgDetails?.benefits ?? base.benefits,
-      technology: imgDetails?.technology ?? base.technology,
-    };
-  }, [selected, currImg]);
-
-  /******************* Deep-linking on load **************/
-  useEffect(() => {
-    if (initialized) return;
-    if (typeof window === "undefined") return;
+    if (!isBrowser) return;
     const url = new URL(window.location.href);
-    const mediaId = url.searchParams.get("media");
-    const imgIdx = Number(url.searchParams.get("img") ?? 0);
-    if (mediaId) {
-      const found = mediaItems.find((m) => m.id === mediaId);
-      if (found) {
-        setSelected(found);
-        const max = (found.galleryImages?.length ?? 1) - 1;
-        setActiveIdx(Number.isFinite(imgIdx) ? clamp(imgIdx, 0, max) : 0);
+    const id = url.searchParams.get("media");
+    const img = Number(url.searchParams.get("img") || 0);
+    if (id) {
+      const m = media.find((x) => x.id === id);
+      if (m) {
+        setOpen(m);
+        setIndex(Number.isFinite(img) ? clamp(img, 0, (m.gallery?.length || 1) - 1) : 0);
       }
     }
-    setInitialized(true);
-  }, [initialized, mediaItems]);
+  }, [media]);
 
-  /******************* Video helpers *********************/
-  const toggleMute = () => setIsMuted((m) => !m);
-  const togglePlay = () => setIsPlaying((p) => !p);
+  // current visual for modal
+  const current = useMemo(() => {
+    if (!open) return null;
+    if (open.type === "video") return { url: open.thumbnail || (youTubeId(open.url) ? `https://i.ytimg.com/vi/${youTubeId(open.url)}/hqdefault.jpg` : undefined), title: open.title, description: open.description };
+    if (open.gallery?.length) return open.gallery[clamp(index, 0, open.gallery.length - 1)];
+    return { url: open.url, title: open.title, description: open.description };
+  }, [open, index]);
 
-  const getYouTubeId = (url: string) => {
-    // YouTube IDs are typically 11 chars; support both param and short links
-    const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,11})/);
-    return m ? m[1] : "";
-  };
-
-  const VideoBlock: React.FC<{ item: MediaItem }> = ({ item }) => {
-    const vid = getYouTubeId(item.url);
-    const [hydrated, setHydrated] = useState(false);
-    useEffect(() => setHydrated(true), []);
-
-    // Poster first; inject iframe on Play
-    return (
-      <div className="relative w-full aspect-video bg-black">
-        {!isPlaying ? (
-          <button
-            onClick={() => setIsPlaying(true)}
-            className="group absolute inset-0 flex items-center justify-center"
-            aria-label="Play video"
-          >
-            <SafeImage
-              src={item.thumbnail || (vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : undefined)}
-              alt={item.title}
-              fit="cover"
-              className="absolute inset-0 w-full h-full"
-            />
-            <div className="relative z-10 grid place-items-center">
-              <span className="rounded-full border bg-background/90 px-4 py-3 text-sm">Play</span>
-            </div>
-          </button>
-        ) : hydrated ? (
-          <iframe
-            title={item.title}
-            className="absolute inset-0 w-full h-full"
-            src={`https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&playsinline=1${
-              isMuted ? "&mute=1" : ""
-            }${isPlaying ? "&autoplay=1" : ""}`}
-            allow="autoplay; encrypted-media; picture-in-picture"
-            referrerPolicy="no-referrer"
-          />
-        ) : null}
-      </div>
-    );
-  };
-
-  /******************* Share link ***********************/
-  const onShare = async () => {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    if (selected) {
-      url.searchParams.set("media", selected.id);
-      url.searchParams.set("img", String(activeIdx));
+  // swipe (mobile) for modal
+  const startX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => (startX.current = e.touches[0].clientX);
+  const handleTouchEnd = () => (startX.current = null);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!open || !startX.current || open.type === "video") return;
+    const dx = e.touches[0].clientX - startX.current;
+    if (Math.abs(dx) > 60) {
+      if (dx < 0) setIndex((p) => (open?.gallery ? (p + 1) % open.gallery.length : p));
+      else setIndex((p) => (open?.gallery ? (p - 1 + open.gallery.length) % open.gallery.length : p));
+      startX.current = e.touches[0].clientX;
     }
-    try {
-      await navigator.clipboard.writeText(url.toString());
-    } catch {}
   };
 
-  /******************* Render ***************************/
+  const share = async () => {
+    if (!isBrowser) return;
+    const url = new URL(window.location.href);
+    if (open) {
+      url.searchParams.set("media", open.id);
+      url.searchParams.set("img", String(index));
+    }
+    try { await navigator.clipboard.writeText(url.toString()); } catch {}
+  };
+
+  // Compute card sizes for mosaic
+  const sizes: ("xl" | "md" | "sm")[] = ["xl", "md", "md", "sm", "sm", "sm"];
+
   return (
-    <div className={cn("relative", className)}>
+    <section className={cn("w-full", className)}>
+      {/* Backdrop */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(80%_50%_at_50%_0%,#ffffff,rgba(255,255,255,0)_60%)]" />
+
       {/* Header */}
-      <div className="text-center py-8 md:py-12">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-          <Badge variant="outline" className={cn("px-3 py-1", TOYOTA.radius)}>
-            {vehicle.name}
-          </Badge>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight" style={{ color: TOYOTA.text }}>
-            {title}
-          </h2>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Precisely engineered features that drive confidence and conversion.
-          </p>
-        </motion.div>
+      <div className="px-4 md:px-10 pt-10 md:pt-14 text-center">
+        <Badge variant="outline" className={cn("px-3 py-1", TOKENS.radius)}>Toyota</Badge>
+        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mt-3" style={{ color: TOKENS.text }}>{title}</h2>
+        <p className="text-sm md:text-base text-neutral-600 mt-2 max-w-2xl mx-auto">{subtitle}</p>
       </div>
 
-      {/* Mobile carousel */}
-      <div className="px-4 md:px-8 pb-6 md:hidden">
-        <div ref={swipeableRef} className="relative">
-          <motion.div key={carouselIdx} initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }}>
-            <MediaCard media={mediaItems[carouselIdx]} onClick={() => openMedia(mediaItems[carouselIdx])} isMobile />
-          </motion.div>
-          <div className="mt-4 flex items-center justify-center gap-8">
-            <div className="flex gap-2">
-              {mediaItems.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCarouselIdx(i)}
-                  aria-label={`Go to item ${i + 1}`}
-                  className={cn(
-                    "h-2 w-2 rounded-full",
-                    i === carouselIdx ? "bg-primary" : "bg-muted-foreground/30"
-                  )}
-                />
-              ))}
-            </div>
-            <div aria-hidden className="text-xs text-muted-foreground">Swipe</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop grid – always 6 cards */}
-      <div className="hidden md:block px-4 md:px-8 pb-10">
-        <div className="grid grid-cols-3 gap-6">
-          {mediaItems.slice(0, 6).map((m, i) => (
-            <motion.div key={m.id + i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <MediaCard media={m} onClick={() => openMedia(m)} isMobile={false} />
-            </motion.div>
-          ))}
-        </div>
+      {/* Mosaic grid (6 cards) */}
+      <div className="px-4 md:px-10 py-8 grid grid-cols-2 lg:grid-cols-6 gap-5">
+        {media.slice(0, 6).map((m, i) => (
+          <MosaicCard key={m.id + i} item={m} size={sizes[i] ?? "sm"} onOpen={onOpen} />
+        ))}
       </div>
 
       {/* Modal */}
       <AnimatePresence>
-        {selected && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70"
-            onClick={closeMedia}
-          >
-            {/* Container: bottom sheet on mobile; centered on desktop */}
+        {open && (
+          <motion.div className="fixed inset-0 z-50 bg-black/80" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
             <motion.div
-              initial={{ opacity: 0, y: isMobile ? 40 : 20, scale: isMobile ? 1 : 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: isMobile ? 40 : 20, scale: isMobile ? 1 : 0.98 }}
-              transition={{ type: "spring", stiffness: 210, damping: 26 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 220, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "bg-background shadow-2xl overflow-hidden flex flex-col",
-                isMobile
-                  ? "fixed inset-x-0 bottom-0 h-[85svh] rounded-t-2xl"
-                  : "fixed inset-6 rounded-2xl"
-              )}
-              role="dialog"
-              aria-modal="true"
+              className="fixed inset-0 md:inset-6 bg-white shadow-2xl overflow-hidden grid md:grid-cols-[1.15fr_0.85fr]"
+              role="dialog" aria-modal="true"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-4 md:p-6 border-b bg-background/95">
+              <div className="col-span-full flex items-center justify-between px-4 md:px-6 py-3 border-b bg-white/95">
                 <div className="min-w-0">
-                  <h3 className="text-lg md:text-2xl font-bold truncate">{selected.title}</h3>
-                  <p className="text-muted-foreground text-sm md:text-base truncate">{selected.category}</p>
+                  <h3 className="text-lg md:text-2xl font-bold truncate">{open.title}</h3>
+                  {open.category && <p className="text-neutral-600 text-sm md:text-base truncate">{open.category}</p>}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" onClick={onShare} aria-label="Copy deep link" className="hover:bg-muted">
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                  {selected.type === "video" && (
+                  <Button variant="ghost" size="icon" onClick={share} aria-label="Copy deep link" className="hover:bg-neutral-100"><Share2 className="w-5 h-5" /></Button>
+                  {open.type === "video" && (
                     <>
-                      <Button variant="ghost" size="icon" onClick={toggleMute} aria-label="Toggle mute" className="hover:bg-muted">
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={togglePlay} aria-label="Toggle play" className="hover:bg-muted">
-                        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setMuted((m) => !m)} aria-label="Toggle mute" className="hover:bg-neutral-100">{muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</Button>
+                      <Button variant="ghost" size="icon" onClick={() => setPlaying((p) => !p)} aria-label="Toggle play" className="hover:bg-neutral-100">{playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}</Button>
                     </>
                   )}
-                  <Button variant="ghost" size="icon" onClick={closeMedia} aria-label="Close" className="hover:bg-muted">
-                    <X className="h-5 w-5" />
-                  </Button>
+                  <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close" className="hover:bg-neutral-100"><X className="w-5 h-5" /></Button>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 grid md:grid-cols-2 min-h-0">
-                {/* Visual pane */}
-                <div className="relative bg-neutral-900 flex items-center justify-center">
-                  {selected.type === "video" ? (
-                    <div className="w-full max-w-6xl">
-                      <VideoBlock item={selected} />
-                    </div>
-                  ) : (
-                    <div className="w-full max-w-6xl">
-                      <SafeImage src={currImg.url} alt={currImg.title} fit="contain" ratioClass="aspect-video" />
-                    </div>
-                  )}
+              {/* Visual */}
+              <div className="bg-neutral-950 relative" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+                {open.type === "video" ? (
+                  <div className="mx-auto max-w-6xl">
+                    <VideoPlayer url={open.url} title={open.title} muted={muted} playing={playing} />
+                  </div>
+                ) : (
+                  <div className="mx-auto max-w-6xl">
+                    <SafeImage src={current?.url as string} alt={current?.title || open.title} fit="contain" ratio="aspect-video" />
+                  </div>
+                )}
 
-                  {/* Arrows (desktop only) */}
-                  {selected.galleryImages && selected.galleryImages.length > 1 && (
-                    <div className="hidden md:block">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={prev}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
-                        aria-label="Previous image"
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={next}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
-                        aria-label="Next image"
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </Button>
+                {/* arrows (images only, desktop) */}
+                {open.type === "image" && open.gallery?.length && open.gallery.length > 1 && (
+                  <div className="hidden md:block">
+                    <Button variant="outline" size="icon" onClick={() => setIndex((p) => (p - 1 + open.gallery!.length) % open.gallery!.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95"><ChevronLeft className="w-5 h-5" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => setIndex((p) => (p + 1) % open.gallery!.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95"><ChevronRight className="w-5 h-5" /></Button>
+                  </div>
+                )}
+
+                {/* thumbs */}
+                {open.type === "image" && open.gallery?.length && open.gallery.length > 1 && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-white/95 border-t p-3">
+                    <div className="flex gap-2 overflow-x-auto">
+                      {open.gallery.map((g, i) => (
+                        <button key={i} aria-label={`Image ${i + 1}`} onClick={() => setIndex(i)} className={cn("flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2", i === index ? "border-[" + TOKENS.red + "]" : "border-transparent hover:border-neutral-300")}>
+                          <SafeImage src={g.url} alt={g.title} fit="cover" />
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
+              </div>
 
-                  {/* Thumbnails (below media) */}
-                  {selected.galleryImages && selected.galleryImages.length > 1 && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-background/95 border-t p-3">
-                      <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Image thumbnails">
-                        {selected.galleryImages.map((img, idx) => (
-                          <button
-                            key={idx}
-                            role="tab"
-                            aria-selected={idx === activeIdx}
-                            onClick={() => setActiveIdx(idx)}
-                            aria-label={`Thumbnail ${idx + 1}`}
-                            className={cn(
-                              "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary/60",
-                              idx === activeIdx ? "border-primary" : "border-transparent hover:border-primary/50"
-                            )}
-                          >
-                            <SafeImage src={img.url} alt={img.title} className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+              {/* Details */}
+              <div className="min-h-0 overflow-y-auto p-5 md:p-7">
+                <h4 className="text-base md:text-xl font-semibold">{current?.title || open.title}</h4>
+                {current?.description && <p className="text-sm text-neutral-600 mt-1">{current.description}</p>}
 
-                {/* Text/content pane */}
-                <div className="min-h-0 overflow-y-auto p-4 md:p-6">
-                  <h4 className="font-semibold text-lg">{currImg.title || selected.title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{currImg.description || selected.description}</p>
-
-                  <div className="grid md:grid-cols-3 gap-6 mt-5">
-                    {mergedDetails?.specs && mergedDetails.specs.length > 0 && (
-                      <div>
-                        <h5 className="font-semibold flex items-center mb-2">
-                          <Gauge className="h-4 w-4 mr-2" /> Specifications
-                        </h5>
-                        <ul className="space-y-2">
-                          {mergedDetails.specs.map((s, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5" style={{ background: TOYOTA.red }} />
-                              <span className="ml-2">{s}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {mergedDetails?.benefits && mergedDetails.benefits.length > 0 && (
-                      <div>
-                        <h5 className="font-semibold flex items-center mb-2">
-                          <Award className="h-4 w-4 mr-2" /> Key Benefits
-                        </h5>
-                        <ul className="space-y-2">
-                          {mergedDetails.benefits.map((b, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5 bg-foreground rounded-full mr-2" />
-                              {b}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {mergedDetails?.technology && mergedDetails.technology.length > 0 && (
-                      <div>
-                        <h5 className="font-semibold flex items-center mb-2">
-                          <Cpu className="h-4 w-4 mr-2" /> Technology
-                        </h5>
-                        <ul className="space-y-2">
-                          {mergedDetails.technology.map((t, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-center">
-                              <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full mr-2" />
-                              {t}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                {/* Info chips */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                  <div className="p-3 rounded-md border bg-white">
+                    <p className="text-xs text-neutral-500">Highlights</p>
+                    <p className="text-sm mt-1">{open.category || "—"}</p>
+                  </div>
+                  <div className="p-3 rounded-md border bg-white">
+                    <p className="text-xs text-neutral-500">Media</p>
+                    <p className="text-sm mt-1">{open.type === "video" ? "Video" : open.gallery?.length ? `${open.gallery.length} images` : "Image"}</p>
+                  </div>
+                  <div className="p-3 rounded-md border bg-white">
+                    <p className="text-xs text-neutral-500">Share</p>
+                    <button onClick={share} className="text-sm mt-1 underline">Copy link</button>
                   </div>
                 </div>
+
+                {open.description && (
+                  <div className="mt-6 border-t pt-4">
+                    <p className="text-sm text-neutral-700 leading-relaxed">{open.description}</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 };
 
-/********************* Media Card ************************/
-interface MediaCardProps {
-  media: MediaItem;
-  onClick: () => void;
-  isMobile?: boolean;
-}
-
-const getYouTubeIdForCard = (url: string) => {
-  const m = url?.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,11})/);
-  return m ? m[1] : "";
-};
-
-const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
-  const isVideo = media.type === "video";
-  const vid = isVideo ? getYouTubeIdForCard(media.url) : "";
-  const cardImage = isVideo
-    ? media.thumbnail || (vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : undefined)
-    : media.url;
-
-  return (
-    <motion.div whileHover={{ scale: isMobile ? 1 : 1.01, y: isMobile ? 0 : -2 }} whileTap={{ scale: 0.98 }} className="cursor-pointer" onClick={onClick}>
-      <Card className={cn("overflow-hidden border bg-card hover:shadow-lg transition-shadow", TOYOTA.radius)}>
-        <div className="relative h-64 md:h-72">
-          <SafeImage src={cardImage as string} alt={media.title} fit="cover" />
-          <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur px-4 py-3 border-t">
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-[11px] tracking-wide">
-                {media.category}
-              </Badge>
-              {isVideo && <span className="text-[11px] px-2 py-0.5 border rounded-full">Video</span>}
-            </div>
-            <h3 className="text-[17px] font-bold leading-tight">{media.title}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-1">{media.description}</p>
-          </div>
-        </div>
-      </Card>
-    </motion.div>
-  );
-};
-
-export default ToyotaMediaStudio;
+export default ToyotaMediaStudioPro;
