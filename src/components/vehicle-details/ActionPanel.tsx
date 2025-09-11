@@ -15,12 +15,10 @@ const GR_SURFACE = "#0B0B0C";
 const GR_EDGE = "#17191B";
 const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#A8ACB0";
-// Use your uploaded carbon weave image
+
 const CARBON_URL =
   "https://aepprddxamb01.corp.al-futtaim.com/dx/api/dam/v1/collections/f33badf4-a2df-4400-81f4-80b38a5461f7/items/6949214d-eddd-4a97-8e93-8c4ed9563ffc/renditions/3d30ccb3-dd72-4e9d-b02a-aa9759450957?binary=true";
 
-// Gradient FIRST (on top), image SECOND (underneath).
-// 'multiply' is more predictable than 'overlay' across browsers.
 const carbonMatte: React.CSSProperties = {
   backgroundImage:
     "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(" + CARBON_URL + ")",
@@ -81,8 +79,8 @@ interface ActionPanelProps {
   onToggleFavorite?: () => void;
 }
 
+/** (kept for backward compat, no functional use now) */
 const PANEL_H = {
-  // replaced later by CSS vars using clamp()
   base: "64px",
   md: "80px",
 };
@@ -91,8 +89,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   vehicle,
   onDownloadBrochure,
   onBookTestDrive,
-  onCarBuilder,
   onFinanceCalculator,
+  onCarBuilder,
 }) => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -107,6 +105,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   );
 
   const handleTestDrive = () => {
+    // Keep existing popup util
     openTestDrivePopup(vehicle);
   };
 
@@ -162,28 +161,32 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
   if (isMobile) return null;
 
-  // 🔧 Responsive sizing via CSS vars (no logic change)
+  /**
+   * 🔧 Sizing rules:
+   * - Panel height reduced.
+   * - Button height / padding reduced.
+   * - Icon sizes are FIXED (do not scale down with the buttons).
+   */
   const panelStyle: React.CSSProperties = {
-    // Panel height scales with viewport width, clamped to sensible bounds
-    // sm-ish: ~60px, up to ~84px on large screens
-    // @ts-ignore – CSS var is fine
-    "--panel-h": "clamp(56px, 6.5vw, 72px)",
-    "--panel-h-md": "clamp(64px, 5.5vw, 84px)",
+    // Panel: smaller overall height
+    // ~50–60px regular, ~58–70px on md+
+    // @ts-ignore custom properties
+    "--panel-h": "clamp(50px, 5.5vw, 60px)",
+    "--panel-h-md": "clamp(58px, 5vw, 70px)",
 
-    // Button heights/paddings shrink slightly and scale up gracefully
-    "--btn-h": "clamp(36px, 3.2vw, 44px)",
-    "--btn-h-md": "clamp(40px, 2.8vw, 48px)",
-    "--btn-px": "clamp(10px, 1.8vw, 16px)",
-    "--btn-px-md": "clamp(12px, 1.6vw, 18px)",
+    // Buttons: slimmer height/padding; min-widths trimmed
+    "--btn-h": "clamp(32px, 2.6vw, 40px)",
+    "--btn-h-md": "clamp(36px, 2.3vw, 44px)",
+    "--btn-px": "clamp(8px, 1.4vw, 14px)",
+    "--btn-px-md": "clamp(10px, 1.3vw, 16px)",
+    "--btn-minw-primary": "clamp(104px, 11vw, 132px)",
+    "--btn-minw-secondary": "clamp(98px, 10vw, 124px)",
+    "--btn-minw-brochure": "clamp(108px, 11vw, 132px)",
+    "--btn-icon": "clamp(32px, 2.6vw, 38px)",
 
-    // Minimum widths trimmed so CTAs look tighter
-    "--btn-minw-primary": "clamp(112px, 12vw, 140px)",
-    "--btn-minw-secondary": "clamp(104px, 11vw, 130px)",
-    "--btn-minw-brochure": "clamp(116px, 12vw, 140px)",
-    "--btn-icon": "clamp(34px, 3.2vw, 40px)",
-
-    // Icon sizes (kept subtle)
-    "--icon": "clamp(14px, 1.4vw, 16px)",
+    // Icons: fixed sizes (do NOT shrink with buttons)
+    "--icon": "16px",
+    "--icon-md": "18px",
 
     ...(isGR
       ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" }
@@ -213,8 +216,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               <span
                 className={[
                   "font-black truncate",
-                  // slightly smaller and fluid
-                  "text-[clamp(14px,1.6vw,18px)] md:text-[clamp(16px,1.4vw,20px)]",
+                  // slightly smaller, still legible
+                  "text-[clamp(13px,1.4vw,16px)] md:text-[clamp(15px,1.2vw,18px)]",
                   isGR ? "text-red-300" : "text-primary",
                 ].join(" ")}
               >
@@ -223,7 +226,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               <span
                 className={[
                   "line-through",
-                  "text-[clamp(9px,1vw,12px)] md:text-[clamp(10px,0.9vw,13px)]",
+                  "text-[clamp(9px,0.9vw,11px)] md:text-[clamp(10px,0.85vw,12px)]",
                   isGR ? "text-neutral-400/80" : "text-muted-foreground",
                 ].join(" ")}
               >
@@ -233,7 +236,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             <p
               className={[
                 "hidden md:block leading-none mt-1",
-                "text-[clamp(10px,0.9vw,12px)]",
+                "text-[clamp(10px,0.85vw,12px)]",
                 isGR ? "text-neutral-400" : "text-muted-foreground",
               ].join(" ")}
             >
@@ -241,24 +244,17 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             </p>
           </div>
 
-          {/* Actions */}
-          <div
-            className={[
-              "flex-1 flex items-center justify-end",
-              // allow wrap on narrower desktops so CTAs don’t overflow
-              "flex-wrap gap-1.5 md:gap-2",
-            ].join(" ")}
-          >
+          {/* Actions (wrap on tight widths) */}
+          <div className="flex-1 flex items-center justify-end flex-wrap gap-1.5 md:gap-2">
             {/* Primary buttons */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
                 onClick={handleTestDrive}
                 className={[
                   "rounded-lg shadow-lg transition-colors duration-200",
-                  // use CSS vars for compact sizing
                   "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
                   "px-[var(--btn-px)] md:px-[var(--btn-px-md)]",
-                  "text-[clamp(12px,1.1vw,14px)]",
+                  "text-[clamp(11px,1vw,13px)]",
                   "min-w-[var(--btn-minw-primary)]",
                   isGR
                     ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
@@ -268,9 +264,13 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               >
                 <Car
                   className="mr-1"
-                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                  style={{
+                    width: "var(--icon)",
+                    height: "var(--icon)",
+                  }}
                 />
-                Book Test Drive
+                <span className="md:hidden">Test Drive</span>
+                <span className="hidden md:inline">Book Test Drive</span>
               </Button>
 
               <Button
@@ -280,7 +280,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "rounded-lg",
                   "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
                   "px-[var(--btn-px)] md:px-[var(--btn-px-md)]",
-                  "text-[clamp(12px,1.1vw,14px)]",
+                  "text-[clamp(11px,1vw,13px)]",
                   "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
@@ -290,13 +290,16 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               >
                 <Settings
                   className="mr-1"
-                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                  style={{
+                    width: "var(--icon)",
+                    height: "var(--icon)",
+                  }}
                 />
-                Build & Price
+                <span>Build & Price</span>
               </Button>
             </div>
 
-            {/* Icon actions */}
+            {/* Secondary / icon actions */}
             <div className="flex items-center gap-1.5 md:gap-2">
               {/* Finance */}
               <Button
@@ -305,8 +308,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 className={[
                   "rounded-lg flex items-center justify-center font-semibold",
                   "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
-                  "px-[calc(var(--btn-px)-2px)] md:px-[calc(var(--btn-px-md)-2px)]",
-                  "text-[clamp(12px,1.1vw,14px)]",
+                  "px-[calc(var(--btn-px)-2px)] md:px-[calc(var(--btn-px)-1px)]",
+                  "text-[clamp(11px,1vw,13px)]",
                   "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-red-300 border-2 border-[#C4252A] hover:bg-[#141618] focus:ring-2 focus:ring-red-500"
@@ -317,7 +320,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               >
                 <Calculator
                   className="mr-1.5"
-                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                  style={{
+                    width: "var(--icon)",
+                    height: "var(--icon)",
+                  }}
                 />
                 <span>Finance</span>
               </Button>
@@ -329,8 +335,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 className={[
                   "rounded-lg flex items-center justify-center font-semibold",
                   "h-[var(--btn-h)] md:h-[var(--btn-h-md)]",
-                  "px-[calc(var(--btn-px)-1px)] md:px-[calc(var(--btn-px-md)-1px)]",
-                  "text-[clamp(12px,1.1vw,14px)]",
+                  "px-[calc(var(--btn-px)-1px)] md:px-[var(--btn-px-md)]",
+                  "text-[clamp(11px,1vw,13px)]",
                   "min-w-[var(--btn-minw-brochure)]",
                   isGR
                     ? "text-neutral-100 bg-[#1D1F22] border border-[#1F2124] hover:bg-[#202328]"
@@ -341,12 +347,15 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               >
                 <FileText
                   className="mr-1.5"
-                  style={{ width: "var(--icon)", height: "var(--icon)" }}
+                  style={{
+                    width: "var(--icon)",
+                    height: "var(--icon)",
+                  }}
                 />
                 <span>Brochure</span>
               </Button>
 
-              {/* Share */}
+              {/* Share (icon-only button) */}
               <Button
                 onClick={handleShare}
                 variant={isGR ? "ghost" : "outline"}
@@ -360,7 +369,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 aria-label="Share"
                 title="Share"
               >
-                <Share2 style={{ width: "var(--icon)", height: "var(--icon)" }} />
+                <Share2
+                  style={{
+                    width: "var(--icon)",
+                    height: "var(--icon)",
+                  }}
+                />
               </Button>
 
               {/* GR toggle chip (desktop only) */}
@@ -374,7 +388,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "hidden md:inline-flex items-center rounded-full",
                   "h-[calc(var(--btn-h)-2px)] md:h-[calc(var(--btn-h-md)-2px)]",
                   "px-[calc(var(--btn-px)-4px)] md:px-[calc(var(--btn-px-md)-4px)]",
-                  "text-[clamp(11px,1vw,13px)] font-semibold",
+                  "text-[clamp(10px,0.9vw,12px)] font-semibold",
                   "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#CC0000]",
                   isGR
                     ? "border border-[#17191B] text-red-300"
@@ -392,12 +406,12 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         <div
           className={[
             "hidden xl:flex absolute left-1/2 -translate-x-1/2 bottom-1 items-center gap-3 pointer-events-none",
-            "text-[clamp(10px,0.85vw,12px)]",
+            "text-[clamp(9px,0.8vw,11px)]",
             isGR ? "text-neutral-400" : "text-muted-foreground",
           ].join(" ")}
         >
           <span className="flex items-center">
-            <MapPin className="h-4 w-4 mr-1" />
+            <MapPin style={{ width: 16, height: 16 }} className="mr-1" />
             Available at all showrooms
           </span>
           <span>• Free delivery</span>
