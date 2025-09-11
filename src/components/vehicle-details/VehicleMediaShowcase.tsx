@@ -2,36 +2,22 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { VehicleModel } from "@/types/vehicle";
 
-/* ------------ Brand tokens ------------- */
+/* ---------------- Toyota accents & helpers ---------------- */
 const TOK = {
   red: "#EB0A1E",
-  ring: "focus:outline-none focus:ring-2 focus:ring-red-500",
-  card: "bg-white shadow-sm border border-zinc-100",
-  radius: "rounded-2xl",
   muted: "text-zinc-500",
+  card: "bg-white border border-zinc-100",
+  radius: "rounded-2xl",
 };
-
-/* ------------ Types ------------- */
-type DetailBlock = { overview?: string; specs?: string[]; features?: string[]; tech?: string[] };
-type Slide = { url: string; title: string; description?: string; details?: DetailBlock };
-type MediaItem = {
-  id: string;
-  category: string;
-  title: string;
-  summary: string;
-  kind: "image" | "video";
-  thumbnail: string;
-  gallery: Slide[];
-  video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
-  badges?: string[];
-};
-
-/* ------------ Utilities ------------- */
 const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
-const ImageSafe: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = ({ src, alt, className, ...rest }) => {
+/* ---------------- Safe image (DAM-only) ---------------- */
+const ImageSafe: React.FC<
+  React.ImgHTMLAttributes<HTMLImageElement> & { fallbackSrc?: string; fit?: "contain" | "cover" }
+> = ({ src, alt, className, fallbackSrc, fit = "cover", ...rest }) => {
   const [err, setErr] = useState(!src);
-  if (!src || err) {
+  const resolved = !err ? src : fallbackSrc;
+  if (!resolved) {
     return (
       <div className={cx("grid place-items-center bg-zinc-100 text-[11px] text-zinc-400", className)}>
         Image unavailable
@@ -41,21 +27,21 @@ const ImageSafe: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = ({ src, a
   return (
     <img
       {...rest}
-      src={src}
+      src={resolved}
       alt={alt}
       loading="lazy"
-      referrerPolicy="no-referrer"
       onError={() => setErr(true)}
-      className={cx("block", className)}
+      className={cx("block w-full h-full", fit === "cover" ? "object-cover" : "object-contain", className)}
     />
   );
 };
 
+/* ---------------- Wistia (iframe, reliable) ---------------- */
 const WistiaEmbed: React.FC<{ id: string; aspect?: number; autoPlay?: boolean; muted?: boolean; className?: string }> = ({
   id,
   aspect = 16 / 9,
-  autoPlay,
-  muted,
+  autoPlay = true,
+  muted = true,
   className,
 }) => {
   const qs = new URLSearchParams({
@@ -66,7 +52,7 @@ const WistiaEmbed: React.FC<{ id: string; aspect?: number; autoPlay?: boolean; m
     controlsVisibleOnLoad: "true",
   }).toString();
   return (
-    <div className={cx("relative w-full overflow-hidden", className)} style={{ aspectRatio: `${aspect}` }}>
+    <div className={cx("relative w-full overflow-hidden", className)} style={{ aspectRatio: String(aspect) }}>
       <iframe
         className="absolute inset-0 w-full h-full"
         src={`https://fast.wistia.net/embed/iframe/${id}?${qs}`}
@@ -78,10 +64,30 @@ const WistiaEmbed: React.FC<{ id: string; aspect?: number; autoPlay?: boolean; m
   );
 };
 
-/* ------------ Demo media (DAM URLs only) ------------- */
-const DEMO: MediaItem[] = [
+/* ---------------- Content model ---------------- */
+type DetailBlock = { overview?: string; specs?: string[]; features?: string[]; tech?: string[] };
+type Hotspot = { x: number; y: number; label: string; body?: string };
+type Slide = { url: string; title: string; description?: string; details?: DetailBlock; hotspots?: Hotspot[] };
+type Variant = "performance" | "safety" | "interior" | "quality" | "technology" | "handling";
+
+type MediaItem = {
+  id: string;
+  variant: Variant;
+  category: string;
+  title: string;
+  summary: string;
+  kind: "image" | "video";
+  thumbnail: string;
+  gallery: Slide[];
+  video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
+  badges?: string[];
+};
+
+/* ---------------- Demo data (all DAM) ---------------- */
+const ITEMS: MediaItem[] = [
   {
-    id: "v6",
+    id: "perf",
+    variant: "performance",
     category: "Performance",
     title: "V6 Twin-Turbo",
     summary: "400+ hp, broad torque band, efficient cruising.",
@@ -94,11 +100,15 @@ const DEMO: MediaItem[] = [
         title: "Cooling Strategy",
         description: "Dual-path cooling keeps temps stable under load.",
         details: {
-          overview: "3.5L V6 TT engineered for instant response and sustained performance.",
+          overview: "3.5L V6 TT optimized for instant response and sustained performance.",
           specs: ["3.5L V6 TT", "400+ hp", "0–60 in 4.2s"],
           features: ["Direct injection", "VVT", "Aluminum block"],
           tech: ["Closed-loop boost", "Knock learning", "Smart thermal mgmt"],
         },
+        hotspots: [
+          { x: 22, y: 35, label: "Charge cooler", body: "Low temp circuit for intake air." },
+          { x: 76, y: 48, label: "VGT", body: "Variable geometry turbines reduce lag." },
+        ],
       },
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
@@ -107,10 +117,31 @@ const DEMO: MediaItem[] = [
         details: { specs: ["VGT turbines", "Low-mass impellers"], features: ["Wider band", "Low lag"], tech: ["Charge-air cooling"] },
       },
     ],
-    badges: ["3.5L V6 TT", "400+ hp", "Instant response"],
+    badges: ["400+ hp", "Instant response"],
   },
   {
-    id: "interior",
+    id: "safe",
+    variant: "safety",
+    category: "Safety",
+    title: "Toyota Safety Sense",
+    summary: "Camera+radar fusion, assistance when you need it.",
+    kind: "video",
+    thumbnail:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    video: { provider: "wistia", id: "kvdhnonllm", autoplay: true },
+    gallery: [
+      {
+        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
+        title: "Sensors",
+        description: "Wide FOV camera and radar coverage.",
+        details: { overview: "ADAS suite: PCS, LTA, ACC, BSM.", specs: ["PCS", "LTA", "ACC", "BSM"] },
+      },
+    ],
+    badges: ["PCS", "LTA", "ACC"],
+  },
+  {
+    id: "int",
+    variant: "interior",
     category: "Interior",
     title: "Driver-Focused Cabin",
     summary: "Premium materials, intuitive controls, low distraction.",
@@ -139,44 +170,8 @@ const DEMO: MediaItem[] = [
     badges: ['12.3" display', "Comfort"],
   },
   {
-    id: "safety",
-    category: "Safety",
-    title: "Toyota Safety Sense",
-    summary: "Camera+radar fusion, assistance when you need it.",
-    kind: "video",
-    thumbnail:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-    video: { provider: "wistia", id: "kvdhnonllm", autoplay: true },
-    gallery: [
-      {
-        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
-        title: "Sensors",
-        description: "Wide FOV camera and radar coverage.",
-        details: { overview: "ADAS suite: PCS, LTA, ACC, BSM.", specs: ["PCS", "LTA", "ACC", "BSM"] },
-      },
-    ],
-    badges: ["PCS", "LTA", "ACC"],
-  },
-  {
-    id: "handling",
-    category: "Performance",
-    title: "Chassis Dynamics",
-    summary: "Adaptive damping and precise control.",
-    kind: "image",
-    thumbnail:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-    gallery: [
-      {
-        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
-        title: "Adaptive Dampers",
-        description: "Millisecond-level response for composure.",
-        details: { specs: ["Active dampers", "Torque vectoring"], features: ["AWD grip", "Drive modes"] },
-      },
-    ],
-    badges: ["AWD", "Sport mode"],
-  },
-  {
-    id: "quality",
+    id: "qual",
+    variant: "quality",
     category: "Quality",
     title: "Build Quality",
     summary: "High-strength materials and precise assembly.",
@@ -194,7 +189,8 @@ const DEMO: MediaItem[] = [
     badges: ["Durability", "Refinement"],
   },
   {
-    id: "connect",
+    id: "tech",
+    variant: "technology",
     category: "Technology",
     title: "Connected Services",
     summary: "CarPlay/Android Auto, OTA updates.",
@@ -210,62 +206,237 @@ const DEMO: MediaItem[] = [
     ],
     badges: ["CarPlay", "OTA"],
   },
+  {
+    id: "hand",
+    variant: "handling",
+    category: "Performance",
+    title: "Chassis Dynamics",
+    summary: "Adaptive damping and precise control.",
+    kind: "image",
+    thumbnail:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
+    gallery: [
+      {
+        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
+        title: "Adaptive Dampers",
+        description: "Millisecond-level response for composure.",
+        details: { specs: ["Active dampers", "Torque vectoring"], features: ["AWD grip", "Drive modes"] },
+      },
+    ],
+    badges: ["AWD", "Sport mode"],
+  },
 ];
 
-/* ------------ Props ------------- */
+/* ---------------- Props ---------------- */
 interface Props {
   vehicle: VehicleModel;
 }
 
-/* =======================================
-   VehicleMediaShowcase
-======================================= */
+/* ---------------- Helpers: paging (no vertical scroll) ---------------- */
+const slicePage = <T,>(list: T[] | undefined, page: number, perPage: number) => {
+  if (!list || list.length === 0) return [];
+  const start = page * perPage;
+  return list.slice(start, start + perPage);
+};
+
+const useBodyLock = (locked: boolean) => {
+  useEffect(() => {
+    if (!locked) return;
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prev;
+    };
+  }, [locked]);
+};
+
+/* ---------------- Variant widgets (distinct looks) ---------------- */
+const VARIANT: Record<
+  Variant,
+  {
+    accent: string;
+    headerStripe?: boolean;
+    renderExtras?: (ctx: {
+      item: MediaItem;
+      idx: number;
+      slide?: Slide | null;
+      mode: string;
+      setMode: (m: string) => void;
+      isMobile: boolean;
+    }) => React.ReactNode;
+  }
+> = {
+  performance: {
+    accent: "text-red-600",
+    headerStripe: true,
+    renderExtras: ({ isMobile }) => (
+      <div className={cx("grid", isMobile ? "grid-cols-3 gap-2" : "grid-cols-3 gap-3")}>
+        <KpiChip label="Power" value="400+ hp" />
+        <KpiChip label="0–100" value="4.2 s" />
+        <KpiChip label="Efficiency" value="28 mpg" />
+      </div>
+    ),
+  },
+  safety: {
+    accent: "text-blue-700",
+    renderExtras: ({ slide }) => (
+      <Checklist items={slide?.details?.specs || ["Pre-Collision System", "Lane Tracing Assist", "Adaptive Cruise", "Blind Spot Monitor"]} />
+    ),
+  },
+  interior: {
+    accent: "text-amber-700",
+    renderExtras: ({ item, slide, setMode }) => (
+      <Swatches
+        images={(item.gallery || []).map((g) => g.url)}
+        active={slide?.url}
+        onPick={(u) => setMode(u)}
+      />
+    ),
+  },
+  quality: {
+    accent: "text-zinc-700",
+    renderExtras: () => <Timeline steps={["Materials", "Assembly", "QA"]} />,
+  },
+  technology: {
+    accent: "text-cyan-700",
+    renderExtras: () => <Tiles items={["CarPlay", "Android Auto", "Wi-Fi", "OTA"]} />,
+  },
+  handling: {
+    accent: "text-rose-700",
+    renderExtras: ({ mode, setMode }) => (
+      <ModePills modes={["Eco", "Normal", "Sport"]} active={mode} onChange={setMode} />
+    ),
+  },
+};
+
+const KpiChip: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="rounded-xl border px-3 py-2 text-center">
+    <div className="text-[11px] text-zinc-500">{label}</div>
+    <div className="text-sm font-semibold">{value}</div>
+  </div>
+);
+
+const Checklist: React.FC<{ items: string[] }> = ({ items }) => (
+  <div className="grid grid-cols-2 gap-2">
+    {items.map((t) => (
+      <div key={t} className="flex items-center gap-2">
+        <span className="inline-grid place-items-center h-4 w-4 rounded-full border border-green-600 text-green-700 text-[10px]">✓</span>
+        <span className="text-sm">{t}</span>
+      </div>
+    ))}
+  </div>
+);
+
+const Swatches: React.FC<{ images: string[]; active?: string; onPick: (u: string) => void }> = ({ images, active, onPick }) => (
+  <div className="flex gap-2 overflow-x-auto">
+    {images.slice(0, 6).map((u) => (
+      <button
+        key={u}
+        onClick={() => onPick(u)}
+        className={cx("h-12 w-16 rounded-md border overflow-hidden", active === u ? "ring-2 ring-red-500" : "")}
+      >
+        <ImageSafe src={u} alt="swatch" className="h-full w-full object-cover" />
+      </button>
+    ))}
+  </div>
+);
+
+const Timeline: React.FC<{ steps: string[] }> = ({ steps }) => (
+  <div className="flex items-center gap-3">
+    {steps.map((s, i) => (
+      <React.Fragment key={s}>
+        <div className="text-sm font-medium">{s}</div>
+        {i < steps.length - 1 && <div className="h-px w-6 bg-zinc-300" />}
+      </React.Fragment>
+    ))}
+  </div>
+);
+
+const Tiles: React.FC<{ items: string[] }> = ({ items }) => (
+  <div className="grid grid-cols-2 gap-2">
+    {items.map((t) => (
+      <div key={t} className="rounded-xl border px-3 py-3 text-sm">{t}</div>
+    ))}
+  </div>
+);
+
+const ModePills: React.FC<{ modes: string[]; active: string; onChange: (m: string) => void }> = ({ modes, active, onChange }) => (
+  <div className="flex gap-2">
+    {modes.map((m) => (
+      <button
+        key={m}
+        onClick={() => onChange(m)}
+        className={cx(
+          "px-3 py-1.5 rounded-full border text-sm",
+          active === m ? "bg-zinc-900 text-white border-zinc-900" : "hover:bg-zinc-100"
+        )}
+      >
+        {m}
+      </button>
+    ))}
+  </div>
+);
+
+/* ---------------- Component ---------------- */
 const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
-  const items = useMemo<MediaItem[]>(() => DEMO.slice(0, 6), [vehicle]);
+  const items = useMemo(() => ITEMS.slice(0, 6), [vehicle]);
   const topWistiaId = "kvdhnonllm";
 
+  /* Modal state */
   const [open, setOpen] = useState<MediaItem | null>(null);
-  const [idx, setIdx] = useState(0);
-  const [zoom, setZoom] = useState(false);
+  const [idx, setIdx] = useState(0); // 0 = video (if exists) else first slide; images follow
+  const [tab, setTab] = useState<"overview" | "specs" | "features" | "tech">("overview");
+  const [page, setPage] = useState(0); // for paginating bullets (no vertical scroll)
+  const [mode, setMode] = useState("Normal"); // used by handling/interior variants
+  const isMobile = useIsMobile();
+  useBodyLock(!!open);
 
   const hasVideo = !!open?.video;
-  const slides: Slide[] = useMemo(() => {
-    if (!open) return [];
-    const imgs = open.gallery && open.gallery.length > 0 ? open.gallery : [{ url: open.thumbnail, title: open.title }];
-    return imgs;
-  }, [open]);
+  const slides = open?.gallery ?? [];
+  const isVideoFrame = hasVideo && idx === 0;
+  const slide = !isVideoFrame ? slides[hasVideo ? idx - 1 : idx] : undefined;
 
-  const visualIsVideo = hasVideo && idx === 0;
-  const imgIndex = hasVideo ? Math.max(0, idx - 1) : idx;
-  const slide = !visualIsVideo ? slides[imgIndex] : undefined;
+  const resetModalState = (m: MediaItem) => {
+    setOpen(m);
+    setIdx(0);
+    setTab("overview");
+    setPage(0);
+    setMode("Normal");
+  };
 
-  useEffect(() => {
-    if (!open) return;
-    const total = slides.length + (hasVideo ? 1 : 0);
-    const preloadIdxs = [1, total - 1]
-      .map((d) => (idx + d + total) % total)
-      .filter((i) => !hasVideo || i !== 0)
-      .map((i) => slides[hasVideo ? i - 1 : i]?.url)
-      .filter(Boolean) as string[];
-    preloadIdxs.forEach((u) => {
-      const im = new Image();
-      im.referrerPolicy = "no-referrer";
-      im.src = u;
-    });
-  }, [open, idx, slides, hasVideo]);
+  /* Swipe navigation with angle guard */
+  const tStart = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    tStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!tStart.current) return;
+    const dx = e.changedTouches[0].clientX - tStart.current.x;
+    const dy = e.changedTouches[0].clientY - tStart.current.y;
+    const angle = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
+    // Only horizontal swipes (ignore vertical scroll gestures)
+    if (Math.abs(dx) > 40 && (angle < 35 || angle > 145)) {
+      dx > 0 ? prev() : next();
+    }
+    tStart.current = null;
+  };
 
   const next = useCallback(() => {
     if (!open) return;
     const total = slides.length + (hasVideo ? 1 : 0);
-    setIdx((p) => (p + 1) % total);
+    setIdx((p) => (p + 1) % Math.max(1, total));
+    setPage(0);
   }, [open, slides.length, hasVideo]);
 
   const prev = useCallback(() => {
     if (!open) return;
     const total = slides.length + (hasVideo ? 1 : 0);
-    setIdx((p) => (p - 1 + total) % total);
+    setIdx((p) => (p - 1 + Math.max(1, total)) % Math.max(1, total));
+    setPage(0);
   }, [open, slides.length, hasVideo]);
 
+  /* Keyboard shortcuts */
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -277,16 +448,21 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
 
-  const tStart = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => (tStart.current = e.touches[0].clientX);
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (tStart.current == null) return;
-    const dx = e.changedTouches[0].clientX - tStart.current;
-    if (dx > 48) prev();
-    if (dx < -48) next();
-    tStart.current = null;
-  };
+  /* Tiles mobile carousel index */
+  const mobWrapRef = useRef<HTMLDivElement>(null);
+  const [mobIndex, setMobIndex] = useState(0);
+  useEffect(() => {
+    const el = mobWrapRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
+      setMobIndex(Math.round(el.scrollLeft / (w + 16)));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
 
+  /* CTA bridge */
   const openBooking = () => {
     try {
       window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
@@ -294,50 +470,45 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
     } catch {}
   };
 
-  const mobWrapRef = useRef<HTMLDivElement>(null);
-  const [mobIndex, setMobIndex] = useState(0);
-  useEffect(() => {
-    const el = mobWrapRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const card = el.querySelector<HTMLElement>("[data-tile]");
-      const w = card?.offsetWidth ?? 1;
-      const gap = 16;
-      setMobIndex(Math.round(el.scrollLeft / (w + gap)));
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+  /* Pagination sizing (no vertical scroll) */
+  const PER_PAGE = isMobile ? 5 : 6;
+  const bullets = (() => {
+    if (!slide) return [];
+    if (tab === "specs") return slide.details?.specs || [];
+    if (tab === "features") return slide.details?.features || [];
+    if (tab === "tech") return slide.details?.tech || [];
+    return []; // overview is paragraph
+  })();
+  const totalPages = Math.max(1, Math.ceil((bullets?.length || 0) / PER_PAGE));
+  const pageBullets = slicePage(bullets, page, PER_PAGE);
+
+  /* Variant extras */
+  const variant = open ? VARIANT[open.variant] : null;
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 md:px-6">
-      {/* Top video card (not fullscreen on desktop, no CTA above video) */}
-      <div className={cx(TOK.card, TOK.radius, "p-3 md:p-4 mb-8")}>
-        <div className="flex items-center justify-between">
+      {/* Top video (not fullscreen on desktop) */}
+      <div className={cx(TOK.card, TOK.radius, "p-3 md:p-4 mb-8 bg-white")}>
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold px-3 py-1 bg-zinc-100 rounded-full">Video</span>
             <h2 className="text-2xl md:text-3xl font-bold">Highlights</h2>
           </div>
         </div>
-        <WistiaEmbed id={topWistiaId} aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
+        <WistiaEmbed id="kvdhnonllm" aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
       </div>
 
-      {/* Mobile carousel (tiles) */}
+      {/* Mobile: 6-tile carousel */}
       <div className="md:hidden mb-6">
         <div
           ref={mobWrapRef}
-          className="flex flex-nowrap gap-4 overflow-x-auto snap-x snap-mandatory overscroll-x-contain no-scrollbar -mx-4 px-4 pb-2"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-4 px-4 pb-2"
         >
           {items.map((m) => (
             <button
               key={m.id}
-              data-tile
-              onClick={() => {
-                setOpen(m);
-                setIdx(0);
-                setZoom(false);
-              }}
-              className={cx(TOK.card, TOK.radius, TOK.ring, "snap-start shrink-0 min-w-[86%] max-w-[86%] text-left overflow-hidden")}
+              onClick={() => resetModalState(m)}
+              className={cx(TOK.card, TOK.radius, "snap-center w-[85%] text-left overflow-hidden")}
             >
               <div className="relative">
                 <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-48 object-cover" />
@@ -358,22 +529,22 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
         </div>
         <div className="flex justify-center gap-2 mt-2">
           {items.map((_, i) => (
-            <span key={i} className={cx("h-1.5 w-1.5 rounded-full", i === mobIndex ? "" : "bg-zinc-300")} style={{ background: i === mobIndex ? TOK.red : undefined }} />
+            <span
+              key={i}
+              className={cx("h-1.5 w-1.5 rounded-full", i === mobIndex ? "" : "bg-zinc-300")}
+              style={{ background: i === mobIndex ? TOK.red : undefined }}
+            />
           ))}
         </div>
       </div>
 
-      {/* Desktop grid (6 tiles) */}
+      {/* Desktop: 6-tile grid */}
       <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((m) => (
           <button
             key={m.id}
-            onClick={() => {
-              setOpen(m);
-              setIdx(0);
-              setZoom(false);
-            }}
-            className={cx(TOK.card, TOK.radius, TOK.ring, "text-left overflow-hidden hover:shadow-md transition-shadow")}
+            onClick={() => resetModalState(m)}
+            className={cx(TOK.card, TOK.radius, "text-left overflow-hidden hover:shadow-md transition-shadow")}
           >
             <div className="relative">
               <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-56 md:h-64 object-cover" />
@@ -393,91 +564,70 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
         ))}
       </div>
 
-      {/* ===== Modal (mobile pinned to top) ===== */}
+      {/* ---------------------- Modal (no vertical scroll) ---------------------- */}
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center p-0 md:p-6 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center p-0 md:p-6"
           onClick={() => setOpen(null)}
           role="dialog"
           aria-modal="true"
         >
           <div
-            className={cx(
-              "bg-white w-full min-h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden",
-              "flex flex-col pt-[env(safe-area-inset-top)]"
-            )}
+            className={cx("bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden flex flex-col")}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky header */}
-            <div className="sticky top-0 z-10 px-3 md:px-6 py-3 border-b bg-white/95 backdrop-blur">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <h4 className="text-base md:text-2xl font-bold truncate">{open.title}</h4>
-                  <p className="text-xs md:text-sm text-zinc-500">{open.category}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
-                    {`${idx + 1}/${slides.length + (hasVideo ? 1 : 0)}`}
-                  </span>
-                  {/* header CTA visible only on mobile to avoid desktop duplicate */}
-                  <button
-                    onClick={openBooking}
-                    className="md:hidden px-4 py-2 rounded-full font-medium text-white"
-                    style={{ background: TOK.red }}
-                  >
-                    Book Test Drive
-                  </button>
-                  <button onClick={() => setOpen(null)} className="px-3 py-2 rounded-full border hover:bg-zinc-50">
-                    Close
-                  </button>
-                </div>
+            {/* Header (no CTA duplicates) */}
+            <div className={cx("h-14 md:h-16 px-3 md:px-6 border-b bg-white flex items-center justify-between", variant?.headerStripe ? "relative" : "")}>
+              {variant?.headerStripe && (
+                <div className="absolute top-0 left-0 h-1 w-28" style={{ background: TOK.red }} />
+              )}
+              <div className="min-w-0">
+                <div className="text-[12px] text-zinc-500">{open.category}</div>
+                <div className={cx("font-bold truncate", isMobile ? "text-base" : "text-2xl")}>{open.title}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
+                  {(slides.length + (hasVideo ? 1 : 0)) ? `${idx + 1}/${slides.length + (hasVideo ? 1 : 0)}` : "1/1"}
+                </span>
+                <button onClick={() => setOpen(null)} className="px-3 py-1.5 rounded-full border hover:bg-zinc-50 text-sm">Close</button>
               </div>
             </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-hidden md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] min-h-0">
-              {/* Visual */}
-              <div
-                className="relative bg-black select-none md:rounded-l-2xl min-h-0"
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-              >
-                <div className={cx(zoom ? "h-[70svh] md:h-full" : "h-[45svh] md:h-full")}>
-                  {hasVideo && idx === 0 ? (
-                    open.video?.provider === "wistia" ? (
-                      <WistiaEmbed id={open.video.id} autoPlay={open.video.autoplay} muted className="w-full h-full" aspect={16 / 9} />
-                    ) : (
-                      <div className="relative w-full h-full" style={{ aspectRatio: "16/9" }}>
-                        <iframe
-                          className="absolute inset-0 w-full h-full"
-                          src={`https://www.youtube.com/embed/${open.video?.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
-                          title="Video"
-                          allow="autoplay; encrypted-media; picture-in-picture"
-                        />
-                      </div>
-                    )
+            {/* Body: **no vertical scroll**, we use tabs + paging */}
+            <div className="flex-1 grid md:grid-cols-2 overflow-hidden select-none" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+              {/* Left: Visual area (fills available space) */}
+              <div className="relative bg-black">
+                {isVideoFrame ? (
+                  open.video?.provider === "wistia" ? (
+                    <WistiaEmbed id={open.video.id} autoPlay={open.video.autoplay} muted className="w-full h-full" aspect={16 / 9} />
                   ) : (
-                    <ImageSafe
-                      src={(slides[imgIndex]?.url) || open.thumbnail}
-                      alt={(slides[imgIndex]?.title) || open.title}
-                      className={cx("w-full h-full", zoom ? "object-cover" : "object-contain", "bg-black")}
-                    />
-                  )}
-                </div>
+                    <div className="relative w-full h-full" style={{ aspectRatio: "16/9" }}>
+                      <iframe
+                        className="absolute inset-0 w-full h-full"
+                        src={`https://www.youtube.com/embed/${open.video?.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
+                        title="Video"
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                      />
+                    </div>
+                  )
+                ) : (
+                  <ImageSafe
+                    src={slide?.url}
+                    fallbackSrc={open.thumbnail}
+                    alt={slide?.title || open.title}
+                    fit="contain"
+                    className="bg-black"
+                  />
+                )}
 
-                {/* Zoom toggle */}
-                <button
-                  onClick={() => setZoom((z) => !z)}
-                  className="absolute right-2 top-2 text-[12px] px-3 py-1 rounded-full bg-white/90 border"
-                >
-                  {zoom ? "Fit" : "Zoom"}
-                </button>
-
-                {/* Desktop thumbs */}
+                {/* Thumbs (desktop) */}
                 <div className="hidden md:flex absolute top-3 left-3 flex-col gap-2">
                   {hasVideo && (
-                    <button onClick={() => setIdx(0)} className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === 0 ? "ring-2 ring-red-500" : "opacity-80")}>
-                      <div className="h-full w-full grid place-items-center bg-white text-black text-xs font-medium">Video</div>
+                    <button
+                      onClick={() => setIdx(0)}
+                      className={cx("h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium grid place-items-center", idx === 0 ? "ring-2 ring-red-500" : "")}
+                    >
+                      Video
                     </button>
                   )}
                   {slides.map((s, i) => {
@@ -486,7 +636,7 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                       <button
                         key={s.url + i}
                         onClick={() => setIdx(real)}
-                        className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "opacity-80")}
+                        className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "")}
                       >
                         <ImageSafe src={s.url} alt={s.title} className="h-full w-full object-cover" />
                       </button>
@@ -494,30 +644,41 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                   })}
                 </div>
 
-                {/* Arrows + dots */}
-                {slides.length + (hasVideo ? 1 : 0) > 1 && (
+                {/* Arrows */}
+                {(slides.length + (hasVideo ? 1 : 0)) > 1 && (
                   <>
-                    <button aria-label="Previous" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-zinc-900 rounded-full px-3 py-2 shadow">‹</button>
-                    <button aria-label="Next" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-zinc-900 rounded-full px-3 py-2 shadow">›</button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-                      {Array.from({ length: slides.length + (hasVideo ? 1 : 0) }).map((_, i) => (
-                        <span key={i} className={cx("h-1.5 w-1.5 rounded-full", i === idx ? "" : "bg-white/50")} style={{ background: i === idx ? TOK.red : undefined }} />
-                      ))}
-                    </div>
+                    <button
+                      aria-label="Previous"
+                      onClick={prev}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-zinc-900 rounded-full px-3 py-2 shadow"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      aria-label="Next"
+                      onClick={next}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-zinc-900 rounded-full px-3 py-2 shadow"
+                    >
+                      ›
+                    </button>
                   </>
                 )}
 
                 {/* Mobile thumbs */}
                 <div className="md:hidden absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2 flex gap-2 overflow-x-auto">
                   {hasVideo && (
-                    <button onClick={() => setIdx(0)} className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === 0 ? "ring-2 ring-red-500" : "")}>
-                      <div className="h-full w-full grid place-items-center bg-white text-black text-[11px] font-medium">Video</div>
+                    <button onClick={() => setIdx(0)} className={cx("h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium grid place-items-center", idx === 0 ? "ring-2 ring-red-500" : "")}>
+                      Video
                     </button>
                   )}
                   {slides.map((s, i) => {
                     const real = hasVideo ? i + 1 : i;
                     return (
-                      <button key={s.url + i} onClick={() => setIdx(real)} className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "")}>
+                      <button
+                        key={s.url + i}
+                        onClick={() => setIdx(real)}
+                        className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "")}
+                      >
                         <ImageSafe src={s.url} alt={s.title} className="h-full w-full object-cover" />
                       </button>
                     );
@@ -525,51 +686,122 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
-                <div className="flex flex-wrap gap-2 mb-3">
+              {/* Right: Content area (no scroll -> tabs + pagination) */}
+              <div className="flex flex-col p-4 md:p-6 overflow-hidden">
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 mb-2">
                   {open.badges?.slice(0, 4).map((b) => (
-                    <span key={b} className="text-xs px-2 py-1 rounded-full bg-zinc-100">{b}</span>
+                    <span key={b} className="text-xs px-2 py-1 rounded-full bg-zinc-100">
+                      {b}
+                    </span>
                   ))}
                 </div>
 
-                <h5 className="text-xl font-semibold">{slide?.title ?? open.title}</h5>
-                {(slide?.description || open.summary) && <p className="mt-1 text-zinc-600">{slide?.description || open.summary}</p>}
-
-                {(slide?.details?.overview || open.summary) && (
-                  <div className={cx(TOK.card, TOK.radius, "p-4 mt-4")}>
-                    <h6 className="font-semibold mb-1">Overview</h6>
-                    <p className="text-zinc-600">{slide?.details?.overview || open.summary}</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <SpecCard title="Specifications" bullets={slide?.details?.specs} />
-                  <SpecCard title="Features" bullets={slide?.details?.features} />
-                  <SpecCard title="Technology" bullets={slide?.details?.tech} />
+                {/* Slide title & description (single line / two lines max to avoid overflow) */}
+                <div className="mb-3">
+                  <h5 className={cx("font-semibold", isMobile ? "text-lg" : "text-xl", variant?.accent)}>{(slide?.title || open.title) as string}</h5>
+                  {(slide?.description || open.summary) && (
+                    <p className="text-sm text-zinc-600 line-clamp-2">{slide?.description || open.summary}</p>
+                  )}
                 </div>
 
-                {/* Desktop footer controls */}
-                {slides.length + (hasVideo ? 1 : 0) > 1 && (
-                  <div className="hidden md:flex items-center justify-between mt-6">
-                    <div className="flex gap-3">
-                      <button onClick={prev} className="px-4 py-2 rounded-full border hover:bg-zinc-50">Previous</button>
-                      <button onClick={next} className="px-4 py-2 rounded-full text-white" style={{ background: TOK.red }}>Next</button>
-                    </div>
-                    <button onClick={openBooking} className="px-5 py-2.5 rounded-full font-semibold text-white" style={{ background: TOK.red }}>
+                {/* Variant specific extras (unique per modal) */}
+                <div className="mb-3">
+                  {variant?.renderExtras?.({ item: open, idx, slide: slide || null, mode, setMode, isMobile }) || null}
+                </div>
+
+                {/* Tabs (no vertical scroll) */}
+                <div className="mb-3">
+                  <div className="inline-flex rounded-full border p-1 bg-zinc-50">
+                    {(["overview", "specs", "features", "tech"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          setTab(t);
+                          setPage(0);
+                        }}
+                        className={cx(
+                          "px-3 py-1.5 rounded-full text-sm",
+                          tab === t ? "bg-white border shadow-sm" : "text-zinc-600"
+                        )}
+                      >
+                        {t[0].toUpperCase() + t.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tab content area (fixed height; no overflow) */}
+                <div className="flex-1 grid content-between">
+                  {/* Top chunk */}
+                  <div>
+                    {tab === "overview" ? (
+                      <div className={cx(TOK.card, TOK.radius, "p-4")}>
+                        <h6 className="font-semibold mb-1">Overview</h6>
+                        <p className="text-zinc-600 text-sm">
+                          {slide?.details?.overview || open.summary}
+                        </p>
+                        {/* Hotspots hint when present */}
+                        {slide?.hotspots && slide.hotspots.length > 0 && (
+                          <div className="mt-3 text-[12px] text-zinc-500">Tap the labeled points on the image to learn more.</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={cx(TOK.card, TOK.radius, "p-3")}>
+                        <ul className="grid grid-cols-1 gap-2">
+                          {pageBullets.length ? (
+                            pageBullets.map((b, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm">
+                                <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
+                                <span className="text-zinc-700">{b}</span>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-sm text-zinc-400">No items.</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom: pagination for lists + CTA */}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Paginator (only for non-overview tabs with multi pages) */}
+                    {tab !== "overview" && totalPages > 1 ? (
+                      <div className="inline-flex items-center gap-2 text-sm">
+                        <button
+                          className="px-3 py-1 rounded-full border hover:bg-zinc-50"
+                          onClick={() => setPage((p) => Math.max(0, p - 1))}
+                        >
+                          Prev
+                        </button>
+                        <span className="text-zinc-500">
+                          Page {page + 1}/{totalPages}
+                        </span>
+                        <button
+                          className="px-3 py-1 rounded-full border hover:bg-zinc-50"
+                          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+
+                    {/* Single, compact CTA (no duplicates) */}
+                    <button
+                      onClick={openBooking}
+                      className="h-10 px-4 rounded-full text-sm font-semibold text-white"
+                      style={{ background: TOK.red }}
+                    >
                       Book Test Drive
                     </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
-
-            {/* Mobile sticky CTA */}
-            <div className="md:hidden px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 border-t bg-white">
-              <button onClick={openBooking} className="w-full text-center py-3 font-semibold rounded-full text-white" style={{ background: TOK.red }}>
-                Book Test Drive
-              </button>
-            </div>
+            {/* Footer kept minimal (nothing duplicated here) */}
           </div>
         </div>
       )}
@@ -577,29 +809,15 @@ const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
   );
 };
 
-/* ------------ Content cards ------------- */
-const SpecCard: React.FC<{ title: string; bullets?: string[] }> = ({ title, bullets }) => {
-  if (!bullets?.length) {
-    return (
-      <div className={cx(TOK.card, TOK.radius, "p-4 opacity-60")}>
-        <h6 className="font-semibold mb-1">{title}</h6>
-        <p className="text-zinc-500">—</p>
-      </div>
-    );
-  }
-  return (
-    <div className={cx(TOK.card, TOK.radius, "p-4")}>
-      <h6 className="font-semibold mb-2">{title}</h6>
-      <ul className="space-y-2">
-        {bullets.map((b, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
-            <span className="text-zinc-700">{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+/* ---------------- Responsive hook (no external dep) ---------------- */
+const useIsMobile = () => {
+  const [m, setM] = useState<boolean>(() => typeof window !== "undefined" ? window.innerWidth < 768 : false);
+  useEffect(() => {
+    const onR = () => setM(window.innerWidth < 768);
+    window.addEventListener("resize", onR);
+    return () => window.removeEventListener("resize", onR);
+  }, []);
+  return m;
 };
 
 export default VehicleMediaShowcase;
