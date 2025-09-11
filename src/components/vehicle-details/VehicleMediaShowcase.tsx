@@ -1,5 +1,6 @@
 // src/components/vehicle-details/VehicleMediaShowcase.tsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import type { VehicleModel } from "@/types/vehicle";
 
 /* ================= Brand tokens ================= */
@@ -251,6 +252,88 @@ interface Props {
   vehicle: VehicleModel; // kept for compatibility
 }
 
+/* ================= Variant content ================= */
+const SpecCard: React.FC<{ title: string; bullets?: string[]; accentClass?: string }> = ({
+  title,
+  bullets,
+  accentClass,
+}) => {
+  if (!bullets || bullets.length === 0) {
+    return (
+      <div className={cx(TOK.card, "rounded-xl p-4 opacity-60")}>
+        <h6 className="mb-1 font-semibold">{title}</h6>
+        <p className="text-zinc-500">—</p>
+      </div>
+    );
+  }
+  return (
+    <div className={cx(TOK.card, "rounded-xl p-4")}>
+      <h6 className={cx("mb-2 font-semibold", accentClass)}>{title}</h6>
+      <ul className="space-y-2 text-sm">
+        {bullets.slice(0, 6).map((b, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
+            <span className="text-zinc-700">{b}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+function VariantPanel(v: Variant, slide: Slide | null, item: MediaItem) {
+  const accent = VARIANT[v].accent;
+  switch (v) {
+    case "performance":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SpecCard title="Specifications" bullets={slide?.details?.specs} accentClass={accent} />
+          <SpecCard title="Features" bullets={slide?.details?.features} accentClass={accent} />
+          <SpecCard title="Technology" bullets={slide?.details?.tech} accentClass={accent} />
+        </div>
+      );
+    case "safety":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className={cx(TOK.card, "rounded-xl p-4")}>
+            <h6 className={cx("mb-2 font-semibold", accent)}>Overview</h6>
+            <p className={TOK.muted}>{slide?.details?.overview || item.summary}</p>
+          </div>
+          <SpecCard title="ADAS Suite" bullets={slide?.details?.specs} accentClass={accent} />
+        </div>
+      );
+    case "interior":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <SpecCard title="Comfort" bullets={slide?.details?.features} accentClass={accent} />
+          <SpecCard title="Tech" bullets={slide?.details?.tech} accentClass={accent} />
+        </div>
+      );
+    case "quality":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <SpecCard title="Materials" bullets={slide?.details?.specs} accentClass={accent} />
+          <SpecCard title="Process" bullets={slide?.details?.features} accentClass={accent} />
+        </div>
+      );
+    case "technology":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <SpecCard title="Connectivity" bullets={slide?.details?.specs} accentClass={accent} />
+          <SpecCard title="Cloud" bullets={slide?.details?.tech} accentClass={accent} />
+        </div>
+      );
+    case "handling":
+      return (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SpecCard title="Dynamics" bullets={slide?.details?.features} accentClass={accent} />
+          <SpecCard title="Hardware" bullets={slide?.details?.specs} accentClass={accent} />
+          <SpecCard title="Modes" bullets={slide?.details?.tech} accentClass={accent} />
+        </div>
+      );
+  }
+}
+
 /* ================= Component ================= */
 const VehicleMediaShowcase: React.FC<Props> = () => {
   const items = useMemo(() => DEMO.slice(0, 6), []);
@@ -259,8 +342,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   /* Modal state */
   const [open, setOpen] = useState<MediaItem | null>(null);
   const [idx, setIdx] = useState(0);
-  const [tab, setTab] = useState<"overview" | "specs" | "features" | "tech">("overview");
-
   useBodyScrollLock(!!open);
 
   const hasVideo = !!open?.video;
@@ -290,7 +371,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
 
-  /* touch swipe (visual) */
+  /* touch swipe */
   const tStart = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => (tStart.current = e.touches[0].clientX);
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -301,7 +382,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     tStart.current = null;
   };
 
-  /* CTA bridge — open booking without touching VehicleDetails.tsx */
   const openBooking = () => {
     try {
       window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
@@ -309,7 +389,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     } catch {}
   };
 
-  /* mobile carousel index (dots) */
   const mobWrapRef = useRef<HTMLDivElement>(null);
   const [mobIndex, setMobIndex] = useState(0);
   useEffect(() => {
@@ -329,8 +408,8 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   /* ================= Render ================= */
   return (
     <section className={TOK.container}>
-      {/* Video card — not full-screen on desktop; ensure clear separation */}
-      <div className={cx(TOK.card, TOK.radius, "relative p-3 md:p-4 mb-10 z-0")}>
+      {/* Video card — isolated z-layer to prevent tile overlap */}
+      <div className={cx(TOK.card, TOK.radius, "relative isolate z-10 p-3 md:p-4 mb-12")}>
         <div className="mb-3 flex items-center gap-3">
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-semibold">Video</span>
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
@@ -340,11 +419,11 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         </div>
       </div>
 
-      {/* Mobile: snap carousel (no overlap) */}
+      {/* Mobile: snap carousel */}
       <div className="mb-6 md:hidden">
         <div
           ref={mobWrapRef}
-          className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2"
+          className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {items.map((m) => (
@@ -353,7 +432,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               onClick={() => {
                 setOpen(m);
                 setIdx(0);
-                setTab("overview");
               }}
               className={cx(TOK.card, TOK.radius, TOK.ring, "snap-start min-w-[86%] overflow-hidden text-left")}
             >
@@ -387,15 +465,14 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         </div>
       </div>
 
-      {/* Desktop grid — 3x2, no overlap */}
-      <div className="hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
+      {/* Desktop grid */}
+      <div className="z-0 hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
         {items.map((m) => (
           <button
             key={m.id}
             onClick={() => {
               setOpen(m);
               setIdx(0);
-              setTab("overview");
             }}
             className={cx(TOK.card, TOK.radius, TOK.ring, "overflow-hidden text-left transition-shadow hover:shadow-md")}
           >
@@ -419,287 +496,217 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         ))}
       </div>
 
-      {/* ================= Modal ================= */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-start md:items-center justify-center bg-black/70 backdrop-blur-sm p-0 md:p-6"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(null)}
-        >
+      {/* Modal in a portal to avoid clipping by ancestors */}
+      {open &&
+        ReactDOM.createPortal(
           <div
-            className={cx(
-              "bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden",
-              "flex flex-col"
-            )}
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[1000] flex items-start md:items-center justify-center bg-black/70 backdrop-blur-sm p-0 md:p-6"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setOpen(null)}
           >
-            {/* Header (sticky) */}
-            <div className="sticky top-0 z-10 border-b bg-white/95 px-3 py-3 backdrop-blur md:px-6">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <h4 className="truncate text-base font-bold md:text-2xl">{open.title}</h4>
-                  <p className="text-xs text-zinc-500 md:text-sm">{open.category}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs md:text-sm">{idx + 1}/{total}</span>
-                  {/* Single small CTA (desktop + large phones) */}
-                  <button
-                    onClick={openBooking}
-                    className="hidden md:inline-flex rounded-full px-3 py-2 text-xs font-semibold text-white"
-                    style={{ background: TOK.red }}
-                  >
-                    Book Test Drive
-                  </button>
-                  <button className="rounded-full border px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(null)}>
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Body — top anchored mobile, split-pane desktop; no page scroll behind */}
-            <div className="grid h-[calc(100svh-57px)] md:h-[calc(92vh-57px)] grid-rows-[minmax(0,56svh)_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
-              {/* Visual */}
-              <div
-                className="relative select-none bg-black md:rounded-l-2xl"
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-              >
-                {hasVideo && idx === 0 ? (
-                  open.video?.provider === "wistia" ? (
-                    <WistiaEmbed id={open.video.id} autoPlay={open.video.autoplay} muted className="h-full w-full" />
-                  ) : (
-                    <div className="relative h-full w-full" style={{ aspectRatio: "16/9" }}>
-                      <iframe
-                        className="absolute inset-0 h-full w-full"
-                        src={`https://www.youtube.com/embed/${open.video?.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
-                        title="Video"
-                        allow="autoplay; encrypted-media; picture-in-picture"
-                      />
-                    </div>
-                  )
-                ) : (
-                  <ImageSafe
-                    src={(currSlide?.url || open.thumbnail) as string}
-                    alt={(currSlide?.title || open.title) as string}
-                    cover
-                    className="h-full w-full"
-                  />
-                )}
-
-                {/* Thumbs */}
-                <div className="absolute left-3 top-3 hidden flex-col gap-2 md:flex">
-                  {hasVideo && (
-                    <button
-                      onClick={() => setIdx(0)}
-                      className={cx(
-                        "h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium",
-                        idx === 0 && "ring-2 ring-red-500"
-                      )}
-                    >
-                      Video
-                    </button>
-                  )}
-                  {slides.map((s, i) => {
-                    const real = hasVideo ? i + 1 : i;
-                    return (
-                      <button
-                        key={s.url + i}
-                        onClick={() => setIdx(real)}
-                        className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
-                      >
-                        <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Arrows & dots */}
-                {total > 1 && (
-                  <>
-                    <button
-                      aria-label="Previous"
-                      onClick={prev}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      aria-label="Next"
-                      onClick={next}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow"
-                    >
-                      ›
-                    </button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-                      {Array.from({ length: total }).map((_, i) => (
-                        <span
-                          key={i}
-                          className={cx("h-1.5 w-1.5 rounded-full", i === idx ? "" : "bg-white/50")}
-                          style={{ background: i === idx ? TOK.red : undefined }}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Mobile thumbs rail */}
-                <div className="absolute inset-x-0 bottom-0 flex gap-2 overflow-x-auto bg-gradient-to-t from-black/50 to-transparent px-3 py-2 md:hidden">
-                  {hasVideo && (
-                    <button
-                      onClick={() => setIdx(0)}
-                      className={cx(
-                        "h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium",
-                        idx === 0 && "ring-2 ring-red-500"
-                      )}
-                    >
-                      Video
-                    </button>
-                  )}
-                  {slides.map((s, i) => {
-                    const real = hasVideo ? i + 1 : i;
-                    return (
-                      <button
-                        key={s.url + i}
-                        onClick={() => setIdx(real)}
-                        className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
-                      >
-                        <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Content — tabs, dense, no vertical scroll required */}
-              <div className="flex min-h-0 flex-col bg-white md:rounded-r-2xl">
-                {/* Badges / chips */}
-                <div className="flex flex-wrap gap-2 p-4">
-                  {open.badges?.slice(0, 4).map((b) => (
-                    <span key={b} className={cx("rounded-full px-2 py-1 text-xs", VARIANT[open.variant].chip)}>
-                      {b}
+            <div
+              className={cx(
+                "bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden",
+                "flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+              )}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="sticky top-0 z-10 border-b bg-white/95 px-3 py-3 backdrop-blur md:px-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-base font-bold md:text-2xl">{open.title}</h4>
+                    <p className="text-xs text-zinc-500 md:text-sm">{open.category}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs md:text-sm">
+                      {(() => {
+                        const total = (open.gallery.length || 0) + (open.video ? 1 : 0) || 1;
+                        return `${idx + 1}/${total}`;
+                      })()}
                     </span>
-                  ))}
+                    <button
+                      onClick={openBooking}
+                      className="hidden md:inline-flex rounded-full px-3 py-2 text-xs font-semibold text-white"
+                      style={{ background: TOK.red }}
+                    >
+                      Book Test Drive
+                    </button>
+                    <button className="rounded-full border px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(null)}>
+                      Close
+                    </button>
+                  </div>
                 </div>
+              </div>
 
-                {/* Tabs */}
-                <div className="px-4">
-                  <div className="mb-3 flex gap-2">
-                    {(["overview", "specs", "features", "tech"] as const).map((t) => (
+              {/* Body */}
+              <div className="grid h-[calc(100svh-57px)] md:h-[calc(92vh-57px)] grid-rows-[minmax(0,56svh)_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
+                {/* Visual */}
+                <div
+                  className="relative select-none bg-black md:rounded-l-2xl"
+                  onTouchStart={(e) => (tStart.current = e.touches[0].clientX)}
+                  onTouchEnd={(e) => {
+                    if (tStart.current == null) return;
+                    const dx = e.changedTouches[0].clientX - tStart.current;
+                    if (dx > 40) prev();
+                    if (dx < -40) next();
+                    tStart.current = null;
+                  }}
+                >
+                  {hasVideo && idx === 0 ? (
+                    open.video?.provider === "wistia" ? (
+                      <WistiaEmbed id={open.video.id} autoPlay={open.video.autoplay} muted className="h-full w-full" />
+                    ) : (
+                      <div className="relative h-full w-full" style={{ aspectRatio: "16/9" }}>
+                        <iframe
+                          className="absolute inset-0 h-full w-full"
+                          src={`https://www.youtube.com/embed/${open.video?.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`}
+                          title="Video"
+                          allow="autoplay; encrypted-media; picture-in-picture"
+                        />
+                      </div>
+                    )
+                  ) : (
+                    <ImageSafe
+                      src={(currSlide?.url || open.thumbnail) as string}
+                      alt={(currSlide?.title || open.title) as string}
+                      cover
+                      className="h-full w-full"
+                    />
+                  )}
+
+                  {/* Thumbs (desktop) */}
+                  <div className="absolute left-3 top-3 hidden flex-col gap-2 md:flex">
+                    {hasVideo && (
                       <button
-                        key={t}
-                        onClick={() => setTab(t)}
-                        className={cx("rounded-full border px-3 py-1 text-sm", tab === t ? "border-zinc-900" : "border-zinc-300")}
+                        onClick={() => setIdx(0)}
+                        className={cx(
+                          "h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium",
+                          idx === 0 && "ring-2 ring-red-500"
+                        )}
                       >
-                        {t[0].toUpperCase() + t.slice(1)}
+                        Video
                       </button>
-                    ))}
+                    )}
+                    {slides.map((s, i) => {
+                      const real = hasVideo ? i + 1 : i;
+                      return (
+                        <button
+                          key={s.url + i}
+                          onClick={() => setIdx(real)}
+                          className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
+                        >
+                          <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Arrows & dots */}
+                  {total > 1 && (
+                    <>
+                      <button
+                        aria-label="Previous"
+                        onClick={prev}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        aria-label="Next"
+                        onClick={next}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white px-3 py-2 text-zinc-900 shadow"
+                      >
+                        ›
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                        {Array.from({ length: total }).map((_, i) => (
+                          <span
+                            key={i}
+                            className={cx("h-1.5 w-1.5 rounded-full", i === idx ? "" : "bg-white/50")}
+                            style={{ background: i === idx ? TOK.red : undefined }}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Mobile thumbs */}
+                  <div className="absolute inset-x-0 bottom-0 flex gap-2 overflow-x-auto bg-gradient-to-t from-black/50 to-transparent px-3 py-2 md:hidden">
+                    {hasVideo && (
+                      <button
+                        onClick={() => setIdx(0)}
+                        className={cx(
+                          "h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium",
+                          idx === 0 && "ring-2 ring-red-500"
+                        )}
+                      >
+                        Video
+                      </button>
+                    )}
+                    {slides.map((s, i) => {
+                      const real = hasVideo ? i + 1 : i;
+                      return (
+                        <button
+                          key={s.url + i}
+                          onClick={() => setIdx(real)}
+                          className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
+                        >
+                          <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Panels (2-tier area) */}
-                <div className="grid flex-1 grid-rows-[auto_1fr] gap-4 p-4">
-                  <div
-                    className={cx(
-                      "rounded-xl p-4 border border-zinc-200/60",
-                      VARIANT[open.variant].slab
-                    )}
-                  >
+                {/* Content — variant specific; compact, no page scroll */}
+                <div className="flex min-h-0 flex-col bg-white md:rounded-r-2xl">
+                  {/* Badges */}
+                  <div className="flex flex-wrap gap-2 p-4">
+                    {open.badges?.slice(0, 5).map((b) => (
+                      <span key={b} className={cx("rounded-full px-2 py-1 text-xs", VARIANT[open.variant].chip)}>
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Title slab */}
+                  <div className={cx("mx-4 mb-4 rounded-xl border border-zinc-200/60 p-4", VARIANT[open.variant].slab)}>
                     <h5 className={cx("mb-1 text-lg font-semibold", VARIANT[open.variant].accent)}>
                       {currSlide?.title || open.title}
                     </h5>
-                    <p className={TOK.muted}>
-                      {currSlide?.description || open.summary}
-                    </p>
+                    <p className={TOK.muted}>{currSlide?.description || open.summary}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    {tab === "overview" ? (
-                      <div className="col-span-1 md:col-span-3">
-                        <div className={cx(TOK.card, "rounded-xl p-4")}>
-                          <h6 className="mb-1 font-semibold">Overview</h6>
-                          <p className={TOK.muted}>
-                            {currSlide?.details?.overview || open.summary}
-                          </p>
-                        </div>
+                  {/* Variant panel */}
+                  <div className="px-4 pb-4">{VariantPanel(open.variant, currSlide, open)}</div>
+
+                  {/* Desktop-only nav (single location; no double CTA) */}
+                  {total > 1 && (
+                    <div className="hidden items-center justify-between border-t p-4 md:flex">
+                      <div className="flex gap-3">
+                        <button onClick={prev} className="rounded-full border px-4 py-2 hover:bg-zinc-50">
+                          Previous
+                        </button>
+                        <button
+                          onClick={next}
+                          className="rounded-full px-4 py-2 text-white"
+                          style={{ background: TOK.red }}
+                        >
+                          Next
+                        </button>
                       </div>
-                    ) : (
-                      <>
-                        <SpecCard
-                          title={tab === "specs" ? "Specifications" : tab === "features" ? "Features" : "Technology"}
-                          bullets={
-                            tab === "specs"
-                              ? currSlide?.details?.specs
-                              : tab === "features"
-                              ? currSlide?.details?.features
-                              : currSlide?.details?.tech
-                          }
-                          accentClass={VARIANT[open.variant].accent}
-                        />
-                        <SpecCard
-                          title="Key Points"
-                          bullets={(currSlide?.details?.overview ? [currSlide.details.overview] : open.badges) as string[]}
-                          accentClass={VARIANT[open.variant].accent}
-                        />
-                        <SpecCard title="Related" bullets={open.badges} accentClass={VARIANT[open.variant].accent} />
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer controls — desktop only, single nav (no second CTA) */}
-                {total > 1 && (
-                  <div className="hidden items-center justify-between border-t p-4 md:flex">
-                    <div className="flex gap-3">
-                      <button onClick={prev} className="rounded-full border px-4 py-2 hover:bg-zinc-50">Previous</button>
-                      <button
-                        onClick={next}
-                        className="rounded-full px-4 py-2 text-white"
-                        style={{ background: TOK.red }}
-                      >
-                        Next
-                      </button>
+                      <div />{/* intentionally empty to avoid a second CTA */}
                     </div>
-                    {/* Intentionally no CTA here to avoid doubles */}
-                    <div />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </section>
-  );
-}
-
-/* ================ Small Card ================ */
-const SpecCard: React.FC<{ title: string; bullets?: string[]; accentClass?: string }> = ({
-  title,
-  bullets,
-  accentClass,
-}) => {
-  if (!bullets || bullets.length === 0) {
-    return (
-      <div className={cx(TOK.card, "rounded-xl p-4 opacity-60")}>
-        <h6 className="mb-1 font-semibold">{title}</h6>
-        <p className="text-zinc-500">—</p>
-      </div>
-    );
-  }
-  return (
-    <div className={cx(TOK.card, "rounded-xl p-4")}>
-      <h6 className={cx("mb-2 font-semibold", accentClass)}>{title}</h6>
-      <ul className="space-y-2 text-sm">
-        {bullets.slice(0, 6).map((b, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
-            <span className="text-zinc-700">{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 };
 
