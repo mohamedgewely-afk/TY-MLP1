@@ -1,23 +1,23 @@
-// src/components/vehicle-details/ImmersiveMediaStudio.tsx
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+// src/components/vehicle-details/VehicleMediaShowcase.tsx
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import type { VehicleModel } from "@/types/vehicle";
 
-/** ---------- Toyota Brand Tokens ---------- */
+/** === Brand tokens (Toyota-esque) === */
 const TOK = {
   red: "#EB0A1E",
-  bg: "bg-white",
   text: "text-zinc-900",
   muted: "text-zinc-500",
-  ring: "ring-1 ring-zinc-200",
   card: "bg-white shadow-sm border border-zinc-100",
   radius: "rounded-2xl",
+  ring: "focus:outline-none focus:ring-2 focus:ring-red-500",
 };
 
-/** ---------- Types ---------- */
+/** === Types for internal model === */
 type DetailBlock = {
+  overview?: string;
   specs?: string[];
   features?: string[];
   tech?: string[];
-  overview?: string;
 };
 
 type Slide = {
@@ -29,52 +29,42 @@ type Slide = {
 
 type MediaItem = {
   id: string;
-  category: string; // e.g., Performance, Interior, Safety, Tech, Quality
+  category: string;
   title: string;
   summary: string;
-  kind: "image" | "video"; // tile visual
-  thumbnail: string;       // tile image
-  /** optional long-form gallery journey */
+  kind: "image" | "video";
+  thumbnail: string;
   gallery: Slide[];
-  /** if this item has a video section inside the modal */
   video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
   badges?: string[];
 };
 
-type Props = {
-  title?: string;
-  /** Wistia video that sits on top of the tiles */
-  topVideo?: { mediaId: string; aspect?: number };
-  media?: MediaItem[];
-  onBookTestDrive?: () => void;
-};
+/** === Utilities === */
+const cx = (...x: (string | false | null | undefined)[]) => x.filter(Boolean).join(" ");
+const FALLBACK =
+  "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1200&auto=format&fit=crop";
 
-/** ---------- Utilities ---------- */
-const cls = (...x: (false | null | undefined | string)[]) => x.filter(Boolean).join(" ");
-const fallbackImg = "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1200&auto=format&fit=crop"; // graceful fallback
-
-const ImageWithFallback: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = (p) => {
+const ImageSafe: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = (p) => {
   const [bad, setBad] = useState(false);
   return (
     <img
       {...p}
       loading="lazy"
       onError={() => setBad(true)}
-      src={bad ? fallbackImg : (p.src as string)}
+      src={bad ? FALLBACK : (p.src as string)}
       alt={p.alt || "image"}
     />
   );
 };
 
-/** ---------- Wistia (iframe-only, no extra deps) ---------- */
-// Keeps things robust vs. custom elements. Uses responsive wrapper.
-const WistiaEmbed: React.FC<{ mediaId: string; aspect?: number; autoPlay?: boolean; muted?: boolean; className?: string }> = ({
-  mediaId,
-  aspect = 16 / 9,
-  autoPlay,
-  muted,
-  className,
-}) => {
+/** Robust Wistia iframe embed (no extra libs/custom elements) */
+const WistiaEmbed: React.FC<{
+  mediaId: string;
+  aspect?: number;
+  autoPlay?: boolean;
+  muted?: boolean;
+  className?: string;
+}> = ({ mediaId, aspect = 16 / 9, autoPlay, muted, className }) => {
   const params = new URLSearchParams({
     seo: "false",
     videoFoam: "true",
@@ -84,7 +74,7 @@ const WistiaEmbed: React.FC<{ mediaId: string; aspect?: number; autoPlay?: boole
   }).toString();
 
   return (
-    <div className={cls("relative w-full overflow-hidden", className)} style={{ aspectRatio: `${aspect}` }}>
+    <div className={cx("relative w-full overflow-hidden", className)} style={{ aspectRatio: `${aspect}` }}>
       <iframe
         className="absolute inset-0 w-full h-full"
         src={`https://fast.wistia.net/embed/iframe/${mediaId}?${params}`}
@@ -96,7 +86,7 @@ const WistiaEmbed: React.FC<{ mediaId: string; aspect?: number; autoPlay?: boole
   );
 };
 
-/** ---------- Demo Content (swap with your DAM/YouTube/Wistia) ---------- */
+/** === Demo data (safe defaults). Replace with your DAM mapping if desired === */
 const DEMO: MediaItem[] = [
   {
     id: "v6",
@@ -255,13 +245,21 @@ const DEMO: MediaItem[] = [
   },
 ];
 
-/** ---------- Component ---------- */
-const ImmersiveMediaStudio: React.FC<Props> = ({
-  title = "Highlights",
-  topVideo = { mediaId: "kvdhnonllm", aspect: 16 / 9 },
-  media = DEMO,
-  onBookTestDrive,
-}) => {
+/** === Props: keep exactly what VehicleDetails passes === */
+interface VehicleMediaShowcaseProps {
+  vehicle: VehicleModel;
+}
+
+const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
+  /** Top video – prefer vehicle-provided if you have it */
+  const topWistiaId = "kvdhnonllm"; // replace from vehicle when available
+
+  /** Map your vehicle to items if you have a media structure, else demo */
+  const items: MediaItem[] = useMemo(() => {
+    // TODO: map from vehicle if shape known; safe fallback:
+    return DEMO.slice(0, 6);
+  }, [vehicle]);
+
   const [open, setOpen] = useState<MediaItem | null>(null);
   const [idx, setIdx] = useState(0);
 
@@ -272,11 +270,13 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
     if (!slides.length) return;
     setIdx((p) => (p + 1) % slides.length);
   }, [slides.length]);
+
   const prev = useCallback(() => {
     if (!slides.length) return;
     setIdx((p) => (p - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
+  /** Keyboard nav inside modal */
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -288,45 +288,58 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
 
+  /** Swipe on visual pane (mobile) */
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (dx > 40) prev();
+    if (dx < -40) next();
+    touchStartX.current = null;
+  };
+
+  /** CTA without changing VehicleDetails.tsx */
+  const openBooking = () => {
+    try {
+      window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
+      const btn = document.querySelector("[data-open-booking]") as HTMLButtonElement | null;
+      btn?.click();
+    } catch {
+      /* silent noop */
+    }
+  };
+
   return (
     <section className="mx-auto max-w-[1400px] px-4 md:px-6">
-      {/* Top Section: Wistia (not fullscreen on desktop) */}
-      <div className={cls(TOK.card, TOK.radius, "p-3 md:p-4 mb-8")}>
+      {/* Top: Wistia (not full screen on desktop) */}
+      <div className={cx(TOK.card, TOK.radius, "p-3 md:p-4 mb-8")}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold px-3 py-1 bg-zinc-100 rounded-full">Video</span>
-            <h2 className={cls("text-2xl md:text-3xl font-bold", TOK.text)}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">Highlights</h2>
           </div>
         </div>
-        <WistiaEmbed mediaId={topVideo.mediaId} aspect={topVideo.aspect} muted autoPlay className="rounded-xl overflow-hidden" />
+        <WistiaEmbed mediaId={topWistiaId} aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
       </div>
 
-      {/* Grid of six tiles */}
+      {/* Six tiles grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {media.slice(0, 6).map((m) => (
+        {items.map((m) => (
           <button
             key={m.id}
             onClick={() => {
               setOpen(m);
               setIdx(0);
             }}
-            className={cls(
-              TOK.card,
-              TOK.radius,
-              "text-left overflow-hidden hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-red-500"
-            )}
+            className={cx(TOK.card, TOK.radius, "text-left overflow-hidden hover:shadow-md transition-shadow", TOK.ring)}
             aria-label={`${m.title} details`}
           >
             <div className="relative">
-              <ImageWithFallback
-                src={m.thumbnail}
-                alt={m.title}
-                className="w-full h-56 md:h-64 object-cover"
-              />
-              <div
-                className="absolute top-0 left-0 h-1"
-                style={{ background: TOK.red, width: "82px", borderTopLeftRadius: 12 }}
-              />
+              <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-56 md:h-64 object-cover" />
+              <div className="absolute top-0 left-0 h-1" style={{ background: TOK.red, width: 82, borderTopLeftRadius: 12 }} />
             </div>
             <div className="p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -338,13 +351,13 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                 ))}
               </div>
               <h3 className="text-lg font-semibold">{m.title}</h3>
-              <p className={cls("text-sm mt-1", TOK.muted)}>{m.summary}</p>
+              <p className={cx("text-sm mt-1", TOK.muted)}>{m.summary}</p>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Modal Journey */}
+      {/* Journey Modal */}
       {open && (
         <div
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 md:p-6"
@@ -353,50 +366,44 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
           role="dialog"
         >
           <div
-            className={cls(TOK.bg, TOK.radius, "w-full max-w-[1300px] max-h-[92vh] overflow-hidden grid grid-rows-[auto,1fr]")}
+            className={cx(TOK.radius, "bg-white w-full max-w-[1300px] max-h-[92vh] overflow-hidden grid grid-rows-[auto,1fr]")}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-3 md:px-6 py-3 border-b bg-white/95">
               <div className="min-w-0">
                 <h4 className="text-base md:text-2xl font-bold truncate">{open.title}</h4>
-                <p className={cls("text-xs md:text-sm", TOK.muted)}>{open.category}</p>
+                <p className="text-xs md:text-sm text-zinc-500">{open.category}</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
                   {slides.length ? `${idx + 1}/${slides.length}` : "1/1"}
                 </span>
                 <button
-                  onClick={() => onBookTestDrive?.()}
-                  className="hidden sm:inline-flex px-3 py-2 md:px-4 md:py-2 rounded-full font-medium text-white"
+                  onClick={openBooking}
+                  className="hidden sm:inline-flex px-4 py-2 rounded-full font-medium text-white"
                   style={{ background: TOK.red }}
                 >
                   Book Test Drive
                 </button>
-                <button
-                  onClick={() => setOpen(null)}
-                  className="px-3 py-2 rounded-full border hover:bg-zinc-50"
-                >
+                <button onClick={() => setOpen(null)} className="px-3 py-2 rounded-full border hover:bg-zinc-50">
                   Close
                 </button>
               </div>
             </div>
 
-            {/* Body: two panes on desktop, stacked on mobile */}
+            {/* Body: two panes desktop, stacked mobile */}
             <div className="grid md:grid-cols-2 gap-0 md:gap-6 overflow-y-auto">
-              {/* Visual Pane */}
-              <div className="relative bg-black md:rounded-l-2xl">
-                {/* Primary visual: show video if defined and first slide, else image */}
+              {/* Visual pane */}
+              <div
+                className="relative bg-black md:rounded-l-2xl"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
                 <div className="w-full h-[52vh] md:h-full">
                   {open.video && idx === 0 ? (
                     open.video.provider === "wistia" ? (
-                      <WistiaEmbed
-                        mediaId={open.video.id}
-                        autoPlay={open.video.autoplay}
-                        muted
-                        className="w-full h-full"
-                        aspect={16 / 9}
-                      />
+                      <WistiaEmbed mediaId={open.video.id} autoPlay={open.video.autoplay} muted className="w-full h-full" aspect={16 / 9} />
                     ) : (
                       <div className="relative w-full h-full" style={{ aspectRatio: "16/9" }}>
                         <iframe
@@ -408,7 +415,7 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                       </div>
                     )
                   ) : (
-                    <ImageWithFallback
+                    <ImageSafe
                       src={curr?.url || open.thumbnail}
                       alt={curr?.title || open.title}
                       className="w-full h-full object-contain bg-black"
@@ -416,7 +423,7 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                   )}
                 </div>
 
-                {/* Prev / Next */}
+                {/* Pager & Arrows */}
                 {slides.length > 1 && (
                   <>
                     <button
@@ -437,10 +444,7 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                       {slides.map((_, i) => (
                         <span
                           key={i}
-                          className={cls(
-                            "h-2 w-2 rounded-full",
-                            i === idx ? "" : "bg-white/50"
-                          )}
+                          className={cx("h-2 w-2 rounded-full", i === idx ? "" : "bg-white/50")}
                           style={{ background: i === idx ? TOK.red : undefined }}
                         />
                       ))}
@@ -448,10 +452,10 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                   </>
                 )}
 
-                {/* Mobile CTA (sticky bottom) */}
+                {/* Mobile CTA */}
                 <div className="md:hidden absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 via-black/10 to-transparent">
                   <button
-                    onClick={() => onBookTestDrive?.()}
+                    onClick={openBooking}
                     className="w-full text-center py-3 font-semibold rounded-full text-white"
                     style={{ background: TOK.red }}
                   >
@@ -460,9 +464,9 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Content Pane */}
+              {/* Content pane */}
               <div className="p-4 md:p-6 overflow-y-auto">
-                {/* Chips */}
+                {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {open.badges?.map((b) => (
                     <span key={b} className="text-xs px-2 py-1 rounded-full bg-zinc-100">
@@ -472,13 +476,13 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                 </div>
 
                 <h5 className="text-lg md:text-xl font-semibold">{curr?.title || open.title}</h5>
-                {curr?.description && <p className={cls("mt-1", TOK.muted)}>{curr.description}</p>}
+                {curr?.description && <p className="mt-1 text-zinc-500">{curr.description}</p>}
 
                 {/* Overview */}
                 {(curr?.details?.overview || open.summary) && (
-                  <div className={cls(TOK.card, TOK.radius, "p-4 mt-4")}>
+                  <div className={cx(TOK.card, TOK.radius, "p-4 mt-4")}>
                     <h6 className="font-semibold mb-1">Overview</h6>
-                    <p className={TOK.muted}>{curr?.details?.overview || open.summary}</p>
+                    <p className="text-zinc-600">{curr?.details?.overview || open.summary}</p>
                   </div>
                 )}
 
@@ -489,7 +493,7 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
                   <SpecCard title="Technology" bullets={curr?.details?.tech} />
                 </div>
 
-                {/* Pager (desktop) */}
+                {/* Desktop pager */}
                 {slides.length > 1 && (
                   <div className="hidden md:flex gap-3 mt-6">
                     <button onClick={prev} className="px-4 py-2 rounded-full border hover:bg-zinc-50">
@@ -513,18 +517,18 @@ const ImmersiveMediaStudio: React.FC<Props> = ({
   );
 };
 
-/** ---------- Small spec card ---------- */
+/** Small spec card */
 const SpecCard: React.FC<{ title: string; bullets?: string[] }> = ({ title, bullets }) => {
   if (!bullets?.length) {
     return (
-      <div className={cls(TOK.card, TOK.radius, "p-4 opacity-60")}>
+      <div className={cx(TOK.card, TOK.radius, "p-4 opacity-60")}>
         <h6 className="font-semibold mb-1">{title}</h6>
-        <p className={TOK.muted}>—</p>
+        <p className="text-zinc-500">—</p>
       </div>
     );
   }
   return (
-    <div className={cls(TOK.card, TOK.radius, "p-4")}>
+    <div className={cx(TOK.card, TOK.radius, "p-4")}>
       <h6 className="font-semibold mb-2">{title}</h6>
       <ul className="space-y-2">
         {bullets.map((b, i) => (
@@ -538,4 +542,4 @@ const SpecCard: React.FC<{ title: string; bullets?: string[] }> = ({ title, bull
   );
 };
 
-export default ImmersiveMediaStudio;
+export default VehicleMediaShowcase;
