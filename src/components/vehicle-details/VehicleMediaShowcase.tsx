@@ -2,30 +2,18 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { VehicleModel } from "@/types/vehicle";
 
-/* ===== Brand tokens ===== */
+/* ------------ Brand tokens ------------- */
 const TOK = {
   red: "#EB0A1E",
-  txtMuted: "text-zinc-500",
   ring: "focus:outline-none focus:ring-2 focus:ring-red-500",
   card: "bg-white shadow-sm border border-zinc-100",
   radius: "rounded-2xl",
+  muted: "text-zinc-500",
 };
 
-/* ===== Types ===== */
-type DetailBlock = {
-  overview?: string;
-  specs?: string[];
-  features?: string[];
-  tech?: string[];
-};
-
-type Slide = {
-  url: string;
-  title: string;
-  description?: string;
-  details?: DetailBlock;
-};
-
+/* ------------ Types ------------- */
+type DetailBlock = { overview?: string; specs?: string[]; features?: string[]; tech?: string[] };
+type Slide = { url: string; title: string; description?: string; details?: DetailBlock };
 type MediaItem = {
   id: string;
   category: string;
@@ -38,31 +26,39 @@ type MediaItem = {
   badges?: string[];
 };
 
-const cx = (...arr: (string | false | null | undefined)[]) => arr.filter(Boolean).join(" ");
-const FALLBACK =
-  "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1200&auto=format&fit=crop";
+/* ------------ Utilities ------------- */
+const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
-const ImageSafe: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = (props) => {
-  const [err, setErr] = useState(false);
+/** DAM-only “image”: shows an inline placeholder if the src errors (no stock/3rd-party fallback). */
+const ImageSafe: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = ({ src, alt, className, ...rest }) => {
+  const [err, setErr] = useState(!src);
+  if (!src || err) {
+    return (
+      <div className={cx("grid place-items-center bg-zinc-100 text-[11px] text-zinc-400", className)}>
+        Image unavailable
+      </div>
+    );
+  }
   return (
     <img
-      {...props}
+      {...rest}
+      src={src}
+      alt={alt}
       loading="lazy"
       onError={() => setErr(true)}
-      src={err ? FALLBACK : (props.src as string)}
-      alt={props.alt || "image"}
+      className={cx("block", className)}
     />
   );
 };
 
-/* Robust Wistia embed (no custom elements) */
-const WistiaEmbed: React.FC<{
-  mediaId: string;
-  aspect?: number;
-  autoPlay?: boolean;
-  muted?: boolean;
-  className?: string;
-}> = ({ mediaId, aspect = 16 / 9, autoPlay, muted, className }) => {
+/** Robust Wistia iframe (no custom element), viewport-friendly */
+const WistiaEmbed: React.FC<{ id: string; aspect?: number; autoPlay?: boolean; muted?: boolean; className?: string }> = ({
+  id,
+  aspect = 16 / 9,
+  autoPlay,
+  muted,
+  className,
+}) => {
   const qs = new URLSearchParams({
     seo: "false",
     videoFoam: "true",
@@ -74,7 +70,7 @@ const WistiaEmbed: React.FC<{
     <div className={cx("relative w-full overflow-hidden", className)} style={{ aspectRatio: `${aspect}` }}>
       <iframe
         className="absolute inset-0 w-full h-full"
-        src={`https://fast.wistia.net/embed/iframe/${mediaId}?${qs}`}
+        src={`https://fast.wistia.net/embed/iframe/${id}?${qs}`}
         title="Wistia video"
         allow="autoplay; encrypted-media; picture-in-picture"
         allowFullScreen
@@ -83,7 +79,7 @@ const WistiaEmbed: React.FC<{
   );
 };
 
-/* ===== Demo content (safe defaults) ===== */
+/* ------------ Demo media (all DAM URLs) ------------- */
 const DEMO: MediaItem[] = [
   {
     id: "v6",
@@ -109,11 +105,7 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
         title: "Turbo Detail",
         description: "Low-inertia turbines widen usable torque.",
-        details: {
-          specs: ["VGT turbines", "Low-mass impellers"],
-          features: ["Wider torque band", "Low lag"],
-          tech: ["VGT mapping", "Charge-air cooling"],
-        },
+        details: { specs: ["VGT turbines", "Low-mass impellers"], features: ["Wider band", "Low lag"], tech: ["Charge-air cooling"] },
       },
     ],
     badges: ["3.5L V6 TT", "400+ hp", "Instant response"],
@@ -142,11 +134,7 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
         title: "Seating",
         description: "Supportive geometry; ventilation; memory.",
-        details: {
-          specs: ["Heated/ventilated", "Multi-way adjust"],
-          features: ["Memory", "Lumbar"],
-          tech: ["Seat profile recall", "HVAC sync"],
-        },
+        details: { specs: ["Heated/ventilated", "Multi-way adjust"], features: ["Memory", "Lumbar"] },
       },
     ],
     badges: ['12.3" display', "Comfort"],
@@ -165,12 +153,7 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
         title: "Sensors",
         description: "Wide FOV camera and radar coverage.",
-        details: {
-          overview: "ADAS suite: PCS, LTA, ACC, BSM.",
-          specs: ["PCS", "LTA", "ACC", "BSM"],
-          features: ["Collision mitigation", "Fatigue reduction"],
-          tech: ["Sensor fusion", "AI classification"],
-        },
+        details: { overview: "ADAS suite: PCS, LTA, ACC, BSM.", specs: ["PCS", "LTA", "ACC", "BSM"] },
       },
     ],
     badges: ["PCS", "LTA", "ACC"],
@@ -188,11 +171,7 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
         title: "Adaptive Dampers",
         description: "Millisecond-level response for composure.",
-        details: {
-          specs: ["Active dampers", "Torque vectoring"],
-          features: ["AWD grip", "Drive modes"],
-          tech: ["Real-time mapping", "ESC integration"],
-        },
+        details: { specs: ["Active dampers", "Torque vectoring"], features: ["AWD grip", "Drive modes"] },
       },
     ],
     badges: ["AWD", "Sport mode"],
@@ -210,11 +189,7 @@ const DEMO: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
         title: "Materials",
         description: "Premium substrates and coatings.",
-        details: {
-          specs: ["HS steel", "Multi-stage paint"],
-          features: ["Laser gap checks", "Robotic assembly"],
-          tech: ["Inline QA audits", "Corrosion protection"],
-        },
+        details: { specs: ["HS steel", "Multi-stage paint"], features: ["Laser gap checks", "Robotic assembly"] },
       },
     ],
     badges: ["Durability", "Refinement"],
@@ -231,40 +206,34 @@ const DEMO: MediaItem[] = [
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
         title: "Infotainment",
-        details: {
-          specs: ["Apple CarPlay", "Android Auto", "Wi-Fi hotspot"],
-          features: ["Wireless updates", "App sync"],
-          tech: ["Cloud services", "OTA"],
-        },
+        details: { specs: ["Apple CarPlay", "Android Auto", "Wi-Fi hotspot"], tech: ["Cloud services", "OTA"] },
       },
     ],
     badges: ["CarPlay", "OTA"],
   },
 ];
 
-/* ===== Props kept as-is so VehicleDetails.tsx stays untouched ===== */
-interface VehicleMediaShowcaseProps {
+/* ------------ Props kept stable ------------- */
+interface Props {
   vehicle: VehicleModel;
 }
 
-const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) => {
-  const topWistiaId = "kvdhnonllm"; // replace from vehicle if available
+/* =======================================
+   VehicleMediaShowcase
+======================================= */
+const VehicleMediaShowcase: React.FC<Props> = ({ vehicle }) => {
+  const items = useMemo<MediaItem[]>(() => DEMO.slice(0, 6), [vehicle]);
+  const topWistiaId = "kvdhnonllm";
 
-  const items: MediaItem[] = useMemo(() => {
-    // If your vehicle has a media field, map it here; demo fallback below.
-    return DEMO.slice(0, 6);
-  }, [vehicle]);
-
-  /* -------- Modal state -------- */
+  /* Modal state */
   const [open, setOpen] = useState<MediaItem | null>(null);
   const [idx, setIdx] = useState(0);
   const [zoom, setZoom] = useState(false);
 
-  // Support video as first “slide” if present
   const hasVideo = !!open?.video;
   const slides = open?.gallery ?? [];
   const visualIsVideo = hasVideo && idx === 0;
-  const slide = visualIsVideo ? null : slides[hasVideo ? idx - 1 : idx];
+  const slide = !visualIsVideo ? slides[hasVideo ? idx - 1 : idx] : null;
 
   const next = useCallback(() => {
     if (!open) return;
@@ -277,7 +246,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     setIdx((p) => (p - 1 + Math.max(1, total)) % Math.max(1, total));
   }, [open, slides.length, hasVideo]);
 
-  // keyboard nav
+  /* Keyboard nav */
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -289,7 +258,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
 
-  // swipe
+  /* Swipe */
   const tStart = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => (tStart.current = e.touches[0].clientX);
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -300,7 +269,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     tStart.current = null;
   };
 
-  // CTA bridge without changing VehicleDetails.tsx
+  /* CTA bridge (don’t touch VehicleDetails.tsx) */
   const openBooking = () => {
     try {
       window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
@@ -308,24 +277,23 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
     } catch {}
   };
 
-  /* -------- Mobile carousel for tiles -------- */
+  /* Mobile tiles: snap carousel */
   const mobWrapRef = useRef<HTMLDivElement>(null);
   const [mobIndex, setMobIndex] = useState(0);
   useEffect(() => {
     const el = mobWrapRef.current;
     if (!el) return;
     const onScroll = () => {
-      const childW = el.firstElementChild?.clientWidth || 1;
-      const i = Math.round(el.scrollLeft / (childW + 16)); // 16 = gap
-      setMobIndex(Math.max(0, Math.min(items.length - 1, i)));
+      const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
+      setMobIndex(Math.round(el.scrollLeft / (w + 16)));
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, [items.length]);
+  }, []);
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 md:px-6">
-      {/* Top Wistia (not fullscreen on desktop) */}
+      {/* Top video (not fullscreen on desktop) */}
       <div className={cx(TOK.card, TOK.radius, "p-3 md:p-4 mb-8")}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -333,14 +301,14 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
             <h2 className="text-2xl md:text-3xl font-bold">Highlights</h2>
           </div>
         </div>
-        <WistiaEmbed mediaId={topWistiaId} aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
+        <WistiaEmbed id={topWistiaId} aspect={16 / 9} muted autoPlay className="rounded-xl overflow-hidden" />
       </div>
 
-      {/* Mobile carousel */}
+      {/* Mobile: horizontal carousel */}
       <div className="md:hidden mb-6">
         <div
           ref={mobWrapRef}
-          className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] no-scrollbar -mx-4 px-4 pb-2"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-4 px-4 pb-2"
         >
           {items.map((m) => (
             <button
@@ -350,12 +318,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 setIdx(0);
                 setZoom(false);
               }}
-              className={cx(
-                TOK.card,
-                TOK.radius,
-                TOK.ring,
-                "snap-center flex-none w-[85%] text-left overflow-hidden hover:shadow-md transition-shadow"
-              )}
+              className={cx(TOK.card, TOK.radius, TOK.ring, "snap-center w-[85%] text-left overflow-hidden")}
             >
               <div className="relative">
                 <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-48 object-cover" />
@@ -365,13 +328,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100">{m.category}</span>
                   {m.badges?.slice(0, 2).map((b) => (
-                    <span key={b} className="text-[11px] px-2 py-0.5 rounded-full border border-zinc-200">
-                      {b}
-                    </span>
+                    <span key={b} className="text-[11px] px-2 py-0.5 rounded-full border border-zinc-200">{b}</span>
                   ))}
                 </div>
                 <h3 className="text-base font-semibold">{m.title}</h3>
-                <p className={cx("text-sm mt-1", TOK.txtMuted)}>{m.summary}</p>
+                <p className={cx("text-sm mt-1", TOK.muted)}>{m.summary}</p>
               </div>
             </button>
           ))}
@@ -398,7 +359,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               setZoom(false);
             }}
             className={cx(TOK.card, TOK.radius, TOK.ring, "text-left overflow-hidden hover:shadow-md transition-shadow")}
-            aria-label={`${m.title} details`}
           >
             <div className="relative">
               <ImageSafe src={m.thumbnail} alt={m.title} className="w-full h-56 md:h-64 object-cover" />
@@ -408,61 +368,66 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100">{m.category}</span>
                 {m.badges?.slice(0, 3).map((b) => (
-                  <span key={b} className="text-[11px] px-2 py-0.5 rounded-full border border-zinc-200">
-                    {b}
-                  </span>
+                  <span key={b} className="text-[11px] px-2 py-0.5 rounded-full border border-zinc-200">{b}</span>
                 ))}
               </div>
               <h3 className="text-lg font-semibold">{m.title}</h3>
-              <p className={cx("text-sm mt-1", TOK.txtMuted)}>{m.summary}</p>
+              <p className={cx("text-sm mt-1", TOK.muted)}>{m.summary}</p>
             </div>
           </button>
         ))}
       </div>
 
-      {/* ====== Modal (enhanced) ====== */}
+      {/* ================= Modal (mobile-responsive) ================= */}
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 md:p-6"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-0 md:p-6"
           onClick={() => setOpen(null)}
           role="dialog"
           aria-modal="true"
         >
           <div
-            className={cx(TOK.radius, "bg-white w-full max-w-[1300px] max-h-[92vh] overflow-hidden grid grid-rows-[auto,1fr]")}
+            className={cx(
+              "bg-white w-full h-[100svh] md:h-[92vh] md:max-w-[1300px] md:rounded-2xl overflow-hidden",
+              "flex flex-col"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-3 md:px-6 py-3 border-b bg-white/95">
-              <div className="min-w-0">
-                <h4 className="text-base md:text-2xl font-bold truncate">{open.title}</h4>
-                <p className="text-xs md:text-sm text-zinc-500">{open.category}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
-                  {slides.length + (hasVideo ? 1 : 0) ? `${idx + 1}/${slides.length + (hasVideo ? 1 : 0)}` : "1/1"}
-                </span>
-                <button
-                  onClick={openBooking}
-                  className="hidden sm:inline-flex px-4 py-2 rounded-full font-medium text-white"
-                  style={{ background: TOK.red }}
-                >
-                  Book Test Drive
-                </button>
-                <button onClick={() => setOpen(null)} className="px-3 py-2 rounded-full border hover:bg-zinc-50">
-                  Close
-                </button>
+            {/* Sticky header */}
+            <div className="sticky top-0 z-10 px-3 md:px-6 py-3 border-b bg-white/95 backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="text-base md:text-2xl font-bold truncate">{open.title}</h4>
+                  <p className="text-xs md:text-sm text-zinc-500">{open.category}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-zinc-100">
+                    {slides.length + (hasVideo ? 1 : 0) ? `${idx + 1}/${slides.length + (hasVideo ? 1 : 0)}` : "1/1"}
+                  </span>
+                  <button
+                    onClick={openBooking}
+                    className="hidden sm:inline-flex px-4 py-2 rounded-full font-medium text-white"
+                    style={{ background: TOK.red }}
+                  >
+                    Book Test Drive
+                  </button>
+                  <button onClick={() => setOpen(null)} className="px-3 py-2 rounded-full border hover:bg-zinc-50">Close</button>
+                </div>
               </div>
             </div>
 
-            {/* Body */}
-            <div className="grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] overflow-y-auto">
-              {/* Visual with side thumbnails */}
-              <div className="relative bg-black md:rounded-l-2xl select-none" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-                <div className={cx("w-full", zoom ? "h-[70vh]" : "h-[52vh] md:h-[calc(92vh-160px)]")}>
+            {/* Body: mobile column, desktop split */}
+            <div className="flex-1 overflow-hidden md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+              {/* Visual */}
+              <div
+                className="relative bg-black select-none md:rounded-l-2xl"
+                onTouchStart={onTouchStart}
+                onTouchEnd={onTouchEnd}
+              >
+                <div className={cx(zoom ? "h-[70svh] md:h-full" : "h-[45svh] md:h-full")}>
                   {visualIsVideo ? (
                     open.video?.provider === "wistia" ? (
-                      <WistiaEmbed mediaId={open.video.id} autoPlay={open.video.autoplay} muted className="w-full h-full" aspect={16 / 9} />
+                      <WistiaEmbed id={open.video.id} autoPlay={open.video.autoplay} muted className="w-full h-full" aspect={16 / 9} />
                     ) : (
                       <div className="relative w-full h-full" style={{ aspectRatio: "16/9" }}>
                         <iframe
@@ -490,21 +455,15 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   {zoom ? "Fit" : "Zoom"}
                 </button>
 
-                {/* Thumbnails rail (desktop) */}
+                {/* Desktop thumbs rail */}
                 <div className="hidden md:flex absolute top-3 left-3 flex-col gap-2">
                   {hasVideo && (
                     <button
                       onClick={() => setIdx(0)}
-                      className={cx(
-                        "h-14 w-20 overflow-hidden rounded-md border",
-                        idx === 0 ? "ring-2 ring-red-500" : "opacity-80 hover:opacity-100"
-                      )}
+                      className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === 0 ? "ring-2 ring-red-500" : "opacity-80")}
                     >
-                      <ImageSafe
-                        src={`https://fast.wistia.com/embed/medias/${open.video!.id}/swatch`}
-                        alt="Video"
-                        className="h-full w-full object-cover"
-                      />
+                      {/* No external swatch image */}
+                      <div className="h-full w-full grid place-items-center bg-white text-black text-xs font-medium">Video</div>
                     </button>
                   )}
                   {slides.map((s, i) => {
@@ -513,10 +472,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                       <button
                         key={s.url + i}
                         onClick={() => setIdx(real)}
-                        className={cx(
-                          "h-14 w-20 overflow-hidden rounded-md border",
-                          idx === real ? "ring-2 ring-red-500" : "opacity-80 hover:opacity-100"
-                        )}
+                        className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real ? "ring-2 ring-red-500" : "opacity-80")}
                       >
                         <ImageSafe src={s.url} alt={s.title} className="h-full w-full object-cover" />
                       </button>
@@ -553,18 +509,11 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   </>
                 )}
 
-                {/* Mobile thumbs row */}
+                {/* Mobile thumbs row (no external video swatch) */}
                 <div className="md:hidden absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2 flex gap-2 overflow-x-auto">
                   {hasVideo && (
-                    <button
-                      onClick={() => setIdx(0)}
-                      className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === 0 ? "ring-2 ring-red-500" : "")}
-                    >
-                      <ImageSafe
-                        src={`https://fast.wistia.com/embed/medias/${open.video!.id}/swatch`}
-                        alt="Video"
-                        className="h-full w-full object-cover"
-                      />
+                    <button onClick={() => setIdx(0)} className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === 0 ? "ring-2 ring-red-500" : "")}>
+                      <div className="h-full w-full grid place-items-center bg-white text-black text-[11px] font-medium">Video</div>
                     </button>
                   )}
                   {slides.map((s, i) => {
@@ -580,22 +529,10 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                     );
                   })}
                 </div>
-
-                {/* Mobile sticky CTA */}
-                <div className="md:hidden absolute inset-x-0 bottom-0 translate-y-[calc(100%+8px)] p-3">
-                  <button
-                    onClick={openBooking}
-                    className="w-full text-center py-3 font-semibold rounded-full text-white"
-                    style={{ background: TOK.red }}
-                  >
-                    Book Test Drive
-                  </button>
-                </div>
               </div>
 
-              {/* Content pane (rich, dense) */}
-              <div className="p-4 md:p-6 overflow-y-auto">
-                {/* Pills */}
+              {/* Content (scrollable) */}
+              <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 <div className="flex flex-wrap gap-2 mb-3">
                   {open.badges?.slice(0, 4).map((b) => (
                     <span key={b} className="text-xs px-2 py-1 rounded-full bg-zinc-100">
@@ -607,7 +544,6 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                 <h5 className="text-xl font-semibold">{(slide?.title || open.title) as string}</h5>
                 {(slide?.description || open.summary) && <p className="mt-1 text-zinc-600">{slide?.description || open.summary}</p>}
 
-                {/* Overview */}
                 {(slide?.details?.overview || open.summary) && (
                   <div className={cx(TOK.card, TOK.radius, "p-4 mt-4")}>
                     <h6 className="font-semibold mb-1">Overview</h6>
@@ -615,38 +551,40 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
                   </div>
                 )}
 
-                {/* Spec/Feature/Tech cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <SpecCard title="Specifications" bullets={slide?.details?.specs} />
                   <SpecCard title="Features" bullets={slide?.details?.features} />
                   <SpecCard title="Technology" bullets={slide?.details?.tech} />
                 </div>
 
-                {/* Sticky footer controls (desktop) */}
+                {/* Desktop footer controls */}
                 {(slides.length + (hasVideo ? 1 : 0)) > 1 && (
                   <div className="hidden md:flex items-center justify-between mt-6">
                     <div className="flex gap-3">
-                      <button onClick={prev} className="px-4 py-2 rounded-full border hover:bg-zinc-50">
-                        Previous
-                      </button>
-                      <button
-                        onClick={next}
-                        className="px-4 py-2 rounded-full text-white"
-                        style={{ background: TOK.red }}
-                      >
+                      <button onClick={prev} className="px-4 py-2 rounded-full border hover:bg-zinc-50">Previous</button>
+                      <button onClick={next} className="px-4 py-2 rounded-full text-white" style={{ background: TOK.red }}>
                         Next
                       </button>
                     </div>
-                    <button
-                      onClick={openBooking}
-                      className="px-5 py-2.5 rounded-full font-semibold text-white"
-                      style={{ background: TOK.red }}
-                    >
+                    <button onClick={openBooking} className="px-5 py-2.5 rounded-full font-semibold text-white" style={{ background: TOK.red }}>
                       Book Test Drive
                     </button>
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Mobile sticky CTA (safe-area aware) */}
+            <div
+              className="md:hidden px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 border-t bg-white"
+            >
+              <button
+                onClick={openBooking}
+                className="w-full text-center py-3 font-semibold rounded-full text-white"
+                style={{ background: TOK.red }}
+              >
+                Book Test Drive
+              </button>
             </div>
           </div>
         </div>
@@ -655,7 +593,7 @@ const VehicleMediaShowcase: React.FC<VehicleMediaShowcaseProps> = ({ vehicle }) 
   );
 };
 
-/* Mini spec card */
+/* ------------ Content cards ------------- */
 const SpecCard: React.FC<{ title: string; bullets?: string[] }> = ({ title, bullets }) => {
   if (!bullets?.length) {
     return (
