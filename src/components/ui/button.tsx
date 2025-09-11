@@ -9,15 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-[hsl(var(--toyota-red))] text-white hover:bg-[hsl(var(--toyota-darkred))]",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-[hsl(var(--toyota-red))] bg-transparent text-[hsl(var(--toyota-red))] hover:bg-[hsl(var(--toyota-red))] hover:text-white",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-[hsl(var(--toyota-red))] text-white hover:bg-[hsl(var(--toyota-darkred))]",
+        ghost: "text-[hsl(var(--toyota-red))] hover:bg-[hsl(var(--toyota-red))]/10 hover:text-[hsl(var(--toyota-red))]",
+        link: "text-[hsl(var(--toyota-red))] underline-offset-4 hover:underline",
+        "toyota-transparent": "border border-[hsl(var(--toyota-red))] bg-transparent text-[hsl(var(--toyota-red))] hover:bg-[hsl(var(--toyota-red))]/10",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -155,7 +155,8 @@ const OptimizedStorySection: React.FC<OptimizedStorySectionProps> = React.memo((
                 <Button 
                   onClick={section.cta.action}
                   size={isMobile ? "default" : "lg"}
-                  className={`bg-primary hover:bg-primary/90 text-primary-foreground group transition-all duration-300 ${
+                  variant="default"
+                  className={`group transition-all duration-300 ${
                     isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'
                   }`}
                 >
@@ -298,11 +299,8 @@ const OptimizedStorySection: React.FC<OptimizedStorySectionProps> = React.memo((
                 <Button 
                   onClick={section.cta.action}
                   size="lg"
-                  variant={section.id === 'safety' || section.id === 'connected' ? 'outline' : 'default'}
-                  className={section.id === 'safety' || section.id === 'connected' 
-                    ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 group transition-all duration-300" 
-                    : "bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 group transition-all duration-300"
-                  }
+                  variant={section.id === 'safety' || section.id === 'connected' ? 'toyota-transparent' : 'default'}
+                  className="px-8 py-4 group transition-all duration-300"
                 >
                   <span className="group-hover:translate-x-1 transition-transform duration-200">
                     {section.cta.label}
