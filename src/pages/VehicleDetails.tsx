@@ -10,7 +10,7 @@ import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSectio
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import ModernSectionNavigation from "@/components/vehicle-details/ModernSectionNavigation";
-import EnhancedLoading from "@/components/ui/enhanced-loading";
+import { PageLoading, ComponentLoading } from "@/components/ui/enhanced-loading";
 import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
 import { HeroSkeleton } from "@/components/ui/performance-skeleton";
 import OffersSection from "@/components/home/OffersSection";
@@ -105,7 +105,7 @@ const VehicleDetails = () => {
   const { isMobile, deviceCategory } = useOptimizedDeviceInfo();
   const { addCleanup } = useCleanup();
   const { shouldPreloadContent, isSlowConnection, isFastConnection } = useNetworkAware();
-  const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate } = useVehicleData();
+  const { vehicle, isFavorite, galleryImages, monthlyEMI, toggleFavorite, navigate, isLoading, error } = useVehicleData();
   const { reportMetric } = useWebVitalsOptimized();
   const { isLowMemory } = useMemoryPressure();
   const { getMetricsSummary } = useCoreWebVitals();
@@ -187,21 +187,36 @@ const VehicleDetails = () => {
   const shouldRenderHeavyContent = !isSlowConnection && !isLowMemory();
   const shouldUseSuspense = isFastConnection && !isLowMemory();
 
-  if (!vehicle) {
+  // Loading state with skeleton
+  if (isLoading) {
     return (
       <ToyotaLayout>
-        <div className="toyota-container py-16 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="space-y-4"
-          >
-            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
-            <p className="mb-6">The vehicle you're looking for doesn't exist.</p>
-            <Button asChild className="min-h-[44px] min-w-[44px]">
-              <Link to="/" aria-label="Return to home page">Return to Home</Link>
+        <div className="min-h-screen">
+          <div className="h-screen bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="h-8 w-64 bg-muted rounded mx-auto animate-pulse" />
+              <div className="h-4 w-48 bg-muted/60 rounded mx-auto animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </ToyotaLayout>
+    );
+  }
+
+  // Error state
+  if (error || !vehicle) {
+    return (
+      <ToyotaLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold">Vehicle Not Found</h1>
+            <p className="text-muted-foreground max-w-md">
+              {error || "The vehicle you're looking for doesn't exist or has been moved."}
+            </p>
+            <Button onClick={() => navigate("/")}>
+              Return to Home
             </Button>
-          </motion.div>
+          </div>
         </div>
       </ToyotaLayout>
     );
@@ -256,7 +271,7 @@ const VehicleDetails = () => {
           {shouldRenderHeavyContent ? (
             shouldUseSuspense ? (
               <PerformanceErrorBoundary>
-                <Suspense fallback={<EnhancedLoading variant="branded" text="Loading experience..." />}>
+                <Suspense fallback={<ComponentLoading height="400px" />}>
                   <section id="virtual-showroom">
                     <VirtualShowroom vehicle={vehicle} />
                   </section>
@@ -293,12 +308,12 @@ const VehicleDetails = () => {
                 </section>
                 
                 <section id="media-showcase">
-                  <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+                   <Suspense fallback={<ComponentLoading />}>
                     <VehicleMediaShowcase vehicle={vehicle} />
                   </Suspense>
                 </section>
 
-                <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+                 <Suspense fallback={<ComponentLoading />}>
                   <StorytellingSection
                     galleryImages={galleryImages}
                     monthlyEMI={monthlyEMI}
@@ -317,7 +332,7 @@ const VehicleDetails = () => {
                 </section>
                 
                 <section id="tech-experience">
-                  <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+                   <Suspense fallback={<ComponentLoading />}>
                     <RefinedTechExperience vehicle={vehicle} />
                   </Suspense>
                 </section>
@@ -348,7 +363,7 @@ const VehicleDetails = () => {
           </section>
 
           {shouldRenderHeavyContent && (
-            <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+            <Suspense fallback={<ComponentLoading />}>
               <section id="related" className="py-8 lg:py-16 bg-muted/30" aria-labelledby="related-vehicles-heading">
                 <h2 id="related-vehicles-heading" className="sr-only">Related Vehicles</h2>
                 <RelatedVehicles currentVehicle={vehicle} />

@@ -137,7 +137,7 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
         onTouchEnd={handleTouchEnd}
       >
         {/* Loading Skeleton */}
-        <div className="hero-skeleton absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" />
+        <div className="hero-skeleton absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 animate-pulse" style={{ display: 'block' }} />
         
         {/* Vehicle Images or Video */}
         <AnimatePresence mode="wait">
@@ -160,11 +160,11 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
             </motion.div>
           ) : (
             <OptimizedMotionImage
-              key={currentImageIndex}
-              src={galleryImages[currentImageIndex]}
+              key={`hero-image-${currentImageIndex}`}
+              src={galleryImages[currentImageIndex] || ''}
               alt={`${vehicle.name} - View ${currentImageIndex + 1}`}
               className="absolute inset-0 w-full h-full"
-              priority={true}
+              priority={currentImageIndex === 0}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 1.03 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.97 }}
@@ -175,6 +175,9 @@ const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({
                 if (skeleton) {
                   skeleton.style.display = 'none';
                 }
+              }}
+              onError={() => {
+                console.warn('Hero image failed to load:', galleryImages[currentImageIndex]);
               }}
             />
           )}

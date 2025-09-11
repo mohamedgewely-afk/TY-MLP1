@@ -3,7 +3,7 @@ import React, { useState, Suspense, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import NavigationDots from "./NavigationDots";
 import OptimizedStorySection from "./OptimizedStorySection";
-import EnhancedLoading from "@/components/ui/enhanced-loading";
+import { ComponentLoading } from "@/components/ui/enhanced-loading";
 import { useSectionVisibility } from "@/hooks/use-section-visibility";
 import { useCleanup } from "@/hooks/use-cleanup";
 import { createStorySections } from "@/data/story-sections";
@@ -75,7 +75,7 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
       />
 
       <div className="toyota-container max-w-[1600px] xl:max-w-[1800px] space-y-20 lg:space-y-32 xl:space-y-40">
-        <Suspense fallback={<EnhancedLoading variant="skeleton" />}>
+        <Suspense fallback={<ComponentLoading />}>
           {storySection.map((section, index) => (
             <div key={section.id} id={`story-${section.id}`}>
               <OptimizedStorySection

@@ -9,6 +9,8 @@ export const useVehicleData = () => {
   const { vehicleName } = useParams<{ vehicleName: string }>();
   const [vehicle, setVehicle] = useState<VehicleModel | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -47,21 +49,38 @@ export const useVehicleData = () => {
   }, [vehicle, isFavorite, toast]);
 
   useEffect(() => {
-    const foundVehicle = vehicles.find((v) => {
-      if (v.id === vehicleName) return true;
-      const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
-      return slug === vehicleName;
-    });
+    setIsLoading(true);
+    setError(null);
+    
+    // Simulate network delay to prevent flash
+    const timer = setTimeout(() => {
+      try {
+        const foundVehicle = vehicles.find((v) => {
+          if (v.id === vehicleName) return true;
+          const slug = v.name.toLowerCase().replace(/^toyota\s+/, "").replace(/\s+/g, "-");
+          return slug === vehicleName;
+        });
 
-    if (foundVehicle) {
-      setVehicle(foundVehicle);
-      document.title = `${foundVehicle.name} | Toyota UAE`;
-    }
-
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    setIsFavorite(favorites.some((fav: string) => fav === foundVehicle?.name));
+        if (foundVehicle) {
+          setVehicle(foundVehicle);
+          document.title = `${foundVehicle.name} | Toyota UAE`;
+          
+          const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+          setIsFavorite(favorites.some((fav: string) => fav === foundVehicle.name));
+        } else {
+          setError(`Vehicle "${vehicleName}" not found`);
+        }
+      } catch (err) {
+        setError("Failed to load vehicle data");
+        console.error("Vehicle loading error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 100);
 
     window.scrollTo(0, 0);
+    
+    return () => clearTimeout(timer);
   }, [vehicleName]);
 
   return {
@@ -70,6 +89,8 @@ export const useVehicleData = () => {
     galleryImages,
     monthlyEMI,
     toggleFavorite,
-    navigate
+    navigate,
+    isLoading,
+    error
   };
 };
