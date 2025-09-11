@@ -102,22 +102,38 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     openTestDrivePopup(vehicle);
   };
 
+  // ✅ Robust Share: uses Web Share when available, otherwise copies URL
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${vehicle.name} - Toyota UAE`,
-          text: `Check out this amazing ${vehicle.name} starting from AED ${fmt.format(
-            vehicle.price
-          )}`,
-          url: window.location.href,
-        });
-      } catch {
-        // user cancelled share
+    const sharePayload = {
+      title: `${vehicle.name} - Toyota UAE`,
+      text: `Check out this ${vehicle.name} starting from AED ${fmt.format(vehicle.price)}`,
+      url: window.location.href,
+    };
+
+    try {
+      // Some browsers expose navigator.canShare
+      if ((navigator as any).canShare && (navigator as any).canShare(sharePayload)) {
+        await (navigator as any).share(sharePayload);
+        return;
       }
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
+      if ((navigator as any).share) {
+        await (navigator as any).share(sharePayload);
+        return;
+      }
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(sharePayload.url);
       toast({ title: "Link copied", description: "URL copied to clipboard." });
+    } catch {
+      // Final fallback prompt (in case clipboard permission is blocked)
+      try {
+        const ok = window.confirm("Sharing not available. Copy link to clipboard?");
+        if (ok) {
+          await navigator.clipboard.writeText(sharePayload.url);
+          toast({ title: "Link copied", description: "URL copied to clipboard." });
+        }
+      } catch {
+        /* no-op */
+      }
     }
   };
 
@@ -202,24 +218,24 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             {/* Primary buttons */}
             <div className="flex items-center gap-1.5 md:gap-2">
               <Button
-  onClick={handleTestDrive}
-  className={[
-    "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]",
-    isGR
-      ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
-      : "bg-[#EB0A1E] text-white hover:bg-[#c90c19] focus:ring-2 focus:ring-[#EB0A1E]",
-  ].join(" ")}
-  style={isGR ? carbonMatte : undefined}
->
-  <Car className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
-  Book Test Drive
-</Button>
+                onClick={handleTestDrive}
+                className={[
+                  "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]",
+                  isGR
+                    ? "bg-[#1D1F22] text-white hover:bg[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
+                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground focus:ring-2 focus:ring-primary",
+                ].join(" ")}
+                style={isGR ? carbonMatte : undefined}
+              >
+                <Car className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                Book Test Drive
+              </Button>
 
               <Button
                 onClick={onCarBuilder}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-11 md:h-12 px-4 md:px-6 rounded-lg text-sm md:text-base min-w-[120px]", // Enhanced touch targets
+                  "h-11 md:h-12 px-4 md:px-6 rounded-lg text-sm md:text-base min-w-[120px]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
                     : "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary",
@@ -233,38 +249,42 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
             {/* Icon actions */}
             <div className="flex items-center gap-1.5 md:gap-2">
+              {/* ✅ Finance: bigger, labeled, more contrast */}
               <Button
                 onClick={onFinanceCalculator}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-11 w-11 md:h-12 md:w-12 p-0 rounded-lg", // Enhanced touch targets
+                  // increased size + label
+                  "h-11 md:h-12 px-3 md:px-4 rounded-lg text-sm md:text-base min-w-[130px] flex items-center justify-center",
                   isGR
-                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
-                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary",
+                    ? "text-red-300 border-2 border-[#C4252A] hover:bg-[#141618] focus:ring-2 focus:ring-red-500"
+                    : "border-2 border-primary text-primary hover:bg-primary hover:text-white bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-primary",
                 ].join(" ")}
-                aria-label="Finance"
-                title="Finance"
+                aria-label="Finance calculator"
+                title="Finance calculator"
               >
-                <Calculator className="h-4 w-4" />
+                <Calculator className="h-4 w-4 mr-1.5" />
+                <span className="font-semibold">Finance</span>
               </Button>
 
-              {/* ↓ Brochure button (replaces Favorite) */}
+              {/* ✅ Brochure: bigger, labeled, clear PDF affordance */}
               <Button
                 onClick={handleDownloadBrochure}
                 variant={isGR ? "ghost" : "outline"}
                 className={[
-                  "h-9 w-9 md:h-10 md:w-10 p-0 rounded-lg",
+                  "h-11 md:h-12 px-3 md:px-4 rounded-lg text-sm md:text-base min-w-[140px] flex items-center justify-center",
                   isGR
-                    ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
-                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/50 backdrop-blur-sm",
+                    ? "text-neutral-100 bg-[#1D1F22] border border-[#1F2124] hover:bg-[#202328]"
+                    : "bg-primary text-white hover:bg-primary/90 border border-primary",
                 ].join(" ")}
-                aria-label="Brochure"
-                title="Download brochure"
+                aria-label="Download brochure (PDF)"
+                title="Download brochure (PDF)"
               >
-                <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4 mr-1.5" />
+                <span className="font-semibold">Brochure</span>
               </Button>
-              {/* ↑ Brochure button */}
 
+              {/* Share (functionality hardened above) */}
               <Button
                 onClick={handleShare}
                 variant={isGR ? "ghost" : "outline"}
