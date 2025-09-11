@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { VehicleModel } from "@/types/vehicle";
 
 /**
  * ToyotaMediaStudioPro.tsx – v3
@@ -41,6 +42,7 @@ export interface ToyotaMediaStudioProProps {
   subtitle?: string;
   items?: MediaItem[]; // optional; demo used if omitted
   className?: string;
+  vehicle?: VehicleModel; // optional for compatibility with existing call sites
 }
 
 /********************** Demo items (6) *******************/
@@ -205,7 +207,7 @@ const MosaicCard: React.FC<MosaicCardProps> = ({ item, size, onOpen }) => {
 };
 
 /********************** Component *************************/
-const ToyotaMediaStudioPro: React.FC<ToyotaMediaStudioProProps> = ({ title = "Highlights", subtitle = "Engineered clarity. Effortless choice.", items, className }) => {
+const ToyotaMediaStudioPro: React.FC<ToyotaMediaStudioProProps> = ({ title = "Highlights", subtitle = "Engineered clarity. Effortless choice.", items, className, vehicle }) => {
   // normalize to 6 cards
   const media = useMemo(() => {
     const src = items?.length ? items : DEMO_ITEMS;
@@ -298,7 +300,7 @@ const ToyotaMediaStudioPro: React.FC<ToyotaMediaStudioProProps> = ({ title = "Hi
 
       {/* Header */}
       <div className="px-4 md:px-10 pt-10 md:pt-14 text-center">
-        <Badge variant="outline" className={cn("px-3 py-1", TOKENS.radius)}>Toyota</Badge>
+        <Badge variant="outline" className={cn("px-3 py-1", TOKENS.radius)}>{vehicle?.name ?? "Toyota"}</Badge>
         <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mt-3" style={{ color: TOKENS.text }}>{title}</h2>
         <p className="text-sm md:text-base text-neutral-600 mt-2 max-w-2xl mx-auto">{subtitle}</p>
       </div>
