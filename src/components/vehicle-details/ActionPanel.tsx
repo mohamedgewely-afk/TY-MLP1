@@ -15,14 +15,21 @@ const GR_SURFACE = "#0B0B0C";
 const GR_EDGE = "#17191B";
 const GR_TEXT = "#E6E7E9";
 const GR_MUTED = "#A8ACB0";
+const CARBON_URL =
+  "https://static.vecteezy.com/system/resources/previews/008/423/535/non_2x/3d-black-geometric-abstract-background-overlap-layer-on-dark-space-with-line-motion-style-effect-graphic-design-element-carbon-fiber-texture-concept-for-banner-flyer-card-brochure-cover-etc-vector.jpg";
 
 const carbonMatte: React.CSSProperties = {
-  backgroundImage: "url('/lovable-uploads/dae96293-a297-4690-a4e1-6b32d044b8d3.png')",
-  backgroundSize: "cover",
+  backgroundImage: `
+    url('${CARBON_URL}'),
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6))
+  `,
+  backgroundBlendMode: "overlay",   // blends dark overlay with weave
+  backgroundSize: "180px 180px",    // adjust weave density
+  backgroundRepeat: "repeat",       // tiles across large screens
   backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
   backgroundColor: GR_SURFACE,
 };
+
 
 /** Shared localStorage key so MobileStickyNav can read the same state */
 const GR_STORAGE_KEY = "toyota.grMode";
