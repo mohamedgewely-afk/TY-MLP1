@@ -22,13 +22,13 @@ import { useSwipeable } from "@/hooks/use-swipeable";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------
-   Toyota Media Studio (no 360°) – single-file drop-in
-   - Toyota-aligned look & feel
-   - Mobile bottom-sheet modal, desktop split-pane
-   - Safer deep-linking (?media & ?img)
-   - Optimized SafeImage w/ srcSet, blur-in
-   - Defer YouTube iframe; nocookie domain
-   - Keyboard & a11y improvements
+   Toyota Media Studio (v2) – no 360°
+   Fixes:
+   - Video cards show thumbnails (no broken images)
+   - DAM width params are optional (no &w= breakage)
+   - Exactly 6 cards rendered (deterministic)
+   - Modal visual fits without black banding
+   - Stronger Toyota tone (clean, sharp)
 -------------------------------------------------------- */
 
 /********************* Brand tokens *********************/
@@ -59,8 +59,8 @@ interface GalleryImage {
 
 interface MediaItem {
   id: string;
-  type: "image" | "video"; // 360 removed
-  url: string; // image URL OR YouTube URL
+  type: "image" | "video";
+  url: string; // image URL or YouTube URL
   thumbnail?: string; // for videos
   title: string;
   description: string;
@@ -71,18 +71,19 @@ interface MediaItem {
     benefits?: string[];
     technology?: string[];
   };
-  isPremium?: boolean; // not visually emphasized per Toyota tone
-  galleryImages?: GalleryImage[]; // for image sets
+  galleryImages?: GalleryImage[];
 }
 
 interface VehicleMediaStudioProps {
   vehicle: VehicleModel;
-  media?: MediaItem[]; // optional external media feed; fallback to demo
+  media?: MediaItem[]; // optional external feed; fallback to demo
   className?: string;
   title?: string;
 }
 
 /********************* Utilities ************************/
+const SUPPORTS_DAM_WIDTH = false; // set true if your DAM accepts &w= query
+
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(n, max));
 }
@@ -98,7 +99,7 @@ function useBodyScrollLock(locked: boolean) {
   }, [locked]);
 }
 
-/********************* SafeImage (optimized) ************/
+/********************* SafeImage (robust) ***************/
 
 type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   fallbackText?: string;
@@ -120,7 +121,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   ...rest
 }) => {
   const [errored, setErrored] = useState(false);
-  const srcSet = src
+  const srcSet = src && SUPPORTS_DAM_WIDTH
     ? `${src}&w=480 480w, ${src}&w=768 768w, ${src}&w=1200 1200w, ${src}&w=1600 1600w`
     : undefined;
 
@@ -166,115 +167,133 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
   const isMobile = useIsMobile();
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [carouselIdx, setCarouselIdx] = useState(0); // mobile card index
+  const [carouselIdx, setCarouselIdx] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Demo fallback content (align to Toyota tone: concise, technical)
-  const mediaItems: MediaItem[] = useMemo(
-    () =>
-      media ?? [
+  // ---- Demo fallback: ensure exactly 6 cards ----
+  const fallback: MediaItem[] = [
+    {
+      id: "performance",
+      type: "image",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/a2c5b39d-f2db-4f00-968c-e78f73a73652/renditions/4a3588b7-55f0-48f5-98dc-a219f5bfbaad?binary=true&mformat=true",
+      title: "V6 Twin‑Turbo",
+      description: "400+ hp, broad torque band, efficient cruising.",
+      category: "Performance",
+      details: {
+        specs: ["3.5L V6 TT", "400+ hp", "0–60 in 4.2s", "EPA 28 mpg"],
+        benefits: ["Instant response", "High efficiency", "Lower emissions"],
+        technology: ["Direct injection", "VVT", "Smart boost control"],
+      },
+      galleryImages: [
         {
-          id: "performance",
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/a2c5b39d-f2db-4f00-968c-e78f73a73652/renditions/4a3588b7-55f0-48f5-98dc-a219f5bfbaad?binary=true&mformat=true",
-          title: "V6 Twin‑Turbo",
-          description: "400+ hp, broad torque band, efficient cruising.",
-          category: "Performance",
-          details: {
-            specs: ["3.5L V6 TT", "400+ hp", "0–60 in 4.2s", "EPA 28 mpg"],
-            benefits: ["Instant response", "High efficiency", "Lower emissions"],
-            technology: ["Direct injection", "VVT", "Smart boost control"],
-          },
-          galleryImages: [
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
-              title: "Cooling Strategy",
-              description: "Dual‑path cooling improves thermal stability under load.",
-              details: { technology: ["Dual circuits", "Low temp charge‑air"] },
-            },
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
-              title: "Turbo Detail",
-              description: "Low‑inertia turbines widen usable torque.",
-              details: { specs: ["VGT", "Low mass impellers"] },
-            },
-          ],
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
+          title: "Cooling Strategy",
+          description: "Dual‑path cooling improves thermal stability under load.",
         },
         {
-          id: "interior",
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
-          title: "Driver‑Focused Cabin",
-          description: "Premium materials, intuitive controls, low distraction.",
-          category: "Interior",
-          details: {
-            specs: ['Leather seats', '12.3" display', 'Premium audio', 'Tri‑zone climate'],
-            benefits: ["Comfort", "Clarity", "Personalization"],
-            technology: ["Heated/ventilated seats", "Wireless charging", "Voice control"],
-          },
-          galleryImages: [
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
-              title: "Center Console",
-              description: "Ergonomic layout with clear haptics and storage.",
-            },
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-              title: "Seating",
-              description: "Supportive geometry; ventilation; memory functions.",
-            },
-          ],
-        },
-        {
-          id: "safety",
-          type: "video",
-          url: "https://www.youtube.com/watch?v=NCSxxuPE6wM",
-          thumbnail:
-            "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-          title: "Toyota Safety Sense",
-          description: "Camera+radar fusion, assistance when you need it.",
-          category: "Safety",
-          details: {
-            specs: ["PCS", "LTA", "ACC", "BSM"],
-            benefits: ["Avoidance", "Reduced fatigue", "Confidence"],
-            technology: ["Sensor fusion", "AI detection", "Predictive control"],
-          },
-          galleryImages: [
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
-              title: "Sensors",
-              description: "Wide FOV camera and radar coverage.",
-            },
-          ],
-        },
-        {
-          id: "quality",
-          type: "image",
-          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
-          title: "Build Quality",
-          description: "High-strength materials and precise assembly.",
-          category: "Quality",
-          details: {
-            specs: ["HS steel", "Multi‑stage paint", "Laser gap checks"],
-            benefits: ["Durability", "Refinement", "Low maintenance"],
-            technology: ["Robotic assembly", "QA audits", "Corrosion protection"],
-          },
-          galleryImages: [
-            {
-              url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
-              title: "Materials",
-              description: "Premium substrates and coatings.",
-            },
-          ],
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true",
+          title: "Turbo Detail",
+          description: "Low‑inertia turbines widen usable torque.",
         },
       ],
-    [media]
-  );
+    },
+    {
+      id: "interior",
+      type: "image",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
+      title: "Driver‑Focused Cabin",
+      description: "Premium materials, intuitive controls, low distraction.",
+      category: "Interior",
+      details: {
+        specs: ['Leather seats', '12.3" display', 'Premium audio', 'Tri‑zone climate'],
+        benefits: ["Comfort", "Clarity", "Personalization"],
+        technology: ["Heated/ventilated seats", "Wireless charging", "Voice control"],
+      },
+      galleryImages: [
+        {
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
+          title: "Center Console",
+          description: "Ergonomic layout with clear haptics and storage.",
+        },
+        {
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
+          title: "Seating",
+          description: "Supportive geometry; ventilation; memory functions.",
+        },
+      ],
+    },
+    {
+      id: "safety",
+      type: "video",
+      url: "https://www.youtube.com/watch?v=NCSxxuPE6wM",
+      thumbnail:
+        "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+      title: "Toyota Safety Sense",
+      description: "Camera+radar fusion, assistance when you need it.",
+      category: "Safety",
+      details: {
+        specs: ["PCS", "LTA", "ACC", "BSM"],
+        benefits: ["Avoidance", "Reduced fatigue", "Confidence"],
+        technology: ["Sensor fusion", "AI detection", "Predictive control"],
+      },
+      galleryImages: [
+        {
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
+          title: "Sensors",
+          description: "Wide FOV camera and radar coverage.",
+        },
+      ],
+    },
+    {
+      id: "quality",
+      type: "image",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
+      title: "Build Quality",
+      description: "High-strength materials and precise assembly.",
+      category: "Quality",
+      details: {
+        specs: ["HS steel", "Multi‑stage paint", "Laser gap checks"],
+        benefits: ["Durability", "Refinement", "Low maintenance"],
+        technology: ["Robotic assembly", "QA audits", "Corrosion protection"],
+      },
+      galleryImages: [
+        {
+          url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true",
+          title: "Materials",
+          description: "Premium substrates and coatings.",
+        },
+      ],
+    },
+    {
+      id: "handling",
+      type: "image",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
+      title: "Chassis Dynamics",
+      description: "Adaptive damping and precise control.",
+      category: "Performance",
+      details: {},
+    },
+    {
+      id: "connectivity",
+      type: "image",
+      url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
+      title: "Connected Services",
+      description: "CarPlay/Android Auto, OTA updates, cloud sync.",
+      category: "Technology",
+      details: {},
+    },
+  ];
 
-  // Early bail
-  if (!mediaItems || mediaItems.length === 0) {
+  const mediaItems: MediaItem[] = useMemo(() => {
+    const list = (media?.length ? media : fallback).slice(0, 6);
+    // pad to 6 if fewer provided
+    while (list.length < 6) list.push(fallback[list.length % fallback.length]);
+    return list;
+  }, [media]);
+
+  if (!mediaItems.length) {
     return <div className="p-8 text-center text-muted-foreground">No media available.</div>;
   }
 
@@ -290,7 +309,6 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
     setSelected(m);
     setActiveIdx(0);
     setIsPlaying(false);
-    // push params
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("media", m.id);
@@ -380,7 +398,8 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
   const togglePlay = () => setIsPlaying((p) => !p);
 
   const getYouTubeId = (url: string) => {
-    const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,})/);
+    // YouTube IDs are typically 11 chars; support both param and short links
+    const m = url.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,11})/);
     return m ? m[1] : "";
   };
 
@@ -479,11 +498,11 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
         </div>
       </div>
 
-      {/* Desktop grid */}
+      {/* Desktop grid – always 6 cards */}
       <div className="hidden md:block px-4 md:px-8 pb-10">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {mediaItems.map((m, i) => (
-            <motion.div key={m.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+        <div className="grid grid-cols-3 gap-6">
+          {mediaItems.slice(0, 6).map((m, i) => (
+            <motion.div key={m.id + i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <MediaCard media={m} onClick={() => openMedia(m)} isMobile={false} />
             </motion.div>
           ))}
@@ -545,23 +564,25 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
               {/* Content */}
               <div className="flex-1 grid md:grid-cols-2 min-h-0">
                 {/* Visual pane */}
-                <div className="relative bg-black min-h-[42svh] md:min-h-0">
+                <div className="relative bg-neutral-900 flex items-center justify-center">
                   {selected.type === "video" ? (
-                    <VideoBlock item={selected} />
+                    <div className="w-full max-w-6xl">
+                      <VideoBlock item={selected} />
+                    </div>
                   ) : (
-                    <div className="relative w-full h-full md:aspect-auto aspect-[16/10] overflow-hidden">
-                      <SafeImage src={currImg.url} alt={currImg.title} fit="contain" />
+                    <div className="w-full max-w-6xl">
+                      <SafeImage src={currImg.url} alt={currImg.title} fit="contain" ratioClass="aspect-video" />
                     </div>
                   )}
 
-                  {/* Arrows + counter (desktop only) */}
+                  {/* Arrows (desktop only) */}
                   {selected.galleryImages && selected.galleryImages.length > 1 && (
                     <div className="hidden md:block">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={prev}
-                        className="absolute -left-4 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
                         aria-label="Previous image"
                       >
                         <ChevronLeft className="h-5 w-5" />
@@ -570,7 +591,7 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
                         variant="outline"
                         size="icon"
                         onClick={next}
-                        className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white"
                         aria-label="Next image"
                       >
                         <ChevronRight className="h-5 w-5" />
@@ -578,7 +599,7 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
                     </div>
                   )}
 
-                  {/* Thumbnails below image (never overlay content) */}
+                  {/* Thumbnails (below media) */}
                   {selected.galleryImages && selected.galleryImages.length > 1 && (
                     <div className="absolute bottom-0 left-0 right-0 bg-background/95 border-t p-3">
                       <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Image thumbnails">
@@ -604,17 +625,9 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
 
                 {/* Text/content pane */}
                 <div className="min-h-0 overflow-y-auto p-4 md:p-6">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    {(currImg as GalleryImage).badges?.map((b) => (
-                      <Badge key={b} variant="secondary" className="text-xs">
-                        {b}
-                      </Badge>
-                    ))}
-                  </div>
                   <h4 className="font-semibold text-lg">{currImg.title || selected.title}</h4>
                   <p className="text-sm text-muted-foreground mt-1">{currImg.description || selected.description}</p>
 
-                  {/* Details */}
                   <div className="grid md:grid-cols-3 gap-6 mt-5">
                     {mergedDetails?.specs && mergedDetails.specs.length > 0 && (
                       <div>
@@ -662,20 +675,6 @@ const ToyotaMediaStudio: React.FC<VehicleMediaStudioProps> = ({
                       </div>
                     )}
                   </div>
-
-                  {(currImg as GalleryImage).contentBlocks && (currImg as GalleryImage).contentBlocks!.length > 0 && (
-                    <div className="space-y-3 pt-6 border-t mt-6">
-                      {(currImg as GalleryImage).contentBlocks!.map((b) => (
-                        <div key={b.id} className="flex items-start gap-3">
-                          <div className="w-2 h-2 rounded-full mt-2" style={{ background: TOYOTA.red }} />
-                          <div>
-                            {b.title && <p className="font-medium">{b.title}</p>}
-                            {b.body && <p className="text-sm text-muted-foreground">{b.body}</p>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </motion.div>
@@ -693,14 +692,23 @@ interface MediaCardProps {
   isMobile?: boolean;
 }
 
+const getYouTubeIdForCard = (url: string) => {
+  const m = url?.match(/(?:v=|\.be\/)([A-Za-z0-9_-]{6,11})/);
+  return m ? m[1] : "";
+};
+
 const MediaCard: React.FC<MediaCardProps> = ({ media, onClick, isMobile }) => {
   const isVideo = media.type === "video";
+  const vid = isVideo ? getYouTubeIdForCard(media.url) : "";
+  const cardImage = isVideo
+    ? media.thumbnail || (vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : undefined)
+    : media.url;
+
   return (
     <motion.div whileHover={{ scale: isMobile ? 1 : 1.01, y: isMobile ? 0 : -2 }} whileTap={{ scale: 0.98 }} className="cursor-pointer" onClick={onClick}>
       <Card className={cn("overflow-hidden border bg-card hover:shadow-lg transition-shadow", TOYOTA.radius)}>
         <div className="relative h-64 md:h-72">
-          <SafeImage src={media.url} alt={media.title} fit="cover" />
-          {/* Bottom information panel (Toyota minimal) */}
+          <SafeImage src={cardImage as string} alt={media.title} fit="cover" />
           <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur px-4 py-3 border-t">
             <div className="flex items-center gap-2 mb-1">
               <Badge variant="outline" className="text-[11px] tracking-wide">

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,6 @@ interface VirtualShowroomProps {
   vehicle: VehicleModel;
 }
 
-/**
- * Improvements:
- * 1) Larger desktop area: uses responsive min-height (up to ~85vh on lg+) and wider container.
- * 2) True fullscreen: uses the Fullscreen API on a dedicated container; also renders a fixed overlay version
- *    to guarantee edge-to-edge, with exit on Esc, backdrop click, or button.
- * 3) Accessibility: labels, aria-pressed, focus-visible styles.
- */
 const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -38,16 +31,13 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
   // Keep React state in sync if user exits browser fullscreen via Esc
   useEffect(() => {
     const onFsChange = () => {
-      if (!document.fullscreenElement) {
-        setIsFullscreen(false);
-      }
+      if (!document.fullscreenElement) setIsFullscreen(false);
     };
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
   const requestTrueFullscreen = useCallback(async () => {
-    // Prefer the wrapper; if not available, fall back to body
     const el = containerRef.current ?? document.documentElement;
     try {
       if (document.fullscreenElement) {
@@ -55,16 +45,14 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
       } else if (el.requestFullscreen) {
         await el.requestFullscreen();
       }
-    } catch (err) {
-      // Silently fail; we still render CSS fullscreen overlay below
-      // console.warn("Fullscreen request failed", err);
+    } catch {
+      // fail silently; CSS overlay still covers us
     }
   }, []);
 
   const handleToggleFullscreen = async () => {
     const next = !isFullscreen;
     setIsFullscreen(next);
-    // Try native fullscreen when entering
     if (next) {
       await requestTrueFullscreen();
     } else if (document.fullscreenElement) {
@@ -76,9 +64,31 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
     window.open(showroomUrl, "_blank", "noopener,noreferrer");
   };
 
+  // shared features data
+  const features = [
+    {
+      key: "360",
+      icon: <Eye className="h-5 w-5" />,
+      title: "360° Experience",
+      description: "Complete virtual tour of interior and exterior",
+    },
+    {
+      key: "rt",
+      icon: <Monitor className="h-5 w-5" />,
+      title: "Real-time Config",
+      description: "Customize colors, wheels, and accessories instantly",
+    },
+    {
+      key: "hi",
+      icon: <ExternalLink className="h-5 w-5" />,
+      title: "Immersive Details",
+      description: "Explore every feature with high-res imagery",
+    },
+  ];
+
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,75,75,0.2),transparent_50%)]" />
       </div>
@@ -95,7 +105,7 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
             Virtual Experience
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-black text-foreground mb-4 lg:mb-6 leading-tight">
-            Virtual {" "}
+            Virtual{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
               Showroom
             </span>
@@ -142,65 +152,64 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
                 </div>
               </div>
 
-              {/*
-                Larger desktop area:
-                - Use responsive min-heights that scale with viewport
-                - Allow the iframe to stretch fully
-              */}
               <div
                 ref={containerRef}
-                className={`relative w-full h-[60vh] md:aspect-[16/9] lg:aspect-[21/9]`}
+                className="relative w-full h-[60vh] md:aspect-[16/9] lg:aspect-[21/9]"
               >
                 <iframe
                   ref={iframeRef}
                   src={showroomUrl}
                   title={`${vehicle.name} Virtual Showroom`}
                   className="absolute inset-0 w-full h-full border-0 block"
-                  // IMPORTANT: enable native fullscreen from inside iframe (if supported by origin)
                   allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking"
                   allowFullScreen
                   loading="lazy"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation-by-user-activation"
                 />
-
-                {/* Loading veil (can be toggled via messaging if needed) */}
-                {/* <div className="absolute inset-0 bg-muted/90 flex items-center justify-center opacity-0 data-[loading=true]:opacity-100 transition-opacity duration-300" data-loading={false}> */}
-                {/*   <div className="text-center space-y-4"> */}
-                {/*     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div> */}
-                {/*     <p className="text-muted-foreground">Loading Virtual Showroom...</p> */}
-                {/*   </div> */}
-                {/* </div> */}
               </div>
 
-              <div className="lg:hidden p-4 bg-muted/30 border-t">
-                <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+              {/* mobile-only helper tip under iframe */}
+              <div className="lg:hidden p-3 bg-muted/30 border-t">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4 flex-shrink-0" />
-                  <span>Tap and drag to explore • Pinch to zoom • Use device rotation for 360° view</span>
+                  <span>Tap & drag • Pinch to zoom • Rotate device for 360°</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {[
-              {
-                icon: <Eye className="h-6 w-6" />,
-                title: "360° Experience",
-                description: "Complete virtual tour of interior and exterior",
-              },
-              {
-                icon: <Monitor className="h-6 w-6" />,
-                title: "Real-time Configuration",
-                description: "Customize colors, wheels, and accessories instantly",
-              },
-              {
-                icon: <ExternalLink className="h-6 w-6" />,
-                title: "Immersive Details",
-                description: "Explore every feature with high-resolution imagery",
-              },
-            ].map((feature, index) => (
+          {/* ---- MOBILE FEATURE CHIPS (replaces stacked tiles) ---- */}
+          <div className="md:hidden mt-4 -mx-4 px-4">
+            <div
+              className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 no-scrollbar"
+              aria-label="Virtual Showroom features"
+            >
+              {features.map((f, i) => (
+                <motion.button
+                  key={f.key}
+                  whileTap={{ scale: 0.98 }}
+                  className="snap-start shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-background/80 shadow-sm"
+                  aria-label={f.title}
+                  title={f.description}
+                >
+                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+                    {f.icon}
+                  </span>
+                  <span className="text-sm font-medium whitespace-nowrap">{f.title}</span>
+                </motion.button>
+              ))}
+            </div>
+            {/* Optional: tiny caption row (kept single-line to avoid height bloat) */}
+            <p className="mt-2 text-xs text-muted-foreground truncate">
+              360° views • Real-time configuration • High-res details
+            </p>
+          </div>
+
+          {/* ---- DESKTOP/TABLET GRID (unchanged) ---- */}
+          <div className="hidden md:grid md:grid-cols-3 gap-6 mt-8">
+            {features.map((feature, index) => (
               <motion.div
-                key={feature.title}
+                key={feature.key}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -218,45 +227,46 @@ const VirtualShowroom: React.FC<VirtualShowroomProps> = ({ vehicle }) => {
         </motion.div>
       </div>
 
-      {/* CSS fullscreen overlay that mirrors the iframe for guaranteed edge-to-edge */}
-      {isFullscreen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-black"
-          onClick={(e) => {
-            // Only close if the backdrop itself is clicked
-            if (e.currentTarget === e.target) handleToggleFullscreen();
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Virtual Showroom Fullscreen"
-        >
-          <div className="absolute top-3 right-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleFullscreen}
-              className="text-white/90 hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/40"
-            >
-              <X className="h-4 w-4 mr-2" /> Exit Fullscreen
-            </Button>
-          </div>
+      {/* CSS fullscreen overlay for guaranteed edge-to-edge */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black"
+            onClick={(e) => {
+              if (e.currentTarget === e.target) handleToggleFullscreen();
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Virtual Showroom Fullscreen"
+          >
+            <div className="absolute top-3 right-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleFullscreen}
+                className="text-white/90 hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <X className="h-4 w-4 mr-2" /> Exit Fullscreen
+              </Button>
+            </div>
 
-          <div className="w-full h-full">
-            <iframe
-              src={showroomUrl}
-              title={`${vehicle.name} Virtual Showroom (Fullscreen)`}
-              className="absolute inset-0 w-full h-full border-0 block"
-              allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking"
-              allowFullScreen
-              loading="eager"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation-by-user-activation"
-            />
-          </div>
-        </motion.div>
-      )}
+            <div className="w-full h-full">
+              <iframe
+                src={showroomUrl}
+                title={`${vehicle.name} Virtual Showroom (Fullscreen)`}
+                className="absolute inset-0 w-full h-full border-0 block"
+                allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking"
+                allowFullScreen
+                loading="eager"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation-by-user-activation"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
