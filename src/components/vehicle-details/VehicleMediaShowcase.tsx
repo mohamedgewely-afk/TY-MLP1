@@ -98,12 +98,12 @@ type MediaItem = {
 };
 
 const VARIANT: Record<Variant, VariantStyle> = {
-  performance: { accent: "text-red-600", slab: "bg-red-50/70", chip: "bg-red-100" },
-  safety: { accent: "text-blue-700", slab: "bg-blue-50/70", chip: "bg-blue-100" },
-  interior: { accent: "text-amber-700", slab: "bg-amber-50/70", chip: "bg-amber-100" },
-  quality: { accent: "text-zinc-700", slab: "bg-zinc-50/70", chip: "bg-zinc-100" },
-  technology: { accent: "text-cyan-700", slab: "bg-cyan-50/70", chip: "bg-cyan-100" },
-  handling: { accent: "text-emerald-700", slab: "bg-emerald-50/70", chip: "bg-emerald-100" },
+  performance: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
+  safety: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
+  interior: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
+  quality: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
+  technology: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
+  handling: { accent: "text-red-600", slab: "bg-zinc-100", chip: "bg-zinc-200" },
 };
 
 const DEMO: MediaItem[] = [
@@ -116,8 +116,7 @@ const DEMO: MediaItem[] = [
     variant: "performance",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
     gallery: [
-      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true", title: "Cooling", details: { overview: "3.5L V6 TT engineered for instant response.", specs: ["400+ hp", "0–60 in 4.2s"] } },
-      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/0518d633-0b79-4964-97b1-daff0c8d5bf3/renditions/75f7f2ee-7e9b-4277-82ad-ca0126042c8c?binary=true&mformat=true", title: "Turbo", details: { specs: ["VGT turbines", "Low-mass impellers"], features: ["Wider band", "Low lag"] } },
+      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true", title: "Engine", details: { overview: "3.5L V6 TT engineered for instant response.", specs: ["400+ hp", "0–60 in 4.2s"] } },
     ],
     badges: ["3.5L V6 TT", "400+ hp", "Instant response"],
   },
@@ -131,7 +130,6 @@ const DEMO: MediaItem[] = [
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
     gallery: [
       { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/561ac4b4-3604-4e66-ae72-83e2969d7d65/items/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true", title: "Center Console", details: { specs: ['12.3" display', "Tri-zone climate"], features: ["Voice control", "Wireless charging"] } },
-      { url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true", title: "Seating", details: { specs: ["Heated/ventilated", "Multi-way adjust"], features: ["Memory", "Lumbar"] } },
     ],
     badges: ['12.3" display', "Comfort"],
   },
@@ -191,129 +189,178 @@ const DEMO: MediaItem[] = [
 ];
 
 /* ================= Variant-Specific Components (Unique UI/UX) ================= */
-const SpecCard: React.FC<{ title: string; bullets?: string[]; accentClass?: string }> = ({ title, bullets, accentClass }) => (
-  <div className={cx(TOK.card, "rounded-xl p-4")}>
-    <h6 className={cx("mb-2 font-semibold", accentClass)}>{title}</h6>
-    <ul className="space-y-2 text-sm">
-      {bullets?.slice(0, 6).map((b, i) => (
-        <li key={i} className="flex items-start gap-2">
-          <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
-          <span className="text-zinc-700">{b}</span>
-        </li>
-      )) || <p className="text-zinc-500">—</p>}
-    </ul>
-  </div>
-);
 
-// Performance: Interactive speed/torque visual
+// Performance: Interactive spec comparator
 const PerformancePanel = () => {
-  const [rpm, setRpm] = useState(0);
+  const [metric, setMetric] = useState<'hp' | 'torque'>('hp');
   const accent = VARIANT.performance.accent;
 
-  useEffect(() => {
-    const i = setInterval(() => setRpm((p) => (p < 6000 ? p + 500 : 0)), 100);
-    return () => clearInterval(i);
-  }, []);
+  const specs = {
+    hp: { label: "Horsepower", value: "400 hp", graph: "w-[80%]" },
+    torque: { label: "Torque (lb-ft)", value: "350 lb-ft", graph: "w-[70%]" },
+  };
+
+  const activeSpec = specs[metric];
 
   return (
-    <div className="space-y-4">
-      <div className="relative h-44 grid place-items-center rounded-xl overflow-hidden bg-red-50/70">
-        <div className="relative h-28 w-28 md:h-36 md:w-36 rounded-full border-4 border-red-500">
-          <div className="absolute inset-0 grid place-items-center text-sm font-bold text-red-800">
-            <span className="text-xs text-red-700">RPM</span> {rpm}
-          </div>
-          <div className="absolute inset-0 border-r-4 border-red-800 origin-center transition-transform duration-100 ease-linear"
-               style={{ transform: `rotate(${rpm / 20}deg)` }} />
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center text-center font-bold text-lg">
+        <button
+          onClick={() => setMetric('hp')}
+          className={cx("flex-1 p-2 border-b-2", metric === 'hp' ? `border-${TOK.red}` : "border-zinc-300")}
+          style={{ borderColor: metric === 'hp' ? TOK.red : undefined }}
+        >
+          Horsepower
+        </button>
+        <button
+          onClick={() => setMetric('torque')}
+          className={cx("flex-1 p-2 border-b-2", metric === 'torque' ? `border-${TOK.red}` : "border-zinc-300")}
+          style={{ borderColor: metric === 'torque' ? TOK.red : undefined }}
+        >
+          Torque
+        </button>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <SpecCard title="Core Specs" bullets={["3.5L V6 TT", "400+ hp"]} accentClass={accent} />
-        <SpecCard title="Performance Tech" bullets={["Direct injection", "Low-lag turbos"]} accentClass={accent} />
+      <div className="p-4 rounded-xl border border-zinc-200">
+        <h6 className="font-semibold">{activeSpec.label}</h6>
+        <p className="text-4xl font-black mt-2" style={{ color: TOK.red }}>{activeSpec.value}</p>
+        <div className="w-full h-4 mt-4 bg-zinc-200 rounded-full overflow-hidden">
+          <div className={cx("h-full bg-red-500", activeSpec.graph)} />
+        </div>
+        <p className="text-sm text-zinc-500 mt-1">This is a dynamic visualization of power.</p>
       </div>
     </div>
   );
 };
 
-// Safety: Clickable hotspots on a car diagram
+// Safety: Card-based interactive walkthrough
 const SafetyPanel = () => {
-  const [active, setActive] = useState("PCS");
-  const accent = VARIANT.safety.accent;
+  const [active, setActive] = useState(0);
   const features = useMemo(() => ([
-    { id: "PCS", name: "Pre-Collision", desc: "Monitors for frontal collisions, can apply brakes." },
-    { id: "LTA", name: "Lane Trace Assist", desc: "Helps keep the vehicle centered in its lane." },
-    { id: "BSM", name: "Blind Spot Monitor", desc: "Warns of vehicles in your blind spots." },
+    {
+      id: "PCS",
+      name: "Pre-Collision System",
+      desc: "Monitors for frontal collisions and can automatically apply brakes.",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true"
+    },
+    {
+      id: "LTA",
+      name: "Lane Tracing Assist",
+      desc: "Helps you stay centered in your lane with gentle steering assistance.",
+      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true"
+    },
   ]), []);
+  const activeFeature = features[active];
 
   return (
     <div className="space-y-4">
-      <div className="relative p-2 rounded-xl bg-blue-50/70 grid place-items-center">
-        <ImageSafe src="https://i.imgur.com/example-car.png" alt="Car safety diagram" className="w-full h-auto" />
-        <div className="absolute left-[20%] top-[40%] h-5 w-5 rounded-full border-2 border-blue-500 bg-blue-200 cursor-pointer" onClick={() => setActive("PCS")} />
-        <div className="absolute left-[70%] top-[30%] h-5 w-5 rounded-full border-2 border-blue-500 bg-blue-200 cursor-pointer" onClick={() => setActive("LTA")} />
+      <div className="p-2 rounded-xl border border-zinc-200 bg-zinc-50 grid place-items-center">
+        <ImageSafe src={activeFeature.image} alt={activeFeature.name} className="w-full h-auto rounded-lg" />
       </div>
-      <h6 className={cx("text-xl font-bold", accent)}>Active Safety Feature Details</h6>
-      <div className="flex flex-wrap gap-2">
-        {features.map((f) => (
+      <div className="grid grid-cols-2 gap-3">
+        {features.map((f, i) => (
           <button
             key={f.id}
-            onClick={() => setActive(f.id)}
-            className={cx("rounded-full px-4 py-1.5 text-sm font-medium",
-              f.id === active ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800 hover:bg-blue-200")}
+            onClick={() => setActive(i)}
+            className={cx("p-3 rounded-lg border text-left", active === i ? "bg-black text-white border-black" : "bg-white border-zinc-200 hover:bg-zinc-50")}
           >
-            {f.name}
+            <h6 className="font-semibold text-sm">{f.name}</h6>
+            <p className="text-xs text-zinc-400 mt-1">{f.desc}</p>
           </button>
         ))}
       </div>
-      <div className="p-4 rounded-xl border border-blue-200 bg-blue-50 text-sm">
-        <p className="font-semibold text-blue-800">{features.find(f => f.id === active)?.name}</p>
-        <p className="text-blue-700">{features.find(f => f.id === active)?.desc}</p>
+    </div>
+  );
+};
+
+// Interior: Tabbed content
+const InteriorPanel = () => {
+  const [tab, setTab] = useState('comfort');
+  const accent = VARIANT.interior.accent;
+  
+  const content = {
+    comfort: {
+      title: "Seating & Comfort",
+      bullets: ["Heated and ventilated seats", "Multi-way power adjustments", "Ambient lighting"]
+    },
+    infotainment: {
+      title: "Infotainment",
+      bullets: ["12.3-inch touchscreen", "Wireless charging", "JBL Premium Audio"]
+    },
+    materials: {
+      title: "Craftsmanship",
+      bullets: ["Premium leather surfaces", "Soft-touch dashboard", "Matte-finish trim"]
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 border-b border-zinc-200">
+        {['comfort', 'infotainment', 'materials'].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cx("py-2 px-4 text-sm font-semibold border-b-2 transition-colors", t === tab ? "border-red-500 text-red-600" : "border-transparent text-zinc-500 hover:text-black")}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+      <div className="p-4 rounded-xl border border-zinc-200">
+        <h6 className="text-lg font-bold" style={{ color: TOK.red }}>{content[tab].title}</h6>
+        <ul className="mt-2 space-y-2 text-sm">
+          {content[tab].bullets.map((b, i) => <li key={i}>{b}</li>)}
+        </ul>
       </div>
     </div>
   );
 };
 
-// Other Panels (Layouts are different)
-const InteriorPanel = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <SpecCard title="Infotainment" bullets={["12.3” touchscreen", "Wireless charging"]} accentClass={VARIANT.interior.accent} />
-    <SpecCard title="Materials" bullets={["Premium leather", "Soft-touch finishes"]} accentClass={VARIANT.interior.accent} />
-  </div>
-);
-
 const QualityPanel = () => (
-  <div className="space-y-4">
-    <h6 className={cx("text-lg font-bold", VARIANT.quality.accent)}>Toyota's Commitment to Quality</h6>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <SpecCard title="Build" bullets={["High-strength steel", "Precision robotics"]} accentClass={VARIANT.quality.accent} />
-      <SpecCard title="Durability" bullets={["Multi-stage paint", "Corrosion resistance"]} accentClass={VARIANT.quality.accent} />
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="p-4 rounded-xl border border-zinc-200">
+      <h6 className="font-bold text-lg" style={{ color: TOK.red }}>High-Strength Materials</h6>
+      <p className="text-sm mt-1 text-zinc-600">Built with advanced materials for safety and durability.</p>
+    </div>
+    <div className="p-4 rounded-xl border border-zinc-200">
+      <h6 className="font-bold text-lg" style={{ color: TOK.red }}>Laser-Guided Assembly</h6>
+      <p className="text-sm mt-1 text-zinc-600">Robotic precision ensures perfect panel gaps and fit.</p>
     </div>
   </div>
 );
 
 const TechnologyPanel = () => (
   <div className="space-y-4">
-    <div className="p-4 rounded-xl border border-cyan-200 bg-cyan-50 flex items-center gap-4">
-      <div className="h-10 w-10 bg-cyan-600 rounded-full flex-shrink-0" />
-      <div>
-        <h6 className="font-semibold text-cyan-800">OTA Updates</h6>
-        <p className="text-sm text-cyan-700">Seamlessly add new features and fix issues over the air.</p>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="p-4 rounded-xl border border-zinc-200 text-center">
+        <div className="h-8 w-8 mx-auto bg-black rounded-full" />
+        <h6 className="font-semibold text-sm mt-2">Apple CarPlay</h6>
+      </div>
+      <div className="p-4 rounded-xl border border-zinc-200 text-center">
+        <div className="h-8 w-8 mx-auto bg-black rounded-full" />
+        <h6 className="font-semibold text-sm mt-2">Android Auto</h6>
       </div>
     </div>
-    <SpecCard title="Connectivity" bullets={["Apple CarPlay", "Android Auto", "Wi-Fi Hotspot"]} accentClass={VARIANT.technology.accent} />
+    <div className="p-4 rounded-xl border border-zinc-200 flex items-center gap-4">
+      <div className="h-10 w-10 flex-shrink-0 bg-black rounded-full" />
+      <div>
+        <h6 className="font-semibold text-sm">Over-the-Air Updates</h6>
+        <p className="text-xs text-zinc-600">Future-proof with seamless software updates.</p>
+      </div>
+    </div>
   </div>
 );
 
 const HandlingPanel = () => (
   <div className="space-y-4">
-    <h6 className={cx("text-lg font-bold", VARIANT.handling.accent)}>Masterful Driving Dynamics</h6>
-    <ul className="flex flex-col gap-2 p-4 rounded-xl bg-emerald-50/70">
+    <ul className="flex flex-col gap-2 p-4 rounded-xl border border-zinc-200">
       {["Adaptive Variable Suspension", "Multi-Terrain Select", "Active Torque Control"].map((f) => (
         <li key={f} className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-600" />
-          <span className="font-medium text-emerald-800">{f}</span>
+          <span className="h-2 w-2 rounded-full" style={{ background: TOK.red }} />
+          <span className="font-medium">{f}</span>
         </li>
       ))}
     </ul>
+    <p className="text-sm text-zinc-600">The chassis is engineered for both responsive handling and a comfortable ride.</p>
   </div>
 );
 
@@ -366,8 +413,8 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
 
   return (
     <section className={TOK.container}>
-      {/* Hero Video - Floating on top of the tiles */}
-      <div className={cx(TOK.card, TOK.radius, "relative z-10 p-3 md:p-4 mb-8 -mt-8")}>
+      {/* Hero Video - No Overlap */}
+      <div className={cx(TOK.card, TOK.radius, "relative z-0 p-3 md:p-4 mb-8")}>
         <div className="mb-3 flex items-center gap-3">
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-semibold">Hero Video</span>
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
@@ -378,7 +425,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
       </div>
 
       {/* Tiles Grid */}
-      <div className="relative z-0">
+      <div className="relative z-10">
         {/* Mobile carousel */}
         <div className="mb-6 md:hidden">
           <div
@@ -469,34 +516,27 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               <div className="flex-1 overflow-y-auto grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
                 {/* Visual */}
                 <div className="relative bg-black md:rounded-l-2xl">
-                  <ImageSafe src={open.gallery[0]?.url || open.thumbnail} alt={open.title} cover className="h-full w-full object-contain" />
+                  {open.video ? (
+                    <WistiaEmbed id={open.video.id} autoPlay={true} muted className="h-full w-full" />
+                  ) : (
+                    <ImageSafe src={open.gallery[0]?.url || open.thumbnail} alt={open.title} cover className="h-full w-full object-contain" />
+                  )}
                 </div>
 
                 {/* Unique Content Panel */}
                 <div className="flex flex-col bg-white md:rounded-r-2xl min-h-0">
                   <div className="overflow-y-auto p-4 flex-1">
-                    <div className={cx("mb-4 rounded-xl border border-zinc-200/60 p-4", VARIANT[open.variant].slab)}>
-                      <h5 className={cx("mb-1 text-xl font-bold", VARIANT[open.variant].accent)}>
-                        {open.title}
-                      </h5>
+                    <div className={cx("mb-4 rounded-xl border border-zinc-200/60 p-4")}>
+                      <h5 className={cx("mb-1 text-xl font-bold")}>{open.title}</h5>
                       <p className={TOK.muted}>{open.summary}</p>
                     </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {open.badges?.map((b) => (
-                        <span key={b} className={cx("rounded-full px-2 py-1 text-xs", VARIANT[open.variant].chip)}>
-                          {b}
-                        </span>
-                      ))}
-                    </div>
-
                     <div className="pb-4"><ModalPanelContent v={open.variant} /></div>
                   </div>
                 </div>
               </div>
 
               {/* Fixed Bottom Bar */}
-              <div className="sticky bottom-0 z-20 flex items-center justify-end border-t p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+              <div className="sticky bottom-0 z-20 flex items-center justify-between border-t p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
                 <button
                   onClick={openBooking}
                   className={cx("rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90", "w-full md:w-auto")}
