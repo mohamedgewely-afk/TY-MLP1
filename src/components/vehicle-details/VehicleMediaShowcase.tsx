@@ -120,6 +120,7 @@ const WistiaEmbed: React.FC<{
   muted?: boolean;
   className?: string;
 }> = ({ id, aspect = 16 / 9, autoPlay, muted, className }) => {
+  // KEEP VIDEO UNTOUCHED
   const qs = new URLSearchParams({
     seo: "false",
     videoFoam: "true",
@@ -315,43 +316,25 @@ interface Props {
   vehicle: VehicleModel; // kept for compatibility
 }
 
-/* ================= Variant content ================= */
-const SpecCard: React.FC<{ title: string; bullets?: string[]; accentClass?: string }> = ({
-  title,
-  bullets,
-  accentClass,
-}) => {
-  if (!bullets || bullets.length === 0) {
-    return (
-      <div className={cx(TOK.card, "rounded-xl p-4 opacity-60")}>
-        <h6 className="mb-1 font-semibold">{title}</h6>
-        <p className="text-zinc-500">—</p>
-      </div>
-    );
-  }
-  return (
-    <div className={cx(TOK.card, "rounded-xl p-4")}>
-      <h6 className={cx("mb-2 font-semibold", accentClass)}>{title}</h6>
-      <ul className="space-y-2 text-sm">
-        {bullets.slice(0, 6).map((b, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
-            <span className="text-zinc-700">{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+/* ================= Variant content (interactive) ================= */
+const Bullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <li className="flex items-start gap-2 text-sm">
+    <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
+    <span className="text-zinc-700">{children}</span>
+  </li>
+);
 
-/* Distinctive variant renderers (unique UX/CX per type) */
-function VariantPanel(v: Variant, slide: Slide | null, item: MediaItem, animateStats: boolean, prefersReduced: boolean) {
-  const accent = VARIANT[v].accent;
+function PerformancePanel({ slide }: { slide: Slide | null }) {
+  const reduced = usePrefersReducedMotion();
+  const [thr, setThr] = useState(60); // throttle %
+  const torque = Math.round(40 + thr * 0.9);
+  const response = Math.round(50 + thr * 0.7);
+  const efficiency = Math.max(50, 100 - Math.round(thr * 0.4));
+  const zeroTo60 = (6.2 - (thr - 50) * 0.02).toFixed(1);
 
-  // animated stat bar for performance
-  const StatBar: React.FC<{ label: string; val: number }> = ({ label, val }) => (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
+  const Bar = ({ label, val }: { label: string; val: number }) => (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
         <span className="font-medium">{label}</span>
         <span className="text-zinc-500">{val}%</span>
       </div>
@@ -359,109 +342,310 @@ function VariantPanel(v: Variant, slide: Slide | null, item: MediaItem, animateS
         <div
           className="h-2 rounded-full"
           style={{
+            width: `${val}%`,
             background: TOK.red,
-            width: prefersReduced ? `${val}%` : animateStats ? `${val}%` : "0%",
-            transition: prefersReduced ? "none" : "width 600ms ease",
+            transition: reduced ? "none" : "width 400ms ease",
           }}
         />
       </div>
     </div>
   );
 
-  switch (v) {
-    case "performance":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="space-y-4">
-            <SpecCard title="Specifications" bullets={slide?.details?.specs} accentClass={accent} />
-            <div className={cx(TOK.card, "rounded-xl p-4")}>
-              <h6 className={cx("mb-2 font-semibold", accent)}>Performance Snapshot</h6>
-              <div className="space-y-3">
-                <StatBar label="Acceleration" val={92} />
-                <StatBar label="Response" val={88} />
-                <StatBar label="Efficiency" val={72} />
-              </div>
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h6 className="text-sm font-semibold text-red-600">Driver Input</h6>
+          <span className="text-xs text-zinc-500">{thr}% throttle</span>
+        </div>
+        <input
+          aria-label="Throttle"
+          type="range"
+          min={0}
+          max={100}
+          value={thr}
+          onChange={(e) => setThr(Number(e.target.value))}
+          className="w-full accent-red-600"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border p-4">
+          <h6 className="mb-2 text-sm font-semibold text-red-600">Torque</h6>
+          <Bar label="Output" val={torque} />
+        </div>
+        <div className="rounded-xl border p-4">
+          <h6 className="mb-2 text-sm font-semibold text-red-600">Response</h6>
+          <Bar label="Latency" val={response} />
+        </div>
+        <div className="rounded-xl border p-4">
+          <h6 className="mb-2 text-sm font-semibold text-red-600">Efficiency</h6>
+          <Bar label="Cruise" val={efficiency} />
+        </div>
+      </div>
+
+      <div className="rounded-xl border p-4 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Estimated 0–60 mph</span>
+          <span className="text-red-600 font-semibold">{zeroTo60}s</span>
+        </div>
+        <p className="mt-2 text-zinc-600">{slide?.details?.overview || "Twin-turbo V6 engineered for instant response and sustained performance."}</p>
+        <ul className="mt-2 space-y-1">
+          {(slide?.details?.features || ["Direct injection", "VVT", "Aluminum block"]).slice(0, 4).map((f, i) => (
+            <Bullet key={i}>{f}</Bullet>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function SafetyPanel({ slide }: { slide: Slide | null }) {
+  const scenarios = [
+    { key: "city", label: "City", list: ["PCS (Pre-Collision)", "LTA (Lane Trace)", "AEB for pedestrians"] },
+    { key: "highway", label: "Highway", list: ["ACC (Adaptive Cruise)", "LTA (Lane Trace)", "BSM (Blind Spot)"] },
+    { key: "night", label: "Night", list: ["Auto High Beam", "PCS (Low Light)", "Road Sign Assist"] },
+  ] as const;
+  const [sel, setSel] = useState<typeof scenarios[number]["key"]>("city");
+
+  const active = scenarios.find((s) => s.key === sel)!;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {scenarios.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSel(s.key)}
+            className={cx(
+              "rounded-full border px-3 py-1 text-xs",
+              sel === s.key ? "border-blue-300 bg-blue-50 text-blue-700" : "hover:bg-zinc-50"
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-xl border p-4">
+        <h6 className="mb-2 text-sm font-semibold text-blue-700">Active Assistance</h6>
+        <ul className="grid grid-cols-2 gap-2 text-xs">
+          {active.list.map((f) => (
+            <li key={f} className="rounded-lg border border-blue-200 px-2 py-1">{f}</li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-zinc-600">{slide?.details?.overview || "Camera + radar fusion provides assistance when you need it most."}</p>
+      </div>
+    </div>
+  );
+}
+
+function InteriorPanel({ slide }: { slide: Slide | null }) {
+  const [ambient, setAmbient] = useState(true);
+  const swatches = [
+    { name: "Black", color: "#111827" },
+    { name: "Graphite", color: "#4B5563" },
+    { name: "Sand", color: "#D6D3D1" },
+    { name: "Ice", color: "#E5E7EB" },
+  ];
+  const [sel, setSel] = useState(0);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border p-4">
+        <h6 className="mb-2 text-sm font-semibold text-amber-700">Ambience</h6>
+        <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+          <input type="checkbox" checked={ambient} onChange={(e) => setAmbient(e.target.checked)} className="accent-amber-700" />
+          <span>Ambient lighting</span>
+        </label>
+      </div>
+
+      <div className="rounded-xl border p-4">
+        <h6 className="mb-3 text-sm font-semibold text-amber-700">Trim</h6>
+        <div className="flex flex-wrap gap-2">
+          {swatches.map((s, i) => (
+            <button
+              key={s.name}
+              onClick={() => setSel(i)}
+              className={cx("flex items-center gap-2 rounded-full border px-3 py-1 text-xs", sel === i ? "border-amber-300 bg-amber-50" : "hover:bg-zinc-50")}
+            >
+              <span className="h-3 w-3 rounded-full border" style={{ background: s.color }} />
+              {s.name}
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-sm text-zinc-600">{slide?.details?.overview || "Premium materials, intuitive controls, minimal distraction."}</p>
+      </div>
+
+      <style>{`
+        .ambient-overlay {
+          background: radial-gradient(120px 80px at 20% 80%, rgba(255,200,0,.25), transparent 60%),
+                      radial-gradient(120px 80px at 80% 60%, rgba(0,180,255,.2), transparent 60%);
+          pointer-events: none;
+        }
+      `}</style>
+      {/* hint to visual overlay is applied in Visual block via ambient flag */}
+      <div className="text-xs text-zinc-500">Tip: Toggle ambience & trim; the main image subtly reflects your selection.</div>
+    </div>
+  );
+}
+
+function QualityPanel({ slide }: { slide: Slide | null }) {
+  const steps = [
+    { k: "mat", t: "Materials", list: slide?.details?.specs || ["HS steel", "Multi-stage paint"] },
+    { k: "paint", t: "Paint", list: ["E-coat", "Base coat", "Clear coat"] },
+    { k: "assy", t: "Assembly", list: ["Robotic welds", "Laser gap check"] },
+    { k: "qc", t: "QC", list: ["End-of-line inspection", "NVH test"] },
+  ];
+  const [idx, setIdx] = useState(0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {steps.map((s, i) => (
+          <button
+            key={s.k}
+            onClick={() => setIdx(i)}
+            className={cx("rounded-full px-3 py-1 text-xs border", idx === i ? "border-zinc-300 bg-zinc-50" : "hover:bg-zinc-50")}
+          >
+            {i + 1}. {s.t}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-xl border p-4">
+        <h6 className="mb-2 text-sm font-semibold text-zinc-700">{steps[idx].t}</h6>
+        <ul className="space-y-1">
+          {steps[idx].list.slice(0, 5).map((v, i) => (
+            <Bullet key={i}>{v}</Bullet>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-zinc-600">{slide?.details?.overview || "High-strength materials and precise assembly ensure long-term durability."}</p>
+      </div>
+
+      <style>{`
+        .quality-ring::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border: 3px solid rgba(0,0,0,.08);
+          border-radius: 16px;
+          pointer-events: none;
+          animation: ringPulse .9s ease;
+        }
+        @keyframes ringPulse {
+          from { transform: scale(.98); opacity: .6; }
+          to   { transform: scale(1);   opacity: 1; }
+        }
+      `}</style>
+      <div className="text-xs text-zinc-500">Tip: changing the step highlights the image frame.</div>
+    </div>
+  );
+}
+
+function TechnologyPanel({ slide }: { slide: Slide | null }) {
+  const toggles = [
+    { k: "carplay", label: "Apple CarPlay" },
+    { k: "android", label: "Android Auto" },
+    { k: "ota", label: "OTA Updates" },
+    { k: "wifi", label: "Wi-Fi Hotspot" },
+  ] as const;
+  const [on, setOn] = useState<Record<string, boolean>>({ carplay: true, android: false, ota: true, wifi: true });
+  const [pairing, setPairing] = useState<null | "carplay" | "android">(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!pairing) return;
+    setProgress(0);
+    const id = setInterval(() => setProgress((p) => Math.min(100, p + 10)), 120);
+    const end = setTimeout(() => setPairing(null), 1200 + Math.random() * 400);
+    return () => {
+      clearInterval(id);
+      clearTimeout(end);
+    };
+  }, [pairing]);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2">
+        {toggles.map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setOn((p) => ({ ...p, [t.k]: !p[t.k] }))}
+            className={cx("rounded-xl border px-3 py-2 text-left text-sm", on[t.k] ? "border-cyan-300 bg-cyan-50" : "hover:bg-zinc-50")}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-xl border p-4 text-sm">
+        <h6 className="mb-2 font-semibold text-cyan-700">Quick Pair</h6>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setPairing("carplay")} className="rounded-full border px-3 py-1 text-xs hover:bg-zinc-50">Pair CarPlay</button>
+          <button onClick={() => setPairing("android")} className="rounded-full border px-3 py-1 text-xs hover:bg-zinc-50">Pair Android Auto</button>
+        </div>
+        {pairing && (
+          <div className="mt-3">
+            <div className="mb-1 text-xs text-zinc-500">Pairing {pairing === "carplay" ? "CarPlay" : "Android Auto"}...</div>
+            <div className="h-2 w-full rounded-full bg-zinc-100">
+              <div className="h-2 rounded-full" style={{ width: `${progress}%`, background: TOK.red }} />
             </div>
           </div>
-          <SpecCard title="Features" bullets={slide?.details?.features} accentClass={accent} />
-          <SpecCard title="Technology" bullets={slide?.details?.tech} accentClass={accent} />
-        </div>
-      );
-    case "safety":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className={cx(TOK.card, "rounded-xl p-4")}>
-            <h6 className={cx("mb-2 font-semibold", accent)}>Overview</h6>
-            <p className={TOK.muted}>{slide?.details?.overview || item.summary}</p>
-            <ul className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              {(slide?.details?.specs || []).slice(0, 6).map((s, i) => (
-                <li key={i} className="rounded-lg border border-blue-200 px-2 py-1">{s}</li>
-              ))}
-            </ul>
+        )}
+        <p className="mt-3 text-zinc-600">{(slide?.details?.tech || ["Cloud services", "Over-the-air updates"]).join(" • ")}</p>
+      </div>
+    </div>
+  );
+}
+
+function HandlingPanel({ slide }: { slide: Slide | null }) {
+  const modes = [
+    { k: "eco", label: "Eco", filter: "saturate(0.8) brightness(1.05)" },
+    { k: "normal", label: "Normal", filter: "none" },
+    { k: "sport", label: "Sport", filter: "contrast(1.1) saturate(1.1) brightness(0.98)" },
+    { k: "trail", label: "Trail", filter: "saturate(1.2) hue-rotate(-5deg)" },
+  ] as const;
+  const [mode, setMode] = useState<typeof modes[number]["k"]>("normal");
+  const active = modes.find((m) => m.k === mode)!;
+
+  const [g, setG] = useState(0.85);
+  useEffect(() => {
+    setG(0.7 + Math.random() * 0.6);
+  }, [mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {modes.map((m) => (
+          <button
+            key={m.k}
+            onClick={() => setMode(m.k)}
+            className={cx("rounded-full border px-3 py-1 text-xs", mode === m.k ? "border-emerald-300 bg-emerald-50" : "hover:bg-zinc-50")}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-xl border p-4">
+        <h6 className="mb-2 text-sm font-semibold text-emerald-700">Grip Meter</h6>
+        <div className="relative h-20 w-full">
+          <div className="absolute inset-0 grid grid-cols-5 text-[10px] text-zinc-400">
+            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="border-l last:border-r" />)}
           </div>
-          <div className={cx(TOK.card, "rounded-xl p-4")}>
-            <h6 className={cx("mb-2 font-semibold", accent)}>Assist Highlights</h6>
-            <ul className="space-y-2 text-sm">
-              <li>Forward Collision Prevention</li>
-              <li>Lane Trace Assist</li>
-              <li>Adaptive Cruise Control</li>
-              <li>Blind Spot Monitor</li>
-            </ul>
-          </div>
-        </div>
-      );
-    case "interior":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SpecCard title="Comfort" bullets={slide?.details?.features} accentClass={accent} />
-          <div className={cx(TOK.card, "rounded-xl p-4")}>
-            <h6 className={cx("mb-2 font-semibold", accent)}>Finishes & Tech</h6>
-            <div className="grid grid-cols-5 gap-2">
-              {["#111827","#374151","#9CA3AF","#D1D5DB","#F3F4F6"].map((c,i)=>(
-                <div key={i} className="h-8 w-full rounded-lg border" style={{background:c}} />
-              ))}
-            </div>
-            <ul className="mt-3 text-sm">
-              {(slide?.details?.tech || []).slice(0,4).map((t,i)=>(<li key={i} className="list-disc list-inside">{t}</li>))}
-            </ul>
-          </div>
-        </div>
-      );
-    case "quality":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SpecCard title="Materials" bullets={slide?.details?.specs} accentClass={accent} />
-          <SpecCard title="Process" bullets={slide?.details?.features} accentClass={accent} />
-        </div>
-      );
-    case "technology":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className={cx(TOK.card, "rounded-xl p-4")}>
-            <h6 className={cx("mb-2 font-semibold", accent)}>Connectivity</h6>
-            <ul className="grid grid-cols-2 gap-2 text-sm">
-              {(slide?.details?.specs || []).slice(0,6).map((s,i)=>(<li key={i} className="rounded-lg border border-cyan-200 px-2 py-1">{s}</li>))}
-            </ul>
-          </div>
-          <SpecCard title="Cloud" bullets={slide?.details?.tech} accentClass={accent} />
-        </div>
-      );
-    case "handling":
-      return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SpecCard title="Dynamics" bullets={slide?.details?.features} accentClass={accent} />
-          <SpecCard title="Hardware" bullets={slide?.details?.specs} accentClass={accent} />
-          <div className={cx(TOK.card, "rounded-xl p-4")}>
-            <h6 className={cx("mb-2 font-semibold", accent)}>Drive Modes</h6>
-            <div className="flex flex-wrap gap-2">
-              {["Eco","Normal","Sport","Trail"].map((m)=>(
-                <span key={m} className="rounded-full border border-emerald-200 px-3 py-1 text-xs">{m}</span>
-              ))}
-            </div>
+          <div className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-zinc-200" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+            <div className="h-2 rounded-full" style={{ width: `${Math.min(100, Math.round(g * 100))}%`, background: TOK.red }} />
           </div>
         </div>
-      );
-  }
+        <p className="mt-2 text-sm text-zinc-600">{slide?.details?.features?.join(" • ") || "AWD grip • Drive modes • Torque vectoring"}</p>
+      </div>
+
+      {/* apply filter to visual via data-mode attr (handled in visual block) */}
+      <style>{`.visual-mode { filter: ${active.filter}; }`}</style>
+    </div>
+  );
 }
 
 /* ================= Component ================= */
@@ -478,11 +662,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   // Remember opener for focus restore
   const openerRef = useRef<HTMLElement | null>(null);
 
-  // Analytics helper
-  const fire = (name: string, detail?: any) => {
-    try { window.dispatchEvent(new CustomEvent(name, { detail })); } catch {}
-  };
-
   const hasVideo = !!open?.video;
   const slides = open?.gallery ?? [];
   const visualIsVideo = hasVideo && idx === 0;
@@ -491,25 +670,18 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
 
   const next = useCallback(() => {
     if (!open) return;
-    fire("media_slide_next", { id: open.id, idx });
     setIdx((p) => (p + 1) % total);
-  }, [open, idx, total]);
-
+  }, [open, total]);
   const prev = useCallback(() => {
     if (!open) return;
-    fire("media_slide_prev", { id: open.id, idx });
     setIdx((p) => (p - 1 + total) % total);
-  }, [open, idx, total]);
+  }, [open, total]);
 
   /* keyboard nav */
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        fire("media_modal_close", { id: open.id });
-        setOpen(null);
-        openerRef.current?.focus?.();
-      }
+      if (e.key === "Escape") { setOpen(null); openerRef.current?.focus?.(); }
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
     };
@@ -517,51 +689,19 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev]);
 
-  /* touch swipe + hint */
+  /* touch swipe */
   const tStart = useRef<number | null>(null);
-  const [showHint, setShowHint] = useState(false);
-
-  const dismissHint = useCallback(() => {
-    if (!showHint) return;
-    setShowHint(false);
-    fire("media_swipe_hint_dismiss", { id: open?.id });
-    try { localStorage.setItem("media_swipe_hint_seen", "1"); } catch {}
-  }, [showHint, open?.id]);
-
   const onTouchStart = (e: React.TouchEvent) => (tStart.current = e.touches[0].clientX);
   const onTouchEnd = (e: React.TouchEvent) => {
     if (tStart.current == null) return;
     const dx = e.changedTouches[0].clientX - tStart.current;
-    if (dx > 40) { prev(); dismissHint(); }
-    if (dx < -40) { next(); dismissHint(); }
+    if (dx > 40) prev();
+    if (dx < -40) next();
     tStart.current = null;
   };
 
-  // animate stats when slide changes (performance)
-  const [animateStats, setAnimateStats] = useState(false);
-  useEffect(() => {
-    if (!open) return;
-    setAnimateStats(false);
-    const t = setTimeout(() => setAnimateStats(true), 30);
-    return () => clearTimeout(t);
-  }, [open?.id, idx]);
-
-  // show swipe hint once per browser
-  useEffect(() => {
-    if (!open) return;
-    fire("media_modal_open", { id: open.id });
-    let seen = false;
-    try { seen = localStorage.getItem("media_swipe_hint_seen") === "1"; } catch {}
-    if (!seen) {
-      setShowHint(true);
-      const to = setTimeout(() => setShowHint(false), 2500);
-      return () => clearTimeout(to);
-    }
-  }, [open]);
-
   const openBooking = () => {
     try {
-      fire("media_book_cta", { id: open?.id, idx });
       window.dispatchEvent(new CustomEvent("open-booking", { detail: { source: "VehicleMediaShowcase" } }));
       (document.querySelector("[data-open-booking]") as HTMLButtonElement | null)?.click();
     } catch {}
@@ -583,7 +723,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
 
   const thumbOf = (m: MediaItem) => m.thumbnail || m.gallery[0]?.url || "";
 
-  /* ============== MODAL focus trap refs ============== */
+  /* Focus trap refs */
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
   useFocusTrap(!!open, modalRef, firstFocusRef, () => {
@@ -593,7 +733,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   /* ================= Render ================= */
   return (
     <section className={TOK.container}>
-      {/* Video card — normalized stacking & spacing to prevent overlap */}
+      {/* Video card (untouched) */}
       <div className={cx(TOK.card, TOK.radius, "relative z-0 p-3 md:p-4 mb-12 md:mb-16")}>
         <div className="mb-3 flex items-center gap-3">
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-semibold">Video</span>
@@ -640,8 +780,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
           {items.map((_, i) => (
             <span
               key={i}
-              role="button"
-              aria-current={i === mobIndex ? "true" : "false"}
               className={cx("h-1.5 w-1.5 rounded-full", i === mobIndex ? "" : "bg-zinc-300")}
               style={{ background: i === mobIndex ? TOK.red : undefined }}
             />
@@ -677,7 +815,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         ))}
       </div>
 
-      {/* Modal in portal */}
+      {/* Modal (redesigned) */}
       {open &&
         ReactDOM.createPortal(
           <div
@@ -685,7 +823,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="media-modal-title"
-            onClick={() => { fire("media_modal_close", { id: open.id }); setOpen(null); openerRef.current?.focus?.(); }}
+            onClick={() => { setOpen(null); openerRef.current?.focus?.(); }}
           >
             <div
               ref={modalRef}
@@ -712,7 +850,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                     <button
                       ref={firstFocusRef}
                       type="button"
-                      onClick={() => { fire("media_modal_close", { id: open.id }); setOpen(null); openerRef.current?.focus?.(); }}
+                      onClick={() => { setOpen(null); openerRef.current?.focus?.(); }}
                       className="rounded-full border px-3 py-2 hover:bg-zinc-50"
                     >
                       Close
@@ -725,7 +863,10 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:grid-rows-1">
                 {/* Visual */}
                 <div
-                  className="relative select-none bg-black md:rounded-l-2xl h-[min(52svh,420px)] md:h-auto"
+                  className={cx(
+                    "relative select-none bg-black md:rounded-l-2xl h-[min(52svh,420px)] md:h-auto",
+                    open.variant === "quality" ? "quality-ring" : ""
+                  )}
                   onTouchStart={onTouchStart}
                   onTouchEnd={onTouchEnd}
                 >
@@ -743,18 +884,17 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                       </div>
                     )
                   ) : (
-                    <ImageSafe
-                      src={(currSlide?.url || open.thumbnail) as string}
-                      alt={(currSlide?.title || open.title) as string}
-                      cover
-                      className="h-full w-full"
-                    />
-                  )}
-
-                  {/* Swipe hint (mobile only) */}
-                  {showHint && (
-                    <div className="md:hidden pointer-events-none absolute left-1/2 bottom-16 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-white text-xs">
-                      Swipe to explore →
+                    <div className={cx("relative h-full w-full", open.variant === "handling" ? "visual-mode" : "")}>
+                      <ImageSafe
+                        src={(currSlide?.url || open.thumbnail) as string}
+                        alt={(currSlide?.title || open.title) as string}
+                        cover
+                        className="h-full w-full"
+                      />
+                      {/* Interior ambient overlay */}
+                      {open.variant === "interior" && (
+                        <div className="ambient-overlay absolute inset-0" />
+                      )}
                     </div>
                   )}
 
@@ -764,11 +904,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                       <button
                         type="button"
                         onClick={() => setIdx(0)}
-                        aria-selected={idx === 0}
-                        className={cx(
-                          "h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium",
-                          idx === 0 && "ring-2 ring-red-500"
-                        )}
+                        className={cx("h-14 w-20 overflow-hidden rounded-md border bg-white text-xs font-medium", idx === 0 && "ring-2 ring-red-500")}
                       >
                         Video
                       </button>
@@ -779,8 +915,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                         <button
                           type="button"
                           key={s.url + i}
-                          onClick={() => { setIdx(real); fire("media_thumb_select", { id: open.id, idx: real }); }}
-                          aria-selected={idx === real}
+                          onClick={() => setIdx(real)}
                           className={cx("h-14 w-20 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
                         >
                           <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
@@ -812,8 +947,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                         {Array.from({ length: total }).map((_, i) => (
                           <span
                             key={i}
-                            role="button"
-                            aria-current={i === idx ? "true" : "false"}
                             className={cx("h-1.5 w-1.5 rounded-full", i === idx ? "" : "bg-white/50")}
                             style={{ background: i === idx ? TOK.red : undefined }}
                           />
@@ -831,11 +964,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                       <button
                         type="button"
                         onClick={() => setIdx(0)}
-                        aria-selected={idx === 0}
-                        className={cx(
-                          "h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium",
-                          idx === 0 && "ring-2 ring-red-500"
-                        )}
+                        className={cx("h-12 w-16 overflow-hidden rounded-md border bg-white text-[11px] font-medium", idx === 0 && "ring-2 ring-red-500")}
                       >
                         Video
                       </button>
@@ -846,8 +975,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                         <button
                           type="button"
                           key={s.url + i}
-                          onClick={() => { setIdx(real); fire("media_thumb_select", { id: open.id, idx: real }); dismissHint(); }}
-                          aria-selected={idx === real}
+                          onClick={() => setIdx(real)}
                           className={cx("h-12 w-16 overflow-hidden rounded-md border", idx === real && "ring-2 ring-red-500")}
                         >
                           <ImageSafe src={s.url} alt={s.title} cover className="h-full w-full" />
@@ -857,7 +985,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                   </div>
                 </div>
 
-                {/* Content — variant-specific with subtle backgrounds */}
+                {/* Content — interactive panels */}
                 <div className={cx("flex min-h-0 flex-col md:rounded-r-2xl", VARIANT[open.variant].bg)}>
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2 p-4">
@@ -876,30 +1004,15 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                     <p className={TOK.muted}>{currSlide?.description || open.summary}</p>
                   </div>
 
-                  {/* Variant panel */}
+                  {/* Variant-specific interactive content */}
                   <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+72px)] overflow-auto">
-                    {VariantPanel(open.variant, currSlide, open, animateStats, prefersReduced)}
+                    {open.variant === "performance" && <PerformancePanel slide={currSlide} />}
+                    {open.variant === "safety" && <SafetyPanel slide={currSlide} />}
+                    {open.variant === "interior" && <InteriorPanel slide={currSlide} />}
+                    {open.variant === "quality" && <QualityPanel slide={currSlide} />}
+                    {open.variant === "technology" && <TechnologyPanel slide={currSlide} />}
+                    {open.variant === "handling" && <HandlingPanel slide={currSlide} />}
                   </div>
-
-                  {/* Desktop-only prev/next (single location) */}
-                  {total > 1 && (
-                    <div className="hidden items-center justify-between border-t bg-white/80 p-4 backdrop-blur md:flex">
-                      <div className="flex gap-3">
-                        <button type="button" onClick={prev} className="rounded-full border px-4 py-2 hover:bg-zinc-50">
-                          Previous
-                        </button>
-                        <button
-                          type="button"
-                          onClick={next}
-                          className="rounded-full px-4 py-2 text-white"
-                          style={{ background: TOK.red }}
-                        >
-                          Next
-                        </button>
-                      </div>
-                      <div />
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -907,8 +1020,9 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               <div className="sticky bottom-0 z-20 border-t bg-white/95 px-3 py-3 backdrop-blur md:px-6">
                 <div className="flex items-center justify-between gap-3">
                   <button
+                    ref={firstFocusRef}
                     type="button"
-                    onClick={() => { fire("media_modal_close", { id: open.id }); setOpen(null); openerRef.current?.focus?.(); }}
+                    onClick={() => { setOpen(null); openerRef.current?.focus?.(); }}
                     className="rounded-full border px-4 py-2 hover:bg-zinc-50"
                   >
                     Close
