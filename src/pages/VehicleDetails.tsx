@@ -31,12 +31,7 @@ import { UnifiedPerformanceMonitor } from '@/components/ui/unified-performance-m
 import { OptimizedModalProvider } from '@/components/ui/optimized-modal-manager';
 import { SkipLinks } from '@/components/ui/enhanced-accessibility';
 import { ProgressiveLoader } from '@/components/ui/enhanced-loading-states';
-<ImmersiveMediaStudio
-  title="Highlights"
-  topVideo={{ mediaId: "kvdhnonllm", aspect: 16/9 }}
-  // media={YOUR_FEED} // optional: pass your own 6+ items shaped like the type above
-  onBookTestDrive={() => {/* open your booking modal */}}
-/>
+
 
 // Lazy load heavy components with intelligent preloading
 const VehicleSpecs = createLazyComponent(
