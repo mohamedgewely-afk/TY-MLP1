@@ -230,7 +230,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     "h-11 md:h-12 px-4 md:px-6 rounded-lg shadow-lg text-sm md:text-base min-w-[140px]",
     isGR
       ? "bg-[#1D1F22] text-white hover:bg-[#202328] border border-[#1F2226] focus:ring-2 focus:ring-red-500"
-      : "bg-[#EB0A1E] hover:bg-[#d60a1c] text-white focus:ring-2 focus:ring-[#EB0A1E]",
+      : "border border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus:ring-2 focus:ring-[#EB0A1E]",
   ].join(" ")}
   style={isGR ? carbonMatte : undefined}
 >
