@@ -30,7 +30,6 @@ const ImageSafe: React.FC<
   React.ImgHTMLAttributes<HTMLImageElement> & { cover?: boolean }
 > = ({ src, alt, className, cover, ...rest }) => {
   const [err, setErr] = useState(!src);
-  // Reset error state when src changes
   useEffect(() => {
     setErr(!src);
   }, [src]);
@@ -106,6 +105,9 @@ type MediaItem = {
   badges?: string[];
 };
 
+// =========================================================================
+// ==  FIX APPLIED HERE: Added unique details to handling, quality, connect ==
+// =========================================================================
 const DEMO: MediaItem[] = [
   {
     id: "v6",
@@ -146,7 +148,7 @@ const DEMO: MediaItem[] = [
     title: "Chassis Dynamics",
     summary: "Adaptive damping and precise control.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/7fecacb6-d705-4b29-b16c-cbd108171b42/renditions/da9d8da8-34ae-4c1c-9660-76e39b4a7abe?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Adaptive Dampers", details: { specs: ["Active dampers"], features: ["AWD grip"] } }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true", title: "Adaptive Dampers", details: { features: ["Adaptive Variable Suspension", "Drive Mode Select (Sport S+)", "Electronically Controlled AWD"] } }],
     badges: ["AWD", "Sport mode"],
   },
   {
@@ -155,7 +157,7 @@ const DEMO: MediaItem[] = [
     title: "Build Quality",
     summary: "High-strength materials and precise assembly.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true", title: "Materials", details: { specs: ["HS steel"], features: ["Robotic assembly"] } }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/15e8a778-27d5-4f87-af8c-08ae7b310941/items/a911702a-c978-4d26-9fe1-a6880684f9a0/renditions/b917d329-34db-42eb-87e5-c9a9c22fe929?binary=true&mformat=true", title: "Materials", details: { features: ["Laser Screw Welding for rigidity", "High-tensile strength steel chassis", "Multi-stage paint process"] } }],
     badges: ["Durability", "Refinement"],
   },
   {
@@ -164,17 +166,15 @@ const DEMO: MediaItem[] = [
     title: "Connected Services",
     summary: "CarPlay/Android Auto, OTA updates.",
     thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true",
-    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true", title: "Infotainment", details: { specs: ["Apple CarPlay", "Android Auto"], features: ["OTA updates"] } }],
+    gallery: [{ url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true", title: "Infotainment", details: { features: ["Over-the-Air (OTA) software updates", "Integrated Navigation with real-time traffic", "Remote Connect via Smartphone App"] } }],
     badges: ["CarPlay", "OTA"],
   },
 ];
 
+
 /* ================= Custom Modals (unique & interactive) ================= */
 
 const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
-  const firstGalleryItem = item.gallery[0];
-  const secondGalleryItem = item.gallery[1];
-
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 md:p-12">
       <h3 className="text-4xl font-black text-zinc-900">{item.title}</h3>
@@ -200,7 +200,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Specifications</h4>
             <ul className="grid grid-cols-2 gap-2 text-sm">
-              {firstGalleryItem?.details?.specs?.map((spec, i) => (
+              {item.gallery[0]?.details?.specs?.map((spec, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{spec}</span>
@@ -213,7 +213,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Features</h4>
             <ul className="space-y-2 text-sm">
-              {firstGalleryItem?.details?.features?.map((feat, i) => (
+              {item.gallery[0]?.details?.features?.map((feat, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{feat}</span>
@@ -224,7 +224,7 @@ const PerformanceModal: React.FC<{ item: MediaItem }> = ({ item }) => {
           <div className={cx(TOK.card, "p-6 rounded-xl")}>
             <h4 className="text-xl font-bold mb-4" style={{ color: TOK.red }}>Key Technologies</h4>
             <ul className="space-y-2 text-sm">
-              {secondGalleryItem?.details?.specs?.map((tech, i) => (
+              {item.gallery[1]?.details?.specs?.map((tech, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
                   <span className="text-zinc-700 font-medium">{tech}</span>
@@ -245,8 +245,7 @@ const SafetyModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
       <div className="relative bg-zinc-900 flex justify-center items-center overflow-hidden p-6 md:p-12">
-        {/* Placeholder image for safety diagram - consider replacing with actual blueprint/diagram */}
-        <ImageSafe src="https://via.placeholder.com/600x400/000000/FFFFFF?text=Safety+Diagram" alt="Safety diagram" className="h-full w-full object-contain opacity-70" />
+        <ImageSafe src="https://i.imgur.com/example-blueprint.png" alt="Safety diagram" className="h-full w-full object-contain opacity-70" />
         <div className={cx("absolute h-10 w-10 bg-red-500 rounded-full opacity-60 animate-pulse", active === 'pcs' ? 'top-[40%] left-[20%]' : active === 'lta' ? 'top-[50%] right-[30%]' : 'bottom-[25%] left-[50%]')} />
       </div>
       <div className="flex flex-col h-full bg-white p-6 md:p-12 overflow-y-auto">
@@ -254,7 +253,7 @@ const SafetyModal: React.FC<{ item: MediaItem }> = ({ item }) => {
         <p className="text-zinc-500 mb-8">{item.summary}</p>
         <div className="flex-1 space-y-4">
           <h4 className="font-bold text-lg">Toyota Safety Sense Features</h4>
-          {features.map((f, i) => (
+          {features.map((f) => (
             <button
               key={f}
               onClick={() => setActive(f.toLowerCase())}
@@ -295,6 +294,8 @@ const InteriorModal: React.FC<{ item: MediaItem }> = ({ item }) => {
 };
 
 const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
+  const features = item.gallery[0]?.details?.features;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-full">
       <div className="relative bg-black flex justify-center items-center overflow-hidden">
@@ -306,17 +307,16 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
         <div className="flex-1 space-y-4">
           <h4 className="font-bold text-lg">Key Highlights</h4>
           <ul className="space-y-2">
-            {item.gallery[0]?.details?.features?.map((feat, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
-                <span className="text-zinc-700">{feat}</span>
-              </li>
-            )) || ['Engineered for durability.', 'Tuned for ride comfort.', 'Built with precision.'].map((point, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
-                <span className="text-zinc-700">{point}</span>
-              </li>
-            ))}
+            {features && features.length > 0 ? (
+              features.map((point, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ background: TOK.red }} />
+                  <span className="text-zinc-700">{point}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-zinc-500">Details for this feature are not available at the moment.</li>
+            )}
           </ul>
         </div>
       </div>
@@ -324,9 +324,7 @@ const DefaultModal: React.FC<{ item: MediaItem }> = ({ item }) => {
   );
 };
 
-
 function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
-  // If the current visual is a video, display the video-specific layout
   if (visual.type !== 'image') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 h-full">
@@ -344,9 +342,7 @@ function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
     );
   }
 
-  // If the current visual is an image, display the item-specific modal
-  // We use item.id to select the specific modal component
-  const panelMap = {
+  const panelMap: Record<MediaItem['id'], JSX.Element> = {
     'v6': <PerformanceModal item={item} />,
     'safety': <SafetyModal item={item} />,
     'interior': <InteriorModal item={item} />,
@@ -359,7 +355,7 @@ function ModalContent({ item, visual }: { item: MediaItem; visual: Visual }) {
 
 
 /* ================= Main Component ================= */
-interface Props { vehicle?: VehicleModel; } // Made vehicle optional as it's not used in the current demo
+interface Props { vehicle?: VehicleModel; }
 
 const VehicleMediaShowcase: React.FC<Props> = () => {
   const items = useMemo(() => DEMO, []);
@@ -369,13 +365,12 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
   useBodyScrollLock(!!open);
 
   const openModal = useCallback((item: MediaItem) => {
-    // Construct visuals for the modal: prioritize video, then gallery images
     const visuals: Visual[] = [];
     if (item.video) {
       visuals.push({ url: '', title: item.title, type: item.video.provider, id: item.video.id });
     }
     visuals.push(...item.gallery.map(g => ({ url: g.url, title: g.title, type: 'image' as const })));
-    setOpen({ item, visuals, index: 0 }); // Always start with the first visual
+    setOpen({ item, visuals, index: 0 });
   }, []);
 
   const next = useCallback(() => setOpen(p => p ? { ...p, index: (p.index + 1) % total } : p), [total]);
@@ -404,10 +399,9 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
     const el = mobWrapRef.current;
     if (!el) return;
     const onScroll = () => {
-      // Calculate scroll position to determine current item in carousel
       const w = (el.firstElementChild as HTMLElement | null)?.clientWidth || 1;
-      const gap = 16; // Gap between items
-      if (w > 0) { // Avoid division by zero
+      const gap = 16;
+      if (w > 0) {
         setMobIndex(Math.round(el.scrollLeft / (w + gap)));
       }
     };
@@ -425,7 +419,6 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
           <h2 className="text-2xl font-bold md:text-3xl">Highlights</h2>
         </div>
         <div className="rounded-xl overflow-hidden bg-black">
-          {/* Main hero video - uses hardcoded Wistia ID for now */}
           <MediaVisual visual={{ url: '', title: 'Main Highlights', type: 'wistia', id: 'kvdhnonllm' }} />
         </div>
       </div>
@@ -504,9 +497,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
               )}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Main Modal Content */}
               <div className="flex-1 overflow-y-auto md:overflow-hidden grid grid-cols-1 md:grid-cols-2">
-                {/* Visuals */}
                 <div className="bg-black relative aspect-video md:aspect-auto">
                   <MediaVisual visual={open.visuals[open.index]} className="h-full w-full" />
                   {total > 1 && (
@@ -526,13 +517,11 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
                     </>
                   )}
                 </div>
-                {/* Text Content */}
                 <div className="flex-1 overflow-y-auto">
                   <ModalContent item={open.item} visual={open.visuals[open.index]} />
                 </div>
               </div>
 
-              {/* Fixed Bottom Bar */}
               <div className="sticky bottom-0 z-20 flex flex-col md:flex-row items-center justify-between border-t p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
                 <button
                   onClick={openBooking}
