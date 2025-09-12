@@ -213,7 +213,7 @@ export const vehicles: VehicleModel[] = [
     mmeUrl: "https://www.toyota.ae/en/new-cars/gr-supra",
     configureUrl: "/configure/gr-supra",
     price: 249900,
-    category: "GR Performance",
+    category: "GR",
     features: ["3.0L Turbocharged Engine", "Sport-Tuned Suspension", "Racing Heritage"],
     specifications: {
       engine: "3.0L Turbocharged Inline-6",
