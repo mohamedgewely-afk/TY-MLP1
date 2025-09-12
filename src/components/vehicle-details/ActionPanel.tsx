@@ -192,7 +192,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <div className="flex-1 flex items-center justify-end flex-wrap gap-1.5 md:gap-2">
             {/* Primary */}
             <div className="flex items-center gap-1.5 md:gap-2">
-              {/* Toyota red outline */}
+              {/* Neutral primary button - reserve red for critical actions only */}
               <Button
                 onClick={handleTestDrive}
                 className={[
@@ -204,7 +204,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "border-2",
                   isGR
                     ? "bg-[#1D1F22] text-white hover:bg-[#202328] border-[#1F2226] focus:ring-2 focus:ring-red-500"
-                    : "bg-white/80 backdrop-blur-sm border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus:ring-2 focus:ring-[#EB0A1E]",
+                    : "bg-gray-900 text-white hover:bg-gray-800 border-gray-900 focus:ring-2 focus:ring-gray-500",
                 ].join(" ")}
                 style={isGR ? carbonMatte : undefined}
               >
@@ -216,7 +216,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 <span className="hidden md:inline">Book Test Drive</span>
               </Button>
 
-              {/* Outline secondary */}
+              {/* Use red ONLY for high-value action: Car Builder */}
               <Button
                 onClick={onCarBuilder}
                 variant={isGR ? "ghost" : "outline"}
@@ -228,7 +228,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124] focus:ring-2 focus:ring-red-500"
-                    : "bg-white/85 backdrop-blur-sm border-2 border-black/70 text-black hover:bg-black hover:text-white focus:ring-2 focus:ring-black/50",
+                    : "bg-white/85 backdrop-blur-sm border-2 border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white focus:ring-2 focus:ring-red-500",
                 ].join(" ")}
                 style={isGR ? carbonMatte : undefined}
               >
@@ -250,7 +250,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "min-w-[var(--btn-minw-secondary)]",
                   isGR
                     ? "text-red-300 border-2 border-[#C4252A] hover:bg-[#141618] focus:ring-2 focus:ring-red-500"
-                    : "bg-white/85 backdrop-blur-sm border-2 border-black/70 text-black hover:bg-black hover:text-white focus:ring-2 focus:ring-black/50",
+                    : "bg-white/85 backdrop-blur-sm border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-500",
                 ].join(" ")}
                 aria-label="Finance calculator"
                 title="Finance calculator"
@@ -259,7 +259,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 Finance
               </Button>
 
-              {/* Solid brochure (high contrast) */}
+              {/* Neutral brochure button */}
               <Button
                 onClick={handleDownloadBrochure}
                 variant={isGR ? "ghost" : "outline"}
@@ -271,7 +271,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "min-w-[var(--btn-minw-brochure)]",
                   isGR
                     ? "text-neutral-100 bg-[#1D1F22] border border-[#1F2124] hover:bg-[#202328]"
-                    : "bg-black text-white hover:bg-black/90 border border-black",
+                    : "bg-gray-700 text-white hover:bg-gray-600 border border-gray-700",
                 ].join(" ")}
                 aria-label="Download brochure (PDF)"
                 title="Download brochure (PDF)"
@@ -280,7 +280,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                 Brochure
               </Button>
 
-              {/* Icon-only share */}
+              {/* Neutral share button */}
               <Button
                 onClick={handleShare}
                 variant={isGR ? "ghost" : "outline"}
@@ -289,7 +289,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                   "h-[var(--btn-icon)] w-[var(--btn-icon)] md:h-[calc(var(--btn-icon)+2px)] md:w-[calc(var(--btn-icon)+2px)]",
                   isGR
                     ? "text-neutral-200 hover:bg-[#141618] border border-[#1F2124]"
-                    : "bg-white/85 backdrop-blur-sm border border-black/20 text-black hover:bg-black/5",
+                    : "bg-white/85 backdrop-blur-sm border border-gray-300 text-gray-600 hover:bg-gray-100",
                 ].join(" ")}
                 aria-label="Share"
                 title="Share"

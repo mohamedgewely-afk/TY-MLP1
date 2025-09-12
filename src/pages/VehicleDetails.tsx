@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import ToyotaLayout from "@/components/ToyotaLayout";
 import ActionPanel from "@/components/vehicle-details/ActionPanel";
-import EnhancedHeroSection from "@/components/vehicle-details/EnhancedHeroSection";
+import MinimalHeroSection from "@/components/vehicle-details/MinimalHeroSection";
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import ModernSectionNavigation from "@/components/vehicle-details/ModernSectionNavigation";
@@ -257,15 +257,14 @@ const VehicleDetails = () => {
         <div id="main-content">
           <PerformanceErrorBoundary fallback={<HeroSkeleton />}>
             <section id="hero">
-              <EnhancedHeroSection
+              <MinimalHeroSection
                 vehicle={vehicle}
                 galleryImages={galleryImages}
                 isFavorite={isFavorite}
                 onToggleFavorite={toggleFavorite}
                 onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
                 onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
-                monthlyEMI={monthlyEMI}
-              />
+        />
             </section>
           </PerformanceErrorBoundary>
 
@@ -278,7 +277,7 @@ const VehicleDetails = () => {
                   </section>
                   
                   <section id="media-showcase">
-                    <VehicleMediaShowcase vehicle={vehicle} />
+        <PremiumMediaShowcase vehicle={vehicle} />
                   </section>
 
                   <StorytellingSection

@@ -38,7 +38,7 @@ const DEFAULT_SECTIONS: SectionItem[] = [
 export default function ModernSectionNavigation({
   sections = DEFAULT_SECTIONS,
   headerOffset = 0,
-  accentColor = "#EB0A1E",
+  accentColor = "hsl(var(--neutral-800))", // Use neutral instead of red
   mobileTopVh = 35,
   scrollRootSelector,
 }: ModernSectionNavigationProps) {
@@ -57,7 +57,7 @@ export default function ModernSectionNavigation({
 function SideMenuNav({
   sections = DEFAULT_SECTIONS,
   headerOffset = 0,
-  accentColor = "#EB0A1E",
+  accentColor = "hsl(var(--neutral-800))", // Use neutral instead of red
   mobileTopVh = 35,
   scrollRootSelector,
 }: ModernSectionNavigationProps) {
