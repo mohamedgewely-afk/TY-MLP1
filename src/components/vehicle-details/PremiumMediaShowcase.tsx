@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import {
   Play, X, ChevronLeft, ChevronRight, Info, Star, Shield, Zap, Heart, Wifi, Award,
-  Sparkles, SteeringWheel, Activity
+  Sparkles, Gauge
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -756,7 +756,7 @@ function HandlingStage({ media }: { media: MediaItem }) {
         </div>
       )}
       <div className="mt-3 text-xs text-white/60 flex items-center gap-2">
-        <SteeringWheel className="h-4 w-4" />
+        <Gauge className="h-4 w-4" />
         Tilt phone or use ← → keys to steer.
         {!fpsOK && <span className="ml-2 text-amber-400">Low FPS detected — effects reduced.</span>}
       </div>
