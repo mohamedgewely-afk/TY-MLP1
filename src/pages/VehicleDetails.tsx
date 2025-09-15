@@ -80,6 +80,10 @@ const VirtualShowroom = createLazyComponent(
   () => import("@/components/vehicle-details/VirtualShowroom")
 );
 
+const PremiumMediaShowcase = createLazyComponent(
+  () => import("@/components/vehicle-details/PremiumMediaShowcase")
+);
+
 // Preload components on fast networks
 preloadOnFastNetwork(() => import("@/components/vehicle-details/VehicleGallery"));
 preloadOnFastNetwork(() => import("@/components/vehicle-details/StorytellingSection"));
