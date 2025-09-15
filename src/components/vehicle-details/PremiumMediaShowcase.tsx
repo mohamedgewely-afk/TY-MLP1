@@ -6,17 +6,12 @@ import {
   Play, Info, Shield, Zap, Heart, Wifi, Award, Star, X, ChevronLeft, ChevronRight, Car
 } from "lucide-react";
 
-/* =========================================================
-   Types & tokens
-   =======================================================*/
+/* ======================= Tokens & Types ======================= */
 type Variant = "performance" | "safety" | "interior" | "quality" | "technology" | "handling";
 
 interface SceneDetails {
   overview?: string;
-  specs?: string[];     // not rendered as bullets; we compress into sentences
-  features?: string[];
-  tech?: string[];
-  hotspots?: Array<{ x: number; y: number; label: string; body: string }>; // 0..100%
+  hotspots?: Array<{ x: number; y: number; label: string; body: string }>;
 }
 
 interface Scene {
@@ -30,34 +25,78 @@ interface MediaItem {
   id: string;
   category: string;
   title: string;
-  summary: string;              // one-liner; no bullets
+  summary: string; // one-liner; no bullets
   kind: "image" | "video";
   thumbnail: string;
   gallery: Scene[];
   video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
-  tags?: string[];              // used as chips/filters, not bullets
+  tags?: string[];
   variant: Variant;
 }
 
-const TOKENS: Record<
+const cn = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
+const FALLBACK = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop";
+
+/** Distinct “skins” per modal (unique look + density) */
+const SKIN: Record<
   Variant,
-  { accent: string; bg: string; text: string; icon: React.ComponentType<any> }
+  {
+    // modal container background
+    shell: string;
+    // header bar style
+    header: string;
+    // inner panel style
+    panel: string;
+    // accent badge gradient + icon
+    accent: string;
+    icon: React.ComponentType<any>;
+  }
 > = {
-  performance: { accent: "from-red-600 to-red-700", bg: "bg-red-50/80", text: "text-red-700", icon: Zap },
-  safety:      { accent: "from-blue-600 to-blue-700", bg: "bg-blue-50/80", text: "text-blue-700", icon: Shield },
-  interior:    { accent: "from-amber-600 to-amber-700", bg: "bg-amber-50/80", text: "text-amber-700", icon: Heart },
-  quality:     { accent: "from-gray-600 to-gray-700", bg: "bg-gray-50/80", text: "text-gray-700", icon: Award },
-  technology:  { accent: "from-cyan-600 to-cyan-700", bg: "bg-cyan-50/80", text: "text-cyan-700", icon: Wifi },
-  handling:    { accent: "from-emerald-600 to-emerald-700", bg: "bg-emerald-50/80", text: "text-emerald-700", icon: Star },
+  performance: {
+    shell: "bg-zinc-950 text-white",
+    header: "bg-gradient-to-r from-zinc-900/80 to-zinc-900/30 border-b border-white/10",
+    panel: "bg-zinc-900/60 backdrop-blur",
+    accent: "from-red-600 to-red-700",
+    icon: Zap,
+  },
+  safety: {
+    shell: "bg-[#081622] text-white",
+    header: "bg-gradient-to-r from-blue-950/80 to-blue-900/30 border-b border-white/10",
+    panel: "bg-blue-900/40 backdrop-blur",
+    accent: "from-blue-600 to-blue-700",
+    icon: Shield,
+  },
+  interior: {
+    shell: "bg-[#1b1408] text-amber-50",
+    header: "bg-gradient-to-r from-amber-900/70 to-amber-800/30 border-b border-amber-300/20",
+    panel: "bg-amber-900/30 backdrop-blur",
+    accent: "from-amber-500 to-amber-600",
+    icon: Heart,
+  },
+  quality: {
+    shell: "bg-stone-100 text-stone-900",
+    header: "bg-white/70 border-b border-stone-200",
+    panel: "bg-white/80 backdrop-blur",
+    accent: "from-stone-700 to-stone-800",
+    icon: Award,
+  },
+  technology: {
+    shell: "bg-[#071a1e] text-cyan-50",
+    header: "bg-gradient-to-r from-cyan-950/80 to-cyan-900/30 border-b border-white/10",
+    panel: "bg-cyan-900/30 backdrop-blur",
+    accent: "from-cyan-600 to-cyan-700",
+    icon: Wifi,
+  },
+  handling: {
+    shell: "bg-[#07170f] text-emerald-50",
+    header: "bg-gradient-to-r from-emerald-950/80 to-emerald-900/30 border-b border-white/10",
+    panel: "bg-emerald-900/30 backdrop-blur",
+    accent: "from-emerald-600 to-emerald-700",
+    icon: Star,
+  },
 };
 
-const FALLBACK =
-  "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop";
-const cn = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
-
-/* =========================================================
-   Content (DAM + Wistia) — with details to drive interactions
-   =======================================================*/
+/* ======================= Demo CONTENT (DAM/Wistia) ======================= */
 const DATA: MediaItem[] = [
   {
     id: "performance",
@@ -71,23 +110,21 @@ const DATA: MediaItem[] = [
     gallery: [
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
-        title: "Engine Architecture",
-        description: "Aluminum block, direct injection, and thermal management for sustained power.",
+        title: "Architecture",
+        description: "Aluminum block with thermal management for sustained power.",
         details: {
-          overview: "3.5L twin-turbo V6 tuned for instant response under load.",
-          features: ["Variable Valve Timing", "Advanced cooling"],
-          tech: ["Closed-loop boost control", "Knock detection"],
+          overview: "3.5L twin-turbo tuned for instant response.",
           hotspots: [
-            { x: 64, y: 32, label: "Cooling", body: "High-flow intercoolers keep intake temps steady on long climbs." },
-            { x: 40, y: 58, label: "Injection", body: "Direct injection sharpens response while improving efficiency." },
-            { x: 78, y: 48, label: "Boost", body: "Twin turbos deliver a smooth, progressive surge without lag." },
+            { x: 64, y: 32, label: "Cooling", body: "High-flow intercoolers hold intake temps on long climbs." },
+            { x: 40, y: 58, label: "Injection", body: "Direct injection sharpens response and efficiency." },
+            { x: 78, y: 48, label: "Boost", body: "Twin turbos deliver a smooth, progressive surge." },
           ],
         },
       },
       {
         url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1600&auto=format&fit=crop",
         title: "Power Delivery",
-        description: "Linear torque curve aids confident overtakes.",
+        description: "Linear torque curve helps confident overtakes.",
       },
     ],
     tags: ["400+ HP", "Twin-Turbo"],
@@ -143,7 +180,7 @@ const DATA: MediaItem[] = [
     variant: "quality",
     thumbnail: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=1600&auto=format&fit=crop",
     gallery: [
-      { url: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1600&auto=format&fit=crop", title: "Assurance", description: "Every body panel is coated and sealed against harsh climates." },
+      { url: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1600&auto=format&fit=crop", title: "Assurance", description: "Body panels are coated and sealed against harsh climates." },
     ],
     tags: ["ISO 9001", "Warranty"],
   },
@@ -177,17 +214,10 @@ const DATA: MediaItem[] = [
   },
 ];
 
-/* =========================================================
-   Modal shell (mobile-first, content-first)
-   =======================================================*/
+/* ======================= Modal Root (variant-specific shells) ======================= */
 function Modal({
   item, open, onClose, onBookTestDrive,
-}: {
-  item: MediaItem | null;
-  open: boolean;
-  onClose: () => void;
-  onBookTestDrive?: () => void;
-}) {
+}: { item: MediaItem | null; open: boolean; onClose: () => void; onBookTestDrive?: () => void }) {
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
@@ -197,92 +227,91 @@ function Modal({
   }, [open, onClose]);
 
   if (!open || !item) return null;
-  const t = TOKENS[item.variant]; const Icon = t.icon;
+
+  const skin = SKIN[item.variant];
+  const Icon = skin.icon;
 
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[min(96vw,1120px)] -translate-x-1/2 -translate-y-1/2 bg-white text-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-        {/* Header */}
-        <header className="h-14 px-4 lg:px-6 flex items-center justify-between border-b border-gray-200">
+      <div className={cn("absolute left-1/2 top-1/2 w-[min(96vw,1180px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl overflow-hidden shadow-2xl grid grid-rows-[auto_1fr_auto]", skin.shell)}>
+        {/* Header – compact to remove dead space */}
+        <header className={cn("h-12 px-4 lg:px-6 flex items-center justify-between", skin.header)}>
           <div className="flex items-center gap-2 min-w-0">
-            <Badge className={`bg-gradient-to-r ${t.accent} text-white border-0`}><Icon className="h-3.5 w-3.5 mr-1"/>{item.category}</Badge>
+            <Badge className={cn("border-0 text-white bg-gradient-to-r", skin.accent)}><Icon className="h-3.5 w-3.5 mr-1"/>{item.category}</Badge>
             <h3 className="font-semibold truncate">{item.title}</h3>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close"><X className="h-5 w-5"/></Button>
+          <Button variant="ghost" size="sm" className="text-white/90 lg:text-inherit" onClick={onClose} aria-label="Close">
+            <X className="h-5 w-5"/>
+          </Button>
         </header>
 
-        {/* Body: left = content stage, right = narrative rail */}
-        <div className="grid lg:grid-cols-12">
-          <div className="lg:col-span-7 p-3 lg:p-4">
-            <div className="relative rounded-xl overflow-hidden bg-black h-[56vh] lg:h-[62vh]">
-              {item.variant === "performance" && <PerformanceStage item={item} />}
-              {item.variant === "safety" && <SafetyStage item={item} />}
-              {item.variant === "interior" && <InteriorStage item={item} />}
-              {item.variant === "quality" && <QualityStage item={item} />}
-              {item.variant === "technology" && <TechnologyStage item={item} />}
-              {item.variant === "handling" && <HandlingStage item={item} />}
-            </div>
-          </div>
-
-          {/* Narrative rail: short, scannable, content-led (no bullets) */}
-          <aside className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-gray-200 p-4">
-            <p className="text-sm text-gray-700">{item.summary}</p>
-            {!!item.tags?.length && (
-              <div className="flex flex-wrap gap-1 pt-3">
-                {item.tags.slice(0, 6).map((txt, i) => (
-                  <span key={i} className={cn("text-xs px-2 py-1 rounded-full font-medium", TOKENS[item.variant].bg, TOKENS[item.variant].text)}>{txt}</span>
-                ))}
-              </div>
-            )}
-          </aside>
+        {/* BODY — each variant renders a completely different layout */}
+        <div className="relative">
+          {item.variant === "performance" && <PerformanceCanvas item={item} />}
+          {item.variant === "safety" && <SafetyDeck item={item} />}
+          {item.variant === "interior" && <InteriorStoryboard item={item} />}
+          {item.variant === "quality" && <QualityBoard item={item} />}
+          {item.variant === "technology" && <TechDock item={item} />}
+          {item.variant === "handling" && <HandlingSurface item={item} />}
         </div>
 
-        {/* Footer */}
-        <footer className="border-t border-gray-200 px-3 lg:px-4 py-3 bg-gray-50 flex items-center gap-2">
-          <Button variant="outline" className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
-          <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={() => onBookTestDrive?.()}>
-            <Car className="h-4 w-4 mr-2" /> Book Test Drive
-          </Button>
+        {/* Footer – keeps CTAs consistent; no empty rails */}
+        <footer className={cn("px-3 lg:px-4 py-3 border-t", item.variant === "quality" ? "border-stone-300 bg-white" : "border-white/10 bg-white/5")}>
+          <div className="flex gap-2">
+            <Button variant={item.variant === "quality" ? "default" : "outline"} className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
+            <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={() => onBookTestDrive?.()}>
+              <Car className="h-4 w-4 mr-2" /> Book Test Drive
+            </Button>
+          </div>
         </footer>
       </div>
     </div>
   );
 }
 
-/* =========================================================
-   Variant stages — content-driven, unique
-   =======================================================*/
+/* ======================= 6 UNIQUE MODAL LAYOUTS ======================= */
 
-/** PERFORMANCE — hot-spots from content; scene tray; compact sentences */
-function PerformanceStage({ item }: { item: MediaItem }) {
+/** 1) PERFORMANCE — “Spec Canvas”
+ *  Full-bleed image; left vertical spec rail; bottom micro-cards; gallery chip tray.
+ *  Dense, dark, zero dead white.
+ */
+function PerformanceCanvas({ item }: { item: MediaItem }) {
   const [i, setI] = useState(0);
-  const scene = item.gallery[i];
+  const s = item.gallery[i];
+
   return (
-    <div className="w-full h-full relative">
-      <img
-        src={scene?.url || FALLBACK}
-        alt={scene?.title || item.title}
-        className="absolute inset-0 w-full h-full object-contain"
-        onError={(e) => (e.currentTarget.src = FALLBACK)}
-      />
-      {/* Hotspots mapped from content (if any) */}
-      {scene?.details?.hotspots?.map((h, idx) => (
-        <Hotspot key={idx} x={h.x} y={h.y} label={h.label} body={h.body} />
+    <div className="h-[72vh] lg:h-[70vh] relative">
+      {/* image */}
+      <img src={s?.url || FALLBACK} alt={s?.title || item.title} onError={(e)=> (e.currentTarget.src=FALLBACK)}
+        className="absolute inset-0 w-full h-full object-contain" />
+
+      {/* left rail (overview + summary) */}
+      <div className="absolute top-3 left-3 w-[min(46%,420px)] hidden md:block">
+        <div className="rounded-xl p-3 border border-white/10 bg-zinc-900/60 backdrop-blur">
+          <div className="text-sm font-semibold">Architecture</div>
+          <div className="text-xs text-white/80 mt-1">{s?.description || item.summary}</div>
+        </div>
+      </div>
+
+      {/* hotspots (from content) */}
+      {s?.details?.hotspots?.map((h, idx) => (
+        <Hotspot key={idx} x={h.x} y={h.y} label={h.label} body={h.body} dark />
       ))}
 
-      {/* Scene tray from gallery titles (content-led) */}
+      {/* bottom micro cards */}
+      <div className="absolute left-3 right-3 bottom-16 grid grid-cols-2 md:grid-cols-4 gap-2">
+        {["Instant response", "Smooth surge", "Thermal control", "Direct injection"].map((t, k) => (
+          <div key={k} className="rounded-lg px-3 py-2 text-xs bg-zinc-900/70 border border-white/10 text-white/90">{t}</div>
+        ))}
+      </div>
+
+      {/* gallery tray */}
       {item.gallery.length > 1 && (
-        <div className="absolute bottom-3 left-3 right-3 flex gap-2 overflow-x-auto">
+        <div className="absolute left-3 right-3 bottom-3 flex gap-2 overflow-x-auto">
           {item.gallery.map((g, idx) => (
-            <button
-              key={idx}
-              onClick={() => setI(idx)}
-              className={cn(
-                "rounded-md px-3 py-1 text-xs whitespace-nowrap",
-                idx === i ? "bg-white text-black" : "bg-white/20 text-white"
-              )}
-            >
+            <button key={idx} onClick={() => setI(idx)}
+              className={cn("rounded-md px-3 py-1 text-xs whitespace-nowrap", i===idx?"bg-white text-black":"bg-white/20 text-white")}>
               {g.title}
             </button>
           ))}
@@ -292,110 +321,174 @@ function PerformanceStage({ item }: { item: MediaItem }) {
   );
 }
 
-/** SAFETY — Wistia-first; scenario chips swap the single scene + copy (content-led) */
-function SafetyStage({ item }: { item: MediaItem }) {
+/** 2) SAFETY — “Scenario Deck”
+ *  Video-first. Left vertical scenario tabs; floating caption card.
+ */
+function SafetyDeck({ item }: { item: MediaItem }) {
   const [scenario, setScenario] = useState<"City" | "Highway" | "Night" | "Rain">("City");
-  if (item.video) {
-    const src =
-      item.video.provider === "youtube"
-        ? `https://www.youtube.com/embed/${item.video.id}?autoplay=${item.video.autoplay ? 1 : 0}&rel=0&modestbranding=1`
-        : `https://fast.wistia.net/embed/iframe/${item.video.id}?autoPlay=${item.video.autoplay ? 1 : 0}`;
-    return (
-      <div className="w-full h-full relative">
+  const scenarios: Array<"City" | "Highway" | "Night" | "Rain"> = ["City", "Highway", "Night", "Rain"];
+  const note =
+    scenario === "City" ? "Low-speed alerts and pedestrian awareness." :
+    scenario === "Highway" ? "Lane tracing and adaptive cruise settle long runs." :
+    scenario === "Night" ? "Camera + radar cooperate in low light." :
+    "Traction-aware cruise and lane assist in rain.";
+
+  const video = item.video;
+  const src = video
+    ? (video.provider === "youtube"
+        ? `https://www.youtube.com/embed/${video.id}?autoplay=${video.autoplay ? 1 : 0}&rel=0&modestbranding=1`
+        : `https://fast.wistia.net/embed/iframe/${video.id}?autoPlay=${video.autoplay ? 1 : 0}`)
+    : null;
+
+  return (
+    <div className="h-[72vh] lg:h-[70vh] relative">
+      {/* scenario tabs */}
+      <div className="absolute top-3 left-3 z-10 hidden md:flex flex-col gap-2">
+        {scenarios.map((s) => (
+          <button key={s} onClick={() => setScenario(s)}
+            className={cn("px-3 py-1 rounded-full text-xs", s===scenario?"bg-blue-600 text-white":"bg-white/20 text-white")}>
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {/* media */}
+      {src ? (
         <iframe title={item.title} className="absolute inset-0 w-full h-full" src={src} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
-        <div className="absolute top-3 left-3 flex gap-2">
-          {(["City","Highway","Night","Rain"] as const).map(s => (
-            <button key={s} onClick={() => setScenario(s)} className={cn("px-3 py-1 rounded-full text-xs", s===scenario ? "bg-blue-600 text-white" : "bg-white/20 text-white")}>{s}</button>
+      ) : (
+        <img src={item.gallery[0]?.url || FALLBACK} alt="Safety" onError={(e)=>(e.currentTarget.src=FALLBACK)}
+          className="absolute inset-0 w-full h-full object-cover" />
+      )}
+
+      {/* floating explanation */}
+      <div className="absolute right-3 bottom-3 left-3 md:left-auto md:w-[360px] rounded-xl p-3 bg-blue-900/60 border border-white/10 backdrop-blur">
+        <div className="text-sm font-semibold">In this scenario</div>
+        <div className="text-xs mt-1 text-white/90">{note}</div>
+        <div className="mt-2 flex gap-1">
+          {(item.tags ?? []).slice(0,3).map((t,i)=>(
+            <span key={i} className="text-[11px] px-2 py-1 rounded-full bg-white/20">{t}</span>
           ))}
         </div>
       </div>
-    );
-  }
-  // fallback image with same scenario chips swapping the caption
-  const img = item.gallery[0]?.url || FALLBACK;
-  const note = scenario === "City" ? "Low-speed alerts and pedestrian awareness." :
-               scenario === "Highway" ? "Lane tracing and adaptive cruise for long runs." :
-               scenario === "Night" ? "Camera + radar work together in low light." :
-               "Traction-aware cruise and lane assist in rain.";
-  return (
-    <div className="w-full h-full relative">
-      <img src={img} alt="Safety" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute top-3 left-3 flex gap-2">
-        {(["City","Highway","Night","Rain"] as const).map(s => (
-          <button key={s} onClick={() => setScenario(s)} className={cn("px-3 py-1 rounded-full text-xs", s===scenario ? "bg-blue-600 text-white" : "bg-white/20 text-white")}>{s}</button>
-        ))}
-      </div>
-      <div className="absolute bottom-3 left-3 right-3 text-white text-sm bg-black/45 rounded px-3 py-2">{note}</div>
     </div>
   );
 }
 
-/** INTERIOR — zone chips from gallery titles; each zone uses its image + small caption */
-function InteriorStage({ item }: { item: MediaItem }) {
+/** 3) INTERIOR — “Storyboard”
+ *  Filmstrip of zones; caption card; warm skin.
+ */
+function InteriorStoryboard({ item }: { item: MediaItem }) {
   const [i, setI] = useState(0);
   const s = item.gallery[i];
+
   return (
-    <div className="w-full h-full relative">
-      <img src={s?.url || FALLBACK} alt={s?.title || item.title} className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute top-3 left-3 flex gap-2">
-        {item.gallery.map((g, idx) => (
-          <button key={idx} onClick={() => setI(idx)} className={cn("px-3 py-1 rounded-full text-xs", idx===i ? "bg-amber-500 text-black" : "bg-white/20 text-white")}>{g.title}</button>
+    <div className="h-[72vh] lg:h-[70vh] relative">
+      {/* main */}
+      <img src={s?.url || FALLBACK} alt={s?.title || item.title} onError={(e)=> (e.currentTarget.src=FALLBACK)}
+        className="absolute inset-0 w-full h-full object-cover" />
+
+      {/* caption card */}
+      <div className="absolute right-3 bottom-3 left-3 md:left-auto md:w-[360px] rounded-xl p-3 bg-amber-900/40 border border-amber-300/20 backdrop-blur">
+        <div className="text-sm font-semibold">{s?.title}</div>
+        {s?.description && <div className="text-xs mt-1 text-amber-50/90">{s.description}</div>}
+        <div className="mt-2 flex gap-1">
+          {(item.tags ?? []).slice(0,3).map((t,i)=>(
+            <span key={i} className="text-[11px] px-2 py-1 rounded-full bg-amber-800/40">{t}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* filmstrip */}
+      <div className="absolute left-3 right-3 top-3 flex gap-2 overflow-x-auto">
+        {item.gallery.map((g, idx)=>(
+          <button key={idx} onClick={()=>setI(idx)}
+            className={cn("rounded-md px-3 py-1 text-xs whitespace-nowrap",
+              i===idx ? "bg-amber-500 text-black":"bg-white/20 text-white")}>{g.title}</button>
         ))}
       </div>
-      {s?.description && (
-        <div className="absolute bottom-3 left-3 right-3 text-white text-sm bg-black/45 rounded px-3 py-2">{s.description}</div>
-      )}
     </div>
   );
 }
 
-/** QUALITY — proof stamps from tags toggle assurance note over proof image */
-function QualityStage({ item }: { item: MediaItem }) {
+/** 4) QUALITY — “Assurance Board”
+ *  Collage grid (no empty rails) with expand-on-click proof card.
+ */
+function QualityBoard({ item }: { item: MediaItem }) {
   const [active, setActive] = useState(item.tags?.[0] ?? "Warranty");
   const img = item.gallery[0]?.url || FALLBACK;
   const copy =
     active === "ISO 9001" ? "Certified processes keep quality consistent from plant to plant." :
     active === "Warranty" ? "Coverage protects key components; corrosion layers guard the body." :
     "Assured dependability across markets.";
+
   return (
-    <div className="w-full h-full relative">
-      <img src={img} alt="Quality" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute top-3 left-3 flex gap-2">
-        {(item.tags ?? ["Warranty"]).map(tag => (
-          <button key={tag} onClick={() => setActive(tag)} className={cn("px-3 py-1 rounded-full text-xs", tag===active ? "bg-gray-800 text-white" : "bg-white/20 text-white")}>{tag}</button>
-        ))}
+    <div className="h-[72vh] lg:h-[70vh] p-4 grid grid-cols-3 gap-3 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><rect width=%2240%22 height=%2240%22 fill=%22%23ffffff%22/><path d=%22M0 40 L40 0 M-10 30 L30 -10%22 stroke=%22%23e7e5e4%22 stroke-width=%220.5%22/></svg>')]">
+      <div className="col-span-2 rounded-xl overflow-hidden bg-white">
+        <img src={img} alt="Assurance" className="w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
       </div>
-      <div className="absolute bottom-3 left-3 right-3 text-white text-sm bg-black/45 rounded px-3 py-2">{copy}</div>
+      <div className="rounded-xl p-4 bg-white shadow-sm border border-stone-300 flex flex-col">
+        <div className="text-sm font-semibold">Proof</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {(item.tags ?? ["Warranty"]).map(tag=>(
+            <button key={tag} onClick={()=>setActive(tag)}
+              className={cn("px-2 py-1 text-xs rounded-full border", tag===active ? "bg-stone-900 text-white border-stone-900" : "bg-white border-stone-300")}>
+              {tag}
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 text-sm">{copy}</div>
+        <div className="mt-auto text-[11px] text-stone-600">Service every 10,000 km keeps reliability consistent.</div>
+      </div>
+      <div className="col-span-3 rounded-xl p-3 bg-white/90 border border-stone-300 text-sm">
+        {item.summary}
+      </div>
     </div>
   );
 }
 
-/** TECHNOLOGY — feature tour from tags (CarPlay/OTA/etc) swaps caption; single scene */
-function TechnologyStage({ item }: { item: MediaItem }) {
+/** 5) TECHNOLOGY — “Tech Dock”
+ *  Phone-in-dock card with feature chips; cyan grid; zero white gaps.
+ */
+function TechDock({ item }: { item: MediaItem }) {
   const [feature, setFeature] = useState(item.tags?.[0] ?? "CarPlay/AA");
   const img = item.gallery[0]?.url || FALLBACK;
   const copy =
     feature.includes("CarPlay") || feature === "CarPlay/AA" ? "Seamless phone projection with calls, messages, and maps." :
-    feature === "OTA" ? "Updates arrive over the air, adding features without a workshop visit." :
-    "Use the companion app to check status and send destinations.";
+    feature === "OTA" ? "Updates arrive over the air; new features without a workshop visit." :
+    "Companion app checks status and sends destinations.";
+
   return (
-    <div className="w-full h-full relative">
-      <img src={img} alt="Tech" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute top-3 left-3 flex gap-2">
-        {(item.tags ?? ["CarPlay/AA","OTA"]).map(tag => (
-          <button key={tag} onClick={() => setFeature(tag)} className={cn("px-3 py-1 rounded-full text-xs", tag===feature ? "bg-cyan-600 text-white" : "bg-white/20 text-white")}>{tag}</button>
+    <div className="h-[72vh] lg:h-[70vh] relative">
+      <div className="absolute inset-0 grid place-items-center">
+        {/* device frame */}
+        <div className="w-[300px] h-[630px] rounded-[36px] bg-black/70 border border-cyan-300/30 shadow-xl relative overflow-hidden">
+          <img src={img} alt="Infotainment" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+            <div className="text-xs text-white/90">{copy}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* feature chips */}
+      <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 justify-center md:justify-start">
+        {(item.tags ?? ["CarPlay/AA","OTA"]).map(tag=>(
+          <button key={tag} onClick={()=>setFeature(tag)}
+            className={cn("px-3 py-1 rounded-full text-xs", tag===feature?"bg-cyan-600 text-white":"bg-white/20 text-white")}>
+            {tag}
+          </button>
         ))}
       </div>
-      <div className="absolute bottom-3 left-3 right-3 text-white text-sm bg-black/45 rounded px-3 py-2">{copy}</div>
     </div>
   );
 }
 
-/** HANDLING — mode tabs swap content (Normal/Sport/Off-road) */
-function HandlingStage({ item }: { item: MediaItem }) {
+/** 6) HANDLING — “Mode Surface”
+ *  Full-bleed scene with segmented bottom nav; microcopy overlay.
+ */
+function HandlingSurface({ item }: { item: MediaItem }) {
   const modes = item.gallery.map(g => g.title);
   const [mode, setMode] = useState(modes[0] || "Normal");
-  const scene = item.gallery.find(g => g.title === mode) ?? item.gallery[0];
+  const s = item.gallery.find(g => g.title === mode) ?? item.gallery[0];
 
   const note =
     mode === "Sport" ? "Quicker throttle, firmer body control." :
@@ -403,34 +496,37 @@ function HandlingStage({ item }: { item: MediaItem }) {
     "Balanced response for daily driving.";
 
   return (
-    <div className="w-full h-full relative">
-      <img src={scene?.url || FALLBACK} alt={scene?.title || "Handling"} className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute top-3 left-3 flex gap-2">
-        {modes.map(m => (
-          <button key={m} onClick={() => setMode(m)} className={cn("px-3 py-1 rounded-full text-xs", mode===m ? "bg-emerald-600 text-white" : "bg-white/20 text-white")}>{m}</button>
+    <div className="h-[72vh] lg:h-[70vh] relative">
+      <img src={s?.url || FALLBACK} alt={s?.title || "Handling"} className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
+      {/* segmented control */}
+      <div className="absolute left-3 right-3 bottom-3 grid grid-cols-3 gap-2">
+        {modes.slice(0,3).map(m=>(
+          <button key={m} onClick={()=>setMode(m)}
+            className={cn("rounded-md px-3 py-2 text-sm font-medium", mode===m?"bg-emerald-600 text-white":"bg-white/20 text-white")}>{m}</button>
         ))}
       </div>
-      <div className="absolute bottom-3 left-3 right-3 text-white text-sm bg-black/45 rounded px-3 py-2">{note}</div>
+      {/* microcopy */}
+      <div className="absolute top-3 left-3 text-xs px-2 py-1 rounded bg-emerald-900/50 border border-white/10">{note}</div>
     </div>
   );
 }
 
-/** Simple hotspot component */
-function Hotspot({ x, y, label, body }: { x: number; y: number; label: string; body: string }) {
+/** hotspot (light/dark variants) */
+function Hotspot({ x, y, label, body, dark }: { x: number; y: number; label: string; body: string; dark?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="absolute w-5 h-5 rounded-full bg-white/95 text-[10px] font-semibold text-black grid place-items-center shadow"
+        onClick={() => setOpen(v=>!v)}
+        className={cn("absolute w-5 h-5 rounded-full grid place-items-center text-[10px] font-bold shadow",
+          dark ? "bg-white/95 text-black" : "bg-black/80 text-white")}
         style={{ left: `${x}%`, top: `${y}%` }}
         aria-label={label}
-      >
-        i
-      </button>
+      >i</button>
       {open && (
         <div
-          className="absolute max-w-[220px] text-xs bg-white/95 text-gray-900 rounded p-2 shadow"
+          className={cn("absolute max-w-[220px] text-xs rounded p-2 shadow",
+            dark ? "bg-white/95 text-gray-900" : "bg-black/85 text-white")}
           style={{ left: `calc(${x}% + 14px)`, top: `calc(${y}% - 6px)` }}
         >
           <div className="font-semibold">{label}</div>
@@ -441,26 +537,23 @@ function Hotspot({ x, y, label, body }: { x: number; y: number; label: string; b
   );
 }
 
-/* =========================================================
-   Cards + Mosaic (desktop) & Swipe Rail (mobile)
-   =======================================================*/
+/* ======================= Cards + Mosaic / Mobile Rail ======================= */
 function Card({ item, className, onOpen }: { item: MediaItem; className?: string; onOpen: (m: MediaItem) => void }) {
-  const s = TOKENS[item.variant]; const Icon = s.icon;
+  const skin = SKIN[item.variant]; const Icon = skin.icon;
   return (
     <article
       role="listitem"
       className={cn("group relative rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-300",
                    "focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900", className)}
     >
-      <button onClick={() => onOpen(item)} className="w-full text-left focus:outline-none" aria-label={`Open ${item.title}`}>
+      <button onClick={()=>onOpen(item)} className="w-full text-left focus:outline-none" aria-label={`Open ${item.title}`}>
         <div className="relative h-[220px] md:h-full overflow-hidden">
-          <img
-            src={item.thumbnail || FALLBACK}
-            alt={item.title}
-            className="block w-full h-full object-cover group-hover:scale-[1.03] duration-500"
-            onError={(e)=> (e.currentTarget.src=FALLBACK)}
-          />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+          <img src={item.thumbnail || FALLBACK} alt={item.title} className="block w-full h-full object-cover group-hover:scale-[1.03] duration-500" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
+          <div className="absolute top-3 left-3">
+            <Badge className={cn("bg-gradient-to-r text-white border-0", skin.accent)}>
+              <Icon className="h-3.5 w-3.5 mr-1" /> {item.category}
+            </Badge>
+          </div>
           {item.kind==="video" && (
             <div className="absolute inset-0 grid place-items-center">
               <div className="w-14 h-14 bg-white/95 rounded-full grid place-items-center group-hover:scale-110 transition-transform">
@@ -468,20 +561,15 @@ function Card({ item, className, onOpen }: { item: MediaItem; className?: string
               </div>
             </div>
           )}
-          <div className="absolute top-3 left-3">
-            <Badge className={`bg-gradient-to-r ${s.accent} text-white border-0`}>
-              <Icon className="h-3.5 w-3.5 mr-1" /> {item.category}
-            </Badge>
-          </div>
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
-
         <div className="p-5 md:p-4">
-          <h3 className="font-bold text-lg md:text-base text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2">{item.title}</h3>
+          <h3 className="font-bold text-lg md:text-base text-gray-900 line-clamp-2 group-hover:text-red-600 transition-colors">{item.title}</h3>
           <p className="text-sm text-gray-600 mt-1.5 line-clamp-2">{item.summary}</p>
           {!!item.tags?.length && (
             <div className="flex flex-wrap gap-1 mt-3">
               {item.tags.slice(0, 4).map((t, i) => (
-                <span key={i} className={cn("text-xs px-2 py-1 rounded-full font-medium", s.bg, s.text)}>{t}</span>
+                <span key={i} className="text-xs px-2 py-1 rounded-full font-medium bg-gray-50 text-gray-700 border border-gray-200">{t}</span>
               ))}
             </div>
           )}
@@ -505,7 +593,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
   const data = items?.length ? items : DATA;
   const [openItem, setOpenItem] = useState<MediaItem | null>(null);
 
-  // Reliable mosaic (explicit heights so thumbnails always render)
+  // explicit heights so thumbnails never collapse
   const MOSAIC = [
     "md:col-span-3 md:h-[420px]",
     "md:col-span-3 md:h-[420px]",
@@ -526,7 +614,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
           </p>
         </div>
 
-        {/* Mobile swipe rail */}
+        {/* Mobile rail (swipe) */}
         <div className="-mx-4 px-4 md:hidden overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3" role="list" aria-label="Highlights">
           {data.map((it) => (
             <div key={it.id} className="snap-center min-w-[88%]">
