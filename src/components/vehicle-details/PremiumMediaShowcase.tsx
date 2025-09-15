@@ -1,22 +1,32 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VehicleModel } from "@/types/vehicle";
 import {
-  Play, X, ChevronLeft, ChevronRight, Info, Star, Shield, Zap, Heart, Wifi, Award,
-  Sparkles, Gauge
+  Play,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Shield,
+  Zap,
+  Heart,
+  Wifi,
+  Award,
+  Star,
+  Car,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-/* ─────────────────────────────────────────────────────────
-   TYPES & TOKENS
-────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Types & tokens
+────────────────────────────────────────── */
 type ModalVariant = "performance" | "safety" | "interior" | "quality" | "technology" | "handling";
 
 interface MediaItem {
   id: string;
-  category: string; // human label
+  category: string;
   title: string;
   summary: string;
   kind: "image" | "video";
@@ -30,10 +40,6 @@ interface MediaItem {
       specs?: string[];
       features?: string[];
       tech?: string[];
-      demo?: "scrub" | "chips" | "timeline" | "gyro";
-      audioUrl?: string;
-      svgOverlay?: string;
-      particles?: boolean;
     };
   }>;
   video?: {
@@ -66,36 +72,34 @@ const VARIANT_LABELS: Record<ModalVariant, string> = {
   handling: "Handling",
 };
 
-/* ─────────────────────────────────────────────────────────
-   DEMO DATA (replace with your feed when wiring to CMS)
-────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Demo data (swap with CMS/DAM feed)
+────────────────────────────────────────── */
 const DEMO_MEDIA: MediaItem[] = [
   {
     id: "performance",
     category: "Performance",
     title: "V6 Twin-Turbo Engine",
-    summary: "400+ horsepower, instant response, efficient cruising under all conditions.",
+    summary: "Immediate torque, smooth surge; tuned for confident highway merges and climbs.",
     kind: "image",
     variant: "performance",
-    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
+    thumbnail:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
     gallery: [
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
-        title: "Engine Architecture",
-        description: "Advanced cooling system and optimized airflow design.",
+        title: "Architecture",
+        description: "Optimized airflow and cooling for sustained output.",
         details: {
-          overview: "3.5L V6 Twin-Turbo engineered for instant response and sustained performance across all driving conditions.",
-          specs: ["3.5L V6 Twin-Turbo", "400+ hp", "0-60 mph in 4.2s", "Direct injection"],
-          features: ["Variable Valve Timing", "Aluminum construction", "Advanced cooling"],
-          tech: ["Closed-loop boost control", "Knock detection", "Thermal management"],
-          demo: "scrub",
-          audioUrl: "",
+          overview: "3.5L V6 Twin-Turbo engineered for desert heat and long hauls.",
+          specs: ["3.5L V6", "Twin-Turbo", "400+ hp", "Direct injection"],
+          features: ["VVT-i", "Aluminum block", "Advanced cooling"],
         },
       },
       {
-        url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/3a72bd7f-01f6-4398-b012-29b612f5e55c/renditions/1fdf0841-ad9a-4192-880b-7a4f16bbd32a?binary=true&mformat=true",
+        url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1600&auto=format&fit=crop",
         title: "Power Delivery",
-        description: "Immediate torque with controlled surge through gears.",
+        description: "Controlled surge through the rev range.",
       },
     ],
     badges: ["400+ HP", "Twin-Turbo", "Instant Response"],
@@ -104,44 +108,48 @@ const DEMO_MEDIA: MediaItem[] = [
     id: "safety",
     category: "Safety",
     title: "Toyota Safety Sense",
-    summary: "Camera and radar fusion for comprehensive protection.",
+    summary: "Camera + radar suite to support safer journeys.",
     kind: "image",
     variant: "safety",
-    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
+    thumbnail:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
     gallery: [
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/4b38997a-dd4e-426b-8356-41af4f249811/items/dd2df84f-19cc-4f85-93bb-b30ad7563f38/renditions/611ebf32-7ddd-4782-98d0-a208784e624d?binary=true&mformat=true",
-        title: "Sensor Technology",
-        description: "Wide FOV camera + radar with predictive coverage.",
+        title: "Assistance Suite",
+        description: "Designed for real-world UAE driving.",
         details: {
-          overview: "PCS, LTA, ACC, BSM — tuned for UAE driving.",
-          specs: ["PCS", "Lane Tracing Assist", "Adaptive Cruise Control", "Blind Spot Monitor"],
-          demo: "chips",
-          svgOverlay: "cones",
+          overview: "PCS, LTA, ACC, BSM help reduce fatigue and risk.",
+          specs: ["PCS", "Lane Tracing Assist", "Adaptive Cruise", "Blind Spot Monitor"],
         },
       },
     ],
-    badges: ["5-Star Safety", "TSS 2.0", "ADAS"],
+    badges: ["TSS 2.0", "5-Star Safety", "ADAS"],
   },
   {
     id: "interior",
     category: "Interior",
-    title: "Premium Cabin Experience",
-    summary: "Driver-focused ergonomics with premium materials.",
+    title: "Premium Cabin",
+    summary: "Soft-touch materials, ergonomic controls, and low-latency infotainment.",
     kind: "image",
     variant: "interior",
-    thumbnail: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
+    thumbnail:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true",
     gallery: [
       {
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
         title: "Command Center",
-        description: "Everything within reach; distraction minimized.",
+        description: "Clear layout reduces distraction.",
         details: {
-          overview: "Low-latency UI, memory seats, tri-zone climate.",
+          overview: "Visibility, reach, and responsiveness for daily comfort.",
           specs: ['12.3" Display', "Tri-zone Climate", "Premium Audio"],
-          features: ["Voice Control", "Wireless Charging", "Memory Settings"],
-          demo: "timeline",
+          features: ["Voice Control", "Wireless Charging", "Memory Seats"],
         },
+      },
+      {
+        url: "https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1600&auto=format&fit=crop",
+        title: "Materials",
+        description: "Premium textures and stitching.",
       },
     ],
     badges: ['12.3" Display', "Premium Materials", "Comfort Plus"],
@@ -149,21 +157,17 @@ const DEMO_MEDIA: MediaItem[] = [
   {
     id: "quality",
     category: "Quality",
-    title: "Craftsmanship & Assurance",
-    summary: "Proven durability with global certifications.",
+    title: "Built to Last",
+    summary: "Global standards, corrosion protection, and long-term dependability.",
     kind: "image",
     variant: "quality",
     thumbnail: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=1600&auto=format&fit=crop",
     gallery: [
       {
         url: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1600&auto=format&fit=crop",
-        title: "ISO & JD Power",
-        description: "Awards and long-term reliability metrics.",
-        details: {
-          overview: "Warranty & corrosion protection benchmarks.",
-          specs: ["ISO 9001", "J.D. Power Awards", "10-year Rust Warranty"],
-          demo: "timeline",
-        },
+        title: "Assurance",
+        description: "Confidence backed by certification and warranty.",
+        details: { overview: "Verified by independent bodies.", specs: ["ISO 9001", "J.D. Power", "10-year Rust Warranty"] },
       },
     ],
     badges: ["ISO", "J.D. Power", "Warranty"],
@@ -172,7 +176,7 @@ const DEMO_MEDIA: MediaItem[] = [
     id: "technology",
     category: "Technology",
     title: "Smart Connectivity",
-    summary: "OTA updates, seamless infotainment, and app ecosystem.",
+    summary: "OTA updates and seamless phone integration keep features fresh.",
     kind: "image",
     variant: "technology",
     thumbnail: "https://images.unsplash.com/photo-1603481588273-0c31c4b7a52f?q=80&w=1600&auto=format&fit=crop",
@@ -180,12 +184,8 @@ const DEMO_MEDIA: MediaItem[] = [
       {
         url: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=1600&auto=format&fit=crop",
         title: "Infotainment",
-        description: "Fast UI with offline-capable maps.",
-        details: {
-          overview: "Modular updates & stable rollouts.",
-          tech: ["OTA engine", "Edge caching", "Deep linking"],
-          demo: "chips",
-        },
+        description: "Offline-capable maps with quick search.",
+        details: { overview: "Quiet background rollouts.", tech: ["OTA engine", "CarPlay/Android Auto", "Deep links"] },
       },
     ],
     badges: ["OTA", "App Link", "CarPlay/AA"],
@@ -193,303 +193,149 @@ const DEMO_MEDIA: MediaItem[] = [
   {
     id: "handling",
     category: "Handling",
-    title: "Adaptive Dynamics",
-    summary: "Composure on curves with terrain-aware tuning.",
+    title: "Composed Dynamics",
+    summary: "Selectable modes adapt damping and response for road or desert.",
     kind: "image",
     variant: "handling",
     thumbnail: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1600&auto=format&fit=crop",
     gallery: [
       {
         url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop",
-        title: "S-Curve Control",
-        description: "Predictable steering & stable load transfer.",
-        details: {
-          overview: "Selectable modes: Normal, Sport, Off-Road.",
-          demo: "gyro",
-          particles: true,
-        },
+        title: "Normal",
+        description: "Balanced ride for daily use.",
+      },
+      {
+        url: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1600&auto=format&fit=crop",
+        title: "Sport",
+        description: "Sharper response and grip.",
       },
     ],
     badges: ["Multi-Mode", "Grip Control", "Chassis Balance"],
   },
 ];
 
-/* ─────────────────────────────────────────────────────────
-   SHARED UTILS
-────────────────────────────────────────────────────────── */
-const usePrefersReducedMotion = () => useReducedMotion();
+/* ─────────────────────────────────────────
+   Unique stage components
+────────────────────────────────────────── */
 
-/* A11y focus trap (lightweight) */
-function useFocusTrap(active: boolean, containerRef: React.RefObject<HTMLElement>) {
-  useEffect(() => {
-    if (!active || !containerRef.current) return;
-    const el = containerRef.current;
-    const focusable = el.querySelectorAll<HTMLElement>(
-      'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    el.addEventListener("keydown", onKey);
-    first?.focus();
-    return () => el.removeEventListener("keydown", onKey);
-  }, [active, containerRef]);
-}
-
-/* ─────────────────────────────────────────────────────────
-   VARIANT RENDERERS
-   (Each returns the "Stage" content unique per variant)
-────────────────────────────────────────────────────────── */
-
-/** 1) Performance — Kinetic Gallery */
+/** 1) Performance — scrub bar + inertial carousel */
 function PerformanceStage({
   media,
-  currentSlide,
-  setCurrentSlide,
+  index,
+  setIndex,
 }: {
   media: MediaItem;
-  currentSlide: number;
-  setCurrentSlide: (i: number) => void;
+  index: number;
+  setIndex: (i: number) => void;
 }) {
-  const prefersReduced = usePrefersReducedMotion();
-  const isDesktop = typeof window !== "undefined" ? window.innerWidth >= 1024 : false;
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Hover scrub on desktop
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDesktop || prefersReduced) return;
-    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
-    const idx = Math.min(media.gallery.length - 1, Math.max(0, Math.floor(pct * media.gallery.length)));
-    setCurrentSlide(idx);
-  };
-
-  // Inertial swipe on mobile
   const onDragEnd = (_: any, info: { offset: { x: number }; velocity: { x: number } }) => {
-    const threshold = 50;
-    const vx = info.velocity.x;
-    const dx = info.offset.x;
-    if (dx < -threshold || vx < -300) setCurrentSlide(Math.min(media.gallery.length - 1, currentSlide + 1));
-    if (dx > threshold || vx > 300) setCurrentSlide(Math.max(0, currentSlide - 1));
+    const { x } = info.offset;
+    const { x: vx } = info.velocity;
+    if (x < -50 || vx < -300) setIndex(Math.min(media.gallery.length - 1, index + 1));
+    if (x > 50 || vx > 300) setIndex(Math.max(0, index - 1));
   };
+  const pct = media.gallery.length > 1 ? (index / (media.gallery.length - 1)) * 100 : 0;
 
   return (
-    <motion.div
-      ref={containerRef}
-      className="relative bg-black rounded-lg overflow-hidden min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh]"
-      onMouseMove={onMouseMove}
-    >
-      <motion.img
-        key={currentSlide}
-        src={media.gallery[currentSlide]?.url}
-        alt={media.gallery[currentSlide]?.title || media.title}
-        className="absolute inset-0 w-full h-full object-contain"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        onDragEnd={onDragEnd}
-        initial={{ opacity: 0.6, scale: prefersReduced ? 1 : 1.03 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.35 }}
-      />
-      {/* Slide index */}
-      <div className="absolute top-3 right-3 text-white/80 text-xs tracking-widest">
-        {String(currentSlide + 1).padStart(2, "0")}/{String(media.gallery.length).padStart(2, "0")}
-      </div>
-      {/* Subtle torque line */}
-      {!prefersReduced && (
-        <motion.div
-          className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-red-600/0 via-red-600/60 to-red-600/0"
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 1.2 }}
+    <div className="relative bg-black rounded-lg overflow-hidden min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh]">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={index}
+          src={media.gallery[index]?.url}
+          alt={media.gallery[index]?.title || media.title}
+          className="absolute inset-0 w-full h-full object-contain"
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          onDragEnd={onDragEnd}
+          initial={{ opacity: 0.6, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.25 }}
         />
+      </AnimatePresence>
+
+      {media.gallery.length > 1 && (
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-red-600 transition-all" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="mt-2 flex justify-center gap-2">
+            {media.gallery.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                className={`w-2 h-2 rounded-full ${i === index ? "bg-white" : "bg-white/40"}`}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
-/** 2) Safety — Radar Split (image + radar canvas) */
+/** 2) Safety — feature toggles overlaying highlights on image */
 function SafetyStage({ media }: { media: MediaItem }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const prefersReduced = usePrefersReducedMotion();
-  const [chips, setChips] = useState({ pcs: true, lta: false, acc: false });
-  const toggle = (k: keyof typeof chips) => setChips((s) => ({ ...s, [k]: !s[k] }));
-
-  useEffect(() => {
-    if (prefersReduced) return;
-
-    let raf = 0;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const DPR = window.devicePixelRatio || 1;
-    const resize = () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = Math.floor(w * DPR);
-      canvas.height = Math.floor(h * DPR);
-      ctx.scale(DPR, DPR);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    let t = 0;
-    const render = () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      ctx.clearRect(0, 0, w, h);
-
-      // grid rings
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 1;
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      for (let r = 40; r < Math.min(w, h) / 1.5; r += 40) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      // sweep
-      const angle = (t % 360) * (Math.PI / 180);
-      const len = Math.min(w, h) * 0.45;
-      const x2 = cx + Math.cos(angle) * len;
-      const y2 = cy + Math.sin(angle) * len;
-
-      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, len);
-      grd.addColorStop(0, "rgba(80,160,255,0.18)");
-      grd.addColorStop(1, "rgba(80,160,255,0.0)");
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, len, angle - 0.35, angle + 0.35);
-      ctx.closePath();
-      ctx.fill();
-
-      // blips
-      const enabled = [
-        chips.pcs && { x: cx + 110, y: cy - 20 },
-        chips.acc && { x: cx + 40, y: cy + 140 },
-        chips.lta && { x: cx - 120, y: cy - 60 },
-      ].filter(Boolean) as Array<{ x: number; y: number }>;
-      enabled.forEach(({ x, y }) => {
-        ctx.fillStyle = "rgba(120,200,255,0.9)";
-        ctx.beginPath();
-        ctx.arc(x, y, 4 + 2 * Math.sin(t / 10), 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      t += 1.5;
-      raf = requestAnimationFrame(render);
-    };
-    raf = requestAnimationFrame(render);
-    return () => {
-      window.removeEventListener("resize", resize);
-      cancelAnimationFrame(raf);
-    };
-  }, [chips, prefersReduced]);
+  const [toggles, setToggles] = useState({ pcs: true, lta: true, acc: false });
+  const toggle = (k: keyof typeof toggles) => setToggles((s) => ({ ...s, [k]: !s[k] }));
 
   return (
-    <div className="grid grid-rows-[auto_240px] lg:grid-rows-1 lg:grid-cols-2 gap-3 min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh]">
-      <div className="relative rounded-lg overflow-hidden bg-black">
-        <img
-          src={media.gallery[0]?.url}
-          alt={media.gallery[0]?.title || media.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-        />
-      </div>
-      <div className="relative rounded-lg overflow-hidden bg-zinc-900 border border-white/10">
-        <canvas ref={canvasRef} className="w-full h-full" />
-        <div className="absolute top-3 left-3 flex gap-2">
-          <button
-            onClick={() => toggle("pcs")}
-            className={`px-3 py-1 rounded-full text-xs ${chips.pcs ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
-          >
-            PCS
-          </button>
-          <button
-            onClick={() => toggle("lta")}
-            className={`px-3 py-1 rounded-full text-xs ${chips.lta ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
-          >
-            LTA
-          </button>
-          <button
-            onClick={() => toggle("acc")}
-            className={`px-3 py-1 rounded-full text-xs ${chips.acc ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
-          >
-            ACC
-          </button>
-        </div>
+    <div className="relative rounded-lg overflow-hidden bg-black min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh]">
+      <img
+        src={media.gallery[0]?.url}
+        alt={media.gallery[0]?.title || media.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
+      />
+      {/* simple highlights */}
+      {toggles.pcs && <div className="absolute top-[18%] left-[52%] w-16 h-16 rounded-full border-2 border-blue-400/80" />}
+      {toggles.lta && <div className="absolute top-[55%] left-[20%] w-24 h-10 rounded-md border-2 border-blue-400/80" />}
+      {toggles.acc && <div className="absolute top-[35%] left-[70%] w-10 h-10 rounded-full border-2 border-blue-400/80" />}
+
+      <div className="absolute top-3 left-3 flex gap-2">
+        <button
+          onClick={() => toggle("pcs")}
+          className={`px-3 py-1 rounded-full text-xs ${toggles.pcs ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
+        >
+          PCS
+        </button>
+        <button
+          onClick={() => toggle("lta")}
+          className={`px-3 py-1 rounded-full text-xs ${toggles.lta ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
+        >
+          LTA
+        </button>
+        <button
+          onClick={() => toggle("acc")}
+          className={`px-3 py-1 rounded-full text-xs ${toggles.acc ? "bg-blue-600 text-white" : "bg-white/10 text-white/80"}`}
+        >
+          ACC
+        </button>
       </div>
     </div>
   );
 }
 
-/** 3) Interior — Card Stack / Tilt */
-function InteriorStage({ media }: { media: MediaItem }) {
-  const prefersReduced = usePrefersReducedMotion();
-  const [index, setIndex] = useState(0);
+/** 3) Interior — vertical card stack */
+function InteriorStage({ media, index, setIndex }: { media: MediaItem; index: number; setIndex: (i: number) => void }) {
   const stack = media.gallery;
-
-  // Tilt via pointer (fallback when device motion denied)
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const onMove = (e: React.MouseEvent) => {
-    if (prefersReduced) return;
-    const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    setTilt({ x: px * 6, y: -py * 6 });
-  };
-
-  useEffect(() => {
-    let off = () => {};
-    if (!prefersReduced && typeof window !== "undefined") {
-      const handler = (e: DeviceOrientationEvent) => {
-        const beta = (e.beta ?? 0) / 90; // -1..1
-        const gamma = (e.gamma ?? 0) / 90;
-        setTilt({ x: gamma * 6, y: beta * 6 });
-      };
-      window.addEventListener("deviceorientation", handler);
-      off = () => window.removeEventListener("deviceorientation", handler);
-    }
-    return off;
-  }, [prefersReduced]);
-
   const onDragEnd = (_: any, info: { offset: { y: number }; velocity: { y: number } }) => {
-    const threshold = 50;
-    const dy = info.offset.y;
-    const vy = info.velocity.y;
-    if (dy < -threshold || vy < -300) setIndex((i) => Math.min(stack.length - 1, i + 1));
-    if (dy > threshold || vy > 300) setIndex((i) => Math.max(0, i - 1));
+    const { y } = info.offset;
+    const { y: vy } = info.velocity;
+    if (y < -50 || vy < -300) setIndex(Math.min(stack.length - 1, index + 1));
+    if (y > 50 || vy > 300) setIndex(Math.max(0, index - 1));
   };
 
   return (
-    <div
-      className="relative min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh] bg-gradient-to-b from-zinc-950 to-zinc-900 rounded-xl overflow-hidden"
-      onMouseMove={onMove}
-    >
-      <div className="absolute inset-0 perspective-[1200px]">
+    <div className="relative min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh] bg-zinc-950 rounded-xl overflow-hidden">
+      <div className="absolute inset-0">
         {stack.map((s, i) => {
           const depth = i - index;
           return (
             <motion.div
               key={i}
-              className="absolute inset-8 rounded-2xl overflow-hidden shadow-2xl"
-              style={{
-                transformStyle: "preserve-3d",
-              }}
+              className="absolute inset-6 rounded-2xl overflow-hidden shadow-xl bg-black"
               drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
               onDragEnd={onDragEnd}
@@ -497,14 +343,12 @@ function InteriorStage({ media }: { media: MediaItem }) {
               animate={{
                 opacity: i === index ? 1 : 0.25,
                 scale: i === index ? 1 : 0.96,
-                rotateX: prefersReduced ? 0 : tilt.y * (i === index ? 1 : 0.5),
-                rotateY: prefersReduced ? 0 : tilt.x * (i === index ? 1 : 0.5),
+                y: depth * 20,
                 zIndex: 100 - Math.abs(depth),
-                y: depth * 24,
               }}
-              transition={{ type: "spring", stiffness: 220, damping: 24 }}
+              transition={{ duration: 0.25 }}
             >
-              <img src={s.url} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
+              <img src={s.url} alt={s.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
               <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/60 to-transparent text-white">
                 <div className="text-sm opacity-90">{s.title}</div>
                 <div className="text-xs opacity-75">{s.description}</div>
@@ -527,63 +371,52 @@ function InteriorStage({ media }: { media: MediaItem }) {
   );
 }
 
-/** 4) Quality — Badge Timeline (scrollable chips + expandable sheet) */
+/** 4) Quality — badge timeline + inline details */
 function QualityStage({ media }: { media: MediaItem }) {
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
   const badges = [
-    { label: "ISO 9001", copy: "Process quality and consistency across plants." },
+    { label: "ISO 9001", copy: "Process quality and consistency." },
     { label: "J.D. Power", copy: "Long-term dependability awards." },
     { label: "Corrosion", copy: "10-year anti-perforation warranty." },
   ];
+  const [open, setOpen] = useState<number | null>(0);
+
   return (
     <div className="min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh] rounded-xl bg-zinc-950 border border-white/10 p-4">
-      <div className="overflow-x-auto hide-scrollbar">
+      <div className="overflow-x-auto">
         <div className="flex gap-3">
           {badges.map((b, i) => (
             <button
               key={b.label}
-              onClick={() => setOpenIdx(i === openIdx ? null : i)}
+              onClick={() => setOpen(i === open ? null : i)}
               className={`px-4 py-2 rounded-full whitespace-nowrap text-sm ${
-                openIdx === i ? "bg-amber-500 text-black" : "bg-white/10 text-white/90"
+                open === i ? "bg-amber-500 text-black" : "bg-white/10 text-white/90"
               }`}
             >
-              <Sparkles className="inline h-4 w-4 mr-1" />
               {b.label}
             </button>
           ))}
         </div>
       </div>
-      <div className="mt-4 grid gap-4">
+
+      <div className="mt-4 grid gap-3">
         {media.gallery.slice(0, 2).map((g, idx) => (
           <div key={idx} className="rounded-xl overflow-hidden bg-black/60">
             <img src={g.url} alt={g.title} className="w-full h-56 object-cover" loading="lazy" />
           </div>
         ))}
-      </div>
 
-      <AnimatePresence>
-        {openIdx != null && (
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 40, opacity: 0 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-xl rounded-t-2xl bg-zinc-900 border-t border-white/10 p-4"
-          >
-            <div className="flex items-center justify-between text-white">
-              <div className="font-semibold">{badges[openIdx].label}</div>
-              <Button size="sm" variant="ghost" className="text-white/80" onClick={() => setOpenIdx(null)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <p className="mt-2 text-sm text-white/80">{badges[openIdx].copy}</p>
-          </motion.div>
+        {open != null && (
+          <div className="rounded-lg border border-white/10 p-3 text-white/90 bg-white/5">
+            <div className="font-semibold mb-1">{badges[open].label}</div>
+            <p className="text-sm">{badges[open].copy}</p>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
 
-/** 5) Technology — Chip Grid Demo (SVG line draw) */
+/** 5) Technology — chip grid with progress demos */
 function TechnologyStage() {
   const [active, setActive] = useState<{ [k: string]: boolean }>({});
   const items = [
@@ -606,18 +439,14 @@ function TechnologyStage() {
               }`}
             >
               <div className="font-semibold">{it.name}</div>
-              {/* micro demo: line draw */}
-              <svg viewBox="0 0 120 40" className="mt-2 w-full h-14">
-                <motion.path
-                  d="M5 30 L30 10 L55 25 L80 12 L110 28"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: on ? 1 : 0 }}
-                  transition={{ duration: 0.9 }}
+              <div className="mt-3 h-2 w-full rounded bg-white/15 overflow-hidden">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: on ? "100%" : "0%" }}
+                  transition={{ duration: 0.8 }}
+                  className="h-2 bg-white/80"
                 />
-              </svg>
+              </div>
             </button>
           );
         })}
@@ -626,13 +455,12 @@ function TechnologyStage() {
         <Button
           size="sm"
           onClick={() => {
-            // play all sequence
             const keys = items.map((i) => i.key);
             let i = 0;
             const tick = () => {
               setActive((s) => ({ ...s, [keys[i]]: true }));
               i++;
-              if (i < keys.length) setTimeout(tick, 650);
+              if (i < keys.length) setTimeout(tick, 550);
             };
             tick();
           }}
@@ -647,127 +475,56 @@ function TechnologyStage() {
   );
 }
 
-/** 6) Handling — Gyro Curve (tilt or keyboard) */
+/** 6) Handling — before/after compare slider */
 function HandlingStage({ media }: { media: MediaItem }) {
-  const prefersReduced = usePrefersReducedMotion();
-  const [mode, setMode] = useState<"Normal" | "Sport" | "Off-Road">("Normal");
-  const [tVal, setTVal] = useState(0.5); // 0..1 along path
-  const [fpsOK, setFpsOK] = useState(true);
+  const left = media.gallery[0];
+  const right = media.gallery[1] ?? media.gallery[0];
+  const [pos, setPos] = useState(50); // percentage
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") setTVal((v) => Math.max(0, v - 0.03));
-      if (e.key === "ArrowRight") setTVal((v) => Math.min(1, v + 0.03));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    if (prefersReduced) return;
-    let last = performance.now();
-    let frames = 0;
-    let raf = 0;
-    const loop = (now: number) => {
-      frames++;
-      if (now - last >= 1000) {
-        setFpsOK(frames >= 45);
-        frames = 0;
-        last = now;
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [prefersReduced]);
-
-  useEffect(() => {
-    if (prefersReduced) return;
-    const handler = (e: DeviceOrientationEvent) => {
-      const gamma = (e.gamma ?? 0) / 45; // -1..1
-      setTVal((v) => {
-        const next = v + gamma * 0.01;
-        return Math.min(1, Math.max(0, next));
-      });
-    };
-    window.addEventListener("deviceorientation", handler);
-    return () => window.removeEventListener("deviceorientation", handler);
-  }, [prefersReduced]);
-
-  // Simple S-curve param
-  const point = useMemo(() => {
-    const t = tVal;
-    const x = t;
-    const y = 0.5 + 0.35 * Math.sin((t - 0.5) * Math.PI * 2);
-    return { x, y };
-  }, [tVal]);
-
-  const particleOn = media.gallery[0]?.details?.particles && fpsOK && !prefersReduced && mode === "Off-Road";
+  const onPointer = (clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    setPos(Math.min(100, Math.max(0, x)));
+  };
 
   return (
-    <div className="relative min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh] rounded-xl bg-gradient-to-b from-zinc-950 to-zinc-900 p-4">
-      <div className="flex gap-2 mb-3">
-        {(["Normal", "Sport", "Off-Road"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`px-3 py-1 rounded-full text-xs ${
-              mode === m ? "bg-emerald-600 text-white" : "bg-white/10 text-white/80"
-            }`}
-          >
-            {m}
-          </button>
-        ))}
-      </div>
-
-      <svg viewBox="0 0 100 60" className="w-full h-60 bg-black/40 rounded-lg border border-white/10">
-        {/* S-curve */}
-        <path
-          d="M5 30 C 25 5, 45 55, 65 30 S 95 5, 95 30"
-          fill="none"
-          stroke="rgba(255,255,255,0.35)"
-          strokeWidth="1.5"
-        />
-        {/* Marker */}
-        <circle
-          cx={5 + point.x * 90}
-          cy={30 + (point.y - 0.5) * 30}
-          r="2.5"
-          fill="white"
-        />
-        {/* Grip rings (mode) */}
-        <g opacity={0.5}>
-          <circle cx={5 + point.x * 90} cy={30 + (point.y - 0.5) * 30} r={mode === "Sport" ? 6 : 4} stroke="white" fill="none" />
-        </g>
-      </svg>
-
-      {/* Particles */}
-      {particleOn && (
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <motion.span
-              key={i}
-              className="absolute w-1 h-1 bg-white/60 rounded-full"
-              initial={{ opacity: 0, x: Math.random() * window.innerWidth, y: Math.random() * 50 + 200 }}
-              animate={{ opacity: [0, 1, 0], y: ["0%", "-40%"] }}
-              transition={{ duration: 1.2 + Math.random(), repeat: Infinity, repeatDelay: Math.random() * 1.5 }}
-            />
-          ))}
+    <div className="relative rounded-lg overflow-hidden bg-black min-h-[52vh] md:min-h-[56vh] lg:min-h-[60vh]">
+      <div ref={trackRef}
+           className="absolute inset-0 touch-pan-y"
+           onPointerDown={(e) => onPointer(e.clientX)}
+           onPointerMove={(e) => e.pressure && onPointer(e.clientX)}
+      >
+        {/* left (base) */}
+        <img src={left.url} alt={left.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        {/* right (revealed) */}
+        <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
+          <img src={right.url} alt={right.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-      )}
-      <div className="mt-3 text-xs text-white/60 flex items-center gap-2">
-        <Gauge className="h-4 w-4" />
-        Tilt phone or use ← → keys to steer.
-        {!fpsOK && <span className="ml-2 text-amber-400">Low FPS detected — effects reduced.</span>}
+        {/* handle */}
+        <div
+          className="absolute top-0 bottom-0"
+          style={{ left: `calc(${pos}% - 1px)` }}
+        >
+          <div className="w-0.5 h-full bg-white/80" />
+          <div className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-8 rounded-full bg-white/90 text-black grid place-items-center shadow">
+            ⇆
+          </div>
+        </div>
+      </div>
+      <div className="absolute bottom-3 left-3 right-3 flex justify-between text-xs text-white/80">
+        <span>{left.title}</span>
+        <span>{right.title}</span>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   MODAL ROOT (common shell + variant mapping)
-────────────────────────────────────────────────────────── */
-function ModalRoot({
+/* ─────────────────────────────────────────
+   Modal shell (common) + variant mapping
+────────────────────────────────────────── */
+function Modal({
   media,
   isOpen,
   onClose,
@@ -779,28 +536,27 @@ function ModalRoot({
   onBookTestDrive?: () => void;
 }) {
   const isMobile = useIsMobile();
-  const containerRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(isOpen, containerRef);
+  const [index, setIndex] = useState(0);
 
-  const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      setCurrentSlide(0);
-    } else {
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (!media) return;
+      if (media.variant !== "interior" && media.variant !== "handling") {
+        if (e.key === "ArrowRight") setIndex((i) => Math.min(media.gallery.length - 1, i + 1));
+        if (e.key === "ArrowLeft") setIndex((i) => Math.max(0, i - 1));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
       document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    if (isOpen) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onClose, media]);
 
   if (!media) return null;
-
   const style = VARIANT_STYLES[media.variant];
   const Icon = style.icon;
 
@@ -808,26 +564,25 @@ function ModalRoot({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          className="fixed inset-0 z-50 bg-black/70"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/70"
           onClick={onClose}
         >
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-title"
-            ref={containerRef}
+            aria-labelledby="media-modal-title"
+            onClick={(e) => e.stopPropagation()}
             className={`${
               isMobile
-                ? "fixed inset-0 mt-auto bg-zinc-950"
-                : "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            } w-full max-w-6xl mx-auto rounded-none lg:rounded-2xl overflow-hidden`}
-            onClick={(e) => e.stopPropagation()}
-            initial={{ y: isMobile ? 40 : 0, scale: isMobile ? 1 : 0.96, opacity: 0 }}
+                ? "fixed inset-0 bg-zinc-950"
+                : "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl"
+            } w-full max-w-6xl mx-auto overflow-hidden`}
+            initial={{ y: isMobile ? 40 : 0, scale: isMobile ? 1 : 0.98, opacity: 0 }}
             animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: isMobile ? 40 : 0, scale: isMobile ? 1 : 0.96, opacity: 0 }}
+            exit={{ y: isMobile ? 40 : 0, scale: isMobile ? 1 : 0.98, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Header */}
@@ -837,66 +592,90 @@ function ModalRoot({
                   <Icon className="h-3.5 w-3.5 mr-1" />
                   {media.category}
                 </Badge>
-                <h3 id="modal-title" className="font-bold truncate">{media.title}</h3>
+                <h3 id="media-modal-title" className="font-semibold truncate">
+                  {media.title}
+                </h3>
               </div>
               <Button variant="ghost" size="sm" className="text-white/80" onClick={onClose} aria-label="Close">
                 <X className="h-5 w-5" />
               </Button>
             </header>
 
-            {/* Body: responsive layout */}
+            {/* Body: responsive grid */}
             <div className="bg-zinc-950 text-white grid lg:grid-cols-12">
+              {/* Stage */}
               <div className="lg:col-span-7 p-3 lg:p-4">
-                {/* Stage per variant */}
                 {media.variant === "performance" && (
-                  <PerformanceStage media={media} currentSlide={currentSlide} setCurrentSlide={setCurrentSlide} />
+                  <PerformanceStage media={media} index={index} setIndex={setIndex} />
                 )}
                 {media.variant === "safety" && <SafetyStage media={media} />}
-                {media.variant === "interior" && <InteriorStage media={media} />}
+                {media.variant === "interior" && (
+                  <InteriorStage media={media} index={index} setIndex={setIndex} />
+                )}
                 {media.variant === "quality" && <QualityStage media={media} />}
                 {media.variant === "technology" && <TechnologyStage />}
                 {media.variant === "handling" && <HandlingStage media={media} />}
               </div>
 
-              {/* Info rail (desktop) or expandable (mobile) */}
+              {/* Info rail */}
               <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-white/10 p-4">
-                <div className="text-white/90 text-sm">{media.summary}</div>
+                <p className="text-sm text-white/90">{media.summary}</p>
 
-                {/* Details (from current slide where applicable) */}
-                {media.gallery[currentSlide]?.details && (
+                {/* Slide-aware details when available */}
+                {media.gallery[index]?.details && (
                   <div className="mt-4 grid gap-3">
-                    {media.gallery[currentSlide].details?.overview && (
+                    {media.gallery[index].details?.overview && (
                       <div>
                         <div className="uppercase text-xs tracking-wider text-white/60">Overview</div>
                         <p className="text-sm mt-1 text-white/90">
-                          {media.gallery[currentSlide].details?.overview}
+                          {media.gallery[index].details?.overview}
                         </p>
                       </div>
                     )}
-                    {media.gallery[currentSlide].details?.specs && (
+                    {media.gallery[index].details?.specs && (
                       <div>
                         <div className="uppercase text-xs tracking-wider text-white/60">Specifications</div>
                         <ul className="mt-1 text-sm text-white/90 list-disc list-inside space-y-0.5">
-                          {media.gallery[currentSlide].details?.specs?.map((s, i) => <li key={i}>{s}</li>)}
+                          {media.gallery[index].details!.specs!.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
                         </ul>
                       </div>
                     )}
-                    {media.gallery[currentSlide].details?.features && (
+                    {media.gallery[index].details?.features && (
                       <div>
                         <div className="uppercase text-xs tracking-wider text-white/60">Features</div>
                         <ul className="mt-1 text-sm text-white/90 list-disc list-inside space-y-0.5">
-                          {media.gallery[currentSlide].details?.features?.map((s, i) => <li key={i}>{s}</li>)}
+                          {media.gallery[index].details!.features!.map((f, i) => (
+                            <li key={i}>{f}</li>
+                          ))}
                         </ul>
                       </div>
                     )}
-                    {media.gallery[currentSlide].details?.tech && (
+                    {media.gallery[index].details?.tech && (
                       <div>
                         <div className="uppercase text-xs tracking-wider text-white/60">Technology</div>
                         <ul className="mt-1 text-sm text-white/90 list-disc list-inside space-y-0.5">
-                          {media.gallery[currentSlide].details?.tech?.map((s, i) => <li key={i}>{s}</li>)}
+                          {media.gallery[index].details!.tech!.map((t, i) => (
+                            <li key={i}>{t}</li>
+                          ))}
                         </ul>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Badges */}
+                {media.badges && media.badges.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-3">
+                    {media.badges.slice(0, 6).map((b, i) => (
+                      <span
+                        key={i}
+                        className={`text-xs px-2 py-1 rounded-full ${VARIANT_STYLES[media.variant].bg} ${VARIANT_STYLES[media.variant].text} font-medium`}
+                      >
+                        {b}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
@@ -911,6 +690,7 @@ function ModalRoot({
                 className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]"
                 onClick={() => onBookTestDrive?.()}
               >
+                <Car className="h-4 w-4 mr-2" />
                 Book Test Drive
               </Button>
             </footer>
@@ -921,22 +701,20 @@ function ModalRoot({
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   MAIN SECTION (GRID + OPEN MODAL)
-────────────────────────────────────────────────────────── */
-interface PremiumMediaShowcaseProProps {
+/* ─────────────────────────────────────────
+   Grid section + filter
+────────────────────────────────────────── */
+interface PremiumMediaShowcaseProps {
   vehicle: VehicleModel;
   onBookTestDrive?: () => void;
 }
 
-const PremiumMediaShowcasePro: React.FC<PremiumMediaShowcaseProProps> = ({ vehicle, onBookTestDrive }) => {
-  const isMobile = useIsMobile();
+const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({ vehicle, onBookTestDrive }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { margin: "-20%" });
 
   const variants = Array.from(new Set(DEMO_MEDIA.map((m) => m.variant))) as ModalVariant[];
   const [activeCategory, setActiveCategory] = useState<ModalVariant | "all">("all");
-
   const filtered = DEMO_MEDIA.filter((m) => activeCategory === "all" || m.variant === activeCategory);
 
   const [open, setOpen] = useState(false);
@@ -959,7 +737,7 @@ const PremiumMediaShowcasePro: React.FC<PremiumMediaShowcaseProProps> = ({ vehic
           >
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">Discover Every Detail</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore the engineering, safety, and craftsmanship that define the {vehicle?.name ?? "vehicle"} experience.
+              See the engineering, safety, and craftsmanship that define the {vehicle?.name ?? "vehicle"} experience.
             </p>
           </motion.div>
 
@@ -1044,20 +822,26 @@ const PremiumMediaShowcasePro: React.FC<PremiumMediaShowcaseProProps> = ({ vehic
                         </Badge>
                       </div>
                     </div>
+
                     <div className="p-5">
                       <h3 className="font-bold text-lg md:text-xl text-gray-900 group-hover:text-red-600 transition-colors">
                         {m.title}
                       </h3>
                       <p className="text-sm text-gray-600 line-clamp-2 mt-1.5">{m.summary}</p>
+
                       {m.badges && (
                         <div className="flex flex-wrap gap-1 mt-3">
                           {m.badges.slice(0, 3).map((b, i) => (
-                            <span key={i} className={`text-xs px-2 py-1 rounded-full ${style.bg} ${style.text} font-medium`}>
+                            <span
+                              key={i}
+                              className={`text-xs px-2 py-1 rounded-full ${style.bg} ${style.text} font-medium`}
+                            >
                               {b}
                             </span>
                           ))}
                         </div>
                       )}
+
                       <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                         <span>
                           {m.gallery.length} image{m.gallery.length !== 1 ? "s" : ""}
@@ -1074,14 +858,9 @@ const PremiumMediaShowcasePro: React.FC<PremiumMediaShowcaseProProps> = ({ vehic
       </section>
 
       {/* Modal */}
-      <ModalRoot
-        media={media}
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onBookTestDrive={onBookTestDrive}
-      />
+      <Modal media={media} isOpen={open} onClose={() => setOpen(false)} onBookTestDrive={onBookTestDrive} />
     </>
   );
 };
 
-export default PremiumMediaShowcasePro;
+export default PremiumMediaShowcase;
