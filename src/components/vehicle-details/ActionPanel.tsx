@@ -192,7 +192,40 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <div className="flex-1 flex items-center justify-end flex-wrap gap-1.5 md:gap-2">
             {/* Primary */}
             <div className="flex items-center gap-1.5 md:gap-2">
-              {/* Neutral primary button - reserve red for critical actions only */}
+              {/* Desktop: Add anchor links + neutral test drive button */}
+              <div className="hidden lg:flex items-center gap-2 mr-3">
+                <Button
+                  onClick={() => document.getElementById('virtual-showroom')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="ghost"
+                  className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
+                >
+                  Showroom
+                </Button>
+                <Button
+                  onClick={() => document.getElementById('media-showcase')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="ghost"
+                  className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
+                >
+                  Gallery
+                </Button>
+                <Button
+                  onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="ghost"
+                  className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
+                >
+                  Offers
+                </Button>
+                <Button
+                  onClick={() => document.getElementById('tech-experience')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="ghost"
+                  className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
+                >
+                  Technology
+                </Button>
+                <div className="w-px h-4 bg-gray-300 mx-1" />
+              </div>
+
+              {/* Neutral test drive button */}
               <Button
                 onClick={handleTestDrive}
                 className={[

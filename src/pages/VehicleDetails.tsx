@@ -9,7 +9,7 @@ import ActionPanel from "@/components/vehicle-details/ActionPanel";
 import MinimalHeroSection from "@/components/vehicle-details/MinimalHeroSection";
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
-import ModernSectionNavigation from "@/components/vehicle-details/ModernSectionNavigation";
+import StreamlinedNavigation from "@/components/vehicle-details/StreamlinedNavigation";
 import { PageLoading, ComponentLoading } from "@/components/ui/enhanced-loading";
 import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
 import { HeroSkeleton } from "@/components/ui/performance-skeleton";
@@ -272,90 +272,28 @@ const VehicleDetails = () => {
             </section>
           </PerformanceErrorBoundary>
 
-          {shouldRenderHeavyContent ? (
-            shouldUseSuspense ? (
-              <PerformanceErrorBoundary>
-                <Suspense fallback={<ComponentLoading height="400px" />}>
-                  <section id="virtual-showroom">
-                    <VirtualShowroom vehicle={vehicle} />
-                  </section>
-                  
-                  <section id="media-showcase">
-        <PremiumMediaShowcase vehicle={vehicle} />
-                  </section>
+          {/* Simplified Page Flow */}
+          <section id="virtual-showroom">
+            <Suspense fallback={<ComponentLoading />}>
+              <VirtualShowroom vehicle={vehicle} />
+            </Suspense>
+          </section>
+          
+          <section id="media-showcase">
+            <Suspense fallback={<ComponentLoading />}>
+              <PremiumMediaShowcase vehicle={vehicle} />
+            </Suspense>
+          </section>
 
-                  <StorytellingSection
-                    galleryImages={galleryImages}
-                    monthlyEMI={monthlyEMI}
-                    setIsBookingOpen={(value: boolean) => modalHandlers.updateModal('isBookingOpen', value)}
-                    navigate={navigate}
-                    setIsFinanceOpen={(value: boolean) => modalHandlers.updateModal('isFinanceOpen', value)}
-                    onSafetyExplore={modalHandlers.handleSafetyExplore}
-                    onConnectivityExplore={modalHandlers.handleConnectivityExplore}
-                    onHybridTechExplore={modalHandlers.handleHybridTechExplore}
-                    onInteriorExplore={modalHandlers.handleInteriorExplore}
-                  />
-
-                  <section id="offers">
-                    <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
-                  </section>
-                  
-                  <section id="tech-experience">
-                    <RefinedTechExperience vehicle={vehicle} />
-                  </section>
-                </Suspense>
-              </PerformanceErrorBoundary>
-            ) : (
-              <PerformanceErrorBoundary>
-                <section id="virtual-showroom">
-                  <VirtualShowroom vehicle={vehicle} />
-                </section>
-                
-                <section id="media-showcase">
-                   <Suspense fallback={<ComponentLoading />}>
-                    <VehicleMediaShowcase vehicle={vehicle} />
-                  </Suspense>
-                </section>
-
-                 <Suspense fallback={<ComponentLoading />}>
-                  <StorytellingSection
-                    galleryImages={galleryImages}
-                    monthlyEMI={monthlyEMI}
-                    setIsBookingOpen={(value: boolean) => modalHandlers.updateModal('isBookingOpen', value)}
-                    navigate={navigate}
-                    setIsFinanceOpen={(value: boolean) => modalHandlers.updateModal('isFinanceOpen', value)}
-                    onSafetyExplore={modalHandlers.handleSafetyExplore}
-                    onConnectivityExplore={modalHandlers.handleConnectivityExplore}
-                    onHybridTechExplore={modalHandlers.handleHybridTechExplore}
-                    onInteriorExplore={modalHandlers.handleInteriorExplore}
-                  />
-                </Suspense>
-
-                <section id="offers">
-                  <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
-                </section>
-                
-                <section id="tech-experience">
-                   <Suspense fallback={<ComponentLoading />}>
-                    <RefinedTechExperience vehicle={vehicle} />
-                  </Suspense>
-                </section>
-              </PerformanceErrorBoundary>
-            )
-          ) : (
-            // Lightweight version for slow connections/low memory
-            <>
-              <section className="py-8 lg:py-16 bg-muted/30">
-                <div className="toyota-container">
-                  <h2 className="text-2xl font-bold mb-8">Vehicle Overview</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Detailed content optimized for your connection speed.
-                  </p>
-                </div>
-              </section>
-              <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
-            </>
-          )}
+          <section id="offers">
+            <OffersSection onOfferClick={modalHandlers.handleOfferClick} />
+          </section>
+          
+          <section id="tech-experience">
+            <Suspense fallback={<ComponentLoading />}>
+              <RefinedTechExperience vehicle={vehicle} />
+            </Suspense>
+          </section>
           
           <section id="configuration">
             <VehicleConfiguration 
@@ -393,8 +331,12 @@ const VehicleDetails = () => {
           />
         </div>
 
-        {/* Modern Section Navigation */}
-        <ModernSectionNavigation />
+        {/* Streamlined Navigation */}
+        <StreamlinedNavigation
+          onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+          onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
+          onFinanceCalculator={() => modalHandlers.updateModal('isFinanceOpen', true)}
+        />
       </div>
 
       <VehicleModals

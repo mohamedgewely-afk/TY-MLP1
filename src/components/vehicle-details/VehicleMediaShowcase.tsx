@@ -3,13 +3,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ReactDOM from "react-dom";
 import type { VehicleModel } from "@/types/vehicle";
 
-/* ================= Brand tokens ================= */
+/* ================= Neutral brand tokens (no red) ================= */
 const TOK = {
-  red: "#EB0A1E",
-  ring: "focus:outline-none focus:ring-2 focus:ring-red-500",
-  card: "bg-white shadow-sm border border-zinc-100",
+  primary: "hsl(var(--primary))",
+  ring: "focus:outline-none focus:ring-2 focus:ring-gray-500",
+  card: "bg-white shadow-sm border border-gray-100",
   radius: "rounded-2xl",
-  muted: "text-zinc-600",
+  muted: "text-gray-600",
   container: "mx-auto max-w-[1400px] px-4 md:px-6",
 } as const;
 
@@ -134,12 +134,12 @@ type MediaItem = {
 };
 
 const VARIANT: Record<Variant, VariantStyle> = {
-  performance: { accent: "text-red-600", slab: "bg-red-50/70", chip: "bg-red-100" },
-  safety:      { accent: "text-blue-700", slab: "bg-blue-50/70", chip: "bg-blue-100" },
-  interior:    { accent: "text-amber-700", slab: "bg-amber-50/70", chip: "bg-amber-100" },
-  quality:     { accent: "text-zinc-700", slab: "bg-zinc-50/70", chip: "bg-zinc-100" },
-  technology:  { accent: "text-cyan-700", slab: "bg-cyan-50/70", chip: "bg-cyan-100" },
-  handling:    { accent: "text-emerald-700", slab: "bg-emerald-50/70", chip: "bg-emerald-100" },
+  performance: { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
+  safety:      { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
+  interior:    { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
+  quality:     { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
+  technology:  { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
+  handling:    { accent: "text-gray-800", slab: "bg-gray-50/70", chip: "bg-gray-100" },
 };
 
 /* ================= Demo media (DAM only) ================= */
@@ -313,8 +313,8 @@ interface Props { vehicle: VehicleModel; }
 /* ================= Small helpers ================= */
 const Bullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <li className="flex items-start gap-2 text-sm">
-    <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: TOK.red }} />
-    <span className="text-zinc-700">{children}</span>
+    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-gray-400" />
+    <span className="text-gray-700">{children}</span>
   </li>
 );
 
@@ -339,10 +339,10 @@ function PerformanceUX({ value, setValue }: { value: number; setValue: (n: numbe
   return (
     <div className="rounded-xl border p-4">
       <div className="mb-2 flex items-center justify-between text-xs">
-        <span className="font-semibold text-red-600">Boost</span>
-        <span className="text-zinc-500">{value}%</span>
+        <span className="font-semibold text-gray-800">Boost</span>
+        <span className="text-gray-500">{value}%</span>
       </div>
-      <input type="range" min={0} max={100} value={value} onChange={(e)=>setValue(Number(e.target.value))} className="w-full accent-red-600" aria-label="Boost"/>
+      <input type="range" min={0} max={100} value={value} onChange={(e)=>setValue(Number(e.target.value))} className="w-full accent-gray-800" aria-label="Boost"/>
       <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
         {[
           { label: "Torque", val: torque },
@@ -350,7 +350,7 @@ function PerformanceUX({ value, setValue }: { value: number; setValue: (n: numbe
         ].map(({label, val}) => (
           <div key={label}>
             <div className="mb-1 flex items-center justify-between"><span>{label}</span><span>{val}%</span></div>
-            <div className="h-2 rounded-full bg-zinc-100"><div className="h-2 rounded-full" style={{width:`${val}%`, background:TOK.red, transition: reduced ? "none" : "width .4s"}}/></div>
+            <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-gray-800" style={{width:`${val}%`, transition: reduced ? "none" : "width .4s"}}/></div>
           </div>
         ))}
       </div>
@@ -555,7 +555,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
             >
               <div className="relative">
                 <ImageSafe src={thumbOf(m)} alt={m.title} cover className="h-44 w-full" />
-                <div className="absolute left-0 top-0 h-1 rounded-tl-[16px]" style={{ background: TOK.red, width: 72 }} />
+                <div className="absolute left-0 top-0 h-1 rounded-tl-[16px] bg-gray-800" style={{ width: 72 }} />
               </div>
               <div className="p-4">
                 <div className="mb-1 flex items-center gap-2">
@@ -572,7 +572,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
         </div>
         <div className="mt-2 flex justify-center gap-2">
           {items.map((_, i) => (
-            <span key={i} className={cx("h-1.5 w-1.5 rounded-full", i === mobIndex ? "" : "bg-zinc-300")} style={{ background: i === mobIndex ? TOK.red : undefined }} />
+            <span key={i} className={cx("h-1.5 w-1.5 rounded-full", i === mobIndex ? "bg-gray-800" : "bg-gray-300")} />
           ))}
         </div>
       </div>
@@ -587,7 +587,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
           >
             <div className="relative">
               <ImageSafe src={thumbOf(m)} alt={m.title} cover className="h-56 w-full md:h-64" />
-              <div className="absolute left-0 top-0 h-1 rounded-tl-[16px]" style={{ background: TOK.red, width: 82 }} />
+              <div className="absolute left-0 top-0 h-1 rounded-tl-[16px] bg-gray-800" style={{ width: 82 }} />
             </div>
             <div className="p-4">
               <div className="mb-1 flex items-center gap-2">
@@ -735,7 +735,7 @@ const VehicleMediaShowcase: React.FC<Props> = () => {
             <div className="shrink-0 border-t bg-white/95 px-3 py-3 backdrop-blur md:px-6">
               <div className="flex items-center justify-between gap-3">
                 <button type="button" onClick={() => { setOpen(null); openerRef.current?.focus?.(); }} className="rounded-full border px-4 py-2 hover:bg-zinc-50">Close</button>
-                <button type="button" onClick={openBooking} className="rounded-full px-4 py-2 font-semibold text-white" style={{ background: TOK.red }}>Book Test Drive</button>
+                <button type="button" onClick={openBooking} className="rounded-full px-4 py-2 font-semibold text-white bg-gray-900 hover:bg-gray-800">Book Test Drive</button>
               </div>
               <div className="h-[env(safe-area-inset-bottom)]" />
             </div>
