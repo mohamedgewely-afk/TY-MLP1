@@ -1,29 +1,27 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
-import { Play, Info, Shield, Zap, Heart, Wifi, Award, Star } from "lucide-react";
+import { Play, Info, Shield, Zap, Heart, Wifi, Award, Star, X, ChevronLeft, ChevronRight, Car } from "lucide-react";
 
-/** ─────────────────────────────────────────────────────────
- *  Types
- *  ────────────────────────────────────────────────────────*/
+/* ─────────────────────────────────────────────────────────
+   Types & tokens
+────────────────────────────────────────────────────────── */
 type ModalVariant = "performance" | "safety" | "interior" | "quality" | "technology" | "handling";
 
 interface MediaItem {
   id: string;
   category: string;
   title: string;
-  summary: string;          // keep tight; no bullets
+  summary: string;          // short text, no bullets
   kind: "image" | "video";
   thumbnail: string;
   gallery: Array<{ url: string; title: string; description?: string }>;
   video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
-  badges?: string[];        // small chips (0–3); not bullet points
+  badges?: string[];        // small chips (0–3)
   variant: ModalVariant;
 }
 
-/** ─────────────────────────────────────────────────────────
- *  Variant tokens (chip color + icon)
- *  ────────────────────────────────────────────────────────*/
 const VARIANT_STYLES: Record<
   ModalVariant,
   { accent: string; bg: string; text: string; icon: React.ComponentType<any> }
@@ -36,9 +34,13 @@ const VARIANT_STYLES: Record<
   handling:    { accent: "from-emerald-600 to-emerald-700", bg: "bg-emerald-50/80", text: "text-emerald-700", icon: Star },
 };
 
-/** ─────────────────────────────────────────────────────────
- *  DAM-backed demo media (uses your existing DAM + Wistia)
- *  ────────────────────────────────────────────────────────*/
+function cn(...a: (string | false | null | undefined)[]) {
+  return a.filter(Boolean).join(" ");
+}
+
+/* ─────────────────────────────────────────────────────────
+   DAM-backed media (kept minimal; no bullets)
+────────────────────────────────────────────────────────── */
 const MEDIA: MediaItem[] = [
   {
     id: "performance",
@@ -54,15 +56,19 @@ const MEDIA: MediaItem[] = [
         url: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/33e1da1e-df0b-4ce1-ab7e-9eee5e466e43/renditions/c90aebf7-5fbd-4d2f-b8d0-e2d473cc8656?binary=true&mformat=true",
         title: "Engine Architecture",
       },
+      {
+        url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1600&auto=format&fit=crop",
+        title: "Power Delivery",
+      },
     ],
-    badges: ["400+ HP", "Twin-Turbo", "Direct Injection"],
+    badges: ["400+ HP", "Twin-Turbo"],
   },
   {
     id: "safety",
     category: "Safety",
     title: "Toyota Safety Sense",
     summary: "Pre-collision alerts, lane tracing, and adaptive cruise support.",
-    kind: "video", // show play overlay; video opens in modal later
+    kind: "video", // will show Wistia in modal
     variant: "safety",
     thumbnail:
       "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
@@ -140,41 +146,175 @@ const MEDIA: MediaItem[] = [
         url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop",
         title: "Drive Modes",
       },
+      {
+        url: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1600&auto=format&fit=crop",
+        title: "Sport",
+      },
     ],
     badges: ["Multi-Mode", "Grip"],
   },
 ];
 
-/** ─────────────────────────────────────────────────────────
- *  Helpers
- *  ────────────────────────────────────────────────────────*/
-function cn(...a: (string | false | null | undefined)[]) {
-  return a.filter(Boolean).join(" ");
+/* ─────────────────────────────────────────────────────────
+   Modal (simple, reliable)
+────────────────────────────────────────────────────────── */
+function MediaModal({
+  item,
+  open,
+  onClose,
+  onBookTestDrive,
+}: {
+  item: MediaItem | null;
+  open: boolean;
+  onClose: () => void;
+  onBookTestDrive?: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const isVideo = item?.kind === "video" && item.video;
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (!item || isVideo) return;
+      if (e.key === "ArrowRight") setIdx((i) => Math.min((item.gallery?.length ?? 1) - 1, i + 1));
+      if (e.key === "ArrowLeft") setIdx((i) => Math.max(0, i - 1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose, item, isVideo]);
+
+  if (!open || !item) return null;
+  const style = VARIANT_STYLES[item.variant];
+  const Icon = style.icon;
+  const slide = item.gallery[idx];
+
+  return (
+    <div className="fixed inset-0 z-50" aria-modal="true" role="dialog" aria-labelledby="media-modal-title">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="absolute left-1/2 top-1/2 w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 bg-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <header className="h-14 px-4 lg:px-6 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-2 min-w-0">
+            <Badge className={`bg-gradient-to-r ${style.accent} text-white border-0`}>
+              <Icon className="h-3.5 w-3.5 mr-1" />
+              {item.category}
+            </Badge>
+            <h3 id="media-modal-title" className="font-semibold truncate">{item.title}</h3>
+          </div>
+          <Button variant="ghost" size="sm" className="text-white/80" onClick={onClose} aria-label="Close">
+            <X className="h-5 w-5" />
+          </Button>
+        </header>
+
+        {/* Body */}
+        <div className="grid lg:grid-cols-12">
+          {/* Stage */}
+          <div className="lg:col-span-7 p-3 lg:p-4">
+            <div className="relative bg-black rounded-lg overflow-hidden min-h-[52vh]">
+              {isVideo ? (
+                item.video?.provider === "youtube" ? (
+                  <iframe
+                    title={item.title}
+                    className="w-full h-[52vh]"
+                    src={`https://www.youtube.com/embed/${item.video.id}?autoplay=${item.video.autoplay ? 1 : 0}&rel=0&modestbranding=1`}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <iframe
+                    title={item.title}
+                    className="w-full h-[52vh]"
+                    src={`https://fast.wistia.net/embed/iframe/${item.video?.id}?autoPlay=${item.video?.autoplay ? 1 : 0}`}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                )
+              ) : (
+                <>
+                  <img
+                    src={slide?.url}
+                    alt={slide?.title || item.title}
+                    className="absolute inset-0 w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                  {item.gallery.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIdx((i) => Math.max(0, i - 1))}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/10"
+                        aria-label="Previous"
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIdx((i) => Math.min(item.gallery.length - 1, i + 1))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/10"
+                        aria-label="Next"
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </Button>
+                      <div className="absolute bottom-3 inset-x-0 flex justify-center gap-2">
+                        {item.gallery.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setIdx(i)}
+                            className={`w-2 h-2 rounded-full ${i === idx ? "bg-white" : "bg-white/40"}`}
+                            aria-label={`Go to slide ${i + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Info rail (no bullets; concise text + chips) */}
+          <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-white/10 p-4">
+            <p className="text-sm text-white/90">{item.summary}</p>
+            {!!item.badges?.length && (
+              <div className="flex flex-wrap gap-1 pt-3">
+                {item.badges.slice(0, 6).map((b, i) => (
+                  <span
+                    key={i}
+                    className={cn("text-xs px-2 py-1 rounded-full font-medium", VARIANT_STYLES[item.variant].bg, VARIANT_STYLES[item.variant].text)}
+                  >
+                    {b}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="sticky bottom-0 inset-x-0 bg-zinc-900/80 backdrop-blur border-t border-white/10 px-3 lg:px-4 py-3 flex items-center gap-2">
+          <Button variant="outline" className="h-11 w-full sm:w-auto" onClick={onClose}>
+            Close
+          </Button>
+          <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={() => onBookTestDrive?.()}>
+            <Car className="h-4 w-4 mr-2" />
+            Book Test Drive
+          </Button>
+        </footer>
+      </div>
+    </div>
+  );
 }
 
-const MOSAIC_CLASS: string[] = [
-  // Deterministic pattern for 6 cards on md+:
-  // hero (3x tall), tall, normal, wide, normal, normal
-  "md:col-span-3 [grid-row-end:span_26]",
-  "md:col-span-2 [grid-row-end:span_26]",
-  "md:col-span-1 [grid-row-end:span_12]",
-  "md:col-span-2 [grid-row-end:span_12]",
-  "md:col-span-1 [grid-row-end:span_12]",
-  "md:col-span-1 [grid-row-end:span_12]",
-];
-
-/** ─────────────────────────────────────────────────────────
- *  Card
- *  ────────────────────────────────────────────────────────*/
-function MediaCard({
-  item,
-  mosaicClass,
-  onOpen,
-}: {
-  item: MediaItem;
-  mosaicClass?: string;
-  onOpen?: (m: MediaItem) => void;
-}) {
+/* ─────────────────────────────────────────────────────────
+   Card
+────────────────────────────────────────────────────────── */
+function MediaCard({ item, className, onOpen }: { item: MediaItem; className?: string; onOpen: (m: MediaItem) => void }) {
   const style = VARIANT_STYLES[item.variant];
   const Icon = style.icon;
 
@@ -184,15 +324,11 @@ function MediaCard({
       className={cn(
         "group relative rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-300",
         "focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900",
-        mosaicClass || ""
+        className
       )}
     >
-      <button
-        onClick={() => onOpen?.(item)}
-        className="w-full text-left focus:outline-none"
-        aria-label={`Open ${item.title}`}
-      >
-        <div className="relative aspect-video md:aspect-auto md:h-full overflow-hidden">
+      <button onClick={() => onOpen(item)} className="w-full text-left focus:outline-none" aria-label={`Open ${item.title}`}>
+        <div className="relative h-[220px] md:h-full overflow-hidden">
           <img
             src={item.thumbnail}
             alt={item.title}
@@ -224,10 +360,7 @@ function MediaCard({
           {!!item.badges?.length && (
             <div className="flex flex-wrap gap-1 mt-3">
               {item.badges.slice(0, 3).map((b, i) => (
-                <span
-                  key={i}
-                  className={cn("text-xs px-2 py-1 rounded-full font-medium", style.bg, style.text)}
-                >
+                <span key={i} className={cn("text-xs px-2 py-1 rounded-full font-medium", style.bg, style.text)}>
                   {b}
                 </span>
               ))}
@@ -246,17 +379,28 @@ function MediaCard({
   );
 }
 
-/** ─────────────────────────────────────────────────────────
- *  Mosaic + Mobile Rail
- *  ────────────────────────────────────────────────────────*/
+/* ─────────────────────────────────────────────────────────
+   Mosaic + Mobile Rail (with working modal)
+────────────────────────────────────────────────────────── */
 interface VehicleMediaMosaicProps {
   vehicle: VehicleModel;
   items?: MediaItem[];
-  onOpen?: (m: MediaItem) => void; // you can wire this to your modal later
+  onBookTestDrive?: () => void;
 }
 
-const VehicleMediaMosaic: React.FC<VehicleMediaMosaicProps> = ({ vehicle, items, onOpen }) => {
+const VehicleMediaMosaic: React.FC<VehicleMediaMosaicProps> = ({ vehicle, items, onBookTestDrive }) => {
   const data = items && items.length ? items : MEDIA;
+  const [openItem, setOpenItem] = useState<MediaItem | null>(null);
+
+  // Desktop mosaic tile sizes (explicit heights to avoid 0-height thumbnails)
+  const MOSAIC: string[] = [
+    "md:col-span-3 md:h-[420px]", // hero
+    "md:col-span-3 md:h-[420px]", // big
+    "md:col-span-2 md:h-[240px]", // wide
+    "md:col-span-2 md:h-[240px]", // wide
+    "md:col-span-1 md:h-[240px]", // normal
+    "md:col-span-1 md:h-[240px]", // normal
+  ];
 
   return (
     <section className="py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50/50">
@@ -269,32 +413,35 @@ const VehicleMediaMosaic: React.FC<VehicleMediaMosaicProps> = ({ vehicle, items,
           </p>
         </div>
 
-        {/* Mobile: swipeable rail with snap (shows next card peek) */}
+        {/* Mobile: swipeable rail with snap and next-card peek */}
         <div
-          className="md:hidden -mx-4 px-4 overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3"
+          className="-mx-4 px-4 md:hidden overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3"
           role="list"
           aria-label="Feature highlights"
         >
           {data.map((item) => (
             <div key={item.id} className="snap-center min-w-[88%]">
-              <MediaCard item={item} onOpen={onOpen} />
+              <MediaCard item={item} onOpen={setOpenItem} />
             </div>
           ))}
-          {/* peek spacer to allow the last card to center nicely */}
           <div className="min-w-[12%]" aria-hidden />
         </div>
 
-        {/* Tablet/Desktop: Mosaic grid (deterministic pattern) */}
-        <div
-          className="hidden md:grid md:grid-cols-6 gap-6 md:[grid-auto-rows:12px]"
-          role="list"
-          aria-label="Feature highlights mosaic"
-        >
+        {/* Desktop/Tablet: Mosaic grid (explicit heights, reliable thumbnails) */}
+        <div className="hidden md:grid md:grid-cols-6 gap-6" role="list" aria-label="Feature highlights mosaic">
           {data.map((item, idx) => (
-            <MediaCard key={item.id} item={item} mosaicClass={MOSAIC_CLASS[idx] || "md:col-span-2 [grid-row-end:span_12]"} onOpen={onOpen} />
+            <MediaCard
+              key={item.id}
+              item={item}
+              className={MOSAIC[idx] || "md:col-span-2 md:h-[240px]"}
+              onOpen={setOpenItem}
+            />
           ))}
         </div>
       </div>
+
+      {/* Modal */}
+      <MediaModal item={openItem} open={!!openItem} onClose={() => setOpenItem(null)} onBookTestDrive={onBookTestDrive} />
     </section>
   );
 };
