@@ -25,36 +25,20 @@ interface MediaItem {
   id: string;
   category: string;
   title: string;
-  summary: string;                       // single line (no bullets)
+  summary: string; // single sentence
   kind: "image" | "video";
   thumbnail: string;
   gallery: Scene[];
   video?: { provider: "wistia" | "youtube"; id: string; autoplay?: boolean };
-  tags?: string[];                       // visual chips only
+  tags?: string[];
   variant: Variant;
 }
 
-const cn = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 const FALLBACK = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop";
+const cn = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
 /* ─────────────────────────────────────────────────────────
-   Variant "skins" — each modal has a distinct look
-────────────────────────────────────────────────────────── */
-const SKIN: Record<
-  Variant,
-  { shell: string; header: string; panel: string; accent: string; icon: React.ComponentType<any> }
-> = {
-  performance: { shell: "bg-zinc-950 text-white", header: "bg-zinc-900/70 border-b border-white/10", panel: "bg-zinc-900/60 backdrop-blur", accent: "from-red-600 to-red-700", icon: Zap },
-  safety:      { shell: "bg-[#081622] text-white", header: "bg-blue-950/70 border-b border-white/10", panel: "bg-blue-900/40 backdrop-blur", accent: "from-blue-600 to-blue-700", icon: Shield },
-  interior:    { shell: "bg-[#1b1408] text-amber-50", header: "bg-amber-900/60 border-b border-amber-300/20", panel: "bg-amber-900/30 backdrop-blur", accent: "from-amber-500 to-amber-600", icon: Heart },
-  quality:     { shell: "bg-stone-100 text-stone-900", header: "bg-white/80 border-b border-stone-200", panel: "bg-white/80 backdrop-blur", accent: "from-stone-700 to-stone-800", icon: Award },
-  technology:  { shell: "bg-[#071a1e] text-cyan-50", header: "bg-cyan-950/70 border-b border-white/10", panel: "bg-cyan-900/30 backdrop-blur", accent: "from-cyan-600 to-cyan-700", icon: Wifi },
-  handling:    { shell: "bg-[#07170f] text-emerald-50", header: "bg-emerald-950/70 border-b border-white/10", panel: "bg-emerald-900/30 backdrop-blur", accent: "from-emerald-600 to-emerald-700", icon: Star },
-};
-
-/* ─────────────────────────────────────────────────────────
-   DATA — uses your DAM + Wistia assets (placeholders only
-   where DAM wasn’t provided yet)
+   Data (DAM + Wistia where provided)
 ────────────────────────────────────────────────────────── */
 const DATA: MediaItem[] = [
   {
@@ -80,7 +64,6 @@ const DATA: MediaItem[] = [
           ],
         },
       },
-      // If you share more DAM shots, add here; keeping one DAM frame is fine—tray hides if single.
     ],
     tags: ["400+ HP", "Twin-Turbo"],
   },
@@ -121,7 +104,6 @@ const DATA: MediaItem[] = [
     ],
     tags: ['12.3" Display', "Memory Seats", "Wireless Charging"],
   },
-  // The three below didn’t come with DAM in your snippets; they’ll gracefully use FALLBACK until you share DAM IDs.
   {
     id: "quality",
     category: "Quality",
@@ -162,261 +144,284 @@ const DATA: MediaItem[] = [
 ];
 
 /* ─────────────────────────────────────────────────────────
-   Modal root (variant-skinned, zero dead space)
+   Variant shells (completely different markup per variant)
 ────────────────────────────────────────────────────────── */
-function Modal({
-  item, open, onClose, onBookTestDrive,
-}: { item: MediaItem | null; open: boolean; onClose: () => void; onBookTestDrive?: () => void }) {
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => { document.body.style.overflow = ""; window.removeEventListener("keydown", esc); };
-  }, [open, onClose]);
 
-  if (!open || !item) return null;
-  const skin = SKIN[item.variant];
-  const Icon = skin.icon;
+// 1) PERFORMANCE — Full-bleed, no header, floating close; spec rail + hotspots + bottom CTA stripe
+function PerformanceModal({ item, onClose, onBook }: { item: MediaItem; onClose: () => void; onBook?: () => void }) {
+  const [i, setI] = useState(0);
+  const s = item.gallery[i];
+
+  useLockBodyScroll();
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/85">
+      <button className="absolute top-4 right-4 z-20 rounded-full bg-white/90 p-2" onClick={onClose} aria-label="Close"><X className="h-5 w-5"/></button>
+
+      {/* stage */}
+      <div className="absolute inset-0 grid md:grid-cols-[360px_1fr]">
+        {/* left spec rail */}
+        <aside className="hidden md:flex flex-col gap-3 p-4 text-white/90">
+          <div className="rounded-xl p-3 border border-white/10 bg-zinc-900/60 backdrop-blur">
+            <Badge className="bg-gradient-to-r from-red-600 to-red-700 border-0 text-white mb-2"><Zap className="h-3.5 w-3.5 mr-1"/>Performance</Badge>
+            <div className="text-sm font-semibold">Architecture</div>
+            <div className="text-xs opacity-90 mt-1">{s?.description || item.summary}</div>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {["Instant response","Smooth surge","Thermal control","Direct injection"].map((t,k)=>(
+              <div key={k} className="rounded-lg px-3 py-2 text-xs bg-zinc-900/70 border border-white/10">{t}</div>
+            ))}
+          </div>
+          {item.gallery.length>1 && (
+            <div className="mt-auto flex flex-wrap gap-2">
+              {item.gallery.map((g, idx)=>(
+                <button key={idx} onClick={()=>setI(idx)} className={cn("rounded-md px-3 py-1 text-xs", i===idx?"bg-white text-black":"bg-white/20 text-white")}>{g.title}</button>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        {/* media + hotspots */}
+        <div className="relative">
+          <img src={s?.url || FALLBACK} alt={s?.title || item.title} className="absolute inset-0 w-full h-full object-contain" onError={e=>{(e.currentTarget as HTMLImageElement).src=FALLBACK}} />
+          {s?.details?.hotspots?.map((h, idx)=>(
+            <Hotspot key={idx} x={h.x} y={h.y} label={h.label} body={h.body} dark />
+          ))}
+        </div>
+      </div>
+
+      {/* bottom CTA stripe */}
+      <div className="absolute left-0 right-0 bottom-0 bg-zinc-950 border-t border-white/10 px-4 py-3 flex flex-col sm:flex-row gap-2 items-center">
+        <p className="text-white/80 text-sm grow">{item.summary}</p>
+        <Button variant="outline" className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
+        <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={onBook}><Car className="h-4 w-4 mr-2"/>Book Test Drive</Button>
+      </div>
+    </div>
+  );
+}
+
+// 2) SAFETY — 3-column: left scenario tabs, center video, right moment card; distinct header/footer
+function SafetyModal({ item, onClose, onBook }: { item: MediaItem; onClose: () => void; onBook?: () => void }) {
+  useLockBodyScroll();
+  const [scenario, setScenario] = useState<"City"|"Highway"|"Night"|"Rain">("City");
+  const note = scenario==="City" ? "Low-speed alerts and pedestrian awareness."
+    : scenario==="Highway" ? "Lane tracing and adaptive cruise settle long runs."
+    : scenario==="Night" ? "Camera + radar cooperate in low light."
+    : "Traction-aware cruise and lane assist in rain.";
+  const v = item.video;
+  const src = v ? (v.provider==="youtube"
+    ? `https://www.youtube.com/embed/${v.id}?autoplay=${v.autoplay?1:0}&rel=0&modestbranding=1`
+    : `https://fast.wistia.net/embed/iframe/${v.id}?autoPlay=${v.autoplay?1:0}`) : null;
+
+  return (
+    <div className="fixed inset-0 z-50 grid grid-rows-[48px_1fr_56px] bg-[#081622] text-white">
+      <header className="px-4 flex items-center justify-between border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <Badge className="bg-gradient-to-r from-blue-600 to-blue-700 border-0 text-white"><Shield className="h-3.5 w-3.5 mr-1"/>Safety</Badge>
+          <span className="font-semibold">{item.title}</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onClose}><X className="h-5 w-5"/></Button>
+      </header>
+
+      <div className="grid md:grid-cols-[160px_1fr_320px] gap-0">
+        {/* left tabs */}
+        <aside className="hidden md:flex flex-col gap-2 p-3 border-r border-white/10">
+          {(["City","Highway","Night","Rain"] as const).map(s=>(
+            <button key={s} onClick={()=>setScenario(s)} className={cn("px-3 py-2 rounded-lg text-sm text-left", s===scenario?"bg-blue-600":"bg-white/10")}>{s}</button>
+          ))}
+        </aside>
+
+        {/* video */}
+        <div className="relative bg-black">
+          {src ? (
+            <iframe title={item.title} className="absolute inset-0 w-full h-full" src={src} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>
+          ) : (
+            <img src={item.gallery[0]?.url || FALLBACK} alt="Safety" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+        </div>
+
+        {/* right moment card */}
+        <aside className="hidden md:flex flex-col p-4 border-l border-white/10 bg-blue-900/30 backdrop-blur">
+          <div className="text-sm font-semibold">In this scenario</div>
+          <p className="text-xs mt-1 text-white/90">{note}</p>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {(item.tags ?? []).slice(0,3).map((t,i)=>(<span key={i} className="text-[11px] px-2 py-1 rounded-full bg-white/20">{t}</span>))}
+          </div>
+          <div className="mt-auto text-[11px] text-white/70">Tip: captions on by default for clarity.</div>
+        </aside>
+      </div>
+
+      <footer className="px-3 py-2 border-t border-white/10 bg-white/5 flex gap-2">
+        <Button variant="outline" className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
+        <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={onBook}><Car className="h-4 w-4 mr-2"/>Book Test Drive</Button>
+      </footer>
+    </div>
+  );
+}
+
+// 3) INTERIOR — Bottom-sheet on mobile / warm split on desktop; floating close
+function InteriorModal({ item, onClose }: { item: MediaItem; onClose: () => void }) {
+  useLockBodyScroll();
+  const [i, setI] = useState(0);
+  const s = item.gallery[i];
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className={cn("absolute left-1/2 top-1/2 w-[min(96vw,1180px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl overflow-hidden shadow-2xl grid grid-rows-[auto_1fr_auto]", skin.shell)}>
-        {/* header */}
-        <header className={cn("h-12 px-4 lg:px-6 flex items-center justify-between", skin.header)}>
-          <div className="flex items-center gap-2 min-w-0">
-            <Badge className={cn("border-0 text-white bg-gradient-to-r", skin.accent)}><Icon className="h-3.5 w-3.5 mr-1"/>{item.category}</Badge>
-            <h3 className="font-semibold truncate">{item.title}</h3>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose}/>
+      {/* bottom sheet */}
+      <div className="absolute inset-x-0 bottom-0 md:inset-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:mx-auto md:w-[min(1000px,96vw)] bg-[#1b1408] text-amber-50 rounded-t-2xl md:rounded-2xl overflow-hidden">
+        <button className="absolute right-3 top-3 md:right-4 md:top-4 bg-amber-900/50 rounded-full p-2" onClick={onClose}><X className="h-5 w-5"/></button>
+
+        <div className="grid md:grid-cols-2">
+          <div className="relative h-[56vh] md:h-[70vh]">
+            <img src={s?.url || FALLBACK} alt={s?.title || item.title} className="absolute inset-0 w-full h-full object-cover"/>
+            <div className="absolute top-3 left-3 right-3 flex gap-2 overflow-x-auto">
+              {item.gallery.map((g, idx)=>(
+                <button key={idx} onClick={()=>setI(idx)} className={cn("px-3 py-1 rounded-full text-xs", i===idx?"bg-amber-500 text-black":"bg-white/20 text-white")}>{g.title}</button>
+              ))}
+            </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close" className="text-current">
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="p-4 md:p-6">
+            <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 border-0 text-black mb-2"><Heart className="h-3.5 w-3.5 mr-1"/>Interior</Badge>
+            <h3 className="font-semibold">{item.title}</h3>
+            <p className="text-sm mt-2 text-amber-50/90">{s?.description || item.summary}</p>
+            <div className="mt-3 flex gap-1 flex-wrap">
+              {(item.tags ?? []).slice(0,3).map((t,i)=>(<span key={i} className="text-[11px] px-2 py-1 rounded-full bg-amber-800/40">{t}</span>))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 4) QUALITY — Light document shell with collage + proof card, footer integrated
+function QualityModal({ item, onClose, onBook }: { item: MediaItem; onClose: () => void; onBook?: () => void }) {
+  useLockBodyScroll();
+  const [active, setActive] = useState(item.tags?.[0] ?? "Warranty");
+  const img = item.gallery[0]?.url || FALLBACK;
+  const copy = active==="ISO 9001" ? "Certified processes keep quality consistent from plant to plant."
+    : active==="Warranty" ? "Coverage protects key components; corrosion layers guard the body."
+    : "Assured dependability across markets.";
+
+  return (
+    <div className="fixed inset-0 z-50 bg-white">
+      <div className="max-w-5xl mx-auto h-full grid grid-rows-[56px_1fr_56px]">
+        <header className="flex items-center justify-between border-b border-stone-200 px-4">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-gradient-to-r from-stone-700 to-stone-800 border-0 text-white"><Award className="h-3.5 w-3.5 mr-1"/>Quality</Badge>
+            <span className="font-semibold">{item.title}</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}><X className="h-5 w-5"/></Button>
         </header>
 
-        {/* body — fully distinct layouts per variant */}
-        <div className="relative">
-          {item.variant === "performance" && <PerformanceCanvas item={item} />}
-          {item.variant === "safety" && <SafetyDeck item={item} />}
-          {item.variant === "interior" && <InteriorStoryboard item={item} />}
-          {item.variant === "quality" && <QualityBoard item={item} />}
-          {item.variant === "technology" && <TechDock item={item} />}
-          {item.variant === "handling" && <HandlingSurface item={item} />}
+        <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-2 rounded-xl overflow-hidden border border-stone-300">
+            <img src={img} alt="Assurance" className="w-full h-full object-cover"/>
+          </div>
+          <div className="rounded-xl p-4 bg-white shadow-sm border border-stone-300 flex flex-col">
+            <div className="text-sm font-semibold">Proof</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(item.tags ?? ["Warranty"]).map(tag=>(
+                <button key={tag} onClick={()=>setActive(tag)} className={cn("px-2 py-1 text-xs rounded-full border", tag===active?"bg-stone-900 text-white border-stone-900":"bg-white border-stone-300")}>{tag}</button>
+              ))}
+            </div>
+            <div className="mt-3 text-sm">{copy}</div>
+            <div className="mt-auto text-[11px] text-stone-600">Service every 10,000 km keeps reliability consistent.</div>
+          </div>
         </div>
 
-        {/* footer */}
-        <footer className={cn("px-3 lg:px-4 py-3 flex gap-2", item.variant === "quality" ? "border-t border-stone-300 bg-white" : "border-t border-white/10 bg-white/5")}>
-          <Button variant={item.variant === "quality" ? "default" : "outline"} className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
-          <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={() => onBookTestDrive?.()}>
-            <Car className="h-4 w-4 mr-2" /> Book Test Drive
-          </Button>
+        <footer className="px-4 py-2 border-t border-stone-200 bg-white flex gap-2">
+          <Button variant="outline" className="h-11 w-full sm:w-auto" onClick={onClose}>Close</Button>
+          <Button className="h-11 w-full sm:w-auto bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={onBook}><Car className="h-4 w-4 mr-2"/>Book Test Drive</Button>
         </footer>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   6 UNIQUE MODAL LAYOUTS (content-driven)
-────────────────────────────────────────────────────────── */
-
-/* 1) Performance — Spec Canvas: full-bleed + hotspots + microcards + tray */
-function PerformanceCanvas({ item }: { item: MediaItem }) {
-  const [i, setI] = useState(0);
-  const s = item.gallery[i];
-  return (
-    <div className="h-[72vh] lg:h-[70vh] relative">
-      <img src={s?.url || FALLBACK} alt={s?.title || item.title} className="absolute inset-0 w-full h-full object-contain" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-
-      {/* left rail (dense explanation) */}
-      {s?.description && (
-        <div className="absolute top-3 left-3 w-[min(46%,420px)] hidden md:block">
-          <div className="rounded-xl p-3 border border-white/10 bg-zinc-900/60 backdrop-blur">
-            <div className="text-sm font-semibold">Architecture</div>
-            <div className="text-xs text-white/80 mt-1">{s.description}</div>
-          </div>
-        </div>
-      )}
-
-      {/* hotspots from content */}
-      {s?.details?.hotspots?.map((h, idx) => (
-        <Hotspot key={idx} x={h.x} y={h.y} label={h.label} body={h.body} dark />
-      ))}
-
-      {/* micro-cards */}
-      <div className="absolute left-3 right-3 bottom-16 grid grid-cols-2 md:grid-cols-4 gap-2">
-        {["Instant response", "Smooth surge", "Thermal control", "Direct injection"].map((t,k)=>(
-          <div key={k} className="rounded-lg px-3 py-2 text-xs bg-zinc-900/70 border border-white/10 text-white/90">{t}</div>
-        ))}
-      </div>
-
-      {/* gallery tray (hidden if single item) */}
-      {item.gallery.length > 1 && (
-        <div className="absolute left-3 right-3 bottom-3 flex gap-2 overflow-x-auto">
-          {item.gallery.map((g, idx)=>(
-            <button key={idx} onClick={()=>setI(idx)} className={cn("rounded-md px-3 py-1 text-xs whitespace-nowrap", i===idx?"bg-white text-black":"bg-white/20 text-white")}>{g.title}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* 2) Safety — Moments Reel: Wistia video + scenario tabs + floating note */
-function SafetyDeck({ item }: { item: MediaItem }) {
-  const [scenario, setScenario] = useState<"City"|"Highway"|"Night"|"Rain">("City");
-  const scenarios: Array<typeof scenario> = ["City","Highway","Night","Rain"];
-  const note =
-    scenario === "City" ? "Low-speed alerts and pedestrian awareness." :
-    scenario === "Highway" ? "Lane tracing and adaptive cruise settle long runs." :
-    scenario === "Night" ? "Camera + radar cooperate in low light." :
-    "Traction-aware cruise and lane assist in rain.";
-
-  const video = item.video;
-  const src = video
-    ? (video.provider === "youtube"
-        ? `https://www.youtube.com/embed/${video.id}?autoplay=${video.autoplay ? 1 : 0}&rel=0&modestbranding=1`
-        : `https://fast.wistia.net/embed/iframe/${video.id}?autoPlay=${video.autoplay ? 1 : 0}`)
-    : null;
-
-  return (
-    <div className="h-[72vh] lg:h-[70vh] relative">
-      {/* scenario tabs (desktop left) */}
-      <div className="absolute top-3 left-3 z-10 hidden md:flex flex-col gap-2">
-        {scenarios.map(s => (
-          <button key={s} onClick={()=>setScenario(s)} className={cn("px-3 py-1 rounded-full text-xs", s===scenario?"bg-blue-600 text-white":"bg-white/20 text-white")}>{s}</button>
-        ))}
-      </div>
-
-      {src ? (
-        <iframe title={item.title} className="absolute inset-0 w-full h-full" src={src} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
-      ) : (
-        <img src={item.gallery[0]?.url || FALLBACK} alt="Safety" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      )}
-
-      {/* floating note */}
-      <div className="absolute right-3 bottom-3 left-3 md:left-auto md:w-[360px] rounded-xl p-3 bg-blue-900/60 border border-white/10 backdrop-blur">
-        <div className="text-sm font-semibold">In this scenario</div>
-        <div className="text-xs mt-1 text-white/90">{note}</div>
-        <div className="mt-2 flex gap-1">
-          {(item.tags ?? []).slice(0,3).map((t,i)=>(<span key={i} className="text-[11px] px-2 py-1 rounded-full bg-white/20">{t}</span>))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* 3) Interior — Storyboard: filmstrip of zones + warm caption */
-function InteriorStoryboard({ item }: { item: MediaItem }) {
-  const [i, setI] = useState(0);
-  const s = item.gallery[i];
-
-  return (
-    <div className="h-[72vh] lg:h-[70vh] relative">
-      <img src={s?.url || FALLBACK} alt={s?.title || item.title} className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-
-      <div className="absolute right-3 bottom-3 left-3 md:left-auto md:w-[360px] rounded-xl p-3 bg-amber-900/40 border border-amber-300/20 backdrop-blur">
-        <div className="text-sm font-semibold">{s?.title}</div>
-        {s?.description && <div className="text-xs mt-1 text-amber-50/90">{s.description}</div>}
-        <div className="mt-2 flex gap-1">
-          {(item.tags ?? []).slice(0,3).map((t,i)=>(<span key={i} className="text-[11px] px-2 py-1 rounded-full bg-amber-800/40">{t}</span>))}
-        </div>
-      </div>
-
-      <div className="absolute left-3 right-3 top-3 flex gap-2 overflow-x-auto">
-        {item.gallery.map((g, idx)=>(
-          <button key={idx} onClick={()=>setI(idx)} className={cn("rounded-md px-3 py-1 text-xs whitespace-nowrap", i===idx ? "bg-amber-500 text-black" : "bg-white/20 text-white")}>{g.title}</button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* 4) Quality — Assurance Board: collage + proof card */
-function QualityBoard({ item }: { item: MediaItem }) {
-  const [active, setActive] = useState(item.tags?.[0] ?? "Warranty");
-  const img = item.gallery[0]?.url || FALLBACK;
-  const copy =
-    active === "ISO 9001" ? "Certified processes keep quality consistent from plant to plant." :
-    active === "Warranty" ? "Coverage protects key components; corrosion layers guard the body." :
-    "Assured dependability across markets.";
-
-  return (
-    <div className="h-[72vh] lg:h-[70vh] p-4 grid grid-cols-3 gap-3 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><rect width=%2240%22 height=%2240%22 fill=%22%23ffffff%22/><path d=%22M0 40 L40 0 M-10 30 L30 -10%22 stroke=%22%23e7e5e4%22 stroke-width=%220.5%22/></svg>')]">
-      <div className="col-span-2 rounded-xl overflow-hidden bg-white">
-        <img src={img} alt="Assurance" className="w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      </div>
-      <div className="rounded-xl p-4 bg-white shadow-sm border border-stone-300 flex flex-col">
-        <div className="text-sm font-semibold">Proof</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(item.tags ?? ["Warranty"]).map(tag=>(
-            <button key={tag} onClick={()=>setActive(tag)} className={cn("px-2 py-1 text-xs rounded-full border", tag===active?"bg-stone-900 text-white border-stone-900":"bg-white border-stone-300")}>{tag}</button>
-          ))}
-        </div>
-        <div className="mt-3 text-sm">{copy}</div>
-        <div className="mt-auto text-[11px] text-stone-600">Service every 10,000 km keeps reliability consistent.</div>
-      </div>
-      <div className="col-span-3 rounded-xl p-3 bg-white/90 border border-stone-300 text-sm">
-        {item.summary}
-      </div>
-    </div>
-  );
-}
-
-/* 5) Technology — Tech Dock: device frame + feature chips */
-function TechDock({ item }: { item: MediaItem }) {
+// 5) TECHNOLOGY — Device dock center + right update rail; CTA in rail
+function TechnologyModal({ item, onClose, onBook }: { item: MediaItem; onClose: () => void; onBook?: () => void }) {
+  useLockBodyScroll();
   const [feature, setFeature] = useState(item.tags?.[0] ?? "CarPlay/AA");
   const img = item.gallery[0]?.url || FALLBACK;
   const copy =
-    feature.includes("CarPlay") || feature === "CarPlay/AA" ? "Seamless phone projection with calls, messages, and maps." :
-    feature === "OTA" ? "Updates arrive over the air; new features without a workshop visit." :
-    "Companion app checks status and sends destinations.";
+    feature.includes("CarPlay") || feature==="CarPlay/AA" ? "Seamless phone projection with calls, messages, and maps."
+    : feature==="OTA" ? "Updates arrive over the air; new features without a workshop visit."
+    : "Companion app checks status and sends destinations.";
 
   return (
-    <div className="h-[72vh] lg:h-[70vh] relative">
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="w-[300px] h-[630px] rounded-[36px] bg-black/70 border border-cyan-300/30 shadow-xl relative overflow-hidden">
-          <img src={img} alt="Infotainment" className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-            <div className="text-xs text-white/90">{copy}</div>
+    <div className="fixed inset-0 z-50 grid md:grid-cols-[1fr_340px] bg-[#071a1e] text-cyan-50">
+      {/* close */}
+      <button className="absolute top-3 right-3 bg-white/10 rounded-full p-2" onClick={onClose}><X className="h-5 w-5"/></button>
+
+      {/* device dock */}
+      <div className="relative">
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="w-[300px] h-[630px] rounded-[36px] bg-black/70 border border-cyan-300/30 shadow-xl relative overflow-hidden">
+            <img src={img} alt="Infotainment" className="absolute inset-0 w-full h-full object-cover"/>
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+              <div className="text-xs">{copy}</div>
+            </div>
           </div>
+        </div>
+        <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 justify-center md:justify-center">
+          {(item.tags ?? ["CarPlay/AA","OTA"]).map(tag=>(
+            <button key={tag} onClick={()=>setFeature(tag)} className={cn("px-3 py-1 rounded-full text-xs", tag===feature?"bg-cyan-600 text-white":"bg-white/20 text-white")}>{tag}</button>
+          ))}
         </div>
       </div>
 
-      <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 justify-center md:justify-start">
-        {(item.tags ?? ["CarPlay/AA","OTA"]).map(tag=>(
-          <button key={tag} onClick={()=>setFeature(tag)} className={cn("px-3 py-1 rounded-full text-xs", tag===feature?"bg-cyan-600 text-white":"bg-white/20 text-white")}>{tag}</button>
-        ))}
-      </div>
+      {/* update rail */}
+      <aside className="hidden md:flex flex-col border-l border-white/10 bg-cyan-900/30 p-4 gap-3">
+        <Badge className="bg-gradient-to-r from-cyan-600 to-cyan-700 border-0 text-white"><Wifi className="h-3.5 w-3.5 mr-1"/>Technology</Badge>
+        <div className="text-sm font-semibold">What’s new</div>
+        <div className="text-xs opacity-90">Over-the-air capability means features grow over time.</div>
+        <div className="mt-auto flex gap-2">
+          <Button variant="outline" className="h-11 w-full" onClick={onClose}>Close</Button>
+          <Button className="h-11 w-full bg-[#EB0A1E] hover:bg-[#d70a19]" onClick={onBook}><Car className="h-4 w-4 mr-2"/>Book Test Drive</Button>
+        </div>
+      </aside>
     </div>
   );
 }
 
-/* 6) Handling — Mode Surface: full-bleed + segmented bottom nav */
-function HandlingSurface({ item }: { item: MediaItem }) {
-  const modes = item.gallery.map(g => g.title);
+// 6) HANDLING — Edge-to-edge hero + segmented control, compact header
+function HandlingModal({ item, onClose }: { item: MediaItem; onClose: () => void }) {
+  useLockBodyScroll();
+  const modes = item.gallery.map(g=>g.title);
   const [mode, setMode] = useState(modes[0] || "Normal");
-  const s = item.gallery.find(g => g.title === mode) ?? item.gallery[0];
-
-  const note =
-    mode === "Sport" ? "Quicker throttle, firmer body control." :
-    mode?.toLowerCase().includes("off") ? "Gentle throttle with added compliance." :
-    "Balanced response for daily driving.";
+  const s = item.gallery.find(g=>g.title===mode) ?? item.gallery[0];
+  const note = mode==="Sport" ? "Quicker throttle, firmer body control."
+    : mode.toLowerCase().includes("off") ? "Gentle throttle with added compliance."
+    : "Balanced response for daily driving.";
 
   return (
-    <div className="h-[72vh] lg:h-[70vh] relative">
-      <img src={s?.url || FALLBACK} alt={s?.title || "Handling"} className="absolute inset-0 w-full h-full object-cover" onError={(e)=> (e.currentTarget.src=FALLBACK)} />
-      <div className="absolute left-3 right-3 bottom-3 grid grid-cols-3 gap-2">
-        {modes.slice(0,3).map(m=>(
-          <button key={m} onClick={()=>setMode(m)} className={cn("rounded-md px-3 py-2 text-sm font-medium", mode===m?"bg-emerald-600 text-white":"bg-white/20 text-white")}>{m}</button>
-        ))}
+    <div className="fixed inset-0 z-50 bg-[#07170f] text-emerald-50">
+      <header className="h-12 px-4 flex items-center justify-between border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <Badge className="bg-gradient-to-r from-emerald-600 to-emerald-700 border-0 text-white"><Star className="h-3.5 w-3.5 mr-1"/>Handling</Badge>
+          <span className="font-semibold">{item.title}</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onClose}><X className="h-5 w-5"/></Button>
+      </header>
+
+      <div className="relative h-[calc(100%-48px)]">
+        <img src={s?.url || FALLBACK} alt={s?.title || "Handling"} className="absolute inset-0 w-full h-full object-cover"/>
+        <div className="absolute left-3 right-3 bottom-3 grid grid-cols-3 gap-2">
+          {modes.slice(0,3).map(m=>(
+            <button key={m} onClick={()=>setMode(m)} className={cn("rounded-md px-3 py-2 text-sm font-medium", mode===m?"bg-emerald-600 text-white":"bg-white/20 text-white")}>{m}</button>
+          ))}
+        </div>
+        <div className="absolute top-3 left-3 text-xs px-2 py-1 rounded bg-emerald-900/50 border border-white/10">{note}</div>
       </div>
-      <div className="absolute top-3 left-3 text-xs px-2 py-1 rounded bg-emerald-900/50 border border-white/10">{note}</div>
     </div>
   );
 }
 
-/* hotspot bubble */
+/* ─────────────────────────────────────────────────────────
+   Hotspot bubble + util
+────────────────────────────────────────────────────────── */
 function Hotspot({ x, y, label, body, dark }: { x: number; y: number; label: string; body: string; dark?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
@@ -440,11 +445,18 @@ function Hotspot({ x, y, label, body, dark }: { x: number; y: number; label: str
   );
 }
 
+function useLockBodyScroll() {
+  useEffect(() => { const b = document.body; const prev = b.style.overflow; b.style.overflow = "hidden"; return () => { b.style.overflow = prev; }; }, []);
+}
+
 /* ─────────────────────────────────────────────────────────
-   Cards + Layout (mobile swipe rail + desktop mosaic)
+   Cards + Showcase wrapper
 ────────────────────────────────────────────────────────── */
 function Card({ item, className, onOpen }: { item: MediaItem; className?: string; onOpen: (m: MediaItem) => void }) {
-  const skin = SKIN[item.variant]; const Icon = skin.icon;
+  const Icon = {
+    performance: Zap, safety: Shield, interior: Heart, quality: Award, technology: Wifi, handling: Star,
+  }[item.variant];
+
   return (
     <article role="listitem" className={cn("group relative rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-2xl transition-all duration-300", "focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900", className)}>
       <button onClick={()=>onOpen(item)} className="w-full text-left focus:outline-none" aria-label={`Open ${item.title}`}>
@@ -457,7 +469,7 @@ function Card({ item, className, onOpen }: { item: MediaItem; className?: string
             loading="lazy"
           />
           <div className="absolute top-3 left-3">
-            <Badge className={cn("bg-gradient-to-r text-white border-0", skin.accent)}>
+            <Badge className="bg-black/70 text-white border-0">
               <Icon className="h-3.5 w-3.5 mr-1" /> {item.category}
             </Badge>
           </div>
@@ -499,7 +511,7 @@ interface Props {
 
 const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive }) => {
   const data = items?.length ? items : DATA;
-  const [openItem, setOpenItem] = useState<MediaItem | null>(null);
+  const [active, setActive] = useState<MediaItem | null>(null);
 
   // explicit heights so thumbnails never collapse on desktop
   const MOSAIC = [
@@ -510,6 +522,10 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
     "md:col-span-1 md:h-[240px]",
     "md:col-span-1 md:h-[240px]",
   ];
+
+  // open the correct shell
+  const openModal = (m: MediaItem) => setActive(m);
+  const closeModal = () => setActive(null);
 
   return (
     <section className="py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50/50">
@@ -526,7 +542,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
         <div className="-mx-4 px-4 md:hidden overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3" role="list" aria-label="Highlights">
           {data.map((it) => (
             <div key={it.id} className="snap-center min-w-[88%]">
-              <Card item={it} onOpen={setOpenItem} />
+              <Card item={it} onOpen={openModal} />
             </div>
           ))}
           <div className="min-w-[12%]" aria-hidden />
@@ -535,13 +551,18 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
         {/* desktop mosaic */}
         <div className="hidden md:grid md:grid-cols-6 gap-6" role="list" aria-label="Highlights mosaic">
           {data.map((it, i) => (
-            <Card key={it.id} item={it} className={MOSAIC[i] || "md:col-span-2 md:h-[240px]"} onOpen={setOpenItem} />
+            <Card key={it.id} item={it} className={MOSAIC[i] || "md:col-span-2 md:h-[240px]"} onOpen={openModal} />
           ))}
         </div>
       </div>
 
-      {/* modal */}
-      <Modal item={openItem} open={!!openItem} onClose={() => setOpenItem(null)} onBookTestDrive={onBookTestDrive} />
+      {/* variant-specific modal shells */}
+      {active?.variant === "performance" && <PerformanceModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === "safety" && <SafetyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === "interior" && <InteriorModal item={active} onClose={closeModal} />}
+      {active?.variant === "quality" && <QualityModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === "technology" && <TechnologyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === "handling" && <HandlingModal item={active} onClose={closeModal} />}
     </section>
   );
 };
