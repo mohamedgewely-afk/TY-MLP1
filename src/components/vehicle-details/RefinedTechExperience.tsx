@@ -3,18 +3,8 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import type { VehicleModel } from "@/types/vehicle";
 import { ChevronLeft, ChevronRight, X, Search, Wrench, Car } from "lucide-react";
 
-/* ─────────────────────────────────────────────────────────
-   TOYOTA BRANDED CINEMATIC EXPERIENCE (TRAILER STYLE + PARALLAX + IMAGE TRANSITIONS)
-   - White immersive background for premium showroom feel
-   - Toyota Red (#EB0A1E) accent for brand consistency
-   - Trailer-style motion: sequential text & media reveals
-   - Large images with parallax motion on scroll
-   - Smooth crossfade/slide motion when switching features
-   - Typography: bold sans for headlines, clean sans for body
-   - CTAs: Toyota red luminous buttons with motion
-────────────────────────────────────────────────────────── */
 const TOYOTA = {
-  radius: "rounded-2xl",
+  radius: "rounded-xl md:rounded-2xl",
   focus: "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EB0A1E]",
   red: "#EB0A1E",
 };
@@ -87,6 +77,8 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle, 
   const handleSelectGrade = (g: string) => {
     setSelectedGrade(g);
     setShowGradeSheet(false);
+    // update feature media on grade change
+    setSelectedFeature((prev) => prev); // triggers AnimatePresence re-render
   };
 
   // Parallax motion for media container
@@ -99,15 +91,14 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle, 
     if (!m) return <div className="w-full h-full bg-gray-200" />;
     if (m.type === "video") {
       return (
-        <motion.video style={{ y: mediaY, scale: mediaScale }} className={`w-full h-full object-cover ${TOYOTA.radius}`} src={m.url} poster={m.thumbnail} playsInline muted autoPlay loop />
+        <motion.video style={{ y: mediaY, scale: mediaScale }} className={`w-full h-full object-contain ${TOYOTA.radius}`} src={m.url} poster={m.thumbnail} playsInline muted autoPlay loop />
       );
     }
     return (
-      <motion.img style={{ y: mediaY, scale: mediaScale }} className={`w-full h-full object-cover ${TOYOTA.radius}`} src={m.url} alt={alt} loading="lazy" decoding="async" />
+      <motion.img style={{ y: mediaY, scale: mediaScale }} className={`w-full h-full object-contain ${TOYOTA.radius}`} src={m.url} alt={alt} loading="lazy" decoding="async" />
     );
   };
 
-  // Cinematic cut variants for image transitions
   const cut = {
     initial: { opacity: 0, scale: 1.03, filter: "blur(4px)" as any },
     animate: { opacity: 1, scale: 1, filter: "blur(0px)" as any, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
@@ -115,134 +106,129 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle, 
   } as const;
 
   return (
-    <section className="py-20 md:py-32 bg-white relative overflow-hidden text-black">
-      <div className="toyota-container relative z-10">
-        {/* Trailer-style header sequence */}
+    <section className="py-16 md:py-28 bg-white relative overflow-hidden text-black">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.3 } } }}
-          className="text-center mb-20"
+          className="text-center mb-12 md:mb-20"
         >
           <motion.h2
-            variants={{ hidden: { opacity: 0, y: 50 }, show: { opacity: 1, y: 0 } }}
+            variants={{ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0 } }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl font-bold"
+            className="text-3xl sm:text-4xl md:text-6xl font-bold leading-tight"
           >
             Refined <span className="text-[#EB0A1E]">Technology</span> Experience
           </motion.h2>
           <motion.p
             variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-4 text-base md:text-lg text-gray-600 max-w-2xl mx-auto"
+            className="mt-3 md:mt-4 text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto"
           >
             Intelligent systems presented in a cinematic Toyota journey.
           </motion.p>
         </motion.div>
 
-        {/* Main content with staggered animation */}
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.3 } } }}
-          className="grid md:grid-cols-12 gap-12 items-start"
+          className="grid md:grid-cols-12 gap-6 md:gap-12 items-start"
         >
-          {/* Left: selectors + details */}
           <motion.div
-            variants={{ hidden: { opacity: 0, x: -60 }, show: { opacity: 1, x: 0 } }}
+            variants={{ hidden: { opacity: 0, x: -50 }, show: { opacity: 1, x: 0 } }}
             transition={{ duration: 0.8 }}
-            className="md:col-span-5 space-y-6"
+            className="md:col-span-5 space-y-5"
           >
-            <div className={["p-6 bg-gray-50 border border-gray-200", TOYOTA.radius].join(" ")}>
-              <div className="mb-4">
+            <div className={["p-4 sm:p-6 bg-gray-50 border border-gray-200", TOYOTA.radius].join(" ")}>
+              <div className="mb-3 sm:mb-4">
                 <div className="text-xs uppercase tracking-wider text-gray-500">Engine</div>
-                <div className="flex gap-3 mt-2">
+                <div className="flex flex-wrap gap-2 mt-2">
                   {engines.map((e) => (
                     <button
                       key={e.name}
                       onClick={() => setSelectedEngine(e.name)}
-                      className={["px-4 py-2 text-sm font-medium", TOYOTA.radius, selectedEngine===e.name?"bg-[#EB0A1E] text-white":"bg-white text-gray-800 border border-gray-300 hover:border-[#EB0A1E]"].join(" ")}
+                      className={["px-3 py-2 sm:px-4 sm:py-2.5 text-sm font-medium", TOYOTA.radius, selectedEngine===e.name?"bg-[#EB0A1E] text-white":"bg-white text-gray-800 border border-gray-300 hover:border-[#EB0A1E]"].join(" ")}
                     >{e.name}</button>
                   ))}
                 </div>
               </div>
 
-              <div className="mb-4">
+              <div className="mb-3 sm:mb-4">
                 <div className="text-xs uppercase tracking-wider text-gray-500">Grade</div>
                 <button
                   onClick={() => setShowGradeSheet(true)}
-                  className={["mt-2 w-full text-left px-4 py-3 bg-white border border-gray-300 text-gray-800", TOYOTA.radius].join(" ")}
+                  className={["mt-2 w-full text-left px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-300 text-gray-800", TOYOTA.radius].join(" ")}
                 >{selectedGrade}</button>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-3">Highlights</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Highlights</h3>
+                <ul className="space-y-1.5 sm:space-y-2 text-sm text-gray-700">
                   {fullList.map((f) => (
                     <li key={f}>• {f}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="pt-6 grid grid-cols-2 gap-3">
+              <div className="pt-5 grid grid-cols-2 gap-2 sm:gap-3">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={onBuild}
-                  className={["h-12 px-6 text-sm font-medium", TOYOTA.radius, "bg-[#EB0A1E] text-white hover:opacity-90"].join(" ")}
+                  className={["h-11 sm:h-12 px-4 text-xs sm:text-sm font-medium", TOYOTA.radius, "bg-[#EB0A1E] text-white hover:opacity-90"].join(" ")}
                 >
-                  <Wrench className="h-4 w-4 inline mr-2"/> Build & Configure
+                  <Wrench className="h-4 w-4 inline mr-1"/> Build & Configure
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={onTestDrive}
-                  className={["h-12 px-6 text-sm font-medium border border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white", TOYOTA.radius].join(" ")}
+                  className={["h-11 sm:h-12 px-4 text-xs sm:text-sm font-medium border border-[#EB0A1E] text-[#EB0A1E] hover:bg-[#EB0A1E] hover:text-white", TOYOTA.radius].join(" ")}
                 >
-                  <Car className="h-4 w-4 inline mr-2"/> Test Drive
+                  <Car className="h-4 w-4 inline mr-1"/> Test Drive
                 </motion.button>
               </div>
             </div>
           </motion.div>
 
-          {/* Right: media + carousel */}
           <motion.div
-            variants={{ hidden: { opacity: 0, x: 60 }, show: { opacity: 1, x: 0 } }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="md:col-span-7 space-y-6"
+            variants={{ hidden: { opacity: 0, x: 50 }, show: { opacity: 1, x: 0 } }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="md:col-span-7 space-y-5"
           >
-            <div ref={mediaRef} className={`relative aspect-[16/9] ${TOYOTA.radius} overflow-hidden`}>
+            <div ref={mediaRef} className={`relative aspect-[4/3] md:aspect-[16/9] ${TOYOTA.radius} overflow-hidden`}>
               <AnimatePresence mode="wait">
-                <motion.div key={selectedFeature} variants={cut} initial="initial" animate="animate" exit="exit" className="absolute inset-0 will-change-transform will-change-filter">
+                <motion.div key={`${selectedFeature}-${selectedGrade}`} variants={cut} initial="initial" animate="animate" exit="exit" className="absolute inset-0">
                   <Media m={currentFeature.media[0]} alt={currentFeature.title} />
                 </motion.div>
               </AnimatePresence>
-              <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }} onClick={handlePrev} className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md">
-                <ChevronLeft className="h-6 w-6 text-gray-800" />
+              <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }} onClick={handlePrev} className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-12 sm:w-12 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md">
+                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-800" />
               </motion.button>
-              <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }} onClick={handleNext} className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md">
-                <ChevronRight className="h-6 w-6 text-gray-800" />
+              <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }} onClick={handleNext} className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-12 sm:w-12 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md">
+                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-gray-800" />
               </motion.button>
             </div>
 
             <AnimatePresence mode="wait">
-              <motion.div key={currentFeature.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.45 }}>
-                <h3 className="text-2xl md:text-3xl font-bold mb-2">{currentFeature.title}</h3>
-                <p className="text-gray-600 text-sm md:text-base max-w-2xl">{currentFeature.description}</p>
+              <motion.div key={`${currentFeature.id}-${selectedGrade}`} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.45 }}>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{currentFeature.title}</h3>
+                <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl">{currentFeature.description}</p>
               </motion.div>
             </AnimatePresence>
           </motion.div>
         </motion.div>
       </div>
 
-      {/* Grade sheet for mobile */}
       <AnimatePresence>
         {showGradeSheet && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/40 flex items-end" onClick={()=>setShowGradeSheet(false)}>
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "tween", duration: 0.25 }} className={`w-full bg-white text-black p-6 ${TOYOTA.radius}`} onClick={(e)=>e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
+            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "tween", duration: 0.25 }} className={`w-full bg-white text-black p-4 sm:p-6 ${TOYOTA.radius}`} onClick={(e)=>e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h4 className="font-semibold">Select Grade</h4>
                 <button onClick={()=>setShowGradeSheet(false)}><X className="h-5 w-5"/></button>
               </div>
@@ -254,7 +240,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle, 
               </div>
               <div className="max-h-[50vh] overflow-y-auto grid grid-cols-2 gap-2">
                 {filteredGrades.map((g) => (
-                  <button key={g} onClick={()=>handleSelectGrade(g)} className={`px-3 py-2 rounded-lg border ${selectedGrade===g?"bg-[#EB0A1E] text-white border-transparent":"border-gray-300 text-gray-800 hover:bg-gray-100"}`}>{g}</button>
+                  <button key={g} onClick={()=>handleSelectGrade(g)} className={`px-2.5 py-2 text-sm rounded-lg border ${selectedGrade===g?"bg-[#EB0A1E] text-white border-transparent":"border-gray-300 text-gray-800 hover:bg-gray-100"}`}>{g}</button>
                 ))}
               </div>
             </motion.div>
