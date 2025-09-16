@@ -52,13 +52,7 @@ const RelatedVehicles = createLazyComponent(
   () => import("@/components/vehicle-details/RelatedVehicles")
 );
 
-const TechnologyShowcase = createLazyComponent(
-  () => import("@/components/vehicle-details/TechnologyShowcase")
-);
 
-const VehicleMediaShowcase = createLazyComponent(
-  () => import("@/components/vehicle-details/VehicleMediaShowcase")
-);
 
 const RefinedTechExperience = createLazyComponent(
   () => import("@/components/vehicle-details/RefinedTechExperience")

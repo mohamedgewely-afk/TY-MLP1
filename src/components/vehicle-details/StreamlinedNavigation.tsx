@@ -32,12 +32,13 @@ interface StreamlinedNavigationProps {
 
 const DEFAULT_SECTIONS: NavigationSection[] = [
   { id: "hero", label: "Overview", description: "Vehicle introduction" },
+  { id: "virtual-showroom", label: "Virtual Showroom", description: "360° exterior & interior" },
   { id: "media-showcase", label: "Gallery", description: "Photos & videos" },
-  { id: "story-performance", label: "Performance", description: "Engine & dynamics" },
-  { id: "story-safety", label: "Safety", description: "Protection systems" },
-  { id: "story-connected", label: "Technology", description: "Connected features" },
-  { id: "configuration", label: "Configure", description: "Build your vehicle", highlight: true },
   { id: "offers", label: "Offers", description: "Current promotions" },
+  { id: "tech-experience", label: "Technology", description: "Connected features" },
+  { id: "configuration", label: "Configure", description: "Build your vehicle", highlight: true },
+  { id: "related", label: "Related", description: "You may also like" },
+  { id: "preowned-similar", label: "Pre‑Owned", description: "Similar used cars" },
   { id: "faq", label: "FAQs", description: "Common questions" },
 ];
 
