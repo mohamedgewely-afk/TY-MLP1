@@ -1,42 +1,33 @@
 // src/components/vehicle-details/RefinedTechExperience.tsx
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { VehicleModel } from "@/types/vehicle";
+import { VehicleModel } from "@/types/vehicle";
 import {
   Zap, Shield, Smartphone, Wind,
-  Settings, Check, ChevronLeft, ChevronRight, X, Search
+  Settings, Check, ChevronLeft, ChevronRight
 } from "lucide-react";
-
-/* ─────────────────────────────────────────────────────────
-   TECH ZEN TOKENS
-────────────────────────────────────────────────────────── */
-const ZEN = {
-  radius: "rounded-[20px]",
-  hairline: "border border-black/10",
-  focus: "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EB0A1E] focus-visible:ring-offset-2",
-  mediaShadow: "shadow-[0_16px_40px_rgba(0,0,0,0.08)]",
-  red: "#EB0A1E",
-};
 
 interface RefinedTechExperienceProps {
   vehicle: VehicleModel;
 }
+
 interface TechFeature {
   id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  color: string;      // kept for backwards-compat; not used as gradients in Zen
-  bgPattern: string;  // kept for compat
+  color: string;      // gradient like "from-primary to-primary/80"
+  bgPattern: string;  // "bg-gradient-to-br from-primary/5 to-primary/10"
   features: string[];
-  media: { type: "image" | "video"; url: string; thumbnail?: string }[];
+  media: { type: string; url: string; thumbnail?: string }[];
   engineSpecific?: string[];
   gradeSpecific?: { [key: string]: string[] };
 }
 
 const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }) => {
+  // State
   const [selectedEngine, setSelectedEngine] = useState<"3.5L" | "4.0L">("3.5L");
   const [selectedGrade, setSelectedGrade] = useState<string>("Base");
   const [selectedFeature, setSelectedFeature] = useState<number>(0);
@@ -48,20 +39,17 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
   ] as const;
 
   const getGradesForEngine = (engine: string) =>
-    engine === "4.0L" ? ["Limited", "Platinum", "TRD", "GR-S", "Signature", "Elite", "Black", "Ultimate"] // example long list
-                      : ["Base", "SE", "XLE", "Limited", "Sport", "Premium", "Executive"];
+    engine === "4.0L" ? ["Limited", "Platinum"] : ["Base", "SE", "XLE", "Limited"];
 
-  const allGrades = useMemo(() => getGradesForEngine(selectedEngine), [selectedEngine]);
-
-  // Feature content (kept from your data structure; visuals are Zen)
+  // Features
   const techFeatures: TechFeature[] = [
     {
       id: "hybrid-drive",
       title: "Hybrid Synergy Drive",
       description: "Advanced hybrid with instant electric response",
-      icon: <Zap className="h-6 w-6" />,
+      icon: <Zap className="h-7 w-7 md:h-8 md:w-8" />,
       color: "from-primary to-primary/80",
-      bgPattern: "",
+      bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
       features: [
         "Seamless electric-gasoline transition",
         "Regenerative braking system",
@@ -87,9 +75,9 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
       id: "safety-sense",
       title: "Toyota Safety Sense 3.0",
       description: "AI-powered collision prevention",
-      icon: <Shield className="h-6 w-6" />,
-      color: "",
-      bgPattern: "",
+      icon: <Shield className="h-7 w-7 md:h-8 md:w-8" />,
+      color: "from-green-500 to-emerald-400",
+      bgPattern: "bg-gradient-to-br from-green-50 to-emerald-50",
       features: [
         "Pre-Collision with Pedestrian Detection",
         "Lane Departure Alert with Steering Assist",
@@ -104,9 +92,9 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
       id: "connected-tech",
       title: "Connected Intelligence",
       description: "Wireless CarPlay/Android Auto + voice",
-      icon: <Smartphone className="h-6 w-6" />,
-      color: "",
-      bgPattern: "",
+      icon: <Smartphone className="h-9 w-9 md:h-12 md:w-12" />,
+      color: "from-primary to-primary/70",
+      bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
       features: [
         "Wireless Apple CarPlay & Android Auto",
         "Premium JBL sound system",
@@ -121,9 +109,9 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
       id: "climate-control",
       title: "Climate Harmony",
       description: "Air purification & eco-optimized cooling",
-      icon: <Wind className="h-6 w-6" />,
-      color: "",
-      bgPattern: "",
+      icon: <Wind className="h-9 w-9 md:h-12 md:w-12" />,
+      color: "from-cyan-600 to-teal-600",
+      bgPattern: "bg-gradient-to-br from-cyan-50 to-teal-50",
       features: [
         "Dual-zone automatic climate control",
         "HEPA air filtration",
@@ -139,439 +127,321 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
   const currentFeature = techFeatures[selectedFeature];
   const fullList = currentFeature.gradeSpecific?.[selectedGrade] || currentFeature.features;
 
-  // Mobile list collapse
+  // Mobile "show more" for features
   const [showAllMobile, setShowAllMobile] = useState(false);
   const featuresMobile = showAllMobile ? fullList : fullList.slice(0, 2);
 
-  // Carousel swipe
+  // Swipe + hint
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
   const SWIPE_THRESHOLD = 40;
-  const handlePrev = useCallback(() => {
-    setSelectedFeature((p) => (p > 0 ? p - 1 : techFeatures.length - 1));
-  }, []);
-  const handleNext = useCallback(() => {
-    setSelectedFeature((p) => (p < techFeatures.length - 1 ? p + 1 : 0));
-  }, []);
 
-  const onTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => setTouchStartX(e.touches[0].clientX);
+  const handlePrev = () =>
+    setSelectedFeature((prev) => (prev > 0 ? prev - 1 : techFeatures.length - 1));
+  const handleNext = () =>
+    setSelectedFeature((prev) => (prev < techFeatures.length - 1 ? prev + 1 : 0));
+
+  const onTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    if (showSwipeHint) setShowSwipeHint(false);
+  };
   const onTouchEnd: React.TouchEventHandler<HTMLDivElement> = (e) => {
     if (touchStartX == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > SWIPE_THRESHOLD) dx < 0 ? handleNext() : handlePrev();
+    if (Math.abs(dx) > SWIPE_THRESHOLD) {
+      if (dx < 0) handleNext();
+      else handlePrev();
+    }
     setTouchStartX(null);
   };
 
-  /* ─────────────────────────────────────────────────────────
-     GRADE OVERFLOW UX (Mobile sheet + Desktop popover)
-  ────────────────────────────────────────────────────────── */
-  const [gradeQuery, setGradeQuery] = useState("");
-  const [showGradeSheet, setShowGradeSheet] = useState(false);   // mobile bottom sheet
-  const [showGradePopover, setShowGradePopover] = useState(false); // desktop popover
-  const SHEET_VISIBLE_MOBILE = 4; // show first 4 chips on mobile, rest in sheet
-  const GRID_VISIBLE_DESKTOP = 6; // show first 6 chips on desktop, rest in popover
-
-  const filteredGrades = useMemo(() => {
-    const q = gradeQuery.trim().toLowerCase();
-    return q ? allGrades.filter(g => g.toLowerCase().includes(q)) : allGrades;
-  }, [allGrades, gradeQuery]);
-
-  const handleSelectGrade = (g: string) => {
-    setSelectedGrade(g);
-    setShowGradeSheet(false);
-    setShowGradePopover(false);
-  };
-
-  /* ─────────────────────────────────────────────────────────
-     MEDIA
-  ────────────────────────────────────────────────────────── */
-  const Media = ({ m, alt }: { m: TechFeature["media"][number]; alt: string }) => {
-    if (!m) return <div className="w-full h-full bg-black/5" />;
-    if (m.type === "video") {
-      return (
-        <video
-          className={`w-full h-full object-cover ${ZEN.radius}`}
-          src={m.url}
-          poster={m.thumbnail}
-          playsInline
-          muted
-          autoPlay
-          loop
-        />
-      );
-    }
-    return (
-      <img
-        className={`w-full h-full object-cover ${ZEN.radius}`}
-        src={m.url}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-      />
-    );
-  };
+  useEffect(() => {
+    const t = setTimeout(() => setShowSwipeHint(false), 3500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <section className="py-12 md:py-24 bg-white relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+      {/* Premium background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/3 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-muted/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--border)/0.02)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
+      </div>
+      
       <div className="toyota-container relative z-10">
-        {/* Header */}
-        <div className="text-center mb-10 md:mb-16">
-          <Badge className="px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm bg-black text-white">
-            <Settings className="h-4 w-4 mr-2" />
+        {/* Elegant header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 md:mb-20"
+        >
+          <Badge className="bg-gradient-to-r from-primary/90 to-primary text-primary-foreground px-4 py-2 md:px-8 md:py-3 rounded-full text-sm md:text-base font-medium mb-6 md:mb-8 shadow-lg">
+            <Settings className="h-4 w-4 md:h-5 md:w-5 mr-2" />
             Advanced Technology
           </Badge>
-          <h2 className="mt-5 text-[28px] md:text-[48px] font-semibold tracking-[-0.02em] text-[#0B0C0E]">
-            Refined Technology <span className="align-super text-[#EB0A1E]">•</span>
+          <h2 className="text-3xl md:text-7xl font-bold text-foreground mb-4 md:mb-8 leading-tight">
+            Refined{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/70">
+              Technology
+            </span>
+            <br className="hidden md:block" />
+            Experience
           </h2>
-          <p className="mt-3 text-[14px] md:text-[18px] leading-relaxed text-black/60 max-w-2xl mx-auto">
-            Intelligent systems that adapt to your preferences—beautifully integrated.
+          <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Experience intelligent systems that adapt to your preferences
           </p>
-        </div>
+        </motion.div>
 
-        {/* Mobile selectors: horizontal chips + overflow sheet */}
-        <div className="md:hidden space-y-6 px-3 mb-8">
-          {/* Engine chips */}
-          <div>
-            <div className="text-[12px] font-semibold mb-2 text-black/80">Engine</div>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-3 px-3 py-1">
-              {engines.map((e) => {
-                const is = selectedEngine === e.name;
-                return (
-                  <button
-                    key={e.name}
-                    onClick={() => {
-                      setSelectedEngine(e.name);
-                      if (!getGradesForEngine(e.name).includes(selectedGrade)) {
-                        setSelectedGrade(getGradesForEngine(e.name)[0]);
-                      }
-                    }}
-                    className={[
-                      "shrink-0 px-4 py-2 text-[13px] rounded-full transition",
-                      ZEN.focus,
-                      is
-                        ? "bg-[#0B0C0E] text-white"
-                        : "bg-white " + ZEN.hairline + " hover:border-black/20"
-                    ].join(" ")}
-                    aria-current={is}
-                  >
-                    {e.name} • <span className="opacity-80">{e.power}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grade chips w/ overflow */}
-          <div>
-            <div className="text-[12px] font-semibold mb-2 text-black/80">Grade</div>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-3 px-3 py-1">
-              {allGrades.slice(0, SHEET_VISIBLE_MOBILE).map((g) => {
-                const is = selectedGrade === g;
-                return (
-                  <button
-                    key={g}
-                    onClick={() => handleSelectGrade(g)}
-                    className={[
-                      "shrink-0 px-4 py-2 text-[13px] rounded-full transition",
-                      ZEN.focus,
-                      is
-                        ? "bg-[#0B0C0E] text-white"
-                        : "bg-white " + ZEN.hairline + " hover:border-black/20"
-                    ].join(" ")}
-                    aria-current={is}
-                  >
-                    {g}
-                  </button>
-                );
-              })}
-              {allGrades.length > SHEET_VISIBLE_MOBILE && (
-                <button
-                  onClick={() => setShowGradeSheet(true)}
-                  className={[
-                    "shrink-0 px-4 py-2 text-[13px] rounded-full transition",
-                    ZEN.focus,
-                    "bg-white " + ZEN.hairline + " hover:border-black/20"
-                  ].join(" ")}
-                  aria-haspopup="dialog"
-                >
-                  +{allGrades.length - SHEET_VISIBLE_MOBILE} more
-                </button>
-              )}
-            </div>
-
-            {/* Bottom sheet (mobile) */}
-            <AnimatePresence>
-              {showGradeSheet && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[60] bg-black/40"
-                  onClick={() => setShowGradeSheet(false)}
-                >
-                  <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "tween", duration: 0.22 }}
-                    className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 pt-3"
-                    onClick={(e) => e.stopPropagation()}
-                    role="dialog"
-                    aria-modal="true"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-semibold">Select Grade</div>
-                      <button className={ZEN.focus} onClick={() => setShowGradeSheet(false)}>
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                    <div className={"relative mb-3 " + ZEN.hairline + " " + ZEN.radius}>
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40" />
-                      <input
-                        type="text"
-                        placeholder="Search grade"
-                        value={gradeQuery}
-                        onChange={(e) => setGradeQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-sm bg-transparent outline-none"
-                      />
-                    </div>
-                    <div className="max-h-[50vh] overflow-y-auto grid grid-cols-2 gap-2">
-                      {filteredGrades.map((g) => {
-                        const is = selectedGrade === g;
-                        return (
-                          <button
-                            key={g}
-                            onClick={() => handleSelectGrade(g)}
-                            className={[
-                              "px-3 py-2 text-[13px] rounded-full text-left",
-                              ZEN.hairline,
-                              ZEN.focus,
-                              is ? "bg-[#0B0C0E] text-white border-transparent" : "bg-white"
-                            ].join(" ")}
-                            aria-current={is}
-                          >
-                            {g}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Desktop selectors: segmented + popover overflow */}
-        <Card className={`hidden md:block mx-auto mb-12 md:mb-16 max-w-5xl bg-white ${ZEN.hairline} ${ZEN.radius}`}>
-          <CardContent className="p-8 lg:p-10">
-            <div className="grid grid-cols-2 gap-8">
-              {/* Engine segmented */}
-              <div>
-                <h3 className="text-[15px] font-semibold mb-3 text-black/80">Engine</h3>
-                <div className={"inline-flex " + ZEN.hairline + " " + ZEN.radius + " overflow-hidden"}>
-                  {engines.map((e, i) => {
-                    const is = selectedEngine === e.name;
-                    return (
-                      <button
-                        key={e.name}
-                        onClick={() => {
-                          setSelectedEngine(e.name);
-                          if (!getGradesForEngine(e.name).includes(selectedGrade)) {
-                            setSelectedGrade(getGradesForEngine(e.name)[0]);
-                          }
-                        }}
-                        className={[
-                          "px-5 py-2.5 text-sm font-medium transition",
-                          ZEN.focus,
-                          is ? "bg-[#0B0C0E] text-white" : "bg-white hover:bg-black/[.04]"
-                        ].join(" ")}
-                        aria-current={is}
-                      >
-                        {e.name} <span className="opacity-60">• {e.power}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Grades wrap + popover */}
-              <div className="relative">
-                <h3 className="text-[15px] font-semibold mb-3 text-black/80">Grade</h3>
-                <div className="flex flex-wrap gap-2">
-                  {allGrades.slice(0, GRID_VISIBLE_DESKTOP).map((g) => {
-                    const is = selectedGrade === g;
-                    return (
-                      <button
-                        key={g}
-                        onClick={() => handleSelectGrade(g)}
-                        className={[
-                          "px-4 py-2 text-[13px] rounded-full transition",
-                          ZEN.focus,
-                          is ? "bg-[#0B0C0E] text-white"
-                             : "bg-white " + ZEN.hairline + " hover:border-black/20"
-                        ].join(" ")}
-                        aria-current={is}
-                      >
-                        {g}
-                      </button>
-                    );
-                  })}
-                  {allGrades.length > GRID_VISIBLE_DESKTOP && (
-                    <button
-                      onClick={() => setShowGradePopover((s) => !s)}
+        {/* Premium selection interface */}
+        <div className="md:mb-20">
+          {/* Mobile elegant selection */}
+          <div className="md:hidden px-4 space-y-6 mb-8">
+            {/* Engines */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Select Engine</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {engines.map((engine) => {
+                  const isSelected = selectedEngine === engine.name;
+                  return (
+                    <motion.button
+                      key={engine.name}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedEngine(engine.name);
+                        const available = getGradesForEngine(engine.name);
+                        if (!available.includes(selectedGrade)) setSelectedGrade(available[0]);
+                      }}
                       className={[
-                        "px-4 py-2 text-[13px] rounded-full transition",
-                        ZEN.focus,
-                        "bg-white " + ZEN.hairline + " hover:border-black/20"
+                        "p-4 rounded-2xl text-left border-2 transition-all duration-300",
+                        isSelected 
+                          ? "bg-primary/10 border-primary shadow-lg shadow-primary/20" 
+                          : "bg-card border-border hover:border-primary/30 hover:shadow-md"
                       ].join(" ")}
-                      aria-haspopup="menu"
-                      aria-expanded={showGradePopover}
                     >
-                      +{allGrades.length - GRID_VISIBLE_DESKTOP} more
-                    </button>
-                  )}
-                </div>
-
-                {/* Popover */}
-                <AnimatePresence>
-                  {showGradePopover && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.18 }}
-                      className={"absolute z-50 mt-2 right-0 w-[420px] bg-white p-3 " + ZEN.radius + " " + ZEN.hairline + " shadow-[0_12px_40px_rgba(0,0,0,0.12)]"}
-                      role="menu"
-                    >
-                      <div className={"relative mb-2 " + ZEN.hairline + " " + ZEN.radius}>
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40" />
-                        <input
-                          type="text"
-                          placeholder="Search grade"
-                          value={gradeQuery}
-                          onChange={(e) => setGradeQuery(e.target.value)}
-                          className="w-full pl-9 pr-3 py-2 text-sm bg-transparent outline-none"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="max-h-[320px] overflow-y-auto grid grid-cols-3 gap-2">
-                        {filteredGrades.map((g) => {
-                          const is = selectedGrade === g;
-                          return (
-                            <button
-                              key={g}
-                              onClick={() => handleSelectGrade(g)}
-                              className={[
-                                "px-3 py-2 text-[13px] rounded-full text-left",
-                                ZEN.hairline,
-                                ZEN.focus,
-                                is ? "bg-[#0B0C0E] text-white border-transparent" : "bg-white"
-                              ].join(" ")}
-                              role="menuitem"
-                              aria-current={is}
-                            >
-                              {g}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      <div className="text-sm font-bold text-foreground">{engine.name}</div>
+                      <div className="text-xs text-primary">{engine.power} • {engine.torque}</div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
-          </CardContent>
-        </Card>
+            {/* Grades */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Select Grade</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {getGradesForEngine(selectedEngine).map((grade) => {
+                  const isSelected = selectedGrade === grade;
+                  return (
+                    <motion.button
+                      key={grade}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedGrade(grade)}
+                      className={[
+                        "p-4 rounded-2xl font-semibold transition-all duration-300",
+                        isSelected 
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ].join(" ")}
+                    >
+                      {grade}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
-        {/* Feature area */}
-        <div className="relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${selectedFeature}-${selectedEngine}-${selectedGrade}`}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-              className="grid md:grid-cols-2 gap-6 md:gap-10 px-3 md:px-0"
-              aria-live="polite"
-            >
-              {/* Media (no gradients, just clarity) */}
-              <div className={`relative ${ZEN.radius} ${ZEN.mediaShadow}`}>
-                <div className={"aspect-[16/9] w-full overflow-hidden bg-black/5 " + ZEN.hairline + " " + ZEN.radius}>
-                  <Media m={currentFeature.media[0]} alt={currentFeature.title} />
-                </div>
-
-                {/* Arrows (quiet) */}
-                <button
-                  onClick={handlePrev}
-                  className={`hidden md:flex items-center justify-center absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white/95 ${ZEN.hairline} hover:bg-white transition ${ZEN.focus}`}
-                  aria-label="Previous feature"
-                >
-                  <ChevronLeft className="h-6 w-6 text-black/70" />
-                </button>
-                <button
-                  onClick={handleNext}
-                  className={`hidden md:flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white/95 ${ZEN.hairline} hover:bg-white transition ${ZEN.focus}`}
-                  aria-label="Next feature"
-                >
-                  <ChevronRight className="h-6 w-6 text-black/70" />
-                </button>
-
-                {/* Step bar (replaces dots) */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[65%] md:w-[60%]">
-                  <div className="grid grid-cols-12 gap-[3px]">
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const pct = (selectedFeature / Math.max(techFeatures.length - 1, 1)) * 11;
-                      const active = i <= Math.round(pct);
+          {/* Desktop premium selection */}
+          <Card className="hidden md:block max-w-5xl mx-auto mb-12 md:mb-20 shadow-xl border-border/50">
+            <CardContent className="p-8 lg:p-12">
+              <div className="grid grid-cols-2 gap-8">
+                {/* Engines */}
+                <div>
+                  <h3 className="text-2xl font-bold mb-6 text-foreground">Engine Selection</h3>
+                  <div className="space-y-4">
+                    {engines.map((engine) => {
+                      const isSelected = selectedEngine === engine.name;
                       return (
-                        <div
-                          key={i}
-                          className={["h-1.5 rounded-full transition-all", active ? "bg-black" : "bg-black/20"].join(" ")}
-                        />
+                        <motion.button
+                          key={engine.name}
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setSelectedEngine(engine.name);
+                            const available = getGradesForEngine(engine.name);
+                            if (!available.includes(selectedGrade)) setSelectedGrade(available[0]);
+                          }}
+                          className={[
+                            "w-full p-6 rounded-2xl text-left border-2 transition-all duration-300",
+                            isSelected 
+                              ? "bg-primary/10 border-primary shadow-xl shadow-primary/20" 
+                              : "bg-card border-border hover:border-primary/40 hover:shadow-lg",
+                          ].join(" ")}
+                        >
+                          <div className="text-xl font-bold text-foreground">{engine.name}</div>
+                          <div className="text-base text-primary mt-1">
+                            {engine.power} • {engine.torque}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Grades */}
+                <div>
+                  <h3 className="text-2xl font-bold mb-6 text-foreground">Grade Selection</h3>
+                  <div className="space-y-4">
+                    {getGradesForEngine(selectedEngine).map((grade) => {
+                      const isSelected = selectedGrade === grade;
+                      return (
+                        <motion.button
+                          key={grade}
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedGrade(grade)}
+                          className={[
+                            "w-full p-6 rounded-2xl font-semibold transition-all duration-300",
+                            isSelected 
+                              ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20" 
+                              : "bg-muted text-muted-foreground hover:bg-muted/80 hover:shadow-lg"
+                          ].join(" ")}
+                        >
+                          {grade}
+                        </motion.button>
                       );
                     })}
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              {/* Details */}
+        {/* Tech Features Display */}
+        <div
+          className="relative pb-8 md:pb-12"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedFeature}
+              initial={{ opacity: 0, y: 36 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -36 }}
+              transition={{ duration: 0.45 }}
+              className="grid md:grid-cols-2 gap-5 md:gap-12 px-3 md:px-0"
+            >
+              {/* Image + desktop arrows inside image column */}
+              <div className="relative">
+                <motion.img
+                  src={currentFeature.media[0]?.url}
+                  alt={currentFeature.title}
+                  className="w-full h-56 md:h-96 object-cover rounded-2xl"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${currentFeature.color} opacity-20 rounded-2xl`} />
+
+                {/* Desktop arrows (no overlay on text column) */}
+                <button
+                  onClick={handlePrev}
+                  className="hidden md:flex items-center justify-center absolute left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/90 shadow-lg border border-gray-200 hover:bg-white"
+                  aria-label="Previous feature"
+                >
+                  <ChevronLeft className="h-6 w-6 text-gray-700" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="hidden md:flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/90 shadow-lg border border-gray-200 hover:bg-white"
+                  aria-label="Next feature"
+                >
+                  <ChevronRight className="h-6 w-6 text-gray-700" />
+                </button>
+
+                {/* Mobile swipe hint (auto-hides) */}
+                {showSwipeHint && (
+                  <div className="md:hidden absolute bottom-2 left-1/2 -translate-x-1/2">
+                    <motion.div
+                      className="flex items-center gap-2 rounded-full bg-black/40 text-white px-2.5 py-1 backdrop-blur-sm"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <motion.span
+                        aria-hidden
+                        className="inline-flex"
+                        animate={{ x: [0, 10, 0] }}
+                        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <ChevronLeft className="w-4 h-4 opacity-80" />
+                        <ChevronRight className="w-4 h-4 -ml-1 opacity-80" />
+                      </motion.span>
+                      <span className="text-[11px] font-medium">Swipe</span>
+                    </motion.div>
+                  </div>
+                )}
+
+                {/* Dots — inside image, bottom-center (never covers text) */}
+                <div
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 px-2 py-1 rounded-full bg-white/80 shadow-sm backdrop-blur-sm"
+                  style={{ paddingBottom: "max(2px, env(safe-area-inset-bottom))" }}
+                  aria-label="Feature navigation"
+                >
+                  {techFeatures.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedFeature(index)}
+                      aria-current={index === selectedFeature}
+                      className={[
+                        "w-2 h-2 rounded-full transition-transform",
+                        index === selectedFeature ? "bg-primary scale-110" : "bg-gray-400 hover:bg-gray-600",
+                      ].join(" ")}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Details (compact on mobile) */}
               <div className="space-y-4 md:space-y-6">
                 <div className="flex items-center gap-3 md:gap-4">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 ${ZEN.radius} flex items-center justify-center bg-black/5 ${ZEN.hairline}`}>
-                    {/* Icons toned down */}
-                    <span className="text-black/70">{currentFeature.icon}</span>
+                  <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${currentFeature.color} flex items-center justify-center text-white shadow-xl`}>
+                    {currentFeature.icon}
                   </div>
                   <div>
-                    <h3 className="text-[18px] md:text-[28px] font-semibold tracking-[-0.01em]">{currentFeature.title}</h3>
-                    <p className="text-[12px] md:text-[15px] text-black/60">{currentFeature.description}</p>
+                    <h3 className="text-lg md:text-3xl font-bold">{currentFeature.title}</h3>
+                    <p className="text-xs md:text-base text-muted-foreground">{currentFeature.description}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-[12px] md:text-[13px] font-semibold mb-2 text-black/70">
+                  <h4 className="text-sm md:text-base font-semibold mb-2 md:mb-3">
                     For {selectedGrade} • {selectedEngine}
                   </h4>
-                  <ul className="space-y-1.5 md:space-y-2">
-                    {(showAllMobile ? fullList : fullList.slice(0, 2)).map((f, i) => (
-                      <motion.li
-                        key={f}
-                        initial={{ opacity: 0, x: 8 }}
+                  <div className="space-y-1.5 md:space-y-2">
+                    {featuresMobile.map((feature, idx) => (
+                      <motion.div
+                        key={feature}
+                        initial={{ opacity: 0, x: 16 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
+                        transition={{ delay: idx * 0.08 }}
                         className="flex items-center gap-2"
                       >
-                        <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                        <span className="text-[12.5px] md:text-[14px] text-black/80">{f}</span>
-                      </motion.li>
+                        <Check className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-xs md:text-sm">{feature}</span>
+                      </motion.div>
                     ))}
-                  </ul>
+                  </div>
 
-                  {/* Expand (mobile only) */}
+                  {/* Expand on mobile only */}
                   {fullList.length > 2 && (
                     <div className="mt-2 md:hidden">
                       <button
                         onClick={() => setShowAllMobile((s) => !s)}
-                        className={`text-[11px] font-medium underline underline-offset-2 ${ZEN.focus} text-[#EB0A1E]`}
+                        className="text-[11px] font-medium text-primary underline underline-offset-2"
                       >
                         {showAllMobile ? "Show less" : `Show ${fullList.length - 2} more`}
                       </button>
