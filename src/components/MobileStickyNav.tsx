@@ -485,14 +485,14 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   return (
     <>
-      {/* Backdrop for overlays */}
+      {/* Premium backdrop for overlays */}
       <AnimatePresence>
         {(navigationState.isMenuOpen || navigationState.isActionsExpanded) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
             onClick={navigationState.resetNavigation}
             style={{ WebkitTapHighlightColor: "transparent" }}
           />

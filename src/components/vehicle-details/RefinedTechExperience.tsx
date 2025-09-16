@@ -161,132 +161,158 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
   }, []);
 
   return (
-    <section className="py-8 md:py-16 bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+      {/* Premium background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/3 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-muted/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--border)/0.02)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
+      </div>
+      
       <div className="toyota-container relative z-10">
-        {/* Header (compact on mobile) */}
+        {/* Elegant header */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-6 md:mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 md:mb-20"
         >
-          <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1.5 md:px-6 md:py-3 rounded-full text-[11px] md:text-sm font-medium mb-3 md:mb-6">
-            <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5" />
-            Advanced Technology Suite
+          <Badge className="bg-gradient-to-r from-primary/90 to-primary text-primary-foreground px-4 py-2 md:px-8 md:py-3 rounded-full text-sm md:text-base font-medium mb-6 md:mb-8 shadow-lg">
+            <Settings className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+            Advanced Technology
           </Badge>
-          <h2 className="text-2xl md:text-6xl font-black text-foreground mb-2 md:mb-6 leading-tight">
+          <h2 className="text-3xl md:text-7xl font-bold text-foreground mb-4 md:mb-8 leading-tight">
             Refined{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-              Tech Experience
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/70">
+              Technology
             </span>
+            <br className="hidden md:block" />
+            Experience
           </h2>
-          <p className="text-sm md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-3 md:px-0">
-            Customize your tech by selecting engine & grade
+          <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Experience intelligent systems that adapt to your preferences
           </p>
         </motion.div>
 
-        {/* Engine & Grade Selection (no Card on mobile for tightness) */}
-        <div className="md:mb-16">
-          {/* Mobile compact */}
-          <div className="md:hidden px-3 space-y-5 mb-6">
+        {/* Premium selection interface */}
+        <div className="md:mb-20">
+          {/* Mobile elegant selection */}
+          <div className="md:hidden px-4 space-y-6 mb-8">
             {/* Engines */}
             <div>
-              <h3 className="text-base font-bold mb-2">Select Engine</h3>
-              <div className="grid grid-cols-2 gap-2">
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Select Engine</h3>
+              <div className="grid grid-cols-2 gap-3">
                 {engines.map((engine) => {
                   const isSelected = selectedEngine === engine.name;
                   return (
-                    <button
+                    <motion.button
                       key={engine.name}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         setSelectedEngine(engine.name);
                         const available = getGradesForEngine(engine.name);
                         if (!available.includes(selectedGrade)) setSelectedGrade(available[0]);
                       }}
                       className={[
-                        "p-3 rounded-lg text-left border",
-                        isSelected ? "bg-primary/10 border-primary" : "bg-card border-border"
+                        "p-4 rounded-2xl text-left border-2 transition-all duration-300",
+                        isSelected 
+                          ? "bg-primary/10 border-primary shadow-lg shadow-primary/20" 
+                          : "bg-card border-border hover:border-primary/30 hover:shadow-md"
                       ].join(" ")}
                     >
-                      <div className="text-xs font-bold leading-tight">{engine.name}</div>
-                      <div className="text-[11px] text-primary">{engine.power} • {engine.torque}</div>
-                    </button>
+                      <div className="text-sm font-bold text-foreground">{engine.name}</div>
+                      <div className="text-xs text-primary">{engine.power} • {engine.torque}</div>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
             {/* Grades */}
             <div>
-              <h3 className="text-base font-bold mb-2">Select Grade</h3>
-              <div className="grid grid-cols-2 gap-2">
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Select Grade</h3>
+              <div className="grid grid-cols-2 gap-3">
                 {getGradesForEngine(selectedEngine).map((grade) => {
                   const isSelected = selectedGrade === grade;
                   return (
-                    <button
+                    <motion.button
                       key={grade}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedGrade(grade)}
                       className={[
-                        "p-3 rounded-lg font-semibold",
-                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        "p-4 rounded-2xl font-semibold transition-all duration-300",
+                        isSelected 
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
                       ].join(" ")}
                     >
                       {grade}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
           </div>
 
-          {/* Desktop/Tablet premium Card */}
-          <Card className="hidden md:block max-w-4xl mx-auto mb-8 md:mb-16">
-            <CardContent className="p-6 lg:p-8">
-              <div className="grid grid-cols-2 gap-4">
+          {/* Desktop premium selection */}
+          <Card className="hidden md:block max-w-5xl mx-auto mb-12 md:mb-20 shadow-xl border-border/50">
+            <CardContent className="p-8 lg:p-12">
+              <div className="grid grid-cols-2 gap-8">
                 {/* Engines */}
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Select Engine</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <h3 className="text-2xl font-bold mb-6 text-foreground">Engine Selection</h3>
+                  <div className="space-y-4">
                     {engines.map((engine) => {
                       const isSelected = selectedEngine === engine.name;
                       return (
-                        <button
+                        <motion.button
                           key={engine.name}
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setSelectedEngine(engine.name);
                             const available = getGradesForEngine(engine.name);
                             if (!available.includes(selectedGrade)) setSelectedGrade(available[0]);
                           }}
                           className={[
-                            "p-4 rounded-xl text-left border-2 transition",
-                            isSelected ? "bg-primary/10 border-primary shadow-sm" : "bg-card border-border hover:border-primary/50",
+                            "w-full p-6 rounded-2xl text-left border-2 transition-all duration-300",
+                            isSelected 
+                              ? "bg-primary/10 border-primary shadow-xl shadow-primary/20" 
+                              : "bg-card border-border hover:border-primary/40 hover:shadow-lg",
                           ].join(" ")}
                         >
-                          <div className="text-lg font-bold">{engine.name}</div>
-                          <div className="text-sm text-primary">
+                          <div className="text-xl font-bold text-foreground">{engine.name}</div>
+                          <div className="text-base text-primary mt-1">
                             {engine.power} • {engine.torque}
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
                 </div>
                 {/* Grades */}
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Select Grade</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <h3 className="text-2xl font-bold mb-6 text-foreground">Grade Selection</h3>
+                  <div className="space-y-4">
                     {getGradesForEngine(selectedEngine).map((grade) => {
                       const isSelected = selectedGrade === grade;
                       return (
-                        <button
+                        <motion.button
                           key={grade}
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedGrade(grade)}
                           className={[
-                            "p-4 rounded-xl font-semibold transition",
-                            isSelected ? "bg-primary text-primary-foreground shadow-lg" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            "w-full p-6 rounded-2xl font-semibold transition-all duration-300",
+                            isSelected 
+                              ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20" 
+                              : "bg-muted text-muted-foreground hover:bg-muted/80 hover:shadow-lg"
                           ].join(" ")}
                         >
                           {grade}
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>

@@ -51,66 +51,68 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
       className="fixed inset-0 z-50 overflow-y-auto"
       style={{
-        background: "linear-gradient(135deg, rgba(55, 65, 81, 0.98) 0%, rgba(31, 41, 55, 1) 100%)",
-        backdropFilter: "blur(20px)",
+        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)",
+        backdropFilter: "blur(24px)",
       }}
     >
-      {/* Background Effects */}
+      {/* Elegant background effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent" />
-        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-gray-900/15 via-transparent to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-muted/20 via-transparent to-transparent" />
         
-        {/* Floating particles */}
+        {/* Minimal floating elements */}
         <div className="absolute inset-0">
-          {[...Array(12)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
+              className="absolute w-0.5 h-0.5 bg-primary/20 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -80, 0],
-                opacity: [0, 0.8, 0],
-                scale: [0, 1.2, 0],
+                y: [0, -60, 0],
+                opacity: [0, 0.6, 0],
+                scale: [0, 1, 0],
               }}
               transition={{
-                duration: 6 + Math.random() * 3,
+                duration: 8 + Math.random() * 4,
                 repeat: Infinity,
-                delay: Math.random() * 6,
+                delay: Math.random() * 8,
               }}
             />
           ))}
         </div>
         
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--border)/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      {/* Header */}
-      <div className="sticky top-0 z-20 border-b border-blue-500/20 backdrop-blur-2xl">
-        <div className="bg-gradient-to-r from-gray-700/95 via-gray-800/98 to-gray-700/95 p-4">
+      {/* Premium header */}
+      <div className="sticky top-0 z-20 border-b border-border/50 backdrop-blur-xl">
+        <div className="bg-background/95 p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <div className="relative">
-                <Crown className="h-6 w-6 text-blue-500 animate-pulse" />
-                <div className="absolute inset-0 h-6 w-6 bg-blue-500/20 rounded-full blur-lg animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                  <Crown className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-lg" />
               </div>
               <div>
-                <h2 className="text-lg font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold text-foreground">
                   Vehicle Comparison
                 </h2>
-                <p className="text-gray-400 text-xs">Premium vehicle analysis</p>
+                <p className="text-muted-foreground text-sm">Premium analysis suite</p>
               </div>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full p-2 h-8 w-8 bg-gray-700/60 border border-gray-600/40 text-gray-300 hover:bg-blue-600/20 hover:text-white hover:border-blue-500/50 backdrop-blur-xl transition-all duration-500"
+              className="rounded-full h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
               onClick={onClearAll}
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         </div>
