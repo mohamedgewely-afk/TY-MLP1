@@ -31,30 +31,24 @@ import { Button } from "@/components/ui/button";
 import { contextualHaptic } from "@/utils/haptic";
 
 /**
- * PLATINUM LUXE AESTHETIC (no red)
- * - Same functions, data, flow, images, and behavior
- * - Premium monochrome: Onyx / Graphite / Platinum / Ivory
- * - Performance-minded: hairlines > heavy borders, glass with low blur, rAF-driven scroll shrink, reduced-motion safe
- * - Catchy ACTION tab: neutral luminous halo + gloss capsule, no color brand dependency
+ * PLATINUM LUXE V3 (no red) — ActionTab integrated
+ * - Same data/flows/images/logic
+ * - Replaces the old Actions button with a jewel-like capsule + shimmer + halo
+ * - Adds a micro-label under the Actions control to clarify purpose
+ * - Keeps reduced-motion, performance-friendly animations
  */
 
 /* ───────────────── design tokens ───────────────── */
-const P_ONYX = "#0C0D0F";      // deep onyx
-const P_GRAPHITE = "#131519";  // graphite surface
-const P_EDGE = "#1E232A";      // hairline edge
-const P_STEEL = "#2A3038";     // muted edge
-const P_PLATINUM = "#EDEEF1";  // light text on dark or surface on light
-const P_IVORY = "#F7F7F8";     // light surface
-const P_SILVER = "#B9C0C7";    // muted text
-const P_TITANIUM = "#8F97A1";  // secondary text
-const P_INK = "#0B0C0D";       // text on light
+const P_ONYX = "#0C0D0F";
+const P_GRAPHITE = "#131519";
+const P_EDGE = "#1E232A";
+const P_PLATINUM = "#EDEEF1";
+const P_TITANIUM = "#8F97A1";
+const P_INK = "#0B0C0D";
 
 const GLASS_DARK = "bg-[rgba(15,16,18,.72)] backdrop-blur-xl supports-[backdrop-filter]:bg-[rgba(15,16,18,.55)]";
 const GLASS_LIGHT = "bg-[rgba(255,255,255,.84)] backdrop-blur-xl supports-[backdrop-filter]:bg-[rgba(255,255,255,.68)]";
-
 const hairline = (c = "rgba(255,255,255,.08)") => ({ boxShadow: `inset 0 0 0 1px ${c}` });
-
-// Carbon weave with desaturated glaze
 const carbonMatte: React.CSSProperties = {
   backgroundImage: "url('/lovable-uploads/5dc5accb-0a25-49ca-a064-30844fa8836a.png')",
   backgroundSize: "260px 260px",
@@ -63,13 +57,12 @@ const carbonMatte: React.CSSProperties = {
   backgroundColor: P_GRAPHITE,
   filter: "saturate(0.85)",
 };
-
-// Primary & surface buttons in neutral palette
 const BTN_PRIMARY =
   "text-white shadow-[0_8px_28px_rgba(0,0,0,.28)] focus-visible:ring-2 focus-visible:ring-black/30";
 const BTN_SURFACE =
   "text-[var(--btn-fg)] border border-[var(--btn-edge)] bg-[var(--btn-bg)] hover:bg-[var(--btn-hover)] focus-visible:ring-2 focus-visible:ring-black/30";
 
+/* ───────────────── local GR mode ───────────────── */
 function useGRMode() {
   const initial = () => {
     if (typeof window !== "undefined") {
@@ -87,6 +80,72 @@ function useGRMode() {
   return { isGR, toggleGR: () => setIsGR((v) => !v) };
 }
 
+/* ───────────────── ActionTab (new) ───────────────── */
+const ActionTab: React.FC<{
+  isActive?: boolean;
+  grMode?: boolean;
+  reduceMotion?: boolean;
+  onClick: () => void;
+}> = ({ isActive = false, grMode = false, reduceMotion = false, onClick }) => {
+  const halo = reduceMotion
+    ? {}
+    : {
+        opacity: [0, 0.45, 0],
+        scale: [1, 1.6, 2],
+        transition: { duration: 1.4, repeat: Infinity, ease: "easeInOut" },
+      };
+
+  return (
+    <div className="relative flex flex-col items-center justify-center -mt-3">
+      <motion.button
+        onClick={onClick}
+        aria-pressed={isActive}
+        aria-label="Open quick actions"
+        className="relative group inline-flex items-center justify-center rounded-full"
+        style={{
+          padding: 12,
+          background: grMode
+            ? "linear-gradient(180deg,#1B1D21,#0C0D0F)"
+            : "linear-gradient(180deg,#FDFDFD,#E8EAED)",
+          boxShadow: grMode
+            ? "0 0 0 1px #2A3038, inset 0 0 12px rgba(255,255,255,.05), 0 8px 28px rgba(0,0,0,.40)"
+            : "0 0 0 1px rgba(0,0,0,.08), inset 0 0 12px rgba(255,255,255,.60), 0 8px 28px rgba(0,0,0,.15)",
+        }}
+      >
+        {/* Halo pulse */}
+        <motion.span
+          className="absolute inset-0 rounded-full"
+          animate={halo}
+          style={{
+            background: grMode
+              ? "radial-gradient(closest-side, rgba(255,255,255,.08), transparent)"
+              : "radial-gradient(closest-side, rgba(0,0,0,.08), transparent)",
+          }}
+        />
+        {/* Shimmer sweep */}
+        <motion.span
+          className="absolute inset-0 rounded-full overflow-hidden"
+          animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          style={{
+            backgroundImage: grMode
+              ? "linear-gradient(120deg,rgba(255,255,255,.20),rgba(255,255,255,0),rgba(255,255,255,.20))"
+              : "linear-gradient(120deg,rgba(0,0,0,.12),rgba(0,0,0,0),rgba(0,0,0,.12))",
+            backgroundSize: "200% 200%",
+            mixBlendMode: grMode ? "screen" : "normal",
+          }}
+        />
+        <span className={cn("relative rounded-full h-10 w-10 flex items-center justify-center", grMode ? "text-white" : "text-gray-900")}
+              style={{ boxShadow: grMode ? "inset 0 0 0 1px rgba(255,255,255,.06)" : "inset 0 0 0 1px rgba(0,0,0,.06)" }}>
+          <Bolt className="h-5 w-5" />
+        </span>
+      </motion.button>
+      <span className={cn("mt-1 text-[10px] font-medium tracking-wide", grMode ? "text-[#C6CCD3]" : "text-gray-700")}>Your Smart Hub</span>
+    </div>
+  );
+};
+
+/* ───────────────── props ───────────────── */
 interface MobileStickyNavProps {
   activeItem?: string;
   onMenuToggle?: () => void;
@@ -117,62 +176,15 @@ const searchSuggestions = [
 ];
 
 const preOwnedVehicles = [
-  {
-    name: "2022 Toyota Camry LE",
-    price: 89000,
-    mileage: "25,000 km",
-    year: 2022,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true",
-    category: "sedan",
-  },
-  {
-    name: "2021 Toyota RAV4 XLE",
-    price: 95000,
-    mileage: "35,000 km",
-    year: 2021,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
-    category: "suv",
-  },
-  {
-    name: "2023 Toyota Prius Hybrid",
-    price: 78000,
-    mileage: "15,000 km",
-    year: 2023,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true",
-    category: "hybrid",
-  },
-  {
-    name: "2020 Toyota Corolla SE",
-    price: 65000,
-    mileage: "45,000 km",
-    year: 2020,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true",
-    category: "sedan",
-  },
-  {
-    name: "2022 Toyota Highlander Limited",
-    price: 145000,
-    mileage: "20,000 km",
-    year: 2022,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true",
-    category: "suv",
-  },
-  {
-    name: "2021 Toyota GR Supra 3.0",
-    price: 185000,
-    mileage: "12,000 km",
-    year: 2021,
-    image:
-      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true",
-    category: "performance",
-  },
+  { name: "2022 Toyota Camry LE", price: 89000, mileage: "25,000 km", year: 2022, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true", category: "sedan" },
+  { name: "2021 Toyota RAV4 XLE", price: 95000, mileage: "35,000 km", year: 2021, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", category: "suv" },
+  { name: "2023 Toyota Prius Hybrid", price: 78000, mileage: "15,000 km", year: 2023, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true", category: "hybrid" },
+  { name: "2020 Toyota Corolla SE", price: 65000, mileage: "45,000 km", year: 2020, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true", category: "sedan" },
+  { name: "2022 Toyota Highlander Limited", price: 145000, mileage: "20,000 km", year: 2022, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true", category: "suv" },
+  { name: "2021 Toyota GR Supra 3.0", price: 185000, mileage: "12,000 km", year: 2021, image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/561ac4b4-3604-4e66-ae72-83e2969d7d65/renditions/ccb433bd-1203-4de2-ab2d-5e70f3dd5c24?binary=true&mformat=true", category: "performance" },
 ];
 
+/* ───────────────── component ───────────────── */
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   activeItem = "home",
   vehicle,
@@ -203,10 +215,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     return () => mq.removeEventListener?.("change", apply);
   }, []);
 
-  // GR preset for category (kept)
-  useEffect(() => {
-    if (isGR && !userTouchedCategory) setSelectedCategory("performance");
-  }, [isGR, userTouchedCategory]);
+  // GR preset for category
+  useEffect(() => { if (isGR && !userTouchedCategory) setSelectedCategory("performance"); }, [isGR, userTouchedCategory]);
 
   const fmt = useMemo(() => new Intl.NumberFormat(typeof navigator !== "undefined" ? navigator.language : "en-AE"), []);
 
@@ -219,20 +229,15 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       setIsScrolled((prev) => (y > threshold ? true : y <= threshold * 0.7 ? false : prev));
       ticking = false;
     };
-    const onScroll = () => {
-      if (!ticking) { requestAnimationFrame(update); ticking = true; }
-    };
+    const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Reset on route change
-  useEffect(() => {
-    navigationState.resetNavigation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [window.location.pathname]);
+  useEffect(() => { navigationState.resetNavigation(); /* eslint-disable-next-line */ }, [window.location.pathname]);
 
-  // Data derivations (unchanged)
+  // Data derivations
   const filteredVehicles = useMemo(() => vehicles.filter((v) => selectedCategory === "all" || v.category.toLowerCase() === selectedCategory).slice(0, 12), [selectedCategory]);
   const searchResults = useMemo(() => vehicles.filter((v) => v.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 8), [searchQuery]);
   const filteredPreOwnedVehicles = useMemo(() => preOwnedVehicles.filter((v) => {
@@ -246,22 +251,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     if (navigationState.activeSection === section) navigationState.resetNavigation();
     else navigationState.setActiveSection(section);
   };
-
-  const handleCategoryClick = (id: string) => {
-    contextualHaptic.buttonPress();
-    setSelectedCategory(id);
-    setUserTouchedCategory(true);
-  };
-
-  const toggleMenu = () => {
-    contextualHaptic.stepProgress();
-    if (navigationState.isMenuOpen) navigationState.resetNavigation();
-    else navigationState.setActiveSection("quick-actions");
-  };
+  const handleCategoryClick = (id: string) => { contextualHaptic.buttonPress(); setSelectedCategory(id); setUserTouchedCategory(true); };
+  const toggleMenu = () => { contextualHaptic.stepProgress(); if (navigationState.isMenuOpen) navigationState.resetNavigation(); else navigationState.setActiveSection("quick-actions"); };
 
   const handleShare = async () => {
-    if (!vehicle) return;
-    contextualHaptic.buttonPress();
+    if (!vehicle) return; contextualHaptic.buttonPress();
     try {
       if (navigator.share) {
         await navigator.share({ title: `${vehicle.name} – Toyota UAE`, text: `${vehicle.name} starting from AED ${fmt.format(vehicle.price)}`, url: window.location.href });
@@ -271,86 +265,27 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       toast({ title: "Link Copied", description: "Vehicle link copied to clipboard." });
     } catch {}
   };
-
-  const handleBrochureDownload = () => {
-    if (!vehicle) return;
-    contextualHaptic.buttonPress();
-    toast({ title: "Preparing brochure…", description: "Your download will start shortly." });
-  };
+  const handleBrochureDownload = () => { if (!vehicle) return; contextualHaptic.buttonPress(); toast({ title: "Preparing brochure…", description: "Your download will start shortly." }); };
 
   const shouldShowNav = deviceInfo.isInitialized && deviceInfo.isMobile;
   const spring = reduceMotion ? { duration: 0.12 } : { type: "spring", stiffness: 260, damping: 26, mass: 0.85 } as const;
 
-  /** ACTION tab – neutral luxe halo + gloss capsule */
-  const [attractOn, setAttractOn] = useState(false);
-  const [attractCycles, setAttractCycles] = useState(0);
+  /** ACTION attractors */
   const [showCoachmark, setShowCoachmark] = useState(false);
-
   useEffect(() => {
     if (!shouldShowNav || reduceMotion || navigationState.isActionsExpanded || navigationState.isMenuOpen) return;
-    let idleTimer: number | null = null;
-    let cycleTimer: number | null = null;
-    let interacted = false;
-
-    const reset = () => {
-      interacted = true; setAttractOn(false); setShowCoachmark(false); setAttractCycles(0);
-      if (idleTimer) window.clearTimeout(idleTimer); if (cycleTimer) window.clearInterval(cycleTimer);
-    };
-
-    const kick = () => {
-      if (interacted) return;
-      setShowCoachmark(true); setAttractOn(true); setAttractCycles(1);
-      cycleTimer = window.setInterval(() => {
-        setAttractCycles((c) => {
-          const n = c + 1;
-          if (n >= 3) { if (cycleTimer) window.clearInterval(cycleTimer); setAttractOn(false); setShowCoachmark(false); }
-          else { setAttractOn(false); requestAnimationFrame(() => setAttractOn(true)); }
-          return n;
-        });
-      }, 3800);
-    };
-
-    idleTimer = window.setTimeout(kick, 5200);
-
-    const onInteract = () => reset();
-    window.addEventListener("pointerdown", onInteract, { passive: true });
-    window.addEventListener("keydown", onInteract);
-    window.addEventListener("scroll", onInteract, { passive: true });
-
-    return () => {
-      window.removeEventListener("pointerdown", onInteract);
-      window.removeEventListener("keydown", onInteract);
-      window.removeEventListener("scroll", onInteract);
-      if (idleTimer) window.clearTimeout(idleTimer);
-      if (cycleTimer) window.clearInterval(cycleTimer);
-    };
+    const timer = window.setTimeout(() => setShowCoachmark(true), 5200);
+    const reset = () => setShowCoachmark(false);
+    window.addEventListener("pointerdown", reset, { passive: true });
+    window.addEventListener("scroll", reset, { passive: true });
+    return () => { window.clearTimeout(timer); window.removeEventListener("pointerdown", reset); window.removeEventListener("scroll", reset); };
   }, [shouldShowNav, reduceMotion, navigationState.isActionsExpanded, navigationState.isMenuOpen]);
-
-  const coachVariants = {
-    hidden: { opacity: 0, y: 8, scale: 0.98 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 18 } },
-    exit: { opacity: 0, y: 8, scale: 0.98, transition: { duration: 0.14 } },
-  } as const;
-
-  const haloPulse = reduceMotion
-    ? {}
-    : { opacity: [0, 0.5, 0], scale: [1, 1.7, 2.15], transition: { duration: 1.2, times: [0, 0.55, 1], ease: "easeInOut" } };
 
   if (!shouldShowNav) return null;
 
-  // CSS custom props for neutral buttons (surface)
-  const surfaceVars: React.CSSProperties = {
-    ['--btn-bg' as any]: 'rgba(255,255,255,.72)',
-    ['--btn-hover' as any]: 'rgba(255,255,255,.92)',
-    ['--btn-fg' as any]: P_INK,
-    ['--btn-edge' as any]: 'rgba(0,0,0,.08)'
-  };
-  const surfaceVarsDark: React.CSSProperties = {
-    ['--btn-bg' as any]: 'rgba(20,22,25,.85)',
-    ['--btn-hover' as any]: 'rgba(22,24,27,1)',
-    ['--btn-fg' as any]: P_PLATINUM,
-    ['--btn-edge' as any]: '#232830'
-  };
+  // neutral surface variables
+  const surfaceVars: React.CSSProperties = { ['--btn-bg' as any]: 'rgba(255,255,255,.72)', ['--btn-hover' as any]: 'rgba(255,255,255,.92)', ['--btn-fg' as any]: P_INK, ['--btn-edge' as any]: 'rgba(0,0,0,.08)' };
+  const surfaceVarsDark: React.CSSProperties = { ['--btn-bg' as any]: 'rgba(20,22,25,.85)', ['--btn-hover' as any]: 'rgba(22,24,27,1)', ['--btn-fg' as any]: P_PLATINUM, ['--btn-edge' as any]: '#232830' };
 
   return (
     <>
@@ -381,7 +316,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   <span className={cn("text-sm font-medium", isGR ? "text-[#D7DBE0]" : "text-gray-700")}>AED {fmt.format(vehicle.price)}</span>
                 )}
               </div>
-              <Button onClick={() => navigationState.setActionsExpanded(false)} variant="outline" size="sm" className={cn("rounded-full h-8 w-8 p-0", isGR ? "border-[#2a2f36] text-[#EDEEF1] hover:bg-[#14181c]" : "border-black/10 hover:bg-black/5")} aria-label="Collapse actions">
+              <Button onClick={() => navigationState.setActionsExpanded(false)} variant="outline" size="sm" className={cn("rounded-full h-8 w-8 p-0", isGR ? "border-[#2a2f36] text-[#EDEEF1] hover:bg-[#14181c]" : "border-black/10 hover:bg.black/5")} aria-label="Collapse actions">
                 <ChevronUp className="h-4 w-4" />
               </Button>
             </div>
@@ -421,16 +356,16 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Main menu sheet */}
+      {/* Main menu sheet (unchanged) */}
       <AnimatePresence>
         {navigationState.isMenuOpen && (
           <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={spring}
             className={cn("fixed bottom-16 left-0 right-0 rounded-t-[28px] z-50 overflow-hidden border-t", isGR ? GLASS_DARK : GLASS_LIGHT)}
             style={isGR ? { ...carbonMatte, ...hairline('#232830') } : hairline('rgba(0,0,0,.08)')}
             role="dialog" aria-modal="true" aria-label="Toyota Connect menu">
-            <div className={cn("flex items-center justify-between p-4", isGR ? "border-b border-[#232830]" : "border-b border-black/10")}>
+            <div className={cn("flex items-center justify-between p-4", isGR ? "border-b border-[#232830]" : "border-b border-black/10")}> 
               <div>
-                <h3 className={cn("font-semibold text-lg tracking-[.02em]", isGR ? "text-white" : "text-gray-900")}>Toyota Connect</h3>
+                <h3 className={cn("font-semibold text-lg tracking-[.02em]", isGR ? "text.white" : "text-gray-900")}>Toyota Connect</h3>
                 <p className={cn("text-sm", isGR ? "text-[#C6CCD3]" : "text-gray-700")}>{isGR ? "Performance Hub" : "Your gateway to Toyota"}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -458,40 +393,20 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                       ].map((card) => (
                         <CarouselItem key={card.id} className="pl-4 basis-2/3 sm:basis-1/2">
                           <Link to={card.link} onClick={navigationState.resetNavigation} className="block focus-visible:ring-2 focus-visible:ring-black/20 rounded-2xl">
-                            <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
-                              {isGR ? (
-                                <div className={cn("h-32 overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline('#242a31') }}>
-                                  <div className="flex flex-col justify-between h-full p-4 text-[#EDEEF1]">
-                                    <div className="flex items-start justify-between">
-                                      <div className="space-y-1">
-                                        <h3 className="font-semibold text-base">{card.title}</h3>
-                                        <p className="text-xs opacity-80">{card.description}</p>
-                                      </div>
-                                      <div className="opacity-90">{card.icon}</div>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                      <div className="h-[3px] w-24 rounded-full bg-white/15" />
-                                      <ChevronRight className="h-4 w-4 opacity-80" />
-                                    </div>
+                            <Card className={cn("h-32 overflow-hidden border-0 shadow-xl", isGR ? GLASS_DARK : GLASS_LIGHT)} style={isGR ? { ...carbonMatte, ...hairline('#242a31') } : hairline('rgba(0,0,0,.08)') as React.CSSProperties}>
+                              <CardContent className="flex flex-col justify-between h-full p-4 text-gray-900">
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-1">
+                                    <h3 className={cn("font-semibold text-base", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>{card.title}</h3>
+                                    <p className={cn("text-xs", isGR ? "text-[#C6CCD3]" : "text-gray-600")}>{card.description}</p>
                                   </div>
+                                  <div className={cn("opacity-90", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>{card.icon}</div>
                                 </div>
-                              ) : (
-                                <Card className={cn("h-32 overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
-                                  <CardContent className="flex flex-col justify-between h-full p-4 text-gray-900">
-                                    <div className="flex items-start justify-between">
-                                      <div className="space-y-1">
-                                        <h3 className="font-semibold text-base">{card.title}</h3>
-                                        <p className="text-xs text-gray-600">{card.description}</p>
-                                      </div>
-                                      <div className="opacity-90">{card.icon}</div>
-                                    </div>
-                                    <div className="flex justify-end">
-                                      <ChevronRight className="h-4 w-4 text-gray-700/80" />
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              )}
-                            </motion.div>
+                                <div className="flex justify-end">
+                                  <ChevronRight className={cn("h-4 w-4", isGR ? "text-[#C6CCD3]" : "text-gray-700/80")} />
+                                </div>
+                              </CardContent>
+                            </Card>
                           </Link>
                         </CarouselItem>
                       ))}
@@ -525,41 +440,24 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Bottom Nav – Platinum glass rail; ACTIONS glossy capsule with neutral halo */}
+      {/* Bottom Nav — ActionTab integrated */}
       <motion.nav role="navigation" aria-label="Primary"
         className={cn("fixed bottom-0 left-0 right-0 z-[100] border-t", isGR ? GLASS_DARK : GLASS_LIGHT)}
         initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring}
         style={isGR ? { ...carbonMatte, ...hairline('#232830') } : hairline('rgba(0,0,0,.08)')}
       >
-        <div className={cn("grid gap-1 px-2 items-center", vehicle ? "grid-cols-5" : "grid-cols-4")}>
+        <div className={cn("grid gap-1 px-2 items-center", vehicle ? "grid-cols-5" : "grid-cols-4")}
+             style={{ paddingTop: 4, paddingBottom: 4 }}>
           <NavItem icon={<Car className={cn(isGR ? "text-[#EDEEF1]" : "text-gray-800", "h-5 w-5")} />} label="Models" to="#" onClick={() => handleSectionToggle("models")} isActive={activeItem === "models" || navigationState.activeSection === "models"} grMode={isGR} />
           <NavItem icon={<ShoppingBag className={cn(isGR ? "text-[#EDEEF1]" : "text-gray-800", "h-5 w-5")} />} label="Pre-Owned" to="#" onClick={() => handleSectionToggle("pre-owned")} isActive={activeItem === "pre-owned" || navigationState.activeSection === "pre-owned"} grMode={isGR} />
 
           {vehicle && (
-            <div className="relative flex items-center justify-center">
-              <AnimatePresence>
-                {showCoachmark && !navigationState.isActionsExpanded && (
-                  <motion.div className={cn("absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold shadow-lg",
-                                            isGR ? "bg-[#15181b] text-[#EDEEF1] border border-[#21262c]" : "bg-white text-gray-900 border border-black/10")}
-                              variants={coachVariants} initial="hidden" animate="visible" exit="exit">Try Actions</motion.div>
-                )}
-              </AnimatePresence>
-
-              <button onClick={() => { navigationState.setActionsExpanded(!navigationState.isActionsExpanded); if (!navigationState.isActionsExpanded) { setAttractOn(false); setShowCoachmark(false); } }}
-                      className="relative group inline-flex items-center justify-center" aria-pressed={navigationState.isActionsExpanded} aria-label="Open quick actions">
-                <AnimatePresence>
-                  {attractOn && (
-                    <motion.span className="absolute inset-0 rounded-full" animate={haloPulse} exit={{ opacity: 0 }}
-                                  style={{ background: "radial-gradient(closest-side, rgba(255,255,255,.35), rgba(255,255,255,0))" }} />
-                  )}
-                </AnimatePresence>
-                <span className={cn("relative rounded-full p-2 transition-transform shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]",
-                                     isGR ? "bg-[#171a1e]" : "bg-[linear-gradient(180deg,#FAFAFA_0%,#EDEEF1_100%)] border border-black/5")}
-                      style={isGR ? undefined : { boxShadow: "inset 0 0 0 1px rgba(0,0,0,.06), 0 6px 22px rgba(0,0,0,.12)" }}>
-                  <Bolt className={cn("h-4 w-4", isGR ? "text-[#EDEEF1]" : "text-gray-900")} />
-                </span>
-              </button>
-            </div>
+            <ActionTab
+              grMode={isGR}
+              reduceMotion={reduceMotion}
+              isActive={navigationState.isActionsExpanded}
+              onClick={() => navigationState.setActionsExpanded(!navigationState.isActionsExpanded)}
+            />
           )}
 
           <NavItem icon={<Search className={cn(isGR ? "text-[#EDEEF1]" : "text-gray-800", "h-5 w-5")} />} label="Search" to="#" onClick={() => handleSectionToggle("search")} isActive={activeItem === "search" || navigationState.activeSection === "search"} grMode={isGR} />
@@ -570,16 +468,14 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   );
 };
 
-/* ───────────────── Subsections – visual-only polish, logic untouched ───────────────── */
+/* ───────────────── Subsections (same logic, premium visuals) ───────────────── */
 const SectionModels: React.FC<{ isGR: boolean; selectedCategory: string; onCategory: (id: string) => void; filteredVehicles: VehicleModel[]; }>
 = ({ isGR, selectedCategory, onCategory, filteredVehicles }) => {
   const fmt = useMemo(() => new Intl.NumberFormat(), []);
   const reduceMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   return (
     <motion.div className="p-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
       <h4 className={cn("text-sm font-semibold mb-3", isGR ? "text-[#C6CCD3]" : "text-gray-700")}>Browse Models</h4>
-
       <Carousel opts={{ align: "start" }} className="w-full mb-5">
         <CarouselContent>
           {vehicleCategories.map((c) => (
@@ -602,37 +498,17 @@ const SectionModels: React.FC<{ isGR: boolean; selectedCategory: string; onCateg
           {filteredVehicles.map((v) => (
             <CarouselItem key={v.name} className="pl-4 basis-2/3 sm:basis-1/2">
               <Link to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-black/20">
-                <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
-                  {isGR ? (
-                    <div className={cn("overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline('#242a31') }}>
-                      <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
-                        {v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover mix-blend-luminosity opacity-95" loading="lazy" decoding="async" />)}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-base mb-1 text-[#EDEEF1]">{v.name}</h3>
-                        <p className="text-sm mb-3 text-[#C6CCD3]">From AED {fmt.format(v.price)}</p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: "#15171A", border: `1px solid ${P_EDGE}`, color: P_TITANIUM }}>{v.category}</span>
-                          <span className="text-sm font-semibold flex items-center text-[#EDEEF1]">View <ChevronRight className="h-3 w-3 ml-1"/></span>
-                        </div>
-                      </div>
+                <Card className={cn("overflow-hidden border-0 shadow-xl", isGR ? GLASS_DARK : GLASS_LIGHT)} style={isGR ? { ...carbonMatte, ...hairline('#242a31') } : hairline('rgba(0,0,0,.06)') as React.CSSProperties}>
+                  <div className={cn("aspect-[16/10] w-full", isGR ? "" : "bg-gradient-to-br from-[#F3F4F6] to-[#EDEEF1]")}>{v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />)}</div>
+                  <CardContent className="p-4">
+                    <h3 className={cn("font-semibold text-base mb-1", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>{v.name}</h3>
+                    <p className={cn("text-sm mb-3", isGR ? "text-[#C6CCD3]" : "text-gray-600")}>From AED {fmt.format(v.price)}</p>
+                    <div className="flex justify-between items-center">
+                      <span className={cn("text-xs px-2 py-1 rounded-full font-medium", isGR ? "text-[#8F97A1]" : "text-gray-900")} style={isGR ? { backgroundColor: "#15171A", border: `1px solid ${P_EDGE}` } : { background: "rgba(0,0,0,.05)" }}>{v.category}</span>
+                      <span className={cn("text-sm font-semibold flex items-center", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>View <ChevronRight className="h-3 w-3 ml-1"/></span>
                     </div>
-                  ) : (
-                    <Card className={cn("overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
-                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-[#F3F4F6] to-[#EDEEF1] relative">
-                        {v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />)}
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-base mb-1 text-gray-900">{v.name}</h3>
-                        <p className="text-sm text-gray-600 mb-3">From AED {fmt.format(v.price)}</p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs bg-black/5 text-gray-900 px-2 py-1 rounded-full font-medium">{v.category}</span>
-                          <span className="text-gray-900 text-sm font-semibold flex items-center">View <ChevronRight className="h-3 w-3 ml-1"/></span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </motion.div>
+                  </CardContent>
+                </Card>
               </Link>
             </CarouselItem>
           ))}
@@ -665,33 +541,18 @@ const SectionSearch: React.FC<{ isGR: boolean; searchQuery: string; setSearchQue
             {searchResults.map((v) => (
               <CarouselItem key={v.name} className="basis-2/3 pl-4">
                 <Link to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-black/20" aria-label={`View ${v.name}`}>
-                  {isGR ? (
-                    <div className={cn("h-24 overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline('#232830') }}>
-                      <div className="flex items-center h-full p-4">
-                        <div className="w-16 h-12 rounded-lg mr-3 overflow-hidden" style={carbonMatte}>
-                          {v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover rounded-lg mix-blend-luminosity opacity-95" loading="lazy" decoding="async" />)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm truncate text-[#EDEEF1]">{v.name}</h3>
-                          <p className="text-xs text-[#C6CCD3]">AED {new Intl.NumberFormat().format(v.price)}</p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-[#C6CCD3] flex-shrink-0" />
+                  <Card className={cn("h-24 overflow-hidden border-0 shadow-lg", isGR ? GLASS_DARK : GLASS_LIGHT)} style={isGR ? { ...carbonMatte, ...hairline('#232830') } : hairline('rgba(0,0,0,.06)') as React.CSSProperties}>
+                    <CardContent className="flex items-center h-full p-4">
+                      <div className={cn("w-16 h-12 rounded-lg mr-3 overflow-hidden", isGR ? "" : "bg-black/5")} style={isGR ? carbonMatte : undefined}>
+                        {v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover rounded-lg" loading="lazy" decoding="async" />)}
                       </div>
-                    </div>
-                  ) : (
-                    <Card className={cn("h-24 overflow-hidden border-0 shadow-lg", GLASS_LIGHT)}>
-                      <CardContent className="flex items-center h-full p-4">
-                        <div className="w-16 h-12 bg-black/5 rounded-lg mr-3 overflow-hidden">
-                          {v.image && (<img src={v.image} alt={v.name} className="w-full h-full object-cover rounded-lg" loading="lazy" decoding="async" />)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm text-gray-900 truncate">{v.name}</h3>
-                          <p className="text-xs text-gray-600">AED {new Intl.NumberFormat().format(v.price)}</p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-gray-700/80 flex-shrink-0" />
-                      </CardContent>
-                    </Card>
-                  )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className={cn("font-medium text-sm truncate", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>{v.name}</h3>
+                        <p className={cn("text-xs", isGR ? "text-[#C6CCD3]" : "text-gray-600")}>AED {new Intl.NumberFormat().format(v.price)}</p>
+                      </div>
+                      <ChevronRight className={cn("h-4 w-4 flex-shrink-0", isGR ? "text-[#C6CCD3]" : "text-gray-700/80")} />
+                    </CardContent>
+                  </Card>
                 </Link>
               </CarouselItem>
             ))}
@@ -703,7 +564,7 @@ const SectionSearch: React.FC<{ isGR: boolean; searchQuery: string; setSearchQue
             {searchSuggestions.map((s) => (
               <CarouselItem key={s.term} className="basis-auto pl-3">
                 <button onClick={() => setSearchQuery(s.term)} className={cn("flex items-center space-x-2 px-4 py-2 rounded-full",
-                                               isGR ? "border border-[#232830] bg-[#0e1113] text-[#EDEEF1]" : "bg-black/5 hover:bg-black/10")}> {s.icon} <span className="text-sm">{s.term}</span> </button>
+                                               isGR ? "border border-[#232830] bg-[#0e1113] text-[#EDEEF1]" : "bg.black/5 hover:bg-black/10")}> {s.icon} <span className="text-sm">{s.term}</span> </button>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -730,7 +591,7 @@ const SectionPreOwned: React.FC<{ isGR: boolean; selectedCategory: string; onCat
                 style={isGR ? { ...carbonMatte, ...hairline('#232830'), color: selectedCategory === category.id ? P_PLATINUM : P_TITANIUM } : (selectedCategory === category.id ? { background: "linear-gradient(180deg,#FAFAFA,#EDEEF1)" } : undefined)}
                 whileHover={reduceMotion ? {} : { scale: 1.04 }} whileTap={reduceMotion ? {} : { scale: 0.96 }}>
                 <span className="mb-2">{category.icon}</span>
-                <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+                <span className="text-xs font.medium whitespace-nowrap">{category.name}</span>
               </motion.button>
             </CarouselItem>
           ))}
@@ -754,47 +615,20 @@ const SectionPreOwned: React.FC<{ isGR: boolean; selectedCategory: string; onCat
           {filteredPreOwnedVehicles.map((v) => (
             <CarouselItem key={v.name} className="pl-4 basis-2/3 sm:basis-1/2">
               <Link to={`/pre-owned/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-black/20">
-                <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
-                  {isGR ? (
-                    <div className={cn("overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline('#242a31') }}>
-                      <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
-                        <img src={v.image} alt={v.name} className="w-full h-full object-cover mix-blend-luminosity opacity-95" loading="lazy" decoding="async" />
-                        <div className="absolute top-2 right-2">
-                          <span className="text-[#EDEEF1] px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: "#171a1e", border: `1px solid ${P_EDGE}` }}>{v.year}</span>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-base mb-1 text-[#EDEEF1]">{v.name}</h3>
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm font-medium text-[#EDEEF1]">AED {fmt.format(v.price)}</p>
-                          <p className="text-xs text-[#C6CCD3]">{v.mileage}</p>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: "#15171A", border: `1px solid ${P_EDGE}`, color: P_TITANIUM }}>Certified Pre-Owned</span>
-                          <span className="text-sm font-semibold flex items-center text-[#EDEEF1]">View <ChevronRight className="h-3 w-3 ml-1"/></span>
-                        </div>
-                      </div>
+                <Card className={cn("overflow-hidden border-0 shadow-xl", isGR ? GLASS_DARK : GLASS_LIGHT)} style={isGR ? { ...carbonMatte, ...hairline('#242a31') } : hairline('rgba(0,0,0,.06)') as React.CSSProperties}>
+                  <div className={cn("aspect-[16/10] w-full", isGR ? "" : "bg-gradient-to-br from-[#F3F4F6] to-[#EDEEF1]")}> <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" /> <div className="absolute top-2 right-2"><span className={cn("px-2 py-1 rounded-full text-xs font-medium", isGR ? "text-[#EDEEF1]" : "text-gray-900")} style={isGR ? { backgroundColor: "#171a1e", border: `1px solid ${P_EDGE}` } : { background: "rgba(255,255,255,.8)", border: "1px solid rgba(0,0,0,.08)" }}>{v.year}</span></div> </div>
+                  <CardContent className="p-4">
+                    <h3 className={cn("font-semibold text-base mb-1", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>{v.name}</h3>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className={cn("text-sm font-medium", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>AED {fmt.format(v.price)}</p>
+                      <p className={cn("text-xs", isGR ? "text-[#C6CCD3]" : "text-gray-600")}>{v.mileage}</p>
                     </div>
-                  ) : (
-                    <Card className={cn("overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
-                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-[#F3F4F6] to-[#EDEEF1] relative">
-                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                        <div className="absolute top-2 right-2"><span className="text-gray-900 px-2 py-1 rounded-full text-xs font-medium bg-white/80 border border-black/10">{v.year}</span></div>
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-base mb-1 text-gray-900">{v.name}</h3>
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm font-medium text-gray-900">AED {fmt.format(v.price)}</p>
-                          <p className="text-xs text-gray-600">{v.mileage}</p>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs bg-black/5 text-gray-900 px-2 py-1 rounded-full font-medium">Certified Pre-Owned</span>
-                          <span className="text-gray-900 text-sm font-semibold flex items-center">View <ChevronRight className="h-3 w-3 ml-1"/></span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </motion.div>
+                    <div className="flex justify-between items-center">
+                      <span className={cn("text-xs px-2 py-1 rounded-full font-medium", isGR ? "text-[#8F97A1]" : "text-gray-900")} style={isGR ? { backgroundColor: "#15171A", border: `1px solid ${P_EDGE}` } : { background: "rgba(0,0,0,.05)" }}>Certified Pre-Owned</span>
+                      <span className={cn("text-sm font-semibold flex items-center", isGR ? "text-[#EDEEF1]" : "text-gray-900")}>View <ChevronRight className="h-3 w-3 ml-1"/></span>
+                    </div>
+                  </CardContent>
+                </Card>
               </Link>
             </CarouselItem>
           ))}
@@ -802,13 +636,13 @@ const SectionPreOwned: React.FC<{ isGR: boolean; selectedCategory: string; onCat
       </Carousel>
 
       <div className="mt-5 text-center">
-        <Link to={`/pre-owned${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`} className={cn("font-semibold inline-flex items-center justify-center rounded-lg", isGR ? "text-[#EDEEF1] hover:text-white" : "text-gray-900 hover:text-black")}>View All Pre-Owned {selectedCategory !== "all" ? vehicleCategories.find((c) => c.id === selectedCategory)?.name : ""} Models<ChevronRight className="ml-1 h-4 w-4" /></Link>
+        <Link to={`/pre-owned${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`} className={cn("font-semibold inline-flex items-center justify-center rounded-lg", isGR ? "text-[#EDEEF1] hover:text.white" : "text-gray-900 hover:text-black")}>View All Pre-Owned {selectedCategory !== "all" ? vehicleCategories.find((c) => c.id === selectedCategory)?.name : ""} Models<ChevronRight className="ml-1 h-4 w-4" /></Link>
       </div>
     </motion.div>
   );
 };
 
-/* ───────────────── NavItem – neutral luxury ───────────────── */
+/* ───────────────── NavItem ───────────────── */
 interface NavItemProps { icon: React.ReactNode; label: string; to: string; isActive?: boolean; onClick?: () => void; grMode?: boolean; }
 const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, grMode = false }) => {
   const base = (
