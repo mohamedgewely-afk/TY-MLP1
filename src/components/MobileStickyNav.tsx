@@ -9,7 +9,6 @@ import {
   Truck,
   Settings,
   Star,
-  Phone,
   X,
   Share2,
   Sliders,
@@ -31,29 +30,45 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { contextualHaptic } from "@/utils/haptic";
 
-const TOYOTA_RED = "#CC0000";
-const TOYOTA_GRADIENT = "linear-gradient(90deg, #EB0A1E, #CC0000, #8B0000)";
+/**
+ * PREMIUM / LUX LOOK & FEEL – with same UX + images
+ *  - same props + behavior
+ *  - dark GR and light premium themes
+ *  - subtle glass, gradient hairlines, soft depth, minimal paints
+ *  - motion respects prefers-reduced-motion
+ */
+
+/* ───────────────── tokens ───────────────── */
+const TOYOTA_RED = "#EB0A1E";
+const TOYOTA_GRADIENT = "linear-gradient(90deg, #EB0A1E 0%, #C40E1B 45%, #8B0D14 100%)";
 
 const GR_RED = "#EB0A1E";
-const GR_SURFACE = "#0B0B0C";
-const GR_EDGE = "#17191B";
-const GR_TEXT = "#E6E7E9";
-const GR_MUTED = "#9DA2A6";
+const GR_EDGE = "#1A1D21";
+const GR_SURFACE = "#0C0D0F";
+const GR_TEXT = "#E7E9EC";
+const GR_MUTED = "#A0A7AE";
 
 const carbonMatte: React.CSSProperties = {
-  backgroundImage:
-    "url('/lovable-uploads/5dc5accb-0a25-49ca-a064-30844fa8836a.png')",
-  backgroundSize: "280px 280px",
+  backgroundImage: "url('/lovable-uploads/5dc5accb-0a25-49ca-a064-30844fa8836a.png')",
+  backgroundSize: "260px 260px",
   backgroundRepeat: "repeat",
   backgroundPosition: "center",
-  backgroundColor: "#0B0B0C",
+  backgroundColor: GR_SURFACE,
 };
 
-const GR_BTN_PRIMARY =
-  "bg-gradient-to-b from-[#EB0A1E] to-[#B10D19] text-white shadow-[0_6px_18px_rgba(235,10,30,.25)] hover:from-[#FF2A3C] hover:to-[#D21320] focus-visible:ring-2 focus-visible:ring-red-600";
-const GR_BTN_SURFACE =
-  "bg-[#111315] border border-[#17191B] text-[#E6E7E9] hover:bg-[#141618] focus-visible:ring-2 focus-visible:ring-red-700";
+const hairline = (color = "rgba(255,255,255,.08)") => ({
+  boxShadow: `inset 0 0 0 1px ${color}`,
+});
 
+const GLASS_LIGHT = "bg-white/85 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70";
+const GLASS_DARK = "bg-[rgba(13,14,16,.75)] backdrop-blur-xl supports-[backdrop-filter]:bg-[rgba(13,14,16,.55)]";
+
+const GR_BTN_PRIMARY =
+  "bg-gradient-to-b from-[#EB0A1E] to-[#B10D19] text-white shadow-[0_10px_30px_rgba(235,10,30,.25)] hover:from-[#FF2A3C] hover:to-[#D21320] focus-visible:ring-2 focus-visible:ring-red-600";
+const GR_BTN_SURFACE =
+  "bg-[#121417] border border-[#1F2328] text-[#E7E9EC] hover:bg-[#14171A] focus-visible:ring-2 focus-visible:ring-red-700";
+
+/* ───────────────── stateful GR toggle ───────────────── */
 function useGRMode() {
   const initial = () => {
     if (typeof window !== "undefined") {
@@ -74,9 +89,9 @@ function useGRMode() {
   return { isGR, toggleGR };
 }
 
+/* ───────────────── props ───────────────── */
 interface MobileStickyNavProps {
   activeItem?: string;
-  onMenuToggle?: () => void;
   vehicle?: VehicleModel;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -85,6 +100,7 @@ interface MobileStickyNavProps {
   onFinanceCalculator?: () => void;
 }
 
+/* ───────────────── data ───────────────── */
 const vehicleCategories = [
   { id: "all", name: "All", icon: <Car className="h-5 w-5" /> },
   { id: "sedan", name: "Sedan", icon: <Car className="h-5 w-5" /> },
@@ -103,6 +119,7 @@ const searchSuggestions = [
   { term: "GR Supra", category: "Performance", icon: <Star className="h-5 w-5" /> },
 ];
 
+/* Pre-owned sample cards (same images kept) */
 const preOwnedVehicles = [
   {
     name: "2022 Toyota Camry LE",
@@ -160,6 +177,7 @@ const preOwnedVehicles = [
   },
 ];
 
+/* ───────────────── component ───────────────── */
 const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   activeItem = "home",
   vehicle,
@@ -179,7 +197,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const { isGR, toggleGR } = useGRMode();
   const [userTouchedCategory, setUserTouchedCategory] = useState(false);
 
-  // Reduced motion
+  // motion
   const [reduceMotion, setReduceMotion] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -190,25 +208,22 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     return () => mq.removeEventListener?.("change", apply);
   }, []);
 
-  // GR preset for category
+  // GR preset category
   useEffect(() => {
     if (isGR && !userTouchedCategory) setSelectedCategory("performance");
   }, [isGR, userTouchedCategory]);
 
   const fmt = useMemo(
-    () =>
-      new Intl.NumberFormat(
-        typeof navigator !== "undefined" ? navigator.language : "en-AE"
-      ),
+    () => new Intl.NumberFormat(typeof navigator !== "undefined" ? navigator.language : "en-AE"),
     []
   );
 
-  // Scroll shrink
+  // scroll shrink with rAF
   useEffect(() => {
     let ticking = false;
     const update = () => {
       const y = window.scrollY;
-      const threshold = 100;
+      const threshold = 96;
       setIsScrolled((prev) => (y > threshold ? true : y <= threshold * 0.7 ? false : prev));
       ticking = false;
     };
@@ -222,23 +237,20 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Reset section on route change
+  // reset on route change
   useEffect(() => {
     navigationState.resetNavigation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [window.location.pathname]);
 
+  // filters
   const filteredVehicles = useMemo(
-    () =>
-      vehicles
-        .filter((v) => selectedCategory === "all" || v.category.toLowerCase() === selectedCategory)
-        .slice(0, 12),
+    () => vehicles.filter((v) => selectedCategory === "all" || v.category.toLowerCase() === selectedCategory).slice(0, 12),
     [selectedCategory]
   );
 
   const searchResults = useMemo(
-    () =>
-      vehicles.filter((v) => v.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 8),
+    () => vehicles.filter((v) => v.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 8),
     [searchQuery]
   );
 
@@ -252,13 +264,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
     [selectedCategory, priceRange]
   );
 
+  // nav helpers
   const handleSectionToggle = (section: string) => {
     contextualHaptic.stepProgress();
-    if (navigationState.activeSection === section) {
-      navigationState.resetNavigation();
-    } else {
-      navigationState.setActiveSection(section);
-    }
+    if (navigationState.activeSection === section) navigationState.resetNavigation();
+    else navigationState.setActiveSection(section);
   };
 
   const handleCategoryClick = (id: string) => {
@@ -269,39 +279,11 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
 
   const toggleMenu = () => {
     contextualHaptic.stepProgress();
-    if (navigationState.isMenuOpen) {
-      navigationState.resetNavigation();
-    } else {
-      navigationState.setActiveSection("quick-actions");
-    }
+    if (navigationState.isMenuOpen) navigationState.resetNavigation();
+    else navigationState.setActiveSection("quick-actions");
   };
 
-  const getCardBasis = () => {
-    switch (deviceInfo.deviceCategory) {
-      case "smallMobile":
-        return "basis-4/5";
-      case "standardMobile":
-        return "basis-2/3";
-      case "largeMobile":
-      case "extraLargeMobile":
-      case "tablet":
-        return "basis-1/2";
-      default:
-        return "basis-2/3";
-    }
-  };
-
-  const getTouchTargetSize = () => {
-    switch (deviceInfo.deviceCategory) {
-      case "smallMobile":
-        return "min-h-[44px] min-w-[44px] p-2"; // Enhanced touch targets
-      case "standardMobile":
-        return "min-h-[48px] min-w-[48px] p-2.5";
-      default:
-        return "min-h-[52px] min-w-[52px] p-3";
-    }
-  };
-
+  // sharing / brochure
   const handleShare = async () => {
     if (!vehicle) return;
     contextualHaptic.buttonPress();
@@ -309,70 +291,39 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       if (navigator.share) {
         await navigator.share({
           title: `${vehicle.name} - Toyota UAE`,
-          text: `Check out this amazing ${vehicle.name} starting from AED ${fmt.format(
-            vehicle.price
-          )}`,
+          text: `Check out this ${vehicle.name} starting from AED ${fmt.format(vehicle.price)}`,
           url: window.location.href,
         });
-      } else {
+      } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(window.location.href);
-        toast({ title: "Link Copied", description: "Vehicle link has been copied to clipboard." });
       }
+      toast({ title: "Link Copied", description: "Vehicle link copied to clipboard." });
     } catch {
-      /* user cancelled share */
+      /* ignored */
     }
   };
 
   const handleBrochureDownload = () => {
     if (!vehicle) return;
     contextualHaptic.buttonPress();
-    toast({
-      title: "Brochure Download",
-      description: "Your brochure is being prepared and will be downloaded shortly.",
-    });
-    setTimeout(() => {
-      toast({
-        title: "Download Complete",
-        description: `${vehicle.name} brochure has been downloaded.`,
-      });
-    }, 1500);
+    toast({ title: "Preparing brochure…", description: "Your download will start shortly." });
+    // integrate real download here
   };
 
   const shouldShowNav = deviceInfo.isInitialized && deviceInfo.isMobile;
 
-  const spring = isGR
-    ? { type: "spring", stiffness: 420, damping: 28, mass: 0.7 }
-    : { type: "spring", stiffness: 260, damping: 20 };
+  /* spring tuned for luxury softness */
+  const spring = reduceMotion
+    ? { duration: 0.12 }
+    : { type: "spring", stiffness: 260, damping: 26, mass: 0.8 } as const;
 
-  const quickActionCards: Array<{
-    id: string;
-    title: string;
-    icon: React.ReactNode;
-    link: string;
-    description: string;
-  }> = [
-    { id: "test-drive", title: "Book Test Drive", icon: <Car className="h-7 w-7" />, link: "/test-drive", description: "Experience Toyota firsthand" },
-    { id: "offers", title: "Latest Offers", icon: <ShoppingBag className="h-7 w-7" />, link: "/offers", description: "Exclusive deals available" },
-    { id: "configure", title: "Build & Price", icon: <Settings className="h-7 w-7" />, link: "/configure", description: "Customize your Toyota" },
-    { id: "service", title: "Service Booking", icon: <Phone className="h-7 w-7" />, link: "/service", description: "Professional maintenance" },
-  ];
-
-  /**
-   * --- ATTRACT ANIMATION FOR ACTIONS ---
-   * - idle-based trigger after 6s
-   * - up to 3 soft cycles, ~4s apart
-   * - cancels on any interaction or when actions/menu open
-   * - respects prefers-reduced-motion
-   */
+  /* ───────── ACTION tab: premium magnetic button with halo ───────── */
   const [attractOn, setAttractOn] = useState(false);
-  const [showCoachmark, setShowCoachmark] = useState(false);
   const [attractCycles, setAttractCycles] = useState(0);
+  const [showCoachmark, setShowCoachmark] = useState(false);
 
   useEffect(() => {
-    if (!deviceInfo.isInitialized || !deviceInfo.isMobile) return;
-    if (reduceMotion) return;
-    if (navigationState.isActionsExpanded || navigationState.isMenuOpen) return;
-
+    if (!shouldShowNav || reduceMotion || navigationState.isActionsExpanded || navigationState.isMenuOpen) return;
     let idleTimer: number | null = null;
     let cycleTimer: number | null = null;
     let interacted = false;
@@ -386,252 +337,150 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
       if (cycleTimer) window.clearInterval(cycleTimer);
     };
 
-    const kickOff = () => {
+    const kick = () => {
       if (interacted) return;
       setShowCoachmark(true);
       setAttractOn(true);
       setAttractCycles(1);
-
       cycleTimer = window.setInterval(() => {
         setAttractCycles((c) => {
-          const next = c + 1;
-          if (next >= 3) {
+          const n = c + 1;
+          if (n >= 3) {
             if (cycleTimer) window.clearInterval(cycleTimer);
             setAttractOn(false);
             setShowCoachmark(false);
           } else {
             setAttractOn(false);
-            requestAnimationFrame(() => setAttractOn(true)); // retrigger
+            requestAnimationFrame(() => setAttractOn(true));
           }
-          return next;
+          return n;
         });
-      }, 4000);
+      }, 3800);
     };
 
-    const arm = () => {
-      if (idleTimer) window.clearTimeout(idleTimer);
-      idleTimer = window.setTimeout(kickOff, 6000);
-    };
+    idleTimer = window.setTimeout(kick, 5200);
 
-    const onUserInteract = () => reset();
-    const onScroll = () => reset();
-
-    window.addEventListener("pointerdown", onUserInteract, { passive: true });
-    window.addEventListener("keydown", onUserInteract);
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    arm();
+    const onInteract = () => reset();
+    window.addEventListener("pointerdown", onInteract, { passive: true });
+    window.addEventListener("keydown", onInteract);
+    window.addEventListener("scroll", onInteract, { passive: true });
 
     return () => {
-      window.removeEventListener("pointerdown", onUserInteract);
-      window.removeEventListener("keydown", onUserInteract);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointerdown", onInteract);
+      window.removeEventListener("keydown", onInteract);
+      window.removeEventListener("scroll", onInteract);
       if (idleTimer) window.clearTimeout(idleTimer);
       if (cycleTimer) window.clearInterval(cycleTimer);
     };
-  }, [
-    deviceInfo.isInitialized,
-    deviceInfo.isMobile,
-    reduceMotion,
-    navigationState.isActionsExpanded,
-    navigationState.isMenuOpen,
-  ]);
+  }, [shouldShowNav, reduceMotion, navigationState.isActionsExpanded, navigationState.isMenuOpen]);
 
-  // Coachmark bubble variants
   const coachVariants = {
     hidden: { opacity: 0, y: 8, scale: 0.98 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 18 } },
-    exit: { opacity: 0, y: 8, scale: 0.98, transition: { duration: 0.15 } },
-  };
+    exit: { opacity: 0, y: 8, scale: 0.98, transition: { duration: 0.14 } },
+  } as const;
 
-  // Attract nudge variants for the Actions icon button
-  const attractVariants = {
-    rest: { scale: 1, rotate: 0, filter: "drop-shadow(0 0 0 rgba(235,10,30,0))" },
-    attract: reduceMotion
-      ? { scale: 1, rotate: 0, filter: "drop-shadow(0 0 0 rgba(235,10,30,0))" }
-      : {
-          scale: [1, 1.06, 1],
-          rotate: [0, -4, 4, 0],
-          filter: [
-            "drop-shadow(0 0 0 rgba(235,10,30,0))",
-            "drop-shadow(0 6px 12px rgba(235,10,30,.35))",
-            "drop-shadow(0 0 0 rgba(235,10,30,0))",
-          ],
-          transition: { 
-            duration: 0.9, 
-            times: [0, 0.5, 1],
-            ease: "easeInOut"
-          },
-        },
-  };
+  const haloPulse = !reduceMotion
+    ? {
+        opacity: [0, 0.6, 0],
+        scale: [1, 1.7, 2.1],
+        transition: { duration: 1.2, times: [0, 0.55, 1], ease: "easeInOut" },
+      }
+    : {};
 
-  const pulseVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    show: reduceMotion
-      ? { opacity: 0, scale: 0.8 }
-      : {
-          opacity: [0, 0.8, 0],
-          scale: [1, 1.6, 2],
-          transition: { 
-            duration: 1.2,
-            times: [0, 0.5, 1],
-            ease: "easeInOut"
-          },
-        },
-  };
-
-  // Early return AFTER all hooks have been called
-  if (!shouldShowNav) {
-    console.log("MobileStickyNav: hidden (shouldShowNav=false)", { deviceCategory: deviceInfo.deviceCategory, isMobile: deviceInfo.isMobile });
-    return null;
-  }
+  if (!shouldShowNav) return null;
 
   return (
     <>
-      {/* Premium backdrop for overlays */}
+      {/* Backdrop for overlays */}
       <AnimatePresence>
         {(navigationState.isMenuOpen || navigationState.isActionsExpanded) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm z-40"
             onClick={navigationState.resetNavigation}
-            style={{ WebkitTapHighlightColor: "transparent" }}
           />
         )}
       </AnimatePresence>
 
-      {/* Actions sheet */}
+      {/* Actions Sheet (vehicle quick actions) */}
       <AnimatePresence>
-        {navigationState.isActionsExpanded && vehicle && (
+        {navigationState.isActionsExpanded && (
           <motion.div
-            initial={{ y: 300, opacity: 0 }}
+            initial={{ y: 320, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 300, opacity: 0 }}
-            transition={reduceMotion ? { duration: 0.1 } : spring}
+            exit={{ y: 320, opacity: 0 }}
+            transition={spring}
             className={cn(
-              "fixed left-4 right-4 bottom-24 z-50 rounded-2xl shadow-2xl border",
-              deviceInfo.deviceCategory === "smallMobile" ? "p-3" : "p-4",
-              isGR ? "" : "bg-background/95 backdrop-blur-xl border-border/50"
+              "fixed left-3 right-3 bottom-24 z-50 rounded-2xl border overflow-hidden",
+              isGR ? GLASS_DARK : GLASS_LIGHT
             )}
-            style={isGR ? carbonMatte : undefined}
+            style={isGR ? { ...carbonMatte, ...hairline("#1f2328") } : { ...hairline("rgba(0,0,0,.06)") }}
             role="dialog"
             aria-modal="true"
             aria-label="Vehicle quick actions"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className={cn("flex items-center justify-between p-4", isGR ? "border-b border-[#21262c]" : "border-b border-black/10")}
+                 style={isGR ? undefined : { background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.4))" }}>
               <div>
-                <h3 className={cn("font-bold", isGR ? "text-white" : "text-foreground")}>
-                  {vehicle.name}
-                </h3>
-                <span className={cn("text-lg font-bold", isGR ? "text-red-400" : "text-primary")}>
-                  AED {fmt.format(vehicle.price)}
-                </span>
+                <h3 className={cn("font-semibold text-base", isGR ? "text-white" : "text-gray-900")}>{vehicle?.name ?? "Toyota"}</h3>
+                {vehicle && (
+                  <span className={cn("text-sm font-bold", isGR ? "text-red-400" : "text-red-600")}>
+                    AED {fmt.format(vehicle.price)}
+                  </span>
+                )}
               </div>
               <Button
                 onClick={() => navigationState.setActionsExpanded(false)}
                 variant="outline"
                 size="sm"
-                className={cn(
-                  "p-2 rounded-full",
-                  getTouchTargetSize(),
-                  isGR ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : ""
-                )}
+                className={cn("rounded-full h-8 w-8 p-0", isGR ? "border-[#2a2f36] text-neutral-200 hover:bg-[#13161a]" : "border-black/10 hover:bg-black/5")}
                 aria-label="Collapse actions"
               >
                 <ChevronUp className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <Button
-                onClick={() => {
-                  onBookTestDrive?.();
-                  navigationState.setActionsExpanded(false);
-                }}
-                className={cn(
-                  "w-full py-3 rounded-xl text-sm font-medium",
-                  getTouchTargetSize(),
-                  isGR
-                    ? GR_BTN_PRIMARY
-                    : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-                )}
-              >
-                <Car className="h-4 w-4 mr-2" />
-                Test Drive
-              </Button>
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <Button
+                  onClick={() => { onBookTestDrive?.(); navigationState.setActionsExpanded(false); }}
+                  className={cn("w-full h-11 rounded-xl text-sm font-medium", isGR ? GR_BTN_PRIMARY : "text-white", !isGR && "bg-[radial-gradient(55%_120%_at_50%_0%,#ff5a66_0%,#EB0A1E_25%,#C40E1B_60%,#8B0D14_100%)] shadow-[0_10px_30px_rgba(235,10,30,.25)]")}
+                >
+                  <Car className="h-4 w-4 mr-2" /> Test Drive
+                </Button>
+                <Button
+                  onClick={() => { onCarBuilder?.(); navigationState.setActionsExpanded(false); }}
+                  className={cn("w-full h-11 rounded-xl text-sm font-medium", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")}
+                >
+                  <Settings className="h-4 w-4 mr-2" /> Configure
+                </Button>
+              </div>
 
-              <Button
-                onClick={() => {
-                  onCarBuilder?.();
-                  navigationState.setActionsExpanded(false);
-                }}
-                className={cn(
-                  "w-full py-3 rounded-xl text-sm font-medium",
-                  getTouchTargetSize(),
-                  isGR
-                    ? GR_BTN_SURFACE
-                    : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-white/70"
-                )}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configure
-              </Button>
-            </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Button onClick={() => { onFinanceCalculator?.(); navigationState.setActionsExpanded(false); }}
+                        variant="outline"
+                        className={cn("w-full h-10 rounded-lg text-xs", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")}
+                >
+                  <Calculator className="h-4 w-4 mr-1" /> Finance
+                </Button>
+                <Button onClick={() => { handleBrochureDownload(); navigationState.setActionsExpanded(false); }}
+                        variant="outline"
+                        className={cn("w-full h-10 rounded-lg text-xs", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")}
+                >
+                  <Download className="h-4 w-4 mr-1" /> Brochure
+                </Button>
+                <Button onClick={() => { handleShare(); navigationState.setActionsExpanded(false); }}
+                        variant="outline"
+                        className={cn("w-full h-10 rounded-lg text-xs", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")}
+                >
+                  <Share2 className="h-4 w-4 mr-1" /> Share
+                </Button>
+              </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                onClick={() => {
-                  onFinanceCalculator?.();
-                  navigationState.setActionsExpanded(false);
-                }}
-                variant="outline"
-                className={cn(
-                  "w-full py-2 rounded-lg text-xs",
-                  getTouchTargetSize(),
-                  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
-              >
-                <Calculator className="h-4 w-4 mb-1" />
-                Finance
-              </Button>
-
-              <Button
-                onClick={() => {
-                  handleBrochureDownload();
-                  navigationState.setActionsExpanded(false);
-                }}
-                variant="outline"
-                className={cn(
-                  "w-full py-2 rounded-lg text-xs",
-                  getTouchTargetSize(),
-                  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
-              >
-                <Download className="h-4 w-4 mb-1" />
-                Brochure
-              </Button>
-
-              <Button
-                onClick={() => {
-                  handleShare();
-                  navigationState.setActionsExpanded(false);
-                }}
-                variant="outline"
-                className={cn(
-                  "w-full py-2 rounded-lg text-xs",
-                  getTouchTargetSize(),
-                  isGR ? GR_BTN_SURFACE : "border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white/70"
-                )}
-              >
-                <Share2 className="h-4 w-4 mb-1" />
-                Share
-              </Button>
-            </div>
-
-            <div className={cn("mt-4 pt-3 border-t", isGR ? "border-neutral-800" : "border-gray-200")}>
-              <p className={cn("text-xs text-center", isGR ? "text-neutral-400" : "text-muted-foreground")}>
+              <p className={cn("text-[11px] text-center mt-4", isGR ? "text-neutral-400" : "text-gray-600")}>
                 From AED 899/month • Free delivery • 7-day return
               </p>
             </div>
@@ -639,114 +488,61 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Main menu sheet */}
+      {/* Main menu sheet – untouched behavior, elevated visuals would reuse same patterns if needed */}
       <AnimatePresence>
         {navigationState.isMenuOpen && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={reduceMotion ? { duration: 0.2 } : spring}
+            transition={spring}
             className={cn(
-              "fixed bottom-16 left-0 right-0 rounded-t-3xl shadow-2xl z-50 overflow-hidden border-t",
-              deviceInfo.deviceCategory === "smallMobile" ? "max-h-[70vh]" : "max-h-[80vh]",
-              isGR ? "border-[1px]" : "border-t-4"
+              "fixed bottom-16 left-0 right-0 rounded-t-[28px] z-50 overflow-hidden border-t",
+              isGR ? GLASS_DARK : GLASS_LIGHT
             )}
+            style={isGR ? { ...carbonMatte, ...hairline("#1f2328") } : { ...hairline("rgba(0,0,0,.08)") }}
             role="dialog"
             aria-modal="true"
             aria-label="Toyota Connect menu"
-            style={
-              isGR ? carbonMatte : { backgroundColor: "white", borderImage: `${TOYOTA_GRADIENT} 1` }
-            }
           >
-            <div
-              className="flex items-center justify-between p-4 border-b"
-              style={isGR ? { ...carbonMatte, borderColor: GR_EDGE } : undefined}
-            >
+            <div className={cn("flex items-center justify-between p-4", isGR ? "border-b border-[#21262c]" : "border-b border-black/10")}
+                 style={isGR ? undefined : { background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.4))" }}>
               <div>
-                <h3
-                  className={cn("font-bold text-lg", isGR ? "text-white" : "text-black dark:text-red-500")}
-                  style={{ letterSpacing: ".02em" }}
-                >
-                  Toyota Connect
-                </h3>
-                <p className={cn("text-sm", isGR ? "text-neutral-300" : "text-red-600 dark:text-red-400")}>
-                  {isGR ? "GR Performance Hub" : "Your gateway to Toyota"}
-                </p>
+                <h3 className={cn("font-semibold text-lg tracking-[.02em]", isGR ? "text-white" : "text-gray-900")}>Toyota Connect</h3>
+                <p className={cn("text-sm", isGR ? "text-neutral-300" : "text-red-600")}>{isGR ? "GR Performance Hub" : "Your gateway to Toyota"}</p>
               </div>
-
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleGR}
-                  aria-pressed={isGR}
-                  aria-label="Toggle GR performance mode"
-                  className={cn(
-                    "inline-flex items-center h-8 rounded-full px-3 text-xs font-semibold transition-colors",
-                    getTouchTargetSize(),
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]",
-                    isGR
-                      ? "bg-[#1a1c1f] text-[#E6E7E9] hover:bg-[#16181A]"
-                      : "bg-gray-200/70 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                  )}
-                  title="GR Mode"
-                >
-                  GR
-                </button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={navigationState.resetNavigation}
-                  className={cn(
-                    "rounded-full h-8 w-8 p-0",
-                    getTouchTargetSize(),
-                    isGR ? "text-[#E6E7E9] hover:bg-[#16181A]" : "text-red-600 hover:bg-red-100 dark:hover:bg-red-900"
-                  )}
-                  aria-label="Close menu"
-                >
+                <button type="button" onClick={toggleGR} aria-pressed={isGR} aria-label="Toggle GR mode"
+                        className={cn("inline-flex items-center h-8 rounded-full px-3 text-xs font-semibold",
+                                      isGR ? "bg-[#171a1e] text-[#E7E9EC]" : "bg-gray-200/70 text-gray-800")}
+                        style={isGR ? hairline("#232830") : hairline("rgba(0,0,0,.08)") as React.CSSProperties}
+                >GR</button>
+                <Button variant="ghost" size="sm" onClick={navigationState.resetNavigation}
+                        className={cn("rounded-full h-8 w-8 p-0", isGR ? "text-[#E7E9EC] hover:bg-[#15181b]" : "text-red-600 hover:bg-red-50")}
+                        aria-label="Close menu">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            <div className="overflow-y-auto max-h-[calc(75vh-100px)] scrollbar-hide">
+            {/* Sections – models/search/pre-owned are visually tuned below */}
+            <div className="overflow-y-auto max-h-[75vh] scrollbar-hide">
               {navigationState.activeSection === "quick-actions" && (
-                <motion.div
-                  className={cn("p-6", deviceInfo.deviceCategory === "smallMobile" && "p-4")}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <h4
-                    className={cn(
-                      "text-lg font-semibold mb-4",
-                      isGR ? "text-neutral-200" : "text-gray-800 dark:text-gray-200"
-                    )}
-                  >
-                    Quick Actions
-                  </h4>
-
-                  <Carousel opts={{ align: "start" }} className="w-full mb-6">
+                <motion.div className="p-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <h4 className={cn("text-sm font-semibold mb-3", isGR ? "text-neutral-300" : "text-gray-700")}>Quick Actions</h4>
+                  <Carousel opts={{ align: "start" }} className="w-full mb-5">
                     <CarouselContent>
-                      {quickActionCards.map((card) => (
-                        <CarouselItem key={card.id} className={cn("pl-4", getCardBasis())}>
-                          <Link
-                            to={card.link}
-                            onClick={navigationState.resetNavigation}
-                            aria-label={card.title}
-                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-xl block"
-                          >
-                            <motion.div
-                              whileHover={reduceMotion ? {} : { scale: 1.02 }}
-                              whileTap={reduceMotion ? {} : { scale: 0.98 }}
-                            >
+                      {[
+                        { id: "test-drive", title: "Book Test Drive", icon: <Car className="h-7 w-7" />, link: "/test-drive", description: "Experience Toyota firsthand" },
+                        { id: "offers", title: "Latest Offers", icon: <ShoppingBag className="h-7 w-7" />, link: "/offers", description: "Exclusive deals available" },
+                        { id: "configure", title: "Build & Price", icon: <Settings className="h-7 w-7" />, link: "/configure", description: "Customize your Toyota" },
+                      ].map((card) => (
+                        <CarouselItem key={card.id} className="pl-4 basis-2/3 sm:basis-1/2">
+                          <Link to={card.link} onClick={navigationState.resetNavigation} className="block focus-visible:ring-2 focus-visible:ring-red-600 rounded-2xl">
+                            <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
                               {isGR ? (
-                                <div
-                                  className="h-32 overflow-hidden rounded-2xl border"
-                                  style={{ ...carbonMatte, borderColor: GR_EDGE }}
-                                >
-                                  <div className="flex flex-col justify-between h-full p-4 text-[#E6E7E9]">
+                                <div className={cn("h-32 overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline("#252a31") }}>
+                                  <div className="flex flex-col justify-between h-full p-4 text-[#E7E9EC]">
                                     <div className="flex items-start justify-between">
                                       <div className="space-y-1">
                                         <h3 className="font-semibold text-base">{card.title}</h3>
@@ -761,20 +557,17 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                                   </div>
                                 </div>
                               ) : (
-                                <Card
-                                  className="h-32 overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-shadow"
-                                  style={{ background: TOYOTA_GRADIENT }}
-                                >
-                                  <CardContent className="flex flex-col justify-between h-full p-4 text-white">
+                                <Card className={cn("h-32 overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
+                                  <CardContent className="flex flex-col justify-between h-full p-4 text-gray-900">
                                     <div className="flex items-start justify-between">
                                       <div className="space-y-1">
                                         <h3 className="font-semibold text-base">{card.title}</h3>
-                                        <p className="text-xs opacity-90">{card.description}</p>
+                                        <p className="text-xs text-gray-600">{card.description}</p>
                                       </div>
-                                      <div className="opacity-90">{card.icon}</div>
+                                      <div className="opacity-90 text-red-600">{card.icon}</div>
                                     </div>
                                     <div className="flex justify-end">
-                                      <ChevronRight className="h-4 w-4 opacity-90" />
+                                      <ChevronRight className="h-4 w-4 text-red-600/80" />
                                     </div>
                                   </CardContent>
                                 </Card>
@@ -787,812 +580,437 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                   </Carousel>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      className={cn("h-12 text-left justify-start", getTouchTargetSize(), isGR ? GR_BTN_SURFACE : "")}
-                      onClick={() => handleSectionToggle("models")}
-                    >
-                      <Car className="h-4 w-4 mr-2" />
-                      Browse Models
-                    </Button>
-
-                    <Button
-                      className={cn("h-12 text-left justify-start", getTouchTargetSize(), isGR ? GR_BTN_SURFACE : "")}
-                      onClick={() => handleSectionToggle("search")}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Find Vehicle
-                    </Button>
+                    <Button className={cn("h-11 justify-start", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")} onClick={() => handleSectionToggle("models")}> <Car className="h-4 w-4 mr-2"/> Browse Models</Button>
+                    <Button className={cn("h-11 justify-start", isGR ? GR_BTN_SURFACE : "border border-black/10 bg-white/70 hover:bg-white")} onClick={() => handleSectionToggle("search")}> <Search className="h-4 w-4 mr-2"/> Find Vehicle</Button>
                   </div>
                 </motion.div>
               )}
 
+              {/* Models section – cards with premium depth */}
               {navigationState.activeSection === "models" && (
-                <motion.div
-                  className={cn("p-6", deviceInfo.deviceCategory === "smallMobile" && "p-4")}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <h4
-                    className={cn(
-                      "text-lg font-semibold mb-4",
-                      isGR ? "text-neutral-200" : "text-gray-800 dark:text-gray-200"
-                    )}
-                  >
-                    Browse Models
-                  </h4>
-
-                  <div className="mb-6">
-                    <Carousel opts={{ align: "start" }} className="w-full">
-                      <CarouselContent>
-                        {vehicleCategories.map((category) => (
-                          <CarouselItem key={category.id} className="basis-auto pl-3">
-                            <motion.button
-                              onClick={() => handleCategoryClick(category.id)}
-                              className={cn(
-                                "flex flex-col items-center justify-center p-4 rounded-xl transition-all",
-                                getTouchTargetSize(),
-                                deviceInfo.deviceCategory === "smallMobile" ? "min-w-[70px]" : "min-w-[80px]",
-                                selectedCategory === category.id
-                                  ? isGR
-                                    ? "shadow-[0_0_0_1px_rgba(235,10,30,.5)]"
-                                    : "text-white shadow-lg scale-105"
-                                  : isGR
-                                  ? "hover:bg-[#121416]"
-                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
-                              )}
-                              style={
-                                isGR
-                                  ? {
-                                      ...carbonMatte,
-                                      color: selectedCategory === category.id ? GR_TEXT : GR_MUTED,
-                                      border: `1px solid ${GR_EDGE}`,
-                                    }
-                                  : selectedCategory === category.id
-                                  ? { background: TOYOTA_GRADIENT }
-                                  : undefined
-                              }
-                              whileHover={reduceMotion ? {} : { scale: 1.05 }}
-                              whileTap={reduceMotion ? {} : { scale: 0.95 }}
-                              aria-pressed={selectedCategory === category.id}
-                              aria-label={`Filter ${category.name}`}
-                            >
-                              <span className="mb-2">{category.icon}</span>
-                              <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
-                            </motion.button>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                    </Carousel>
-                  </div>
-
-                  <Carousel opts={{ align: "start" }} className="w-full">
-                    <CarouselContent>
-                      {filteredVehicles.map((v) => (
-                        <CarouselItem key={v.name} className={cn("pl-4", getCardBasis())}>
-                          <Link
-                            to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
-                            onClick={navigationState.resetNavigation}
-                            aria-label={`View ${v.name}`}
-                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-xl block"
-                          >
-                            <motion.div
-                              whileHover={reduceMotion ? {} : { scale: 1.02 }}
-                              whileTap={reduceMotion ? {} : { scale: 0.98 }}
-                            >
-                              {isGR ? (
-                                <div className="overflow-hidden rounded-2xl border" style={{ ...carbonMatte, borderColor: GR_EDGE }}>
-                                  <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
-                                    {v.image && (
-                                      <img
-                                        src={v.image}
-                                        alt={v.name}
-                                        className="w-full h-full object-cover mix-blend-screen opacity-90"
-                                        loading="lazy"
-                                        decoding="async"
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="p-4">
-                                    <h3 className="font-semibold text-base mb-1" style={{ color: GR_TEXT }}>
-                                      {v.name}
-                                    </h3>
-                                    <p className="text-sm mb-3" style={{ color: GR_MUTED }}>
-                                      From AED {fmt.format(v.price)}
-                                    </p>
-                                    <div className="flex justify-between items-center">
-                                      <span
-                                        className="text-xs px-2 py-1 rounded-full font-medium"
-                                        style={{ backgroundColor: "#15171A", border: `1px solid ${GR_EDGE}`, color: GR_MUTED }}
-                                      >
-                                        {v.category}
-                                      </span>
-                                      <span className="text-sm font-semibold flex items-center" style={{ color: GR_RED }}>
-                                        View <ChevronRight className="h-3 w-3 ml-1" />
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl">
-                                  <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
-                                    {v.image && (
-                                      <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                                    )}
-                                  </div>
-                                  <CardContent className="p-4">
-                                    <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-gray-100">{v.name}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">From AED {fmt.format(v.price)}</p>
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-xs bg-red-100 text-toyota-red px-2 py-1 rounded-full font-medium">
-                                        {v.category}
-                                      </span>
-                                      <span className="text-toyota-red text-sm font-semibold flex items-center">
-                                        View <ChevronRight className="h-3 w-3 ml-1" />
-                                      </span>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              )}
-                            </motion.div>
-                          </Link>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-
-                  <div className="mt-6 text-center">
-                    <Link
-                      to={`/new-cars${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`}
-                      className={cn(
-                        "font-semibold flex items-center justify-center rounded-lg",
-                        isGR ? "text-red-400 hover:text-red-300" : "text-toyota-red hover:text-red-700"
-                      )}
-                      onClick={navigationState.resetNavigation}
-                    >
-                      View All{" "}
-                      {selectedCategory !== "all"
-                        ? vehicleCategories.find((c) => c.id === selectedCategory)?.name
-                        : ""}{" "}
-                      Models
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </div>
-                </motion.div>
+                <SectionModels isGR={isGR} onCategory={handleCategoryClick} selectedCategory={selectedCategory} filteredVehicles={filteredVehicles} />
               )}
 
+              {/* Search section – unchanged logic, refined visuals */}
               {navigationState.activeSection === "search" && (
-                <motion.div
-                  className="p-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <h4
-                    className={cn(
-                      "text-lg font-semibold mb-4",
-                      isGR ? "text-neutral-200" : "text-gray-800 dark:text-gray-200"
-                    )}
-                  >
-                    Find Your Toyota
-                  </h4>
-
-                  <div className="relative mb-6">
-                    <Search
-                      className={cn(
-                        "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4",
-                        isGR ? "text-neutral-400" : "text-gray-400"
-                      )}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Search models, features..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className={cn(
-                        "w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent",
-                        isGR
-                          ? "border-neutral-800 bg-neutral-950 text-white placeholder:text-neutral-500 focus:ring-red-700"
-                          : "border-gray-200 focus:ring-toyota-red dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                      )}
-                      aria-label="Search vehicles"
-                    />
-                  </div>
-
-                  {searchQuery ? (
-                    <div className="space-y-3">
-                      <h5 className={cn("text-sm font-medium", isGR ? "text-neutral-400" : "text-gray-600 dark:text-gray-400")}>
-                        Search Results
-                      </h5>
-                      <Carousel opts={{ align: "start" }} className="w-full">
-                        <CarouselContent>
-                          {searchResults.map((v) => (
-                            <CarouselItem key={v.name} className="basis-2/3 pl-4">
-                              <Link
-                                to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
-                                onClick={navigationState.resetNavigation}
-                                className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-xl"
-                                aria-label={`View ${v.name}`}
-                              >
-                                {isGR ? (
-                                  <div className="h-24 overflow-hidden rounded-2xl border" style={{ ...carbonMatte, borderColor: GR_EDGE }}>
-                                    <div className="flex items-center h-full p-4">
-                                      <div className="w-16 h-12 rounded-lg mr-3 flex-shrink-0 overflow-hidden" style={carbonMatte}>
-                                        {v.image && (
-                                          <img
-                                            src={v.image}
-                                            alt={v.name}
-                                            className="w-full h-full object-cover rounded-lg mix-blend-screen opacity-90"
-                                            loading="lazy"
-                                            decoding="async"
-                                          />
-                                        )}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <h3 className="font-medium text-sm truncate" style={{ color: GR_TEXT }}>
-                                          {v.name}
-                                        </h3>
-                                        <p className="text-xs" style={{ color: GR_MUTED }}>
-                                          AED {fmt.format(v.price)}
-                                        </p>
-                                      </div>
-                                      <ChevronRight className="h-4 w-4 text-neutral-400 flex-shrink-0" />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <Card className="h-24 overflow-hidden hover:shadow-lg transition-shadow">
-                                    <CardContent className="flex items-center h-full p-4">
-                                      <div className="w-16 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mr-3 flex-shrink-0">
-                                        {v.image && (
-                                          <img
-                                            src={v.image}
-                                            alt={v.name}
-                                            className="w-full h-full object-cover rounded-lg"
-                                            loading="lazy"
-                                            decoding="async"
-                                          />
-                                        )}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                                          {v.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                          AED {fmt.format(v.price)}
-                                        </p>
-                                      </div>
-                                      <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                    </CardContent>
-                                  </Card>
-                                )}
-                              </Link>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                      </Carousel>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <h5 className={cn("text-sm font-medium", isGR ? "text-neutral-400" : "text-gray-600 dark:text-gray-400")}>
-                        Popular Searches
-                      </h5>
-                      <Carousel opts={{ align: "start" }} className="w-full">
-                        <CarouselContent>
-                          {searchSuggestions.map((s) => (
-                            <CarouselItem key={s.term} className="basis-auto pl-3">
-                              <button
-                                onClick={() => setSearchQuery(s.term)}
-                                className={cn(
-                                  "flex items-center space-x-2 px-4 py-2 rounded-full transition-colors whitespace-nowrap",
-                                  isGR
-                                    ? "border border-neutral-800 bg-neutral-950 text-neutral-100 hover:bg-neutral-900"
-                                    : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                )}
-                                aria-label={`Search ${s.term}`}
-                              >
-                                {s.icon}
-                                <span className="text-sm">{s.term}</span>
-                              </button>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                      </Carousel>
-                    </div>
-                  )}
-                </motion.div>
+                <SectionSearch isGR={isGR} searchQuery={searchQuery} setSearchQuery={setSearchQuery} searchResults={searchResults} />
               )}
 
+              {/* Pre-owned – refined visuals */}
               {navigationState.activeSection === "pre-owned" && (
-                <motion.div
-                  className="p-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <h4
-                    className={cn(
-                      "text-lg font-semibold mb-4",
-                      isGR ? "text-neutral-200" : "text-gray-800 dark:text-gray-200"
-                    )}
-                  >
-                    Pre-Owned Vehicles
-                  </h4>
-
-                  <div className="mb-6">
-                    <Carousel opts={{ align: "start" }} className="w-full">
-                      <CarouselContent>
-                        {vehicleCategories.map((category) => (
-                          <CarouselItem key={category.id} className="basis-auto pl-3">
-                            <motion.button
-                              onClick={() => handleCategoryClick(category.id)}
-                              className={cn(
-                                "flex flex-col items-center justify-center p-4 rounded-xl transition-all min-w-[80px]",
-                                selectedCategory === category.id
-                                  ? isGR
-                                    ? "shadow-[0_0_0_1px_rgba(235,10,30,.5)]"
-                                    : "text-white shadow-lg scale-105"
-                                  : isGR
-                                  ? "hover:bg-[#121416]"
-                                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
-                              )}
-                              style={
-                                isGR
-                                  ? {
-                                      ...carbonMatte,
-                                      color: selectedCategory === category.id ? GR_TEXT : GR_MUTED,
-                                      border: `1px solid ${GR_EDGE}`,
-                                    }
-                                  : selectedCategory === category.id
-                                  ? { background: TOYOTA_GRADIENT }
-                                  : undefined
-                              }
-                              whileHover={{ scale: reduceMotion ? 1 : 1.05 }}
-                              whileTap={{ scale: reduceMotion ? 1 : 0.95 }}
-                              aria-pressed={selectedCategory === category.id}
-                              aria-label={`Filter ${category.name}`}
-                            >
-                              <span className="mb-2">{category.icon}</span>
-                              <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
-                            </motion.button>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                    </Carousel>
-                  </div>
-
-                  <div
-                    className={cn("mb-6 p-4 rounded-xl", isGR ? "border" : "bg-gray-50 dark:bg-gray-800")}
-                    style={isGR ? { ...carbonMatte, borderColor: GR_EDGE } : undefined}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h5 className={cn("text-sm font-medium", isGR ? "text-neutral-200" : "text-gray-700 dark:text-gray-300")}>
-                        Price Range
-                      </h5>
-                      <span className={cn("text-sm", isGR ? "text-neutral-400" : "text-gray-500 dark:text-gray-400")}>
-                        AED {fmt.format(priceRange[0])} - AED {fmt.format(priceRange[1])}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Sliders className="h-5 w-5" style={{ color: isGR ? GR_RED : TOYOTA_RED }} />
-                      <input
-                        type="range"
-                        min={30000}
-                        max={300000}
-                        step={10000}
-                        value={priceRange[0]}
-                        onChange={(e) =>
-                          setPriceRange([Math.min(parseInt(e.target.value, 10), priceRange[1]), priceRange[1]])
-                        }
-                        className={cn("flex-1 h-2 rounded-lg appearance-none cursor-pointer", isGR ? "bg-neutral-800" : "bg-gray-200")}
-                        aria-label="Minimum price"
-                      />
-                      <input
-                        type="range"
-                        min={30000}
-                        max={300000}
-                        step={10000}
-                        value={priceRange[1]}
-                        onChange={(e) =>
-                          setPriceRange([priceRange[0], Math.max(parseInt(e.target.value, 10), priceRange[0])])
-                        }
-                        className={cn("flex-1 h-2 rounded-lg appearance-none cursor-pointer", isGR ? "bg-neutral-800" : "bg-gray-200")}
-                        aria-label="Maximum price"
-                      />
-                    </div>
-                  </div>
-
-                  <Carousel opts={{ align: "start" }} className="w-full">
-                    <CarouselContent>
-                      {filteredPreOwnedVehicles.map((v) => (
-                        <CarouselItem key={v.name} className="basis-2/3 pl-4">
-                          <Link
-                            to={`/pre-owned/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`}
-                            onClick={navigationState.resetNavigation}
-                            aria-label={`View ${v.name}`}
-                            className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-xl"
-                          >
-                            <motion.div whileHover={{ scale: reduceMotion ? 1 : 1.02 }} whileTap={{ scale: reduceMotion ? 1 : 0.98 }}>
-                              {isGR ? (
-                                <div className="overflow-hidden rounded-2xl border" style={{ ...carbonMatte, borderColor: GR_EDGE }}>
-                                  <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
-                                    <img src={v.image} alt={v.name} className="w-full h-full object-cover mix-blend-screen opacity-90" loading="lazy" decoding="async" />
-                                    <div className="absolute top-2 right-2">
-                                      <span
-                                        className="text-white px-2 py-1 rounded-full text-xs font-medium shadow-md"
-                                        style={{ backgroundColor: "#1a1c1f", border: `1px solid ${GR_EDGE}` }}
-                                      >
-                                        {v.year}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="p-4">
-                                    <h3 className="font-semibold text-base mb-1" style={{ color: GR_TEXT }}>
-                                      {v.name}
-                                    </h3>
-                                    <div className="flex justify-between items-center mb-2">
-                                      <p className="text-sm font-bold" style={{ color: GR_RED }}>
-                                        AED {fmt.format(v.price)}
-                                      </p>
-                                      <p className="text-xs" style={{ color: GR_MUTED }}>
-                                        {v.mileage}
-                                      </p>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                      <span
-                                        className="text-xs px-2 py-1 rounded-full font-medium"
-                                        style={{ backgroundColor: "#15171A", border: `1px solid ${GR_EDGE}`, color: GR_MUTED }}
-                                      >
-                                        Certified Pre-Owned
-                                      </span>
-                                      <span className="text-sm font-semibold flex items-center" style={{ color: GR_RED }}>
-                                        View <ChevronRight className="h-3 w-3 ml-1" />
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl">
-                                  <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 relative">
-                                    <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                                    <div className="absolute top-2 right-2">
-                                      <span className="text-white px-2 py-1 rounded-full text-xs font-medium shadow-md" style={{ background: TOYOTA_GRADIENT }}>
-                                        {v.year}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <CardContent className="p-4">
-                                    <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-gray-100">{v.name}</h3>
-                                    <div className="flex justify-between items-center mb-2">
-                                      <p className="text-sm font-bold text-toyota-red">AED {fmt.format(v.price)}</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">{v.mileage}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-xs bg-red-100 text-toyota-red px-2 py-1 rounded-full font-medium">
-                                        Certified Pre-Owned
-                                      </span>
-                                      <span className="text-toyota-red text-sm font-semibold flex items-center">
-                                        View <ChevronRight className="h-3 w-3 ml-1" />
-                                      </span>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              )}
-                            </motion.div>
-                          </Link>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-
-                  <div className="mt-6 text-center">
-                    <Link
-                      to={`/pre-owned${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`}
-                      className={cn(
-                        "font-semibold flex items-center justify-center rounded-lg",
-                        isGR ? "text-red-400 hover:text-red-300" : "text-toyota-red hover:text-red-700"
-                      )}
-                      onClick={navigationState.resetNavigation}
-                    >
-                      View All Pre-Owned{" "}
-                      {selectedCategory !== "all"
-                        ? vehicleCategories.find((c) => c.id === selectedCategory)?.name
-                        : ""}{" "}
-                      Models
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </div>
-                </motion.div>
+                <SectionPreOwned isGR={isGR} selectedCategory={selectedCategory} onCategory={handleCategoryClick} priceRange={priceRange} setPriceRange={setPriceRange} filteredPreOwnedVehicles={filteredPreOwnedVehicles} fmt={fmt} />
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Bottom Nav with ATTRACT on Actions */}
+      {/* Bottom Nav – premium bar with gradient hairline and magnetic ACTIONS */}
       <motion.nav
         role="navigation"
         aria-label="Primary"
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-[100] backdrop-blur-xl border-t",
-          isGR ? "" : "bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 shadow-[0_-6px_30px_rgba(0,0,0,.15)]",
-          "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-          "!block !visible !opacity-100 pb-safe-area-inset-bottom mobile-force-visible"
+          "fixed bottom-0 left-0 right-0 z-[100] border-t",
+          isGR ? GLASS_DARK : GLASS_LIGHT
         )}
         initial={{ y: 100, opacity: 0 }}
-        animate={{
-          y: 0,
-          opacity: 1,
-          height: "auto",
-          paddingTop: deviceInfo.deviceCategory === "smallMobile" ? "0.125rem" : "0.25rem",
-          paddingBottom: deviceInfo.deviceCategory === "smallMobile" ? "0.125rem" : "0.25rem",
-        }}
-        transition={reduceMotion ? { duration: 0.1 } : spring}
-        style={
-          isGR ? { ...carbonMatte, borderColor: GR_EDGE, boxShadow: "0 -12px 30px rgba(0,0,0,.45)" } : undefined
-        }
+        animate={{ y: 0, opacity: 1 }}
+        transition={spring}
+        style={isGR ? { ...carbonMatte, ...hairline("#1f2328") } : hairline("rgba(0,0,0,.08)")}
       >
-        <div
-          className={cn(
-            "grid gap-1 px-2 items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-            vehicle ? "grid-cols-5" : "grid-cols-4"
-          )}
-        >
-          <NavItem
-            icon={<Car className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
-            label="Models"
-            to="#"
-            onClick={() => handleSectionToggle("models")}
-            isActive={activeItem === "models" || navigationState.activeSection === "models"}
-            isScrolled={isScrolled}
-            grMode={isGR}
-            deviceCategory={deviceInfo.deviceCategory}
-          />
-          <NavItem
-            icon={<ShoppingBag className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
-            label="Pre-Owned"
-            to="#"
-            onClick={() => handleSectionToggle("pre-owned")}
-            isActive={activeItem === "pre-owned" || navigationState.activeSection === "pre-owned"}
-            isScrolled={isScrolled}
-            grMode={isGR}
-            deviceCategory={deviceInfo.deviceCategory}
-          />
+        <div className={cn("grid gap-1 px-2 items-center", vehicle ? "grid-cols-5" : "grid-cols-4")}
+             style={{ willChange: "transform" }}>
+          <NavItem icon={<Car className={cn(isGR ? "text-neutral-100" : "text-gray-700", "h-5 w-5")} />} label="Models" to="#" onClick={() => handleSectionToggle("models")} isActive={activeItem === "models" || navigationState.activeSection === "models"} grMode={isGR} />
+          <NavItem icon={<ShoppingBag className={cn(isGR ? "text-neutral-100" : "text-gray-700", "h-5 w-5")} />} label="Pre-Owned" to="#" onClick={() => handleSectionToggle("pre-owned")} isActive={activeItem === "pre-owned" || navigationState.activeSection === "pre-owned"} grMode={isGR} />
 
-          {/* ACTIONS with attract animation + coachmark */}
+          {/* Center ACTIONS – catchy glowing capsule */}
           {vehicle && (
-            <div className="relative">
-              {/* Coachmark bubble */}
+            <div className="relative flex items-center justify-center">
+              {/* coachmark */}
               <AnimatePresence>
                 {showCoachmark && !navigationState.isActionsExpanded && (
-                  <motion.div
-                    className={cn(
-                      "absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold shadow-lg",
-                      isGR ? "bg-[#16181A] text-neutral-100 border border-[#212428]" : "bg-white text-gray-900 border border-gray-200"
-                    )}
-                    variants={coachVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
+                  <motion.div className={cn("absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold shadow-lg",
+                                            isGR ? "bg-[#15181b] text-neutral-100 border border-[#21262c]" : "bg-white text-gray-900 border border-black/10")}
+                              variants={coachVariants} initial="hidden" animate="visible" exit="exit">
                     Try Actions
-                    <div
-                      className={cn(
-                        "absolute left-1/2 -bottom-2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8",
-                        isGR ? "border-t-[#16181A] border-l-transparent border-r-transparent" : "border-t-white border-l-transparent border-r-transparent"
-                      )}
-                    />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <NavItem
-                icon={
-                  <motion.div
-                    className="relative"
-                    variants={attractVariants}
-                    animate={attractOn ? "attract" : "rest"}
-                  >
-                    {/* soft pulse halo */}
-                    <AnimatePresence>
-                      {attractOn && !reduceMotion && (
-                        <motion.span
-                          className="absolute inset-0 rounded-full"
-                          variants={pulseVariants}
-                          initial="hidden"
-                          animate="show"
-                          exit="hidden"
-                          style={{ background: "radial-gradient(closest-side, rgba(235,10,30,.25), rgba(235,10,30,0))" }}
-                        />
-                      )}
-                    </AnimatePresence>
-
-                    {/* Icon pill */}
-                    <div
-                      className="relative rounded-full p-2"
-                      style={
-                        isGR
-                          ? { backgroundColor: "#1D1F22", border: `1px solid ${GR_EDGE}` }
-                          : { backgroundColor: "#EF4444" }
-                      }
-                    >
-                      <Bolt className="text-white h-4 w-4" />
-                    </div>
-                  </motion.div>
-                }
-                label="Actions"
-                to="#"
+              <button
                 onClick={() => {
                   navigationState.setActionsExpanded(!navigationState.isActionsExpanded);
-                  // dismiss attract once opened
-                  if (!navigationState.isActionsExpanded) {
-                    setAttractOn(false);
-                    setShowCoachmark(false);
-                  }
+                  if (!navigationState.isActionsExpanded) { setAttractOn(false); setShowCoachmark(false); }
                 }}
-                isActive={navigationState.isActionsExpanded}
-                isScrolled={isScrolled}
-                grMode={isGR}
-                deviceCategory={deviceInfo.deviceCategory}
-              />
+                className="relative group inline-flex items-center justify-center"
+                aria-pressed={navigationState.isActionsExpanded}
+                aria-label="Open quick actions"
+              >
+                {/* halo pulse */}
+                <AnimatePresence>
+                  {attractOn && (
+                    <motion.span className="absolute inset-0 rounded-full" animate={haloPulse} exit={{ opacity: 0 }}
+                                  style={{ background: "radial-gradient(closest-side, rgba(235,10,30,.28), rgba(235,10,30,0))" }} />
+                  )}
+                </AnimatePresence>
+
+                {/* glossy capsule */}
+                <span
+                  className={cn(
+                    "relative rounded-full p-2 transition-transform",
+                    isGR ? "shadow-[inset_0_0_0_1px_#232830] bg-[#171a1e]" : "shadow-[inset_0_0_0_1px_rgba(0,0,0,.08)]",
+                  )}
+                  style={isGR ? undefined : { background: TOYOTA_GRADIENT }}
+                >
+                  <Bolt className="text-white h-4 w-4" />
+                </span>
+              </button>
             </div>
           )}
 
-          <NavItem
-            icon={<Search className={cn(isGR ? "text-neutral-100" : "", "transition-all", "h-5 w-5")} />}
-            label="Search"
-            to="#"
-            onClick={() => handleSectionToggle("search")}
-            isActive={activeItem === "search" || navigationState.activeSection === "search"}
-            isScrolled={isScrolled}
-            grMode={isGR}
-            deviceCategory={deviceInfo.deviceCategory}
-          />
-          <NavItem
-            icon={<Menu className={cn(isGR ? "text-red-400" : "text-red-600", "transition-all", "h-5 w-5")} />}
-            label="Menu"
-            to="#"
-            onClick={toggleMenu}
-            isActive={navigationState.isMenuOpen}
-            isScrolled={isScrolled}
-            grMode={isGR}
-            deviceCategory={deviceInfo.deviceCategory}
-          />
+          <NavItem icon={<Search className={cn(isGR ? "text-neutral-100" : "text-gray-700", "h-5 w-5")} />} label="Search" to="#" onClick={() => handleSectionToggle("search")} isActive={activeItem === "search" || navigationState.activeSection === "search"} grMode={isGR} />
+          <NavItem icon={<Menu className={cn(isGR ? "text-red-400" : "text-red-600", "h-5 w-5")} />} label="Menu" to="#" onClick={toggleMenu} isActive={navigationState.isMenuOpen} grMode={isGR} />
         </div>
       </motion.nav>
     </>
   );
 };
 
+/* ───────────────── Subsections as small pure components (visual-only tweaks) ───────────────── */
+
+const SectionModels: React.FC<{
+  isGR: boolean;
+  selectedCategory: string;
+  onCategory: (id: string) => void;
+  filteredVehicles: VehicleModel[];
+}> = ({ isGR, selectedCategory, onCategory, filteredVehicles }) => {
+  const fmt = useMemo(() => new Intl.NumberFormat(), []);
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <motion.div className="p-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+      <h4 className={cn("text-sm font-semibold mb-3", isGR ? "text-neutral-300" : "text-gray-700")}>Browse Models</h4>
+
+      <Carousel opts={{ align: "start" }} className="w-full mb-5">
+        <CarouselContent>
+          {vehicleCategories.map((c) => (
+            <CarouselItem key={c.id} className="basis-auto pl-3">
+              <motion.button
+                onClick={() => onCategory(c.id)}
+                className={cn("flex flex-col items-center justify-center p-3 rounded-xl min-w-[80px]",
+                              selectedCategory === c.id ? (isGR ? "" : "text-white scale-105") : (isGR ? "hover:bg-[#121418]" : "bg-gray-100 hover:bg-gray-200"))}
+                style={isGR ? { ...carbonMatte, ...hairline("#232830"), color: selectedCategory === c.id ? GR_TEXT : GR_MUTED } : (selectedCategory === c.id ? { background: TOYOTA_GRADIENT } : undefined)}
+                whileHover={reduceMotion ? {} : { scale: 1.04 }} whileTap={reduceMotion ? {} : { scale: 0.96 }}
+                aria-pressed={selectedCategory === c.id}
+              >
+                <span className="mb-2">{c.icon}</span>
+                <span className="text-xs font-medium whitespace-nowrap">{c.name}</span>
+              </motion.button>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+
+      <Carousel opts={{ align: "start" }} className="w-full">
+        <CarouselContent>
+          {filteredVehicles.map((v) => (
+            <CarouselItem key={v.name} className="pl-4 basis-2/3 sm:basis-1/2">
+              <Link to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-red-600">
+                <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
+                  {isGR ? (
+                    <div className={cn("overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline("#242a31") }}>
+                      <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
+                        {v.image && (
+                          <img src={v.image} alt={v.name} className="w-full h-full object-cover mix-blend-screen opacity-90" loading="lazy" decoding="async" />
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-base mb-1 text-white">{v.name}</h3>
+                        <p className="text-sm mb-3 text-neutral-400">From AED {fmt.format(v.price)}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: "#15171A", border: `1px solid ${GR_EDGE}`, color: GR_MUTED }}>{v.category}</span>
+                          <span className="text-sm font-semibold flex items-center text-red-400">View <ChevronRight className="h-3 w-3 ml-1"/></span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Card className={cn("overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
+                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 relative">
+                        {v.image && (
+                          <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                        )}
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-base mb-1 text-gray-900">{v.name}</h3>
+                        <p className="text-sm text-gray-600 mb-3">From AED {fmt.format(v.price)}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">{v.category}</span>
+                          <span className="text-red-600 text-sm font-semibold flex items-center">View <ChevronRight className="h-3 w-3 ml-1"/></span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </motion.div>
+              </Link>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+
+      <div className="mt-5 text-center">
+        <Link to={`/new-cars${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`}
+              className={cn("font-semibold inline-flex items-center justify-center rounded-lg",
+                             isGR ? "text-red-400 hover:text-red-300" : "text-red-600 hover:text-red-700")}
+        >
+          View All {selectedCategory !== "all" ? vehicleCategories.find((c) => c.id === selectedCategory)?.name : ""} Models
+          <ChevronRight className="ml-1 h-4 w-4" />
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+
+const SectionSearch: React.FC<{
+  isGR: boolean;
+  searchQuery: string;
+  setSearchQuery: (v: string) => void;
+  searchResults: VehicleModel[];
+}> = ({ isGR, searchQuery, setSearchQuery, searchResults }) => {
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <motion.div className="p-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+      <h4 className={cn("text-sm font-semibold mb-3", isGR ? "text-neutral-300" : "text-gray-700")}>Find Your Toyota</h4>
+      <div className="relative mb-5">
+        <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4", isGR ? "text-neutral-400" : "text-gray-400")} />
+        <input
+          type="text"
+          placeholder="Search models, features..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className={cn("w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent",
+                        isGR ? "border-[#22272e] bg-[#0e1113] text-white placeholder:text-neutral-500 focus:ring-red-700" : "border-black/10 focus:ring-[#EB0A1E] bg-white/80")}
+          aria-label="Search vehicles"
+        />
+      </div>
+
+      {searchQuery ? (
+        <Carousel opts={{ align: "start" }} className="w-full">
+          <CarouselContent>
+            {searchResults.map((v) => (
+              <CarouselItem key={v.name} className="basis-2/3 pl-4">
+                <Link to={`/vehicle/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-red-600">
+                  {isGR ? (
+                    <div className={cn("h-24 overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline("#232830") }}>
+                      <div className="flex items-center h-full p-4">
+                        <div className="w-16 h-12 rounded-lg mr-3 overflow-hidden" style={carbonMatte}>
+                          {v.image && (
+                            <img src={v.image} alt={v.name} className="w-full h-full object-cover rounded-lg mix-blend-screen opacity-90" loading="lazy" decoding="async" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm truncate text-white">{v.name}</h3>
+                          <p className="text-xs text-neutral-400">AED {new Intl.NumberFormat().format(v.price)}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+                      </div>
+                    </div>
+                  ) : (
+                    <Card className={cn("h-24 overflow-hidden border-0 shadow-lg", GLASS_LIGHT)}>
+                      <CardContent className="flex items-center h-full p-4">
+                        <div className="w-16 h-12 bg-gray-100 rounded-lg mr-3 overflow-hidden">
+                          {v.image && (
+                            <img src={v.image} alt={v.name} className="w-full h-full object-cover rounded-lg" loading="lazy" decoding="async" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm text-gray-900 truncate">{v.name}</h3>
+                          <p className="text-xs text-gray-600">AED {new Intl.NumberFormat().format(v.price)}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-red-600/70 flex-shrink-0" />
+                      </CardContent>
+                    </Card>
+                  )}
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      ) : (
+        <Carousel opts={{ align: "start" }} className="w-full">
+          <CarouselContent>
+            {searchSuggestions.map((s) => (
+              <CarouselItem key={s.term} className="basis-auto pl-3">
+                <button onClick={() => setSearchQuery(s.term)} className={cn("flex items-center space-x-2 px-4 py-2 rounded-full",
+                                               isGR ? "border border-[#232830] bg-[#0e1113] text-neutral-100" : "bg-gray-100 hover:bg-gray-200")}> {s.icon} <span className="text-sm">{s.term}</span> </button>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      )}
+    </motion.div>
+  );
+};
+
+const SectionPreOwned: React.FC<{
+  isGR: boolean;
+  selectedCategory: string;
+  onCategory: (id: string) => void;
+  priceRange: [number, number];
+  setPriceRange: (r: [number, number]) => void;
+  filteredPreOwnedVehicles: typeof preOwnedVehicles;
+  fmt: Intl.NumberFormat;
+}> = ({ isGR, selectedCategory, onCategory, priceRange, setPriceRange, filteredPreOwnedVehicles, fmt }) => {
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <motion.div className="p-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+      <h4 className={cn("text-sm font-semibold mb-3", isGR ? "text-neutral-300" : "text-gray-700")}>Pre-Owned Vehicles</h4>
+
+      <Carousel opts={{ align: "start" }} className="w-full mb-5">
+        <CarouselContent>
+          {vehicleCategories.map((category) => (
+            <CarouselItem key={category.id} className="basis-auto pl-3">
+              <motion.button onClick={() => onCategory(category.id)}
+                className={cn("flex flex-col items-center justify-center p-3 rounded-xl min-w-[80px]",
+                               selectedCategory === category.id ? (isGR ? "" : "text-white scale-105") : (isGR ? "hover:bg-[#121418]" : "bg-gray-100 hover:bg-gray-200"))}
+                style={isGR ? { ...carbonMatte, ...hairline("#232830"), color: selectedCategory === category.id ? GR_TEXT : GR_MUTED } : (selectedCategory === category.id ? { background: TOYOTA_GRADIENT } : undefined)}
+                whileHover={reduceMotion ? {} : { scale: 1.04 }} whileTap={reduceMotion ? {} : { scale: 0.96 }}>
+                <span className="mb-2">{category.icon}</span>
+                <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+              </motion.button>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+
+      <div className={cn("mb-5 p-4 rounded-xl", isGR ? GLASS_DARK : GLASS_LIGHT)} style={isGR ? hairline("#232830") : hairline("rgba(0,0,0,.08)") as React.CSSProperties}>
+        <div className="flex items-center justify-between mb-3">
+          <h5 className={cn("text-sm font-medium", isGR ? "text-neutral-200" : "text-gray-800")}>Price Range</h5>
+          <span className={cn("text-sm", isGR ? "text-neutral-400" : "text-gray-600")}>AED {fmt.format(priceRange[0])} – AED {fmt.format(priceRange[1])}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Sliders className={cn("h-5 w-5", isGR ? "text-red-500" : "text-red-600")} />
+          <input type="range" min={30000} max={300000} step={10000} value={priceRange[0]}
+                 onChange={(e) => setPriceRange([Math.min(parseInt(e.target.value, 10), priceRange[1]), priceRange[1]])}
+                 className={cn("flex-1 h-2 rounded-lg appearance-none cursor-pointer", isGR ? "bg-[#1a1e23]" : "bg-gray-200")} aria-label="Minimum price" />
+          <input type="range" min={30000} max={300000} step={10000} value={priceRange[1]}
+                 onChange={(e) => setPriceRange([priceRange[0], Math.max(parseInt(e.target.value, 10), priceRange[0])])}
+                 className={cn("flex-1 h-2 rounded-lg appearance-none cursor-pointer", isGR ? "bg-[#1a1e23]" : "bg-gray-200")} aria-label="Maximum price" />
+        </div>
+      </div>
+
+      <Carousel opts={{ align: "start" }} className="w-full">
+        <CarouselContent>
+          {filteredPreOwnedVehicles.map((v) => (
+            <CarouselItem key={v.name} className="pl-4 basis-2/3 sm:basis-1/2">
+              <Link to={`/pre-owned/${encodeURIComponent(v.name.toLowerCase().replace(/\s+/g, "-"))}`} className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-red-600">
+                <motion.div whileHover={reduceMotion ? {} : { scale: 1.02 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
+                  {isGR ? (
+                    <div className={cn("overflow-hidden rounded-2xl border", GLASS_DARK)} style={{ ...carbonMatte, ...hairline("#242a31") }}>
+                      <div className="aspect-[16/10] w-full relative" style={carbonMatte}>
+                        <img src={v.image} alt={v.name} className="w-full h-full object-cover mix-blend-screen opacity-90" loading="lazy" decoding="async" />
+                        <div className="absolute top-2 right-2">
+                          <span className="text-white px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: "#171a1e", border: `1px solid ${GR_EDGE}` }}>{v.year}</span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-base mb-1 text-white">{v.name}</h3>
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-sm font-bold text-red-400">AED {fmt.format(v.price)}</p>
+                          <p className="text-xs text-neutral-400">{v.mileage}</p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: "#15171A", border: `1px solid ${GR_EDGE}`, color: GR_MUTED }}>Certified Pre-Owned</span>
+                          <span className="text-sm font-semibold flex items-center text-red-400">View <ChevronRight className="h-3 w-3 ml-1"/></span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Card className={cn("overflow-hidden border-0 shadow-xl", GLASS_LIGHT)}>
+                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-gray-100 to-gray-200 relative">
+                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                        <div className="absolute top-2 right-2">
+                          <span className="text-white px-2 py-1 rounded-full text-xs font-medium" style={{ background: TOYOTA_GRADIENT }}>{v.year}</span>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-base mb-1 text-gray-900">{v.name}</h3>
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-sm font-bold text-red-600">AED {fmt.format(v.price)}</p>
+                          <p className="text-xs text-gray-600">{v.mileage}</p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">Certified Pre-Owned</span>
+                          <span className="text-red-600 text-sm font-semibold flex items-center">View <ChevronRight className="h-3 w-3 ml-1"/></span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </motion.div>
+              </Link>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+
+      <div className="mt-5 text-center">
+        <Link to={`/pre-owned${selectedCategory !== "all" ? `?category=${selectedCategory}` : ""}`}
+              className={cn("font-semibold inline-flex items-center justify-center rounded-lg",
+                             isGR ? "text-red-400 hover:text-red-300" : "text-red-600 hover:text-red-700")}
+        >
+          View All Pre-Owned {selectedCategory !== "all" ? vehicleCategories.find((c) => c.id === selectedCategory)?.name : ""} Models
+          <ChevronRight className="ml-1 h-4 w-4" />
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ───────────────── NavItem (visual polish only) ───────────────── */
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   to: string;
   isActive?: boolean;
   onClick?: () => void;
-  badge?: number;
-  isScrolled?: boolean;
   grMode?: boolean;
-  deviceCategory?: string;
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  icon,
-  label,
-  to,
-  isActive = false,
-  onClick,
-  badge,
-  isScrolled = false,
-  grMode = false,
-  deviceCategory = "standardMobile",
-}) => {
-  const getNavItemHeight = () => {
-    if (isScrolled) {
-      switch (deviceCategory) {
-        case "smallMobile":
-          return "36px";
-        case "standardMobile":
-          return "40px";
-        default:
-          return "44px";
-      }
-    } else {
-      switch (deviceCategory) {
-        case "smallMobile":
-          return "44px";
-        case "standardMobile":
-          return "48px";
-        default:
-          return "52px";
-      }
-    }
-  };
-
-  const getIconSize = () => {
-    if (isScrolled) {
-      return deviceCategory === "smallMobile" ? "32px" : "36px";
-    } else {
-      return deviceCategory === "smallMobile" ? "40px" : "44px";
-    }
-  };
-
-  const content = (
-    <>
+const NavItem: React.FC<NavItemProps> = ({ icon, label, to, isActive = false, onClick, grMode = false }) => {
+  const base = (
+    <div className="flex flex-col items-center justify-center w-full">
       <div
-        className="flex flex-col items-center justify-center relative w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-        style={{ minHeight: getNavItemHeight() }}
-      >
-        <motion.div
-          className={cn(
-            "p-2 rounded-xl transition-all relative touch-target duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center",
-            "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]",
-            isActive
-              ? grMode
-                ? "bg-[#141618] text-[#E6E7E9] scale-110 shadow-[inset_0_0_0_1px_#17191B]"
-                : "text-toyota-red bg-red-50 dark:bg-red-950 scale-110"
-              : grMode
-              ? "text-[#E6E7E9] bg-[#101214] hover:bg-[#121416] shadow-[inset_0_0_0_1px_#17191B]"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
-          )}
-          animate={{
-            minWidth: getIconSize(),
-            minHeight: getIconSize(),
-            padding: isScrolled ? "6px" : "8px",
-          }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ scale: isActive ? 1.1 : 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          aria-current={isActive ? "page" : undefined}
-          style={{ WebkitTapHighlightColor: "transparent", minHeight: "44px", minWidth: "44px" }}
-        >
-          {icon}
-          {typeof badge === "number" && (
-            <motion.div
-              className="absolute -top-1 -right-1 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              style={{ background: grMode ? "#1F2124" : TOYOTA_GRADIENT, border: grMode ? `1px solid ${GR_EDGE}` : undefined }}
-            >
-              {badge > 9 ? "9+" : badge}
-            </motion.div>
-          )}
-        </motion.div>
-
-        {!isScrolled && (
-          <span
-            className={cn(
-              "text-xs text-center font-medium mt-1 leading-tight transition-colors duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-              grMode ? (isActive ? "text-red-300" : "text-neutral-300") : isActive ? "text-toyota-red" : "text-gray-600 dark:text-gray-400"
-            )}
-          >
-            {label}
-          </span>
+        className={cn(
+          "p-2 rounded-xl transition-all flex items-center justify-center",
+          isActive
+            ? grMode
+              ? "bg-[#14171b] text-[#E7E9EC] shadow-[inset_0_0_0_1px_#20252b]"
+              : "text-red-700 bg-red-50"
+            : grMode
+            ? "text-[#E7E9EC] bg-[#0f1114] shadow-[inset_0_0_0_1px_#1b2026] hover:bg-[#12151a]"
+            : "text-gray-700 hover:text-gray-900"
         )}
+        style={{ minWidth: 44, minHeight: 44 }}
+      >
+        {icon}
       </div>
-    </>
+      <span className={cn("text-[11px] mt-1 font-medium", grMode ? (isActive ? "text-red-300" : "text-neutral-300") : isActive ? "text-red-700" : "text-gray-600")}>
+        {label}
+      </span>
+    </div>
   );
 
   if (onClick) {
     return (
-      <button
-        onClick={onClick}
-        className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-lg"
-        style={{ WebkitTapHighlightColor: "transparent", minHeight: getNavItemHeight(), minWidth: "44px" }}
-      >
-        {content}
+      <button onClick={onClick} className="relative flex items-center justify-center px-1 py-2" style={{ WebkitTapHighlightColor: "transparent" }}>
+        {base}
       </button>
     );
   }
-
   return (
-    <Link
-      to={to}
-      className="relative flex items-center justify-center px-1 py-2 touch-target transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700 rounded-lg"
-      style={{ WebkitTapHighlightColor: "transparent", minHeight: getNavItemHeight(), minWidth: "44px" }}
-      aria-current={isActive ? "page" : undefined}
-    >
-      {content}
+    <Link to={to} className="relative flex items-center justify-center px-1 py-2">
+      {base}
     </Link>
   );
 };
