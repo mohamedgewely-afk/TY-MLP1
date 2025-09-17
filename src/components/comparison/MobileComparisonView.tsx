@@ -122,7 +122,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
         {/* Controls */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <Badge className="bg-gradient-to-r from-blue-500/20 via-blue-400/30 to-blue-400/20 text-blue-200 border border-blue-400/30 backdrop-blur-xl">
+            <Badge className="bg-gradient-to-r from-primary/20 via-primary/25 to-primary/20 text-primary border border-primary/30 backdrop-blur-xl">
               <TrendingUp className="h-3 w-3 mr-1" />
               {vehicles.length} Vehicles
             </Badge>
@@ -130,7 +130,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onShowDifferencesChange(!showOnlyDifferences)}
-              className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
+              className="bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
             >
               <Shield className="h-4 w-4 mr-2" />
               {showOnlyDifferences ? "Show All" : "Differences"}
@@ -147,8 +147,8 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                   className={`
                     shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-500
                     ${index === currentVehicleIndex
-                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
-                      : "text-gray-300 bg-gray-700/50 border border-gray-600/50 hover:text-white hover:bg-gray-600/70 hover:border-blue-500/30"}
+                      ? "bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg shadow-primary/30"
+                      : "text-muted-foreground bg-muted/50 border border-border/50 hover:text-foreground hover:bg-muted/70 hover:border-primary/30"}
                     backdrop-blur-xl
                   `}
                 >
@@ -174,12 +174,12 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                 className="mb-8"
               >
                 {/* Vehicle Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/80 to-gray-800/90 border border-gray-600/30 shadow-2xl backdrop-blur-2xl">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/70 to-muted/80 border border-border/30 shadow-2xl backdrop-blur-2xl">
                   {/* Corner accents */}
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-blue-500/50 transition-colors duration-500" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-blue-500/50 transition-colors duration-500" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-blue-500/50 transition-colors duration-500" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-blue-500/50 transition-colors duration-500" />
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/50 transition-colors duration-500" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/50 transition-colors duration-500" />
 
                   <div className="relative aspect-video overflow-hidden">
                     <img
@@ -191,7 +191,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     
                     {/* Premium badges */}
                     <div className="absolute top-4 left-4 flex gap-2">
-                      <Badge className="bg-gradient-to-r from-blue-600/90 to-blue-500/90 text-white border-0 shadow-xl backdrop-blur-xl">
+                      <Badge className="bg-gradient-to-r from-primary/90 to-primary text-white border-0 shadow-xl backdrop-blur-xl">
                         <Award className="h-3 w-3 mr-1" />
                         Premium
                       </Badge>
@@ -201,7 +201,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-gray-600/30 text-white hover:bg-blue-600/20 hover:border-blue-500/50"
+                      className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-border/30 text-white hover:bg-primary/20 hover:border-primary/50"
                       onClick={() => onRemove(vehicle.name)}
                     >
                       <X className="h-4 w-4" />
@@ -215,7 +215,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     </h3>
                     
                     {/* Price Display */}
-                    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-600/10 via-blue-500/15 to-blue-400/10 border border-blue-500/20 backdrop-blur-xl">
+                    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border border-primary/20 backdrop-blur-xl">
                       <div className="text-2xl font-black text-white mb-1">
                         AED {vehicle.price.toLocaleString()}
                       </div>
@@ -225,7 +225,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     {/* Action Buttons */}
                     <div className="grid grid-cols-1 gap-3">
                       <Button
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all duration-500"
+                        className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg shadow-primary/20 transition-all duration-500"
                         asChild
                       >
                         <a href="/enquire">
@@ -237,7 +237,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                       <div className="grid grid-cols-2 gap-3">
                         <Button
                           variant="outline"
-                          className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
+                          className="bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
                           asChild
                         >
                           <a href={vehicle.configureUrl}>
@@ -247,7 +247,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                         </Button>
                         <Button
                           variant="secondary"
-                          className="bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-200 hover:from-blue-600/30 hover:to-blue-500/30 hover:text-white backdrop-blur-xl transition-all duration-500"
+                          className="bg-gradient-to-r from-primary/20 to-primary/20 border border-primary/30 text-foreground/80 hover:from-primary/30 hover:to-primary/30 hover:text-foreground backdrop-blur-xl transition-all duration-500"
                           asChild
                         >
                           <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
@@ -282,12 +282,12 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: sectionIndex * 0.1 }}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 shadow-xl backdrop-blur-2xl"
+                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/60 to-muted/80 border border-border/30 shadow-xl backdrop-blur-2xl"
               >
                 {/* Section Header */}
-                <div className="p-4 border-b border-gray-600/30 bg-gradient-to-r from-blue-600/10 via-blue-500/15 to-blue-400/10">
+                <div className="p-4 border-b border-border/30 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
                   <h3 className="text-lg font-bold text-white flex items-center">
-                    <ChevronRight className="h-5 w-5 mr-2 text-blue-400" />
+                    <ChevronRight className="h-5 w-5 mr-2 text-primary" />
                     {section.title}
                   </h3>
                 </div>

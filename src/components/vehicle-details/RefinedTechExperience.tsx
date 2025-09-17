@@ -76,8 +76,8 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
       title: "Toyota Safety Sense 3.0",
       description: "AI-powered collision prevention",
       icon: <Shield className="h-7 w-7 md:h-8 md:w-8" />,
-      color: "from-green-500 to-emerald-400",
-      bgPattern: "bg-gradient-to-br from-green-50 to-emerald-50",
+      color: "from-primary to-primary/80",
+      bgPattern: "bg-gradient-to-br from-primary/5 to-primary/10",
       features: [
         "Pre-Collision with Pedestrian Detection",
         "Lane Departure Alert with Steering Assist",
@@ -110,8 +110,8 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
       title: "Climate Harmony",
       description: "Air purification & eco-optimized cooling",
       icon: <Wind className="h-9 w-9 md:h-12 md:w-12" />,
-      color: "from-cyan-600 to-teal-600",
-      bgPattern: "bg-gradient-to-br from-cyan-50 to-teal-50",
+      color: "from-primary to-primary/70",
+      bgPattern: "bg-gradient-to-br from-muted/20 to-muted/30",
       features: [
         "Dual-zone automatic climate control",
         "HEPA air filtration",

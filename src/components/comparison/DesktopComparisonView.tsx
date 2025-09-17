@@ -124,8 +124,8 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
         <div className="overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
-              <TableRow className="border-gray-600/50 hover:bg-gray-700/30">
-                <TableHead className="w-[200px] text-gray-300"></TableHead>
+              <TableRow className="border-border/50 hover:bg-muted/30">
+                <TableHead className="w-[200px] text-muted-foreground"></TableHead>
                 {vehicles.map((vehicle, index) => (
                   <TableHead key={vehicle.name} className="min-w-[280px]">
                     <motion.div 
@@ -135,12 +135,12 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                       className="relative"
                     >
                       {/* Vehicle Card */}
-                      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 shadow-2xl backdrop-blur-xl mb-6 group hover:border-blue-500/40 transition-all duration-500">
+                      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/40 to-muted/70 border border-border/30 shadow-2xl backdrop-blur-xl mb-6 group hover:border-primary/40 transition-all duration-500">
                         {/* Corner accents */}
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
-                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
-                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
 
                         <div className="relative aspect-video overflow-hidden">
                           <img
@@ -152,7 +152,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           
                           {/* Premium badge */}
                           <div className="absolute top-3 left-3">
-                            <Badge className="bg-gradient-to-r from-blue-600/90 to-blue-500/90 text-white border-0 shadow-xl backdrop-blur-xl">
+                            <Badge className="bg-gradient-to-r from-primary/90 to-primary text-white border-0 shadow-xl backdrop-blur-xl">
                               <Award className="h-3 w-3 mr-1" />
                               Premium
                             </Badge>
@@ -161,7 +161,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
 
                         {/* Vehicle Info */}
                         <div className="p-4">
-                          <h3 className="text-lg font-bold text-white mb-3 group-hover:text-blue-100 transition-colors">
+                          <h3 className="text-lg font-bold text-white mb-3 group-hover:text-foreground transition-colors">
                             {vehicle.name}
                           </h3>
                           
@@ -169,7 +169,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           <div className="grid grid-cols-1 gap-2 mb-3">
                             <Button
                               variant="outline"
-                              className="w-full text-sm bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
+                              className="w-full text-sm bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
                               asChild
                             >
                               <a href={vehicle.configureUrl}>
@@ -179,7 +179,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                             </Button>
                             <Button
                               variant="secondary"
-                              className="w-full text-sm bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-200 hover:from-blue-600/30 hover:to-blue-500/30 hover:text-white backdrop-blur-xl transition-all duration-500"
+                              className="w-full text-sm bg-gradient-to-r from-primary/20 to-primary/20 border border-primary/30 text-foreground/80 hover:from-primary/30 hover:to-primary/30 hover:text-foreground backdrop-blur-xl transition-all duration-500"
                               asChild
                             >
                               <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
@@ -190,7 +190,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           </div>
                           
                           <Button
-                            className="w-full text-sm bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all duration-500"
+                            className="w-full text-sm bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg shadow-primary/20 transition-all duration-500"
                             asChild
                           >
                             <a href="/enquire">

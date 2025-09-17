@@ -195,28 +195,28 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
               {/* Desktop: Add anchor links + neutral test drive button */}
               <div className="hidden lg:flex items-center gap-2 mr-3">
                 <Button
-                  onClick={() => document.getElementById('virtual-showroom')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => { const el = document.getElementById('virtual-showroom'); if (el) window.scrollTo({ top: window.pageYOffset + el.getBoundingClientRect().top - 80, behavior: 'smooth' }); }}
                   variant="ghost"
                   className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
                 >
                   Showroom
                 </Button>
                 <Button
-                  onClick={() => document.getElementById('media-showcase')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => { const el = document.getElementById('media-showcase'); if (el) window.scrollTo({ top: window.pageYOffset + el.getBoundingClientRect().top - 80, behavior: 'smooth' }); }}
                   variant="ghost"
                   className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
                 >
                   Gallery
                 </Button>
                 <Button
-                  onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => { const el = document.getElementById('offers'); if (el) window.scrollTo({ top: window.pageYOffset + el.getBoundingClientRect().top - 80, behavior: 'smooth' }); }}
                   variant="ghost"
                   className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
                 >
                   Offers
                 </Button>
                 <Button
-                  onClick={() => document.getElementById('tech-experience')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => { const el = document.getElementById('tech-experience'); if (el) window.scrollTo({ top: window.pageYOffset + el.getBoundingClientRect().top - 80, behavior: 'smooth' }); }}
                   variant="ghost"
                   className="text-xs text-gray-600 hover:text-gray-900 px-2 py-1 h-auto"
                 >

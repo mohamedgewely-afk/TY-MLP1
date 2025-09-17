@@ -510,7 +510,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
             className={cn(
               "fixed left-4 right-4 bottom-24 z-50 rounded-2xl shadow-2xl border",
               deviceInfo.deviceCategory === "smallMobile" ? "p-3" : "p-4",
-              isGR ? "" : "bg-white/95 backdrop-blur-xl border-gray-200/50"
+              isGR ? "" : "bg-background/95 backdrop-blur-xl border-border/50"
             )}
             style={isGR ? carbonMatte : undefined}
             role="dialog"
@@ -519,7 +519,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className={cn("font-bold", isGR ? "text-white" : "text-gray-900")}>
+                <h3 className={cn("font-bold", isGR ? "text-white" : "text-foreground")}>
                   {vehicle.name}
                 </h3>
                 <span className={cn("text-lg font-bold", isGR ? "text-red-400" : "text-primary")}>
