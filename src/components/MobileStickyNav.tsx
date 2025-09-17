@@ -481,7 +481,10 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   };
 
   // Early return AFTER all hooks have been called
-  if (!shouldShowNav) return null;
+  if (!shouldShowNav) {
+    console.log("MobileStickyNav: hidden (shouldShowNav=false)", { deviceCategory: deviceInfo.deviceCategory, isMobile: deviceInfo.isMobile });
+    return null;
+  }
 
   return (
     <>

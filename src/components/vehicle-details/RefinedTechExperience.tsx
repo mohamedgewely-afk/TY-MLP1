@@ -160,6 +160,16 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({ vehicle }
     return () => clearTimeout(t);
   }, []);
 
+  // Debug render to verify changes reflect
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("RefinedTechExperience: mounted/updated", {
+      selectedEngine,
+      selectedGrade,
+      selectedFeature: techFeatures[selectedFeature]?.id,
+    });
+  }, [selectedEngine, selectedGrade, selectedFeature]);
+
   return (
     <section className="py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       {/* Premium background elements */}

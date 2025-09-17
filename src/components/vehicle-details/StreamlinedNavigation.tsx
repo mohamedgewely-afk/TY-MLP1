@@ -88,6 +88,8 @@ const StreamlinedNavigation: React.FC<StreamlinedNavigationProps> = ({
           ([entry]) => {
             if (entry.isIntersecting) {
               setActiveSection(section.id);
+              // Debug active section
+              console.log("StreamlinedNavigation: active section", section.id);
             }
           },
           { rootMargin: `-${headerOffset}px 0px -60% 0px` }
