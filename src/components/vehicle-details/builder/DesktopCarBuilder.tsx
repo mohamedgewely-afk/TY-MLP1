@@ -1,13 +1,22 @@
-// DesktopCarBuilder.tsx — end‑to‑end with 360° exterior spin (no autoplay) + Photo/360 sub‑toggle
+// DesktopCarBuilder.tsx — end-to-end with 360° exterior spin (no autoplay) + Photo/360 sub-toggle
 // - Keeps original UI/UX/CX (panels, header, finance, accessories, etc.)
-// - 360 viewer shows ONLY when: Mode=Exterior AND sub‑toggle=“360”
+// - 360 viewer shows ONLY when: Mode=Exterior AND sub-toggle=“360”
 // - Default is Exterior → Photo (still image)
 // - No autoplay. Manual interactions only (drag / wheel / arrow keys)
-// - Fixes TS2367 by avoiding cross‑literal comparisons inside narrowed branches
+// - Fixes TS2367 by avoiding cross-literal comparisons inside narrowed branches
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, X, RotateCcw, CheckCircle2, Info, CircleHelp, Image as ImageIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  X,
+  RotateCcw,
+  CheckCircle2,
+  Info,
+  CircleHelp,
+  Image as ImageIcon,
+  Sparkles, // ✅ added
+} from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -42,32 +51,33 @@ export interface DesktopCarBuilderProps {
 }
 
 /* ---------- Data ---------- */
-const YEARS = ["2024", "2025", "2026"];
+const YEARS = ["2024", "2025", "2026"] as const;
 const ENGINES = [
   { name: "3.5L V6", tag: "Gasoline" },
   { name: "4.0L V6", tag: "Performance" },
   { name: "2.5L Hybrid", tag: "Hybrid" },
-];
+] as const;
 const GRADES = [
   { name: "Base", badge: "Everyday Essentials" },
   { name: "SE", badge: "Sport Enhanced" },
   { name: "XLE", badge: "Extra Luxury" },
   { name: "Limited", badge: "Premium" },
   { name: "Platinum", badge: "Top of the Line" },
-];
+] as const;
+
 const EXTERIOR_IMAGES = [
   { name: "Pearl White", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#f5f5f5" },
   { name: "Midnight Black", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#101010" },
   { name: "Silver Metallic", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true", swatch: "#c7c9cc" },
   { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#0c3c74" },
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#8a1111" },
-];
+] as const;
 
 const INTERIORS = [
   { name: "Black Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/4046322b-9927-490d-b88a-3c18e7b590f3/renditions/c1fbcc4b-eac8-4440-af33-866cf99a0c93?binary=true" },
   { name: "Beige Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/09d2d87f-cf9c-45ca-babb-53d872f8858e/renditions/9fc0d676-3a74-4b78-b56d-aff36dc710c1?binary=true" },
   { name: "Gray Fabric", img: "" },
-];
+] as const;
 
 const ACCESSORIES = [
   { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin." },
@@ -94,10 +104,9 @@ const GRADE_IMAGES: Record<string, string> = {
   Platinum: EXTERIOR_IMAGES[4].image,
 };
 
-/* ---------- NEW: Spin frames per exterior color (wired with your sample links) ---------- */
-// If your DAM is sequential, you can use buildFrames() later.
-const pad = (n: number, width = 3) => n.toString().padStart(width, "0");
-const buildFrames = (
+/* ---------- 360 helper stubs (prefixed to avoid unused warnings) ---------- */
+const _pad = (n: number, width = 3) => n.toString().padStart(width, "0");
+const _buildFrames = (
   base: string,
   count: number,
   {
@@ -111,7 +120,7 @@ const buildFrames = (
 ) =>
   Array.from({ length: count }, (_, i) => {
     const idx = start + i * step;
-    return `${base}/${prefix}${pad(idx, padWidth)}.${ext}${query}`;
+    return `${base}/${prefix}${_pad(idx, padWidth)}.${ext}${query}`;
   });
 
 // Sample set from your provided URLs (Pearl White)
@@ -136,7 +145,9 @@ const APR = 0.0349;
 const DOWN_PCT = 0.2;
 const spring = { type: "spring", stiffness: 320, damping: 32, mass: 1.05 } as const;
 
-function reserveAmount(status: StockStatus) { return status === "available" ? 2000 : 5000; }
+function reserveAmount(status: StockStatus) {
+  return status === "available" ? 2000 : 5000;
+}
 
 function emi(price: number, years: number) {
   const down = price * DOWN_PCT;
@@ -167,9 +178,19 @@ function hapticSelect() {
 
 /* ---------- Component ---------- */
 const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
-  vehicle, step, totalSteps, config, setConfig,
-  showConfirmation, calculateTotalPrice, handlePayment,
-  goBack, goNext, onClose, onReset, variant = "desktop",
+  vehicle,
+  step,
+  totalSteps,
+  config,
+  setConfig,
+  showConfirmation,
+  calculateTotalPrice,
+  handlePayment,
+  goBack,
+  goNext,
+  onClose,
+  onReset,
+  variant = "desktop",
 }) => {
   const backRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -189,21 +210,33 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true });
   }, []);
 
-  const exteriorObj = useMemo(() => EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0], [config.exteriorColor]);
+  const exteriorObj = useMemo(
+    () => EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0],
+    [config.exteriorColor]
+  );
   const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
   const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}-${exteriorView}`;
 
   // Preload stills
   useEffect(() => {
-    EXTERIOR_IMAGES.forEach(({ image }) => { const i = new Image(); i.src = image; });
-    INTERIORS.filter((i) => i.img).forEach(({ img }) => { const im = new Image(); if (img) im.src = img; });
+    EXTERIOR_IMAGES.forEach(({ image }) => {
+      const i = new Image();
+      i.src = image;
+    });
+    INTERIORS.filter((i) => i.img).forEach(({ img }) => {
+      const im = new Image();
+      if (img) im.src = img;
+    });
   }, []);
 
   // Preload spin frames for current color when Exterior is active
   const currentSpinFrames = useMemo(() => SPIN_SETS[config.exteriorColor] || [], [config.exteriorColor]);
   useEffect(() => {
     if (heroMode !== "exterior") return;
-    currentSpinFrames.forEach((src) => { const im = new Image(); im.src = src; });
+    currentSpinFrames.forEach((src) => {
+      const im = new Image();
+      im.src = src;
+    });
   }, [currentSpinFrames, heroMode]);
 
   // Reset sub-toggle to Photo when leaving Exterior
@@ -212,44 +245,62 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   }, [heroMode, exteriorView]);
 
   // setters
-  const setYear = useCallback((y: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
-  }, [setConfig]);
+  const setYear = useCallback(
+    (y: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, modelYear: y, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setEngine = useCallback((e: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, engine: e, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
-  }, [setConfig]);
+  const setEngine = useCallback(
+    (e: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, engine: e, stockStatus: computeStock(c.grade, c.exteriorColor, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setGrade = useCallback((g: string) => {
-    hapticSelect();
-    setConfig((c) => {
-      const allowed = allowedColorsFor(g);
-      const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
-      return { ...c, grade: g, exteriorColor: nextExterior, stockStatus: computeStock(g, nextExterior, c.interiorColor) };
-    });
-  }, [setConfig]);
+  const setGrade = useCallback(
+    (g: string) => {
+      hapticSelect();
+      setConfig((c) => {
+        const allowed = allowedColorsFor(g);
+        const nextExterior = allowed.includes(c.exteriorColor) ? c.exteriorColor : allowed[0];
+        return { ...c, grade: g, exteriorColor: nextExterior, stockStatus: computeStock(g, nextExterior, c.interiorColor) };
+      });
+    },
+    [setConfig]
+  );
 
-  const setColor = useCallback((name: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
-  }, [setConfig]);
+  const setColor = useCallback(
+    (name: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, exteriorColor: name, stockStatus: computeStock(c.grade, name, c.interiorColor) }));
+    },
+    [setConfig]
+  );
 
-  const setInterior = useCallback((name: string) => {
-    hapticSelect();
-    setConfig((c) => ({ ...c, interiorColor: name, stockStatus: computeStock(c.grade, c.exteriorColor, name) }));
-    setHeroMode("interior");
-  }, [setConfig]);
+  const setInterior = useCallback(
+    (name: string) => {
+      hapticSelect();
+      setConfig((c) => ({ ...c, interiorColor: name, stockStatus: computeStock(c.grade, c.exteriorColor, name) }));
+      setHeroMode("interior");
+    },
+    [setConfig]
+  );
 
-  const toggleAccessory = useCallback((name: string) => {
-    hapticSelect();
-    setConfig((c) => {
-      const exists = c.accessories.includes(name);
-      const accessories = exists ? c.accessories.filter((a) => a !== name) : [...c.accessories, name];
-      return { ...c, accessories };
-    });
-  }, [setConfig]);
+  const toggleAccessory = useCallback(
+    (name: string) => {
+      hapticSelect();
+      setConfig((c) => {
+        const exists = c.accessories.includes(name);
+        const accessories = exists ? c.accessories.filter((a) => a !== name) : [...c.accessories, name];
+        return { ...c, accessories };
+      });
+    },
+    [setConfig]
+  );
 
   // CTA
   const readyStep1 = Boolean(config.modelYear && config.engine);
@@ -265,18 +316,28 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     if (step === 3) return handlePayment();
   };
 
-  const primaryText = step === 1
-    ? "Continue"
-    : step === 2
-      ? (config.stockStatus === "no-stock" ? "Register your interest" : "Continue")
-      : (config.stockStatus === "pipeline" ? "Reserve now" : "Buy now");
+  const primaryText =
+    step === 1
+      ? "Continue"
+      : step === 2
+      ? config.stockStatus === "no-stock"
+        ? "Register your interest"
+        : "Continue"
+      : config.stockStatus === "pipeline"
+      ? "Reserve now"
+      : "Buy now";
 
   const disablePrimary = (step === 1 && !readyStep1) || (step === 2 && !readyStep2);
 
   // balanced panels: step 1 gives more space to the right side to avoid whitespace
-  const panel = variant === "tablet"
-    ? (step === 1 ? { left: "w-[52%]", right: "w-[48%]" } : { left: "w-[56%]", right: "w-[44%]" })
-    : (step === 1 ? { left: "w-[52%]", right: "w-[48%]" } : { left: "w-[58%]", right: "w-[42%]" });
+  const panel =
+    variant === "tablet"
+      ? step === 1
+        ? { left: "w-[52%]", right: "w-[48%]" }
+        : { left: "w-[56%]", right: "w-[44%]" }
+      : step === 1
+      ? { left: "w-[52%]", right: "w-[48%]" }
+      : { left: "w-[58%]", right: "w-[42%]" };
 
   const total = calculateTotalPrice();
   const monthly3 = useMemo(() => emi(total, 3), [total]);
@@ -290,20 +351,22 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   }, [config.grade]);
 
   return (
-    <motion.div 
+    <motion.div
       className="relative h-screen w-full flex"
       style={{
-        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 100%)"
+        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 100%)",
       }}
-      initial={{ opacity: 0 }} 
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
       {/* Premium Visual Theater */}
-      <div className={`${panel.left} h-full relative overflow-hidden`}
-           style={{
-             background: "linear-gradient(135deg, hsl(var(--muted)/0.8) 0%, hsl(var(--muted)/0.6) 100%)",
-             borderRight: "1px solid hsl(var(--border)/0.3)"
-           }}>
+      <div
+        className={`${panel.left} h-full relative overflow-hidden`}
+        style={{
+          background: "linear-gradient(135deg, hsl(var(--muted)/0.8) 0%, hsl(var(--muted)/0.6) 100%)",
+          borderRight: "1px solid hsl(var(--border)/0.3)",
+        }}
+      >
         {/* Premium Mode Toggle */}
         <div className="absolute top-6 left-6 z-20 border border-border/20 rounded-2xl bg-background/95 backdrop-blur-xl px-2 py-1.5 flex items-center gap-1 shadow-lg">
           <Sparkles className="h-4 w-4 text-primary mr-2" />
@@ -312,7 +375,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               key={m}
               type="button"
               onClick={() => setHeroMode(m)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${heroMode === m ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" : "border border-transparent hover:bg-muted/50"}`}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                heroMode === m ? "bg-primary text-primary-foreground shadow-sm border border-primary/20" : "border border-transparent hover:bg-muted/50"
+              }`}
               role="tab"
               aria-selected={heroMode === m}
             >
@@ -328,7 +393,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                   key={v}
                   type="button"
                   onClick={() => setExteriorView(v)}
-                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${exteriorView === v ? "bg-muted/80 border border-border/50" : "hover:bg-muted/50"}`}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    exteriorView === v ? "bg-muted/80 border border-border/50" : "hover:bg-muted/50"
+                  }`}
                   aria-pressed={exteriorView === v}
                 >
                   {v === "photo" ? "Photo" : "360"}
@@ -340,9 +407,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
         {/* Main Image / Spin Viewer */}
         <div className="relative w-full h-full bg-gradient-to-b from-muted/20 to-background/50 flex items-center justify-center">
-          {!imageLoadedKey || imageLoadedKey !== heroKey ? (
-            <div className="absolute inset-0 m-8 rounded-2xl bg-muted/20 animate-pulse" aria-hidden />
-          ) : null}
+          {!imageLoadedKey || imageLoadedKey !== heroKey ? <div className="absolute inset-0 m-8 rounded-2xl bg-muted/20 animate-pulse" aria-hidden /> : null}
 
           {heroMode === "exterior" ? (
             exteriorView === "spin" ? (
@@ -351,7 +416,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 frames={currentSpinFrames}
                 fallbackStill={exteriorObj.image}
                 className="w-full h-full object-contain p-6 md:p-8 select-none"
-                alt={`${config.exteriorColor} ${vehicle.name}`}
+                alt={`${config.exteriorColor} ${vehicle.name ?? "Vehicle"}`}
                 onFirstFrameLoad={() => setImageLoadedKey(heroKey)}
                 prefersReducedMotion={!!prefersReducedMotion}
               />
@@ -359,7 +424,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               <motion.img
                 key={`${heroKey}-photo`}
                 src={exteriorObj.image}
-                alt={`${config.exteriorColor} ${vehicle.name}`}
+                alt={`${config.exteriorColor} ${vehicle.name ?? "Vehicle"}`}
                 className="w-full h-full object-contain p-6 md:p-8"
                 initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
@@ -367,14 +432,16 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 decoding="async"
                 loading="eager"
                 onLoad={() => setImageLoadedKey(heroKey)}
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+                }}
               />
             )
           ) : (
             <motion.img
               key={`${heroKey}-interior`}
               src={interiorObj?.img || exteriorObj.image}
-              alt={`${config.interiorColor} ${vehicle.name}`}
+              alt={`${config.interiorColor} ${vehicle.name ?? "Vehicle"}`}
               className="w-full h-full object-contain p-6 md:p-8"
               initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
@@ -382,7 +449,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               decoding="async"
               loading="eager"
               onLoad={() => setImageLoadedKey(heroKey)}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+              }}
             />
           )}
         </div>
@@ -419,7 +488,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </button>
           </div>
           <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight">Build Your <span className="text-primary">{vehicle.name}</span></h1>
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+              Build Your <span className="text-primary">{vehicle.name}</span>
+            </h1>
             <div className="text-sm text-muted-foreground mt-1 flex items-center justify-center gap-1">
               <StepDots current={step} total={totalSteps} />
             </div>
@@ -433,8 +504,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           {step === 1 && (
             <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CompactSegmented label="Model Year" options={YEARS} value={config.modelYear} onChange={setYear} />
-                <CompactSegmented label="Engine" options={ENGINES.map((e) => e.name)} value={config.engine} onChange={setEngine} meta={(name) => ENGINES.find((e) => e.name === name)?.tag} />
+                <CompactSegmented label="Model Year" options={YEARS as unknown as string[]} value={config.modelYear} onChange={setYear} />
+                <CompactSegmented
+                  label="Engine"
+                  options={ENGINES.map((e) => e.name)}
+                  value={config.engine}
+                  onChange={setEngine}
+                  meta={(name) => ENGINES.find((e) => e.name === name)?.tag}
+                />
               </div>
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <FinanceCard label="Reserve" value={`AED ${reserve.toLocaleString()}`} hint={config.stockStatus === "available" ? "Pay now to secure" : "Refundable pre-order"} large />
@@ -491,7 +568,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                           key={i.name}
                           onClick={() => setInterior(i.name)}
                           type="button"
-                          className={`rounded-2xl border p-2 text-left transition focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
+                          className={`rounded-2xl border p-2 text-left transition focus-visible:ring-2 focus-visible:ring-primary ${
+                            selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"
+                          }`}
                         >
                           <div className="h-24 w-full rounded-xl overflow-hidden bg-muted">
                             {i.img ? (
@@ -526,17 +605,32 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                       return (
                         <motion.div
                           key={a.name}
-                          className={`rounded-xl border p-3 md:p-3.5 flex items-start gap-3 transition-all ${selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"}`}
+                          className={`rounded-xl border p-3 md:p-3.5 flex items-start gap-3 transition-all ${
+                            selected ? "border-primary bg-primary/5" : "border-border/60 hover:border-border"
+                          }`}
                           animate={{ scale: selected ? 1.02 : 1 }}
                           transition={spring}
                         >
-                          <button type="button" onClick={() => toggleAccessory(a.name)} className="shrink-0 w-5 h-5 rounded border flex items-center justify-center" aria-pressed={selected} aria-label={`Toggle ${a.name}`}>
+                          <button
+                            type="button"
+                            onClick={() => toggleAccessory(a.name)}
+                            className="shrink-0 w-5 h-5 rounded border flex items-center justify-center"
+                            aria-pressed={selected}
+                            aria-label={`Toggle ${a.name}`}
+                          >
                             {selected && <CheckCircle2 className="w-4 h-4 text-primary" />}
                           </button>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold truncate">{a.name}</div>
                             <div className="text-xs text-muted-foreground">AED {a.price.toLocaleString()}</div>
-                            <button type="button" onClick={() => { setInfoItem(a); setInfoOpen(true); }} className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setInfoItem(a);
+                                setInfoOpen(true);
+                              }}
+                              className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                            >
                               <CircleHelp className="w-3 h-3" /> Learn more
                             </button>
                           </div>
@@ -564,7 +658,9 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                     {interiorObj?.img ? (
                       <img src={interiorObj.img} alt={config.interiorColor} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full grid place-items-center text-muted-foreground"><ImageIcon className="w-6 h-6" /></div>
+                      <div className="w-full h-full grid place-items-center text-muted-foreground">
+                        <ImageIcon className="w-6 h-6" />
+                      </div>
                     )}
                   </div>
                   <div className="px-3 py-2 text-sm font-semibold">Interior: {config.interiorColor}</div>
@@ -587,11 +683,22 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xl font-black">AED {total.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo</div>
+              <div className="text-xs text-muted-foreground">
+                Reserve AED {reserve.toLocaleString()} · EMI from AED {Math.min(monthly3, monthly5).toLocaleString()}/mo
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <button type="button" onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">Back</button>
-              <button type="button" onClick={onContinue} disabled={disablePrimary} className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition">{primaryText}</button>
+              <button type="button" onClick={goBack} className="rounded-xl border px-4 py-3 hover:bg-muted/30 transition">
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={onContinue}
+                disabled={disablePrimary}
+                className="rounded-xl bg-primary text-primary-foreground px-5 py-3 font-semibold shadow hover:opacity-90 disabled:opacity-50 transition"
+              >
+                {primaryText}
+              </button>
             </div>
           </div>
         </div>
@@ -602,7 +709,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{infoItem?.name}</DialogTitle>
-            <DialogDescription>Details & specifications</DialogDescription>
+            <DialogDescription>Details &amp; specifications</DialogDescription>
           </DialogHeader>
           <div className="rounded-xl overflow-hidden border mb-3">
             <div className="aspect-[16/9] bg-muted">
@@ -633,6 +740,7 @@ const SpinViewer: React.FC<SpinViewerProps> = ({
   className,
   alt,
   onFirstFrameLoad,
+  prefersReducedMotion, // kept for future use
 }) => {
   const hasFrames = frames && frames.length > 0;
   const [index, setIndex] = useState(0);
@@ -641,15 +749,21 @@ const SpinViewer: React.FC<SpinViewerProps> = ({
 
   const SENS = 6; // pixels per frame
 
-  const clampIndex = useCallback((i: number) => {
-    if (!hasFrames) return 0;
-    const len = frames.length;
-    return ((i % len) + len) % len;
-  }, [frames, hasFrames]);
+  const clampIndex = useCallback(
+    (i: number) => {
+      if (!hasFrames) return 0;
+      const len = frames.length;
+      return ((i % len) + len) % len;
+    },
+    [frames, hasFrames]
+  );
 
-  const step = useCallback((delta: number) => {
-    setIndex((cur) => clampIndex(cur + delta));
-  }, [clampIndex]);
+  const step = useCallback(
+    (delta: number) => {
+      setIndex((cur) => clampIndex(cur + delta));
+    },
+    [clampIndex]
+  );
 
   const firstLoadedRef = useRef(false);
   const onFirstLoad = () => {
@@ -699,12 +813,12 @@ const SpinViewer: React.FC<SpinViewerProps> = ({
   }, [step]);
 
   // Reset on frames change
-  useEffect(() => { setIndex(0); }, [frames]);
+  useEffect(() => {
+    setIndex(0);
+  }, [frames]);
 
   if (!hasFrames) {
-    return (
-      <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} />
-    );
+    return <img src={fallbackStill} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} />;
   }
 
   return (
@@ -720,13 +834,7 @@ const SpinViewer: React.FC<SpinViewerProps> = ({
       onPointerCancel={onPointerUp}
       onWheel={onWheel}
     >
-      <img
-        src={frames[index]}
-        alt={alt}
-        className={className}
-        draggable={false}
-        onLoad={onFirstLoad}
-      />
+      <img src={frames[index]} alt={alt} className={className} draggable={false} onLoad={onFirstLoad} />
     </div>
   );
 };
@@ -745,7 +853,13 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
   </section>
 );
 
-const CompactSegmented: React.FC<{ label: string; options: string[]; value: string; onChange: (v: string) => void; meta?: (opt: string) => string | undefined; }> = ({ label, options, value, onChange, meta }) => (
+const CompactSegmented: React.FC<{
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+  meta?: (opt: string) => string | undefined;
+}> = ({ label, options, value, onChange, meta }) => (
   <div>
     <div className="text-sm font-bold mb-2">{label}</div>
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
@@ -756,7 +870,9 @@ const CompactSegmented: React.FC<{ label: string; options: string[]; value: stri
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className={`rounded-full border px-4 py-2 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"}`}
+            className={`rounded-full border px-4 py-2 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              active ? "border-primary bg-primary/5" : "border-border/70 hover:border-border"
+            }`}
             aria-pressed={active}
             role="radio"
             aria-checked={active}
@@ -790,10 +906,21 @@ const SelectableCard: React.FC<{ selected?: boolean; onClick?: () => void; image
   <button
     onClick={onClick}
     type="button"
-    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"}`}
+    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      selected ? "border-primary/60 bg-primary/5" : "border-border/50 hover:border-border"
+    }`}
   >
     <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-      <motion.img src={image} alt={label} className="w-full h-full object-cover" initial={{ scale: 1.04 }} whileHover={{ scale: 1.08 }} transition={{ type: "spring", stiffness: 180, damping: 16 }} loading="lazy" decoding="async" />
+      <motion.img
+        src={image}
+        alt={label}
+        className="w-full h-full object-cover"
+        initial={{ scale: 1.04 }}
+        whileHover={{ scale: 1.08 }}
+        transition={{ type: "spring", stiffness: 180, damping: 16 }}
+        loading="lazy"
+        decoding="async"
+      />
     </div>
     <div className="p-3">
       <div className="text-sm font-semibold leading-tight flex items-center gap-2">
@@ -812,9 +939,7 @@ const StockPill: React.FC<{ status: StockStatus; compact?: boolean }> = ({ statu
     available: { text: "Available", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
   } as const;
   const m = map[status];
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 ${compact ? "py-0.5 text-xs" : "py-1 text-sm"} ${m.cls}`}>{m.text}</span>
-  );
+  return <span className={`inline-flex items-center gap-1 rounded-full border px-2 ${compact ? "py-0.5 text-xs" : "py-1 text-sm"} ${m.cls}`}>{m.text}</span>;
 };
 
 const SummaryRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
