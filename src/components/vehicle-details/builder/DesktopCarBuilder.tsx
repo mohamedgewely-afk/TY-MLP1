@@ -1,4 +1,4 @@
-// DesktopCarBuilder.tsx — Luxury Edition (900+ lines fully restyled)
+// DesktopCarBuilder.tsx — Luxury Edition (Monochrome + Cinematic Hero)
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -51,7 +51,7 @@ export interface DesktopCarBuilderProps {
   variant?: "desktop" | "tablet";
 }
 
-/* ---------- Data ---------- */
+/* ---------- Data with real DAM URLs ---------- */
 const YEARS: string[] = ["2024", "2025", "2026"];
 
 const ENGINES = [
@@ -71,27 +71,32 @@ const GRADES = [
 const EXTERIOR_IMAGES = [
   {
     name: "Pearl White",
-    image: "https://dam.alfuttaim.com/...white",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
     swatch: "#f5f5f5",
   },
   {
     name: "Midnight Black",
-    image: "https://dam.alfuttaim.com/...black",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
     swatch: "#101010",
   },
   {
     name: "Silver Metallic",
-    image: "https://dam.alfuttaim.com/...silver",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true&mformat=true",
     swatch: "#c7c9cc",
   },
   {
     name: "Deep Blue",
-    image: "https://dam.alfuttaim.com/...blue",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true",
     swatch: "#0c3c74",
   },
   {
     name: "Ruby Red",
-    image: "https://dam.alfuttaim.com/...red",
+    image:
+      "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true",
     swatch: "#8a1111",
   },
 ] as const;
@@ -100,11 +105,11 @@ type ExteriorImage = (typeof EXTERIOR_IMAGES)[number];
 const INTERIORS = [
   {
     name: "Black Leather",
-    img: "https://dam.alfuttaim.com/...blackleather",
+    img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/4046322b-9927-490d-b88a-3c18e7b590f3/renditions/c1fbcc4b-eac8-4440-af33-866cf99a0c93?binary=true",
   },
   {
     name: "Beige Leather",
-    img: "https://dam.alfuttaim.com/...beige",
+    img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/09d2d87f-cf9c-45ca-babb-53d872f8858e/renditions/9fc0d676-3a74-4b78-b56d-aff36dc710c1?binary=true",
   },
   { name: "Gray Fabric", img: "" },
 ] as const;
@@ -116,13 +121,21 @@ const ACCESSORIES = [
     price: 1200,
     desc: "Upgraded speakers and amplifier tuned for the cabin.",
   },
-  { name: "Sunroof", price: 800, desc: "Panoramic glass roof with tilt and slide." },
+  {
+    name: "Sunroof",
+    price: 800,
+    desc: "Panoramic glass roof with tilt and slide.",
+  },
   {
     name: "Navigation System",
     price: 600,
     desc: "Built-in maps, voice guidance, live traffic.",
   },
-  { name: "Heated Seats", price: 400, desc: "Front-row seat heating with 3 levels." },
+  {
+    name: "Heated Seats",
+    price: 400,
+    desc: "Front-row seat heating with 3 levels.",
+  },
   {
     name: "Backup Camera",
     price: 300,
@@ -192,35 +205,97 @@ function computeStock(
     return "pipeline";
   return "available";
 }
-/* ---------- SpinViewer (Manual Only: drag / wheel / keys, NO autoplay) ---------- */
-const SpinViewer: React.FC<{
+/* ---------- SpinViewer (manual only, no autoplay) ---------- */
+interface SpinViewerProps {
   frames: string[];
   fallbackStill: string;
   className?: string;
   alt?: string;
   onFirstFrameLoad?: () => void;
-}> = ({ frames, fallbackStill, className, alt, onFirstFrameLoad }) => {
+}
+
+const SpinViewer: React.FC<SpinViewerProps> = ({
+  frames,
+  fallbackStill,
+  className,
+  alt,
+  onFirstFrameLoad,
+}) => {
   const hasFrames = frames && frames.length > 0;
   const [index, setIndex] = useState(0);
   const startXRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const firstLoadedRef = useRef(false);
 
-  const step = (delta: number) =>
-    setIndex((cur) => ((cur + delta + frames.length) % frames.length));
+  const SENS = 6; // pixels per frame
 
+  const clampIndex = useCallback(
+    (i: number) => {
+      if (!hasFrames) return 0;
+      const len = frames.length;
+      return ((i % len) + len) % len;
+    },
+    [frames, hasFrames]
+  );
+
+  const step = useCallback(
+    (delta: number) => {
+      setIndex((cur) => clampIndex(cur + delta));
+    },
+    [clampIndex]
+  );
+
+  const onFirstLoad = () => {
+    if (!firstLoadedRef.current) {
+      firstLoadedRef.current = true;
+      onFirstFrameLoad?.();
+    }
+  };
+
+  // Drag
   const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as Element).setPointerCapture?.(e.pointerId);
     startXRef.current = e.clientX;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (startXRef.current == null) return;
     const dx = e.clientX - startXRef.current;
-    if (Math.abs(dx) >= 6) {
-      step(Math.trunc(dx / 6));
+    if (Math.abs(dx) >= SENS) {
+      const framesDelta = Math.trunc(dx / SENS);
+      step(framesDelta);
       startXRef.current = e.clientX;
     }
   };
-  const onPointerUp = () => {
+  const onPointerUp = (e: React.PointerEvent) => {
+    (e.target as Element).releasePointerCapture?.(e.pointerId);
     startXRef.current = null;
   };
+
+  // Wheel
+  const onWheel = (e: React.WheelEvent) => {
+    if (!hasFrames) return;
+    e.preventDefault();
+    const delta =
+      Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    step(delta > 0 ? 1 : -1);
+  };
+
+  // Keyboard
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    el.addEventListener("keydown", onKey);
+    return () => el.removeEventListener("keydown", onKey);
+  }, [step]);
+
+  // Reset on frames change
+  useEffect(() => {
+    setIndex(0);
+  }, [frames]);
 
   if (!hasFrames) {
     return (
@@ -229,41 +304,47 @@ const SpinViewer: React.FC<{
         alt={alt}
         className={className}
         draggable={false}
-        onLoad={onFirstFrameLoad}
+        onLoad={onFirstLoad}
       />
     );
   }
 
   return (
     <div
-      className="w-full h-full select-none"
+      ref={containerRef}
+      className="w-full h-full outline-none"
+      role="img"
+      aria-label={alt}
+      tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onWheel={onWheel}
     >
       <img
         src={frames[index]}
         alt={alt}
         className={className}
         draggable={false}
-        onLoad={onFirstFrameLoad}
+        onLoad={onFirstLoad}
       />
     </div>
   );
 };
 
-/* ---------- UI Subcomponents ---------- */
+/* ---------- UI Subcomponents (Luxury) ---------- */
 const Section: React.FC<{
   title: string;
   subtitle?: string;
   children: React.ReactNode;
 }> = ({ title, subtitle, children }) => (
-  <section className="px-6 py-8 border-b border-black/10">
-    <div className="flex items-start justify-between">
+  <section className="px-6 py-8 border-b border-neutral-200 bg-white/60 backdrop-blur rounded-none">
+    <div className="flex items-start justify-between gap-3">
       <div>
-        <h3 className="text-lg font-semibold text-neutral-900">{title}</h3>
+        <h3 className="text-lg font-bold text-neutral-900">{title}</h3>
         {subtitle && (
-          <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>
+          <p className="text-sm text-neutral-500">{subtitle}</p>
         )}
       </div>
       <Info className="h-4 w-4 text-neutral-400" />
@@ -280,23 +361,29 @@ const CompactSegmented: React.FC<{
   meta?: (opt: string) => string | undefined;
 }> = ({ label, options, value, onChange, meta }) => (
   <div>
-    <div className="text-sm font-semibold mb-2 text-neutral-700">{label}</div>
-    <div className="flex flex-wrap gap-2">
+    <div className="text-sm font-semibold mb-2 text-neutral-700">
+      {label}
+    </div>
+    <div className="flex flex-wrap gap-2" role="radiogroup">
       {options.map((opt) => {
         const active = value === opt;
         return (
           <button
             key={opt}
+            type="button"
             onClick={() => onChange(opt)}
-            className={`rounded-full px-4 py-2 border transition ${
+            className={`rounded-full border px-4 py-2 text-sm transition ${
               active
-                ? "bg-black text-white border-black"
-                : "border-neutral-300 hover:border-black/40 hover:bg-black/5"
+                ? "border-black bg-black text-white"
+                : "border-neutral-300 hover:border-black/40"
             }`}
+            aria-pressed={active}
+            role="radio"
+            aria-checked={active}
           >
-            {opt}
+            <span>{opt}</span>
             {meta?.(opt) && (
-              <span className="ml-2 text-xs text-neutral-400">
+              <span className="ml-2 text-xs text-neutral-500">
                 {meta(opt)}
               </span>
             )}
@@ -312,10 +399,10 @@ const FinanceCard: React.FC<{
   value: string;
   hint?: string;
 }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl border border-black/20 p-4 bg-white/70 backdrop-blur shadow-sm">
-    <div className="text-xs text-neutral-500">{label}</div>
+  <div className="rounded-2xl border border-neutral-200 p-4 bg-white/60 backdrop-blur shadow-sm">
+    <div className="text-[11px] text-neutral-500">{label}</div>
     <div className="text-xl font-bold text-neutral-900">{value}</div>
-    {hint && <div className="text-xs text-neutral-400 mt-1">{hint}</div>}
+    {hint && <div className="text-[11px] text-neutral-400 mt-1">{hint}</div>}
   </div>
 );
 
@@ -329,7 +416,7 @@ const StepDots: React.FC<{ current: number; total: number }> = ({
         key={i}
         className={`h-1.5 rounded-full transition-all ${
           i + 1 <= current
-            ? "bg-black w-8"
+            ? "bg-black w-6"
             : "bg-neutral-300 w-3"
         }`}
       />
@@ -346,13 +433,14 @@ const SelectableCard: React.FC<{
 }> = ({ selected, onClick, image, label, caption }) => (
   <button
     onClick={onClick}
-    className={`group relative overflow-hidden rounded-2xl border transition text-left ${
+    type="button"
+    className={`group relative overflow-hidden rounded-2xl border text-left transition focus:outline-none ${
       selected
         ? "border-black bg-black/5"
         : "border-neutral-300 hover:border-black/40"
     }`}
   >
-    <div className="aspect-[16/10] bg-neutral-100">
+    <div className="aspect-[16/10] w-full overflow-hidden bg-neutral-100">
       <motion.img
         src={image}
         alt={label}
@@ -363,33 +451,38 @@ const SelectableCard: React.FC<{
       />
     </div>
     <div className="p-3">
-      <div className="text-sm font-semibold flex items-center gap-2">
+      <div className="text-sm font-semibold flex items-center gap-2 text-neutral-900">
         {label}
         {selected && <CheckCircle2 className="h-4 w-4 text-black" />}
       </div>
-      {caption && <div className="text-xs text-neutral-500">{caption}</div>}
+      {caption && (
+        <div className="text-xs text-neutral-500">{caption}</div>
+      )}
     </div>
   </button>
 );
 
 const StockPill: React.FC<{ status: StockStatus }> = ({ status }) => {
   const map = {
-    "no-stock":
-      "bg-red-100 text-red-700 border border-red-200",
-    pipeline:
-      "bg-yellow-100 text-yellow-700 border border-yellow-200",
-    available:
-      "bg-green-100 text-green-700 border border-green-200",
+    "no-stock": {
+      text: "No stock",
+      cls: "bg-red-100 text-red-700 border-red-300",
+    },
+    pipeline: {
+      text: "Pipeline stock",
+      cls: "bg-amber-100 text-amber-700 border-amber-300",
+    },
+    available: {
+      text: "Available",
+      cls: "bg-emerald-100 text-emerald-700 border-emerald-300",
+    },
   } as const;
+  const m = map[status];
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${map[status]}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${m.cls}`}
     >
-      {status === "no-stock"
-        ? "No Stock"
-        : status === "pipeline"
-        ? "Pipeline"
-        : "Available"}
+      {m.text}
     </span>
   );
 };
@@ -400,7 +493,9 @@ const SummaryRow: React.FC<{ label: string; value: React.ReactNode }> = ({
 }) => (
   <div className="flex items-center justify-between border rounded-xl px-3 py-2 bg-white/60 backdrop-blur">
     <span className="text-sm text-neutral-500">{label}</span>
-    <span className="text-sm font-semibold text-neutral-900">{value}</span>
+    <span className="text-sm font-semibold text-neutral-900">
+      {value}
+    </span>
   </div>
 );
 /* ---------- Main Component ---------- */
@@ -436,7 +531,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   );
   const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}-${exteriorView}`;
 
-  // Spin frames per color
+  // Spin sets (replace with real sequences if you have them)
   const SPIN_SETS: Record<string, string[]> = {
     "Pearl White": [exteriorObj.image],
     "Midnight Black": [exteriorObj.image],
@@ -458,7 +553,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     [config.stockStatus]
   );
 
-  /* ---------- Layout Panels ---------- */
+  /* ---------- Panel Widths ---------- */
   const panel =
     variant === "tablet"
       ? { left: "w-[56%]", right: "w-[44%]" }
@@ -468,7 +563,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     <motion.div
       className="relative h-screen w-full flex"
       style={{
-        background: "linear-gradient(135deg, #fdfdfd 0%, #f2f2f2 100%)",
+        background: "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)",
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -481,8 +576,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           borderRight: "1px solid rgba(0,0,0,0.05)",
         }}
       >
-        {/* Hero Toggle */}
-        <div className="absolute top-6 left-6 z-20 border border-black/10 rounded-2xl bg-white/70 backdrop-blur px-3 py-1.5 flex items-center gap-2 shadow-lg">
+        {/* Hero Mode & Photo/360 Toggle */}
+        <div className="absolute top-6 left-6 z-20 border border-neutral-200 rounded-2xl bg-white/70 backdrop-blur px-3 py-1.5 flex items-center gap-2 shadow-lg">
           <Sparkles className="h-4 w-4 text-black/70" />
           {(["exterior", "interior"] as const).map((m) => (
             <button
@@ -498,14 +593,14 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
             </button>
           ))}
           {heroMode === "exterior" && (
-            <div className="ml-3 flex items-center gap-1 pl-3 border-l border-black/10">
+            <div className="ml-3 flex items-center gap-1 pl-3 border-l border-neutral-200">
               {(["photo", "spin"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setExteriorView(v)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                     exteriorView === v
-                      ? "bg-neutral-900 text-white"
+                      ? "bg-black text-white"
                       : "hover:bg-black/5"
                   }`}
                 >
@@ -516,7 +611,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           )}
         </div>
 
-        {/* Main Hero Image */}
+        {/* Hero Image */}
         <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-b from-white/70 to-gray-100">
           {!imageLoadedKey || imageLoadedKey !== heroKey ? (
             <div className="absolute inset-0 m-8 rounded-2xl bg-neutral-200 animate-pulse" />
@@ -563,13 +658,15 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         </div>
       </div>
 
-      {/* Right Panel */}
-      <div className={`${panel.right} h-full flex flex-col border-l border-black/10`}>
+      {/* Right Config Panel */}
+      <div
+        className={`${panel.right} h-full flex flex-col border-l border-neutral-200`}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-black/10 bg-white/70 backdrop-blur">
+        <div className="flex items-center justify-between p-6 border-b border-neutral-200 bg-white/70 backdrop-blur">
           <button
             onClick={step > 1 ? goBack : onClose}
-            className="p-3 rounded-2xl border border-black/20 hover:bg-black/5 transition"
+            className="p-3 rounded-2xl border border-neutral-300 hover:bg-black/5 transition"
           >
             {step > 1 ? (
               <ArrowLeft className="h-5 w-5" />
@@ -579,14 +676,13 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           </button>
           <div className="text-center">
             <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-              Build Your{" "}
-              <span className="text-neutral-500">{vehicle.name}</span>
+              Build Your <span className="text-neutral-500">{vehicle.name}</span>
             </h1>
             <StepDots current={step} total={totalSteps} />
           </div>
           <button
             onClick={onReset}
-            className="p-3 rounded-2xl border border-black/20 hover:bg-black/5 transition text-red-600"
+            className="p-3 rounded-2xl border border-neutral-300 hover:bg-black/5 transition text-red-600"
           >
             <RotateCcw className="h-5 w-5" />
           </button>
@@ -594,7 +690,6 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto scroll-pb-[200px]">
-          {/* STEP 1 */}
           {step === 1 && (
             <Section
               title="Model Year & Powertrain"
@@ -632,9 +727,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                       ),
                     }))
                   }
-                  meta={(name) =>
-                    ENGINES.find((e) => e.name === name)?.tag
-                  }
+                  meta={(name) => ENGINES.find((e) => e.name === name)?.tag}
                 />
               </div>
 
@@ -796,7 +889,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                               </div>
                             )}
                           </div>
-                          <div className="mt-2 text-sm font-semibold truncate">
+                          <div className="mt-2 text-sm font-semibold truncate text-neutral-900">
                             {i.name}
                           </div>
                         </button>
@@ -863,7 +956,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                               )}
                             </button>
                             <div className="min-w-0">
-                              <div className="text-sm font-semibold truncate">
+                              <div className="text-sm font-semibold truncate text-neutral-900">
                                 {a.name}
                               </div>
                               <div className="text-xs text-neutral-500">
@@ -899,7 +992,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="px-3 py-2 text-sm font-semibold">
+                  <div className="px-3 py-2 text-sm font-semibold text-neutral-900">
                     Exterior: {config.exteriorColor}
                   </div>
                 </div>
@@ -917,7 +1010,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className="px-3 py-2 text-sm font-semibold">
+                  <div className="px-3 py-2 text-sm font-semibold text-neutral-900">
                     Interior: {config.interiorColor}
                   </div>
                 </div>
@@ -945,7 +1038,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
         </div>
 
         {/* Footer CTA */}
-        <div className="border-t border-black/10 p-6 sticky bottom-0 bg-white/80 backdrop-blur">
+        <div className="border-t border-neutral-200 p-6 sticky bottom-0 bg-white/80 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xl font-bold text-neutral-900">
@@ -960,7 +1053,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
               <button
                 type="button"
                 onClick={goBack}
-                className="rounded-xl border border-black/20 px-4 py-3 hover:bg-black/5 transition"
+                className="rounded-xl border border-neutral-300 px-4 py-3 hover:bg-black/5 transition"
               >
                 Back
               </button>
@@ -969,7 +1062,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
                 onClick={() => {
                   if (step === 1) return goNext();
                   if (step === 2) {
-                    if (config.stockStatus === "no-stock") return handlePayment();
+                    if (config.stockStatus === "no-stock")
+                      return handlePayment();
                     return goNext();
                   }
                   if (step === 3) return handlePayment();
@@ -993,6 +1087,36 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     </motion.div>
   );
 };
+
+/* ---------- Accessory Info Dialog ---------- */
+const AccessoryDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  accessory: typeof ACCESSORIES[number] | null;
+  exteriorImg: string;
+}> = ({ open, onOpenChange, accessory, exteriorImg }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{accessory?.name}</DialogTitle>
+        <DialogDescription>Details &amp; specifications</DialogDescription>
+      </DialogHeader>
+      <div className="rounded-xl overflow-hidden border mb-3">
+        <div className="aspect-[16/9] bg-neutral-100">
+          <img
+            src={exteriorImg}
+            alt="Accessory visual"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+      <div className="text-sm text-neutral-700">{accessory?.desc}</div>
+      <div className="text-sm font-semibold mt-2 text-neutral-900">
+        Price: AED {accessory ? accessory.price.toLocaleString() : 0}
+      </div>
+    </DialogContent>
+  </Dialog>
+);
 
 /* ---------- Export ---------- */
 export default DesktopCarBuilder;
