@@ -13,7 +13,6 @@ import { contextualHaptic } from "@/utils/haptic";
 import { createAdaptiveVariants, createAdaptiveMicroAnimations } from "@/utils/adaptive-animations";
 import { usePerformanceConfig } from "@/utils/performance-optimization";
 import { usePerformantIntersection } from "@/hooks/use-performant-intersection";
-import { Badge } from "@/components/ui/badge";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
