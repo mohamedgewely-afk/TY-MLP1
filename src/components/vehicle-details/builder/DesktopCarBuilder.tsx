@@ -1,9 +1,7 @@
 // DesktopCarBuilder.tsx — end-to-end with 360° exterior spin (no autoplay) + Photo/360 sub-toggle
-// - Keeps original UI/UX/CX (panels, header, finance, accessories, etc.)
 // - 360 viewer shows ONLY when: Mode=Exterior AND sub-toggle=“360”
 // - Default is Exterior → Photo (still image)
 // - No autoplay. Manual interactions only (drag / wheel / arrow keys)
-// - Fixes TS2367 by avoiding cross-literal comparisons inside narrowed branches
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -15,7 +13,7 @@ import {
   Info,
   CircleHelp,
   Image as ImageIcon,
-  Sparkles, // ✅ added
+  Sparkles,
 } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
@@ -51,12 +49,14 @@ export interface DesktopCarBuilderProps {
 }
 
 /* ---------- Data ---------- */
-const YEARS = ["2024", "2025", "2026"] as const;
+const YEARS: string[] = ["2024", "2025", "2026"]; // use plain string[] to avoid tuple casting later
+
 const ENGINES = [
   { name: "3.5L V6", tag: "Gasoline" },
   { name: "4.0L V6", tag: "Performance" },
   { name: "2.5L Hybrid", tag: "Hybrid" },
 ] as const;
+
 const GRADES = [
   { name: "Base", badge: "Everyday Essentials" },
   { name: "SE", badge: "Sport Enhanced" },
@@ -72,12 +72,14 @@ const EXTERIOR_IMAGES = [
   { name: "Deep Blue", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/4ac2d27b-b1c8-4f71-a6d6-67146ed048c0/renditions/93d25a70-0996-4500-ae27-13e6c6bd24fc?binary=true&mformat=true", swatch: "#0c3c74" },
   { name: "Ruby Red", image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true&mformat=true", swatch: "#8a1111" },
 ] as const;
+type ExteriorImage = (typeof EXTERIOR_IMAGES)[number];
 
 const INTERIORS = [
   { name: "Black Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/4046322b-9927-490d-b88a-3c18e7b590f3/renditions/c1fbcc4b-eac8-4440-af33-866cf99a0c93?binary=true" },
   { name: "Beige Leather", img: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/21c8594c-cf2e-46c8-8246-fdd80bcf4b75/items/09d2d87f-cf9c-45ca-babb-53d872f8858e/renditions/9fc0d676-3a74-4b78-b56d-aff36dc710c1?binary=true" },
   { name: "Gray Fabric", img: "" },
 ] as const;
+type InteriorItem = (typeof INTERIORS)[number];
 
 const ACCESSORIES = [
   { name: "Premium Sound System", price: 1200, desc: "Upgraded speakers and amplifier tuned for the cabin." },
@@ -210,11 +212,11 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
     if (resetRef.current) addLuxuryHapticToButton(resetRef.current, { type: "premiumError", onPress: true, onHover: true });
   }, []);
 
-  const exteriorObj = useMemo(
+  const exteriorObj = useMemo<ExteriorImage>(
     () => EXTERIOR_IMAGES.find((c) => c.name === config.exteriorColor) || EXTERIOR_IMAGES[0],
     [config.exteriorColor]
   );
-  const interiorObj = useMemo(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
+  const interiorObj = useMemo<InteriorItem | undefined>(() => INTERIORS.find((i) => i.name === config.interiorColor), [config.interiorColor]);
   const heroKey = `${exteriorObj.image}-${config.grade}-${config.modelYear}-${heroMode}-${interiorObj?.img ?? "no-int"}-${exteriorView}`;
 
   // Preload stills
@@ -344,8 +346,8 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   const monthly5 = useMemo(() => emi(total, 5), [total]);
   const reserve = useMemo(() => reserveAmount(config.stockStatus), [config.stockStatus]);
 
-  const visibleExteriorColors = useMemo(() => {
-    if (!config.grade) return [] as typeof EXTERIOR_IMAGES;
+  const visibleExteriorColors = useMemo<ExteriorImage[]>(() => {
+    if (!config.grade) return [];
     const allowed = allowedColorsFor(config.grade);
     return EXTERIOR_IMAGES.filter((c) => allowed.includes(c.name));
   }, [config.grade]);
@@ -504,7 +506,7 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
           {step === 1 && (
             <Section title="Model Year & Powertrain" subtitle="Pick your year and engine to begin" dense>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CompactSegmented label="Model Year" options={YEARS as unknown as string[]} value={config.modelYear} onChange={setYear} />
+                <CompactSegmented label="Model Year" options={YEARS} value={config.modelYear} onChange={setYear} />
                 <CompactSegmented
                   label="Engine"
                   options={ENGINES.map((e) => e.name)}
@@ -740,7 +742,7 @@ const SpinViewer: React.FC<SpinViewerProps> = ({
   className,
   alt,
   onFirstFrameLoad,
-  prefersReducedMotion, // kept for future use
+  prefersReducedMotion, // kept for future a11y options
 }) => {
   const hasFrames = frames && frames.length > 0;
   const [index, setIndex] = useState(0);
