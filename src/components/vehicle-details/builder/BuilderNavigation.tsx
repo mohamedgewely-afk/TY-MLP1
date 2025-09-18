@@ -1,3 +1,6 @@
+// components/BuilderNavigation.tsx
+// Luxury nav arrows with fade-in/out + slide; only render when usable
+
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,9 +13,9 @@ interface BuilderNavigationProps {
 }
 
 const fadeSlide = (dir: "left" | "right") => ({
-  initial: { opacity: 0, y: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
-  animate: { opacity: 1, y: 0, x: 0, scale: 1 },
-  exit: { opacity: 0, y: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
+  initial: { opacity: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
+  animate: { opacity: 1, x: 0, scale: 1 },
+  exit: { opacity: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
   transition: { duration: 0.22, ease: "easeOut" },
 });
 
@@ -21,18 +24,12 @@ const baseBtn =
 const activeBtn =
   "bg-black/80 border-white/20 text-white shadow-[0_0_18px_rgba(0,0,0,0.45)] hover:scale-110 hover:shadow-[0_0_26px_rgba(0,0,0,0.6)]";
 
-const BuilderNavigation: React.FC<BuilderNavigationProps> = ({
-  currentStep,
-  totalSteps,
-  onPrevStep,
-  onNextStep,
-}) => {
+const BuilderNavigation: React.FC<BuilderNavigationProps> = ({ currentStep, totalSteps, onPrevStep, onNextStep }) => {
   const canPrev = currentStep > 1;
   const canNext = currentStep < totalSteps;
 
   return (
     <>
-      {/* Prev */}
       <AnimatePresence initial={false} mode="popLayout">
         {canPrev && (
           <motion.button
@@ -49,7 +46,6 @@ const BuilderNavigation: React.FC<BuilderNavigationProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Next */}
       <AnimatePresence initial={false} mode="popLayout">
         {canNext && (
           <motion.button
