@@ -1,6 +1,3 @@
-// components/BuilderProgress.tsx
-// Luxury progress (monochrome, glass) synced with DesktopCarBuilder
-
 import React from "react";
 import { motion } from "framer-motion";
 import { Check, Car, Palette, Settings, CreditCard, Star, Zap } from "lucide-react";
@@ -28,19 +25,31 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSte
           <React.Fragment key={stepData.number}>
             <motion.div
               className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
-                currentStep >= stepData.number ? "bg-black text-white shadow-[0_0_20px_rgba(0,0,0,0.5)]" : "bg-white/10 text-neutral-400 border border-white/20"
+                currentStep >= stepData.number
+                  ? "bg-black text-white shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+                  : "bg-white/10 text-neutral-400 border border-white/20"
               }`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               animate={
                 currentStep === stepData.number
-                  ? { boxShadow: ["0 0 0px rgba(0,0,0,0)", "0 0 20px rgba(0,0,0,0.5)", "0 0 0px rgba(0,0,0,0)"] }
+                  ? {
+                      boxShadow: [
+                        "0 0 0px rgba(0,0,0,0)",
+                        "0 0 20px rgba(0,0,0,0.5)",
+                        "0 0 0px rgba(0,0,0,0)",
+                      ],
+                    }
                   : {}
               }
               transition={{ duration: 2, repeat: Infinity }}
             >
               {currentStep > stepData.number ? (
-                <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 220, damping: 20 }}>
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                >
                   <Check className="h-6 w-6 text-white" />
                 </motion.div>
               ) : (
@@ -63,7 +72,9 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSte
 
             {index < steps.slice(0, totalSteps).length - 1 && (
               <motion.div
-                className={`w-10 h-0.5 rounded-full transition-all duration-500 ${currentStep > stepData.number ? "bg-black" : "bg-white/20"}`}
+                className={`w-10 h-0.5 rounded-full transition-all duration-500 ${
+                  currentStep > stepData.number ? "bg-black" : "bg-white/20"
+                }`}
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: currentStep > stepData.number ? 1 : 0.3 }}
                 transition={{ duration: 0.5 }}

@@ -1,6 +1,3 @@
-// components/BuilderNavigation.tsx
-// Luxury nav arrows with fade-in/out + slide; only render when usable
-
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -24,7 +21,12 @@ const baseBtn =
 const activeBtn =
   "bg-black/80 border-white/20 text-white shadow-[0_0_18px_rgba(0,0,0,0.45)] hover:scale-110 hover:shadow-[0_0_26px_rgba(0,0,0,0.6)]";
 
-const BuilderNavigation: React.FC<BuilderNavigationProps> = ({ currentStep, totalSteps, onPrevStep, onNextStep }) => {
+const BuilderNavigation: React.FC<BuilderNavigationProps> = ({
+  currentStep,
+  totalSteps,
+  onPrevStep,
+  onNextStep,
+}) => {
   const canPrev = currentStep > 1;
   const canNext = currentStep < totalSteps;
 
