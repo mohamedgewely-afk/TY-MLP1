@@ -10,9 +10,9 @@ interface BuilderNavigationProps {
 }
 
 const fadeSlide = (dir: "left" | "right") => ({
-  initial: { opacity: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
-  animate: { opacity: 1, x: 0, scale: 1 },
-  exit: { opacity: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
+  initial: { opacity: 0, y: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
+  animate: { opacity: 1, y: 0, x: 0, scale: 1 },
+  exit: { opacity: 0, y: 0, x: dir === "left" ? -12 : 12, scale: 0.96 },
   transition: { duration: 0.22, ease: "easeOut" },
 });
 
@@ -32,6 +32,7 @@ const BuilderNavigation: React.FC<BuilderNavigationProps> = ({
 
   return (
     <>
+      {/* Prev */}
       <AnimatePresence initial={false} mode="popLayout">
         {canPrev && (
           <motion.button
@@ -48,6 +49,7 @@ const BuilderNavigation: React.FC<BuilderNavigationProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Next */}
       <AnimatePresence initial={false} mode="popLayout">
         {canNext && (
           <motion.button

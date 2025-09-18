@@ -1,13 +1,24 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, Car, Palette, Settings, CreditCard, Star, Zap } from "lucide-react";
+import {
+  Check,
+  Car,
+  Palette,
+  Settings,
+  CreditCard,
+  Star,
+  Zap,
+} from "lucide-react";
 
 interface BuilderProgressProps {
   currentStep: number;
   totalSteps: number;
 }
 
-const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSteps }) => {
+const BuilderProgress: React.FC<BuilderProgressProps> = ({
+  currentStep,
+  totalSteps,
+}) => {
   const steps = [
     { number: 1, title: "Year", icon: <Star className="h-5 w-5" /> },
     { number: 2, title: "Grade", icon: <Zap className="h-5 w-5" /> },
@@ -19,10 +30,11 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSte
   ];
 
   return (
-    <div className="flex justify-center items-center mb-6 -mt-1 px-6 relative z-10">
+    <div className="flex justify-center items-center mb-10 px-6 relative z-10">
       <div className="flex items-center space-x-5 bg-white/10 backdrop-blur-2xl rounded-full px-8 py-5 border border-white/20 shadow-lg">
         {steps.slice(0, totalSteps).map((stepData, index) => (
           <React.Fragment key={stepData.number}>
+            {/* Step Circle */}
             <motion.div
               className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
                 currentStep >= stepData.number
@@ -54,15 +66,20 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSte
                 </motion.div>
               ) : (
                 <motion.div
-                  animate={currentStep === stepData.number ? { rotate: [0, 360] } : {}}
+                  animate={
+                    currentStep === stepData.number
+                      ? { rotate: [0, 360] }
+                      : {}
+                  }
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 >
                   {stepData.icon}
                 </motion.div>
               )}
 
+              {/* Step Label */}
               <motion.div
-                className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-semibold tracking-wide whitespace-nowrap text-neutral-300"
+                className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-semibold tracking-wide whitespace-nowrap text-neutral-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: currentStep >= stepData.number ? 1 : 0.4 }}
               >
@@ -70,6 +87,7 @@ const BuilderProgress: React.FC<BuilderProgressProps> = ({ currentStep, totalSte
               </motion.div>
             </motion.div>
 
+            {/* Connector Line */}
             {index < steps.slice(0, totalSteps).length - 1 && (
               <motion.div
                 className={`w-10 h-0.5 rounded-full transition-all duration-500 ${
