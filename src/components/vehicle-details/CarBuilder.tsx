@@ -20,7 +20,7 @@ import { VehicleModel } from "@/types/vehicle";
 import { useToast } from "@/hooks/use-toast";
 import { useDeviceInfo } from "@/hooks/use-device-info";
 
-import BuilderProgress from "./BuilderProgress";
+import BuilderProgress from "@/components/vehicle-details/BuilderProgress";
 import DesktopCarBuilder, { BuilderConfig as DesktopBuilderConfig } from "./builder/DesktopCarBuilder";
 import MobileCarBuilder, { MobileBuilderConfig } from "./builder/MobileCarBuilder";
 

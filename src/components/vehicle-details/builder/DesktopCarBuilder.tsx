@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import BuilderProgress from "../BuilderProgress";
-import BuilderNavigation from "../BuilderNavigation";
+import BuilderProgress from "@/components/vehicle-details/BuilderProgress";
+import BuilderNavigation from "@/components/vehicle-details/BuilderNavigation";
 
 import { VehicleModel } from "@/types/vehicle";
 
