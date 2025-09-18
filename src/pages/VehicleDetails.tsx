@@ -10,6 +10,7 @@ import MinimalHeroSection from "@/components/vehicle-details/MinimalHeroSection"
 import VehicleConfiguration from "@/components/vehicle-details/VehicleConfiguration";
 import VehicleModals from "@/components/vehicle-details/VehicleModals";
 import StreamlinedNavigation from "@/components/vehicle-details/StreamlinedNavigation";
+import MobileStickyNav from "@/components/MobileStickyNav";
 import { PageLoading, ComponentLoading } from "@/components/ui/enhanced-loading";
 import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
 import { HeroSkeleton } from "@/components/ui/performance-skeleton";
@@ -34,25 +35,9 @@ import { ProgressiveLoader } from '@/components/ui/enhanced-loading-states';
 
 
 // Lazy load heavy components with intelligent preloading
-const VehicleSpecs = createLazyComponent(
-  () => import("@/components/vehicle-details/VehicleSpecs"),
-  () => window.innerWidth > 768 // Preload on desktop
-);
-
-// VehicleGallery - Hidden as requested
-// const VehicleGallery = createLazyComponent(
-//   () => import("@/components/vehicle-details/VehicleGallery")
-// );
-
-const VehicleFeatures = createLazyComponent(
-  () => import("@/components/vehicle-details/VehicleFeatures")
-);
-
 const RelatedVehicles = createLazyComponent(
   () => import("@/components/vehicle-details/RelatedVehicles")
 );
-
-
 
 const RefinedTechExperience = createLazyComponent(
   () => import("@/components/vehicle-details/RefinedTechExperience")
@@ -78,8 +63,7 @@ const PremiumMediaShowcase = createLazyComponent(
   () => import("@/components/vehicle-details/PremiumMediaShowcase")
 );
 
-// Preload components on fast networks
-preloadOnFastNetwork(() => import("@/components/vehicle-details/VehicleGallery"));
+// Preload components on fast networks  
 preloadOnFastNetwork(() => import("@/components/vehicle-details/StorytellingSection"));
 
 const VehicleDetails = () => {
@@ -325,7 +309,15 @@ const VehicleDetails = () => {
           />
         </div>
 
-        {/* Streamlined Navigation */}
+        {/* Premium Mobile Sticky Navigation with enhanced CTA */}
+        <MobileStickyNav
+          vehicle={vehicle}
+          onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
+          onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}
+          onFinanceCalculator={() => modalHandlers.updateModal('isFinanceOpen', true)}
+        />
+
+        {/* Desktop Streamlined Navigation */}
         <StreamlinedNavigation
           onBookTestDrive={() => modalHandlers.updateModal('isBookingOpen', true)}
           onCarBuilder={() => modalHandlers.updateModal('isCarBuilderOpen', true)}

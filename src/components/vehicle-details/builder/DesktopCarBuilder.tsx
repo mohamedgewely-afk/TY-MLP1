@@ -290,11 +290,23 @@ const DesktopCarBuilder: React.FC<DesktopCarBuilderProps> = ({
   }, [config.grade]);
 
   return (
-    <motion.div className="relative h-screen w-full bg-background flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      {/* Visual theater */}
-      <div className={`${panel.left} h-full relative overflow-hidden bg-muted`}>
-        {/* Mode Toggle + Exterior sub-toggle */}
-        <div className="absolute top-6 left-6 z-20 border border-border/40 rounded-2xl bg-background/95 backdrop-blur-sm px-2 py-1.5 flex items-center gap-1 shadow-sm">
+    <motion.div 
+      className="relative h-screen w-full flex"
+      style={{
+        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 100%)"
+      }}
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }}
+    >
+      {/* Premium Visual Theater */}
+      <div className={`${panel.left} h-full relative overflow-hidden`}
+           style={{
+             background: "linear-gradient(135deg, hsl(var(--muted)/0.8) 0%, hsl(var(--muted)/0.6) 100%)",
+             borderRight: "1px solid hsl(var(--border)/0.3)"
+           }}>
+        {/* Premium Mode Toggle */}
+        <div className="absolute top-6 left-6 z-20 border border-border/20 rounded-2xl bg-background/95 backdrop-blur-xl px-2 py-1.5 flex items-center gap-1 shadow-lg">
+          <Sparkles className="h-4 w-4 text-primary mr-2" />
           {(["exterior", "interior"] as const).map((m) => (
             <button
               key={m}

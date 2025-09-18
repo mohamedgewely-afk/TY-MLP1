@@ -1,6 +1,11 @@
+// MobileCarBuilder.tsx — Premium Luxury Mobile Experience  
+// - Maintains all original functionality with elegant luxury styling
+// - Enhanced touch interactions and premium visual hierarchy
+// - Uses semantic design tokens for consistent theming
+
 import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, X, RotateCcw, LogOut, CheckCircle2, CircleHelp, Image as ImageIcon, Sparkles, Crown, Star } from "lucide-react";
 import { VehicleModel } from "@/types/vehicle";
 import { DeviceCategory } from "@/hooks/use-device-info";
 import { addLuxuryHapticToButton, contextualHaptic } from "@/utils/haptic";
