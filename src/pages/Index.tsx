@@ -164,10 +164,10 @@ const Index = () => {
       });
     } else {
       // Add to compare list (max 3)
-      if (compareList.length >= 3) {
+      if (compareList.length >= 10) {
         toast({
           title: "Comparison limit reached",
-          description: "You can compare up to 3 vehicles at a time. Please remove a vehicle first.",
+          description: "You can compare up to 10 vehicles at a time. Please remove a vehicle first.",
           variant: "destructive",
         });
         return;
