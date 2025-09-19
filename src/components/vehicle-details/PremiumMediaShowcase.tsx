@@ -520,63 +520,50 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
   const containerRef = useRef<HTMLDivElement>(null);
   const clamp = (n: number) => Math.max(0, Math.min(total - 1, n));
 
-  const goPrev = useCallback(() => setStep((s) => clamp(s - 1)), [total]);
-  const goNext = useCallback(() => setStep((s) => clamp(s + 1)), [total]);
-
-  // Wheel & keys within the section only
-  const onWheel = useCallback((e: React.WheelEvent) => {
-  const intent = document.activeElement === containerRef.current;
-  if (!intent) return; // allow normal page scroll
-  e.preventDefault();
-  if (e.deltaY > 8) goNext();
-  else if (e.deltaY < -8) goPrev();
-}, [goNext, goPrev]);
-
-  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight' || e.key === 'PageDown') goNext();
-    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goPrev();
-  }, [goNext, goPrev]);
-
-  // Touch swipe
-  const startX = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (startX.current == null) return;
-    const dx = e.changedTouches[0].clientX - startX.current;
-    if (dx < -30) goNext();
-    if (dx > 30) goPrev();
-    startX.current = null;
-  };
-
   // Open/close variant shells
   const openModal = (m: MediaItem) => setActive(m);
   const closeModal = () => setActive(null);
 
   const current = data[step];
+// Scroll-driven storytelling
+useEffect(() => {
+  const onScroll = () => {
+    const bounds = containerRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+
+    const progress = Math.min(
+      1,
+      Math.max(0, (window.innerHeight - bounds.top) / bounds.height)
+    );
+    const index = Math.floor(progress * total);
+    setStep(index);
+  };
+
+  window.addEventListener("scroll", onScroll);
+  return () => window.removeEventListener("scroll", onScroll);
+}, [total]);
 
   return (
     <section className="py-10 md:py-16">
       {/* Fixed-height scrollytelling canvas */}
       <div
-        ref={containerRef}
-        className="relative mx-auto max-w-7xl h-[80vh] md:h-[85vh] overflow-hidden overscroll-contain touch-pan-y rounded-3xl border border-border/30 bg-muted/30"
-        onWheel={onWheel}
-        onKeyDown={onKeyDown}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        tabIndex={0}
+  ref={containerRef}
+  style={{ height: `${total * 100}vh` }}
+  className="relative mx-auto max-w-7xl overflow-visible"
+>
+
         aria-roledescription="carousel"
         aria-label="Feature storytelling"
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={current?.id}
-            initial={{ opacity: 0, scale: 0.985 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.985 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0"
-          >
+  key={current?.id}
+  className="sticky top-0 h-screen"
+  initial={{ opacity: 0, scale: 0.985 }}
+  animate={{ opacity: 1, scale: 1 }}
+  exit={{ opacity: 0, scale: 0.985 }}
+  transition={{ duration: 0.4 }}
+>
             {/* Media */}
             <div className="absolute inset-0">
               {current?.kind === 'image' ? (
