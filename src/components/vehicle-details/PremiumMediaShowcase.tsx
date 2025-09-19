@@ -525,10 +525,12 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
 
   // Wheel & keys within the section only
   const onWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 8) goNext();
-    else if (e.deltaY < -8) goPrev();
-  }, [goNext, goPrev]);
+  const intent = document.activeElement === containerRef.current;
+  if (!intent) return; // allow normal page scroll
+  e.preventDefault();
+  if (e.deltaY > 8) goNext();
+  else if (e.deltaY < -8) goPrev();
+}, [goNext, goPrev]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowRight' || e.key === 'PageDown') goNext();
@@ -552,25 +554,12 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
 
   const current = data[step];
 
-  // Lock body scroll until last frame is reached
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    if (step < total - 1) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = prev || '';
-    }
-    return () => {
-      document.body.style.overflow = prev || '';
-    };
-  }, [step, total]);
-
   return (
     <section className="py-10 md:py-16">
       {/* Fixed-height scrollytelling canvas */}
       <div
         ref={containerRef}
-        className="relative mx-auto max-w-7xl h-[80vh] md:h-[85vh] overflow-hidden rounded-3xl border border-border/30 bg-muted/30"
+        className="relative mx-auto max-w-7xl h-[80vh] md:h-[85vh] overflow-hidden overscroll-contain touch-pan-y rounded-3xl border border-border/30 bg-muted/30"
         onWheel={onWheel}
         onKeyDown={onKeyDown}
         onTouchStart={onTouchStart}
