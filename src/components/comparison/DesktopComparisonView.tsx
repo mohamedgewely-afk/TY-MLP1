@@ -43,7 +43,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
   return (
     <div
       ref={flyInRef}
-      className="fixed top-0 right-0 h-full w-[85%] max-w-[1200px] z-50 overflow-y-auto border-l border-border/20 shadow-2xl"
+      className="fixed top-0 right-0 h-full w-[85%] max-w-[1200px] z-[9999] overflow-y-auto border-l border-border/20 shadow-2xl"
       style={{
         background: "linear-gradient(135deg, hsl(var(--background)/0.98) 0%, hsl(var(--muted)/0.95) 100%)",
         backdropFilter: "blur(24px)",

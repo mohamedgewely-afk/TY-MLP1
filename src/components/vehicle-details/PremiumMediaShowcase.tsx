@@ -552,6 +552,19 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
 
   const current = data[step];
 
+  // Lock body scroll until last frame is reached
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    if (step < total - 1) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = prev || '';
+    }
+    return () => {
+      document.body.style.overflow = prev || '';
+    };
+  }, [step, total]);
+
   return (
     <section className="py-10 md:py-16">
       {/* Fixed-height scrollytelling canvas */}
@@ -584,7 +597,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
                 <img src={current.thumbnail} alt={`${current.category} ${current.title}`}
                   className="w-full h-full object-cover" loading="lazy" />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to.transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             </div>
 
             {/* Copy */}
@@ -614,7 +627,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
         </div>
 
         {/* Progress */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 flex items.center gap-1.5">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 flex items-center gap-1.5">
           {data.map((_, i) => (
             <button key={i} aria-label={`Go to ${i+1}`} onClick={() => setStep(i)}
               className={`h-1.5 rounded-full transition-all ${i === step ? 'bg-white w-8' : 'bg-white/50 w-3'}`} />
