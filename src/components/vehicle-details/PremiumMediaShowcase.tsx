@@ -425,51 +425,42 @@ const PremiumMediaShowcase: React.FC<Props> = ({
   items,
   onBookTestDrive,
 }) => {
-  const data = items?.length ? items : [];
+  const data = items?.length ? items : DATA; // ✅ FIXED
   const [active, setActive] = useState<MediaItem | null>(null);
-
   const [step, setStep] = useState(0);
   const total = data.length;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const clamp = (n: number) => Math.max(0, Math.min(total - 1, n));
-
-  const goPrev = useCallback(() => setStep((s) => clamp(s - 1)), [total]);
-  const goNext = useCallback(() => setStep((s) => clamp(s + 1)), [total]);
-
   const current = data[step];
   const progress = total ? ((step + 1) / total) * 100 : 0;
+
+  if (!current) return null; // ✅ ensure section mounts only if data exists
 
   return (
     <section className="py-10 md:py-16">
       <div
-        ref={containerRef}
-        className="relative mx-auto max-w-7xl h-[85vh] overflow-x-hidden overflow-y-scroll snap-y snap-mandatory rounded-3xl border border-border/30 bg-muted/30"
-        tabIndex={0}
+        className="relative mx-auto max-w-7xl h-[75vh] md:h-[85vh] min-h-[600px] overflow-hidden rounded-3xl border border-border/30 bg-muted/30"
       >
-        {current && (
-          <motion.div
-            key={current.id}
-            className="snap-start h-full w-full relative"
-          >
-            <img
-              src={current.gallery[0]?.url || current.thumbnail}
-              alt={`${current.category} ${current.title}`}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-x-0 bottom-0 p-5 md:p-8 text-white">
-              <Badge className="mb-3 bg-primary text-primary-foreground border-0">
-                {current.category}
-              </Badge>
-              <h3 className="text-2xl md:text-4xl font-black leading-tight">
-                {current.title}
-              </h3>
-              <p className="mt-2 text-sm md:text-base">{current.summary}</p>
-              <Button onClick={() => setActive(current)} className="mt-3">
-                Explore details
-              </Button>
-            </div>
-          </motion.div>
-        )}
+        <motion.div
+          key={current.id}
+          className="snap-start h-full w-full relative"
+        >
+          <img
+            src={current.gallery[0]?.url || current.thumbnail}
+            alt={`${current.category} ${current.title}`}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 p-5 md:p-8 text-white">
+            <Badge className="mb-3 bg-primary text-primary-foreground border-0">
+              {current.category}
+            </Badge>
+            <h3 className="text-2xl md:text-4xl font-black leading-tight">
+              {current.title}
+            </h3>
+            <p className="mt-2 text-sm md:text-base">{current.summary}</p>
+            <Button onClick={() => setActive(current)} className="mt-3">
+              Explore details
+            </Button>
+          </div>
+        </motion.div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
           <div
             className="h-1 bg-[#EB0A1E] transition-all"
@@ -478,36 +469,21 @@ const PremiumMediaShowcase: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* Modals */}
       {active?.variant === "performance" && (
-        <PerformanceModal
-          item={active}
-          onClose={() => setActive(null)}
-          onBook={onBookTestDrive}
-        />
+        <PerformanceModal item={active} onClose={() => setActive(null)} onBook={onBookTestDrive} />
       )}
       {active?.variant === "safety" && (
-        <SafetyModal
-          item={active}
-          onClose={() => setActive(null)}
-          onBook={onBookTestDrive}
-        />
+        <SafetyModal item={active} onClose={() => setActive(null)} onBook={onBookTestDrive} />
       )}
       {active?.variant === "interior" && (
         <InteriorModal item={active} onClose={() => setActive(null)} />
       )}
       {active?.variant === "quality" && (
-        <QualityModal
-          item={active}
-          onClose={() => setActive(null)}
-          onBook={onBookTestDrive}
-        />
+        <QualityModal item={active} onClose={() => setActive(null)} onBook={onBookTestDrive} />
       )}
       {active?.variant === "technology" && (
-        <TechnologyModal
-          item={active}
-          onClose={() => setActive(null)}
-          onBook={onBookTestDrive}
-        />
+        <TechnologyModal item={active} onClose={() => setActive(null)} onBook={onBookTestDrive} />
       )}
       {active?.variant === "handling" && (
         <HandlingModal item={active} onClose={() => setActive(null)} />
@@ -515,5 +491,6 @@ const PremiumMediaShowcase: React.FC<Props> = ({
     </section>
   );
 };
+
 
 export default PremiumMediaShowcase;
