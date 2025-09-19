@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VehicleModel } from "@/types/vehicle";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Play, Info, Shield, Zap, Heart, Wifi, Award, Star, X, Car
 } from "lucide-react";
@@ -513,56 +514,121 @@ const PremiumMediaShowcase: React.FC<Props> = ({ vehicle, items, onBookTestDrive
   const data = items?.length ? items : DATA;
   const [active, setActive] = useState<MediaItem | null>(null);
 
-  // explicit heights so thumbnails never collapse on desktop
-  const MOSAIC = [
-    "md:col-span-3 md:h-[420px]",
-    "md:col-span-3 md:h-[420px]",
-    "md:col-span-2 md:h-[240px]",
-    "md:col-span-2 md:h-[240px]",
-    "md:col-span-1 md:h-[240px]",
-    "md:col-span-1 md:h-[240px]",
-  ];
+  // Story scroller state (no page scroll). Works on wheel, keys, and swipe.
+  const [step, setStep] = useState(0);
+  const total = data.length;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const clamp = (n: number) => Math.max(0, Math.min(total - 1, n));
 
-  // open the correct shell
+  const goPrev = useCallback(() => setStep((s) => clamp(s - 1)), [total]);
+  const goNext = useCallback(() => setStep((s) => clamp(s + 1)), [total]);
+
+  // Wheel & keys within the section only
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 8) goNext();
+    else if (e.deltaY < -8) goPrev();
+  }, [goNext, goPrev]);
+
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') goNext();
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') goPrev();
+  }, [goNext, goPrev]);
+
+  // Touch swipe
+  const startX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (startX.current == null) return;
+    const dx = e.changedTouches[0].clientX - startX.current;
+    if (dx < -30) goNext();
+    if (dx > 30) goPrev();
+    startX.current = null;
+  };
+
+  // Open/close variant shells
   const openModal = (m: MediaItem) => setActive(m);
   const closeModal = () => setActive(null);
 
+  const current = data[step];
+
   return (
-    <section className="py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* header */}
-        <div className="text-center mb-6 lg:mb-10">
-          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Discover Every Detail</h2>
-          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore the engineering, safety, and craftsmanship that define the {vehicle?.name ?? "vehicle"} experience.
-          </p>
-        </div>
-
-        {/* mobile swipe rail */}
-        <div className="-mx-4 px-4 md:hidden overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3" role="list" aria-label="Highlights">
-          {data.map((it) => (
-            <div key={it.id} className="snap-center min-w-[88%]">
-              <Card item={it} onOpen={openModal} />
+    <section className="py-10 md:py-16">
+      {/* Fixed-height scrollytelling canvas */}
+      <div
+        ref={containerRef}
+        className="relative mx-auto max-w-7xl h-[80vh] md:h-[85vh] overflow-hidden rounded-3xl border border-border/30 bg-muted/30"
+        onWheel={onWheel}
+        onKeyDown={onKeyDown}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        tabIndex={0}
+        aria-roledescription="carousel"
+        aria-label="Feature storytelling"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current?.id}
+            initial={{ opacity: 0, scale: 0.985 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.985 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0"
+          >
+            {/* Media */}
+            <div className="absolute inset-0">
+              {current?.kind === 'image' ? (
+                <img src={current.gallery[0]?.url || current.thumbnail} alt={`${current.category} ${current.title}`}
+                  className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <img src={current.thumbnail} alt={`${current.category} ${current.title}`}
+                  className="w-full h-full object-cover" loading="lazy" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to.transparent" />
             </div>
-          ))}
-          <div className="min-w-[12%]" aria-hidden />
+
+            {/* Copy */}
+            <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
+              <div className="max-w-3xl text-white">
+                <Badge className="mb-3 bg-primary text-primary-foreground border-0">{current.category}</Badge>
+                <h3 className="text-2xl md:text-4xl font-black leading-tight">{current.title}</h3>
+                <p className="mt-2 text-sm md:text-base text-white/85 max-w-xl">{current.summary}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(current.tags ?? []).slice(0,4).map((t,i)=> (
+                    <span key={i} className="text-[11px] px-2 py-1 rounded-full bg-white/15 border border-white/20">{t}</span>
+                  ))}
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <Button onClick={() => openModal(current)} className="bg-primary text-primary-foreground">Explore details</Button>
+                  <Button variant="outline" onClick={onBookTestDrive} className="border-white/30 text-white hover:bg-white/10">Book Test Drive</Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Controls */}
+        <div className="absolute inset-x-0 top-0 p-4 flex items-center justify-between pointer-events-none">
+          <Button size="icon" variant="secondary" onClick={goPrev} className="pointer-events-auto opacity-90" aria-label="Previous">‹</Button>
+          <Button size="icon" variant="secondary" onClick={goNext} className="pointer-events-auto opacity-90" aria-label="Next">›</Button>
         </div>
 
-        {/* desktop mosaic */}
-        <div className="hidden md:grid md:grid-cols-6 gap-6" role="list" aria-label="Highlights mosaic">
-          {data.map((it, i) => (
-            <Card key={it.id} item={it} className={MOSAIC[i] || "md:col-span-2 md:h-[240px]"} onOpen={openModal} />
+        {/* Progress */}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 flex items.center gap-1.5">
+          {data.map((_, i) => (
+            <button key={i} aria-label={`Go to ${i+1}`} onClick={() => setStep(i)}
+              className={`h-1.5 rounded-full transition-all ${i === step ? 'bg-white w-8' : 'bg-white/50 w-3'}`} />
           ))}
         </div>
       </div>
 
-      {/* variant-specific modal shells */}
-      {active?.variant === "performance" && <PerformanceModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
-      {active?.variant === "safety" && <SafetyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
-      {active?.variant === "interior" && <InteriorModal item={active} onClose={closeModal} />}
-      {active?.variant === "quality" && <QualityModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
-      {active?.variant === "technology" && <TechnologyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
-      {active?.variant === "handling" && <HandlingModal item={active} onClose={closeModal} />}
+      {/* Variant-specific modals (unchanged functionality) */}
+      {active?.variant === 'performance' && <PerformanceModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === 'safety' && <SafetyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === 'interior' && <InteriorModal item={active} onClose={closeModal} />}
+      {active?.variant === 'quality' && <QualityModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === 'technology' && <TechnologyModal item={active} onClose={closeModal} onBook={onBookTestDrive} />}
+      {active?.variant === 'handling' && <HandlingModal item={active} onClose={closeModal} />}
     </section>
   );
 };

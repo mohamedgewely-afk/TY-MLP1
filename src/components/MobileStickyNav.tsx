@@ -452,12 +452,25 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           <NavItem icon={<ShoppingBag className={cn(isGR ? "text-[#EDEEF1]" : "text-gray-800", "h-5 w-5")} />} label="Pre-Owned" to="#" onClick={() => handleSectionToggle("pre-owned")} isActive={activeItem === "pre-owned" || navigationState.activeSection === "pre-owned"} grMode={isGR} />
 
           {vehicle && (
-            <ActionTab
-              grMode={isGR}
-              reduceMotion={reduceMotion}
-              isActive={navigationState.isActionsExpanded}
-              onClick={() => navigationState.setActionsExpanded(!navigationState.isActionsExpanded)}
-            />
+            <div className="relative flex items-center justify-center">
+              {showCoachmark && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  className={cn("absolute -top-10 px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg", isGR ? "bg-[#0f1114] text-[#EDEEF1] shadow-[0_6px_18px_rgba(0,0,0,.5)]" : "bg-black/80 text-white")}
+                  style={{ border: isGR ? "1px solid #232830" : undefined }}
+                >
+                  Tap for quick actions
+                </motion.div>
+              )}
+              <ActionTab
+                grMode={isGR}
+                reduceMotion={reduceMotion}
+                isActive={navigationState.isActionsExpanded}
+                onClick={() => navigationState.setActionsExpanded(!navigationState.isActionsExpanded)}
+              />
+            </div>
           )}
 
           <NavItem icon={<Search className={cn(isGR ? "text-[#EDEEF1]" : "text-gray-800", "h-5 w-5")} />} label="Search" to="#" onClick={() => handleSectionToggle("search")} isActive={activeItem === "search" || navigationState.activeSection === "search"} grMode={isGR} />
