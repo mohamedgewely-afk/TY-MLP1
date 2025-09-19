@@ -43,70 +43,68 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
   return (
     <div
       ref={flyInRef}
-      className="fixed top-0 right-0 h-full w-[85%] max-w-[1200px] z-[9999] overflow-y-auto border-l border-border/20 shadow-2xl"
+      className="fixed top-0 right-0 h-full w-[90%] max-w-[1000px] z-50 overflow-y-auto border-l-2 border-blue-500/20 shadow-2xl"
       style={{
-        background: "linear-gradient(135deg, hsl(var(--background)/0.98) 0%, hsl(var(--muted)/0.95) 100%)",
-        backdropFilter: "blur(24px)",
+        background: "linear-gradient(135deg, rgba(55, 65, 81, 0.95) 0%, rgba(31, 41, 55, 0.98) 100%)",
+        backdropFilter: "blur(20px)",
       }}
     >
-      {/* Premium background effects */}
+      {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/3 via-transparent to-transparent" />
-        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-muted/15 via-transparent to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-900/8 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-gray-900/15 via-transparent to-transparent" />
         
-        {/* Minimal floating elements */}
+        {/* Floating particles */}
         <div className="absolute inset-0">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-0.5 h-0.5 bg-primary/15 rounded-full"
+              className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -80, 0],
-                opacity: [0, 0.5, 0],
+                y: [0, -60, 0],
+                opacity: [0, 0.6, 0],
                 scale: [0, 1, 0],
               }}
               transition={{
-                duration: 10 + Math.random() * 5,
+                duration: 5 + Math.random() * 2,
                 repeat: Infinity,
-                delay: Math.random() * 10,
+                delay: Math.random() * 5,
               }}
             />
           ))}
         </div>
         
-        {/* Refined grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--border)/0.02)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.02)_1px,transparent_1px)] bg-[size:80px_80px]" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:50px_50px]" />
       </div>
 
-      {/* Sophisticated header */}
-      <div className="sticky top-0 z-20 border-b border-border/30 backdrop-blur-xl">
-        <div className="bg-background/95 p-6">
+      {/* Header */}
+      <div className="sticky top-0 z-20 border-b border-blue-500/20 backdrop-blur-2xl">
+        <div className="bg-gradient-to-r from-gray-700/90 via-gray-800/95 to-gray-700/90 p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-5">
+            <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                  <Crown className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <div className="absolute inset-0 rounded-xl bg-primary/20 blur-xl" />
+                <Crown className="h-8 w-8 text-blue-500 animate-pulse" />
+                <div className="absolute inset-0 h-8 w-8 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-foreground">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
                   Vehicle Comparison
                 </h2>
-                <p className="text-muted-foreground">Professional analysis & insights</p>
+                <p className="text-gray-400 text-sm">Compare features and specifications</p>
               </div>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
+              className="rounded-full p-3 h-10 w-10 bg-gray-700/60 border border-gray-600/40 text-gray-300 hover:bg-blue-600/20 hover:text-white hover:border-blue-500/50 backdrop-blur-xl transition-all duration-500"
               onClick={onClearAll}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -124,8 +122,8 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
         <div className="overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
-              <TableRow className="border-border/50 hover:bg-muted/30">
-                <TableHead className="w-[200px] text-muted-foreground"></TableHead>
+              <TableRow className="border-gray-600/50 hover:bg-gray-700/30">
+                <TableHead className="w-[200px] text-gray-300"></TableHead>
                 {vehicles.map((vehicle, index) => (
                   <TableHead key={vehicle.name} className="min-w-[280px]">
                     <motion.div 
@@ -135,12 +133,12 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                       className="relative"
                     >
                       {/* Vehicle Card */}
-                      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/40 to-muted/70 border border-border/30 shadow-2xl backdrop-blur-xl mb-6 group hover:border-primary/40 transition-all duration-500">
+                      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 shadow-2xl backdrop-blur-xl mb-6 group hover:border-blue-500/40 transition-all duration-500">
                         {/* Corner accents */}
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
-                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
-                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/40 group-hover:border-primary/60 transition-colors duration-500" />
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-500/40 group-hover:border-blue-400/60 transition-colors duration-500" />
 
                         <div className="relative aspect-video overflow-hidden">
                           <img
@@ -152,7 +150,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           
                           {/* Premium badge */}
                           <div className="absolute top-3 left-3">
-                            <Badge className="bg-gradient-to-r from-primary/90 to-primary text-white border-0 shadow-xl backdrop-blur-xl">
+                            <Badge className="bg-gradient-to-r from-blue-600/90 to-blue-500/90 text-white border-0 shadow-xl backdrop-blur-xl">
                               <Award className="h-3 w-3 mr-1" />
                               Premium
                             </Badge>
@@ -161,7 +159,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
 
                         {/* Vehicle Info */}
                         <div className="p-4">
-                          <h3 className="text-lg font-bold text-white mb-3 group-hover:text-foreground transition-colors">
+                          <h3 className="text-lg font-bold text-white mb-3 group-hover:text-blue-100 transition-colors">
                             {vehicle.name}
                           </h3>
                           
@@ -169,7 +167,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           <div className="grid grid-cols-1 gap-2 mb-3">
                             <Button
                               variant="outline"
-                              className="w-full text-sm bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
+                              className="w-full text-sm bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
                               asChild
                             >
                               <a href={vehicle.configureUrl}>
@@ -179,7 +177,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                             </Button>
                             <Button
                               variant="secondary"
-                              className="w-full text-sm bg-gradient-to-r from-primary/20 to-primary/20 border border-primary/30 text-foreground/80 hover:from-primary/30 hover:to-primary/30 hover:text-foreground backdrop-blur-xl transition-all duration-500"
+                              className="w-full text-sm bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-200 hover:from-blue-600/30 hover:to-blue-500/30 hover:text-white backdrop-blur-xl transition-all duration-500"
                               asChild
                             >
                               <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
@@ -190,7 +188,7 @@ const DesktopComparisonView: React.FC<DesktopComparisonViewProps> = ({
                           </div>
                           
                           <Button
-                            className="w-full text-sm bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg shadow-primary/20 transition-all duration-500"
+                            className="w-full text-sm bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all duration-500"
                             asChild
                           >
                             <a href="/enquire">

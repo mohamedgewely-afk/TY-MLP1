@@ -32,13 +32,12 @@ interface StreamlinedNavigationProps {
 
 const DEFAULT_SECTIONS: NavigationSection[] = [
   { id: "hero", label: "Overview", description: "Vehicle introduction" },
-  { id: "virtual-showroom", label: "Virtual Showroom", description: "360° exterior & interior" },
   { id: "media-showcase", label: "Gallery", description: "Photos & videos" },
-  { id: "offers", label: "Offers", description: "Current promotions" },
-  { id: "tech-experience", label: "Technology", description: "Connected features" },
+  { id: "story-performance", label: "Performance", description: "Engine & dynamics" },
+  { id: "story-safety", label: "Safety", description: "Protection systems" },
+  { id: "story-connected", label: "Technology", description: "Connected features" },
   { id: "configuration", label: "Configure", description: "Build your vehicle", highlight: true },
-  { id: "related", label: "Related", description: "You may also like" },
-  { id: "preowned-similar", label: "Pre‑Owned", description: "Similar used cars" },
+  { id: "offers", label: "Offers", description: "Current promotions" },
   { id: "faq", label: "FAQs", description: "Common questions" },
 ];
 
@@ -88,8 +87,6 @@ const StreamlinedNavigation: React.FC<StreamlinedNavigationProps> = ({
           ([entry]) => {
             if (entry.isIntersecting) {
               setActiveSection(section.id);
-              // Debug active section
-              console.log("StreamlinedNavigation: active section", section.id);
             }
           },
           { rootMargin: `-${headerOffset}px 0px -60% 0px` }
@@ -105,11 +102,10 @@ const StreamlinedNavigation: React.FC<StreamlinedNavigationProps> = ({
     };
   }, [sections, headerOffset]);
 
-const scrollToSection = (sectionId: string) => {
+  const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const rect = element.getBoundingClientRect();
-      const offsetTop = window.pageYOffset + rect.top - headerOffset;
+      const offsetTop = element.offsetTop - headerOffset;
       window.scrollTo({
         top: offsetTop,
         behavior: 'smooth'
@@ -128,7 +124,7 @@ const scrollToSection = (sectionId: string) => {
   if (isMobile) {
     return (
       <>
-        {/* Premium floating menu button */}
+        {/* Mobile Floating Menu Button */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ 
@@ -136,14 +132,14 @@ const scrollToSection = (sectionId: string) => {
             scale: isVisible ? 1 : 0.8,
             y: isVisible ? 0 : 20
           }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          transition={{ duration: 0.3 }}
           className="fixed top-20 right-4 z-40"
         >
           <Button
             onClick={() => setIsMenuOpen(true)}
-            className="w-14 h-14 rounded-2xl bg-background/95 backdrop-blur-xl shadow-xl border border-border/50 text-foreground hover:bg-background hover:shadow-2xl hover:scale-105 transition-all duration-300"
+            className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200 text-gray-700 hover:bg-white hover:shadow-xl"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </Button>
         </motion.div>
 
@@ -160,68 +156,63 @@ const scrollToSection = (sectionId: string) => {
                 onClick={() => setIsMenuOpen(false)}
               />
               
-              {/* Premium drawer */}
+              {/* Drawer */}
               <motion.div
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background/98 backdrop-blur-xl z-50 shadow-2xl border-l border-border/20"
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 shadow-2xl"
               >
-                {/* Elegant header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/50">
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">Navigation</h3>
-                    <p className="text-sm text-muted-foreground">Quick access to sections</p>
-                  </div>
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900">Quick Navigation</h3>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground rounded-full h-10 w-10"
+                    className="text-gray-500"
                   >
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
 
-                {/* Premium primary actions */}
-                <div className="p-6 border-b border-border/30 space-y-4">
+                {/* Primary Actions */}
+                <div className="p-6 border-b border-gray-100 space-y-3">
                   <Button
                     onClick={() => handleAction(onBookTestDrive)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-xl py-3"
+                    className="w-full bg-[hsl(var(--toyota-red))] hover:bg-[hsl(var(--toyota-red))]/90 text-white"
                   >
-                    <Calendar className="h-5 w-5 mr-3" />
+                    <Calendar className="h-4 w-4 mr-2" />
                     Book Test Drive
                   </Button>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
                       onClick={() => handleAction(onCarBuilder)}
                       variant="outline"
-                      className="text-sm py-3 rounded-xl border-border/50 hover:bg-muted/50"
+                      className="text-xs"
                     >
-                      <Settings className="h-4 w-4 mr-2" />
+                      <Settings className="h-3 w-3 mr-1" />
                       Configure
                     </Button>
                     <Button
                       onClick={() => handleAction(onFinanceCalculator)}
                       variant="outline"
-                      className="text-sm py-3 rounded-xl border-border/50 hover:bg-muted/50"
+                      className="text-xs"
                     >
-                      <Calculator className="h-4 w-4 mr-2" />
+                      <Calculator className="h-3 w-3 mr-1" />
                       Finance
                     </Button>
                   </div>
                 </div>
 
-                {/* Refined navigation sections */}
+                {/* Navigation Sections */}
                 <div className="flex-1 overflow-auto p-4">
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {sections.map((section) => (
-                      <motion.button
+                      <button
                         key={section.id}
-                        whileHover={{ scale: 1.02, x: 4 }}
-                        whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           if (section.action) {
                             handleAction(section.action);
@@ -229,26 +220,26 @@ const scrollToSection = (sectionId: string) => {
                             scrollToSection(section.id);
                           }
                         }}
-                        className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
+                        className={`w-full text-left p-3 rounded-lg transition-all ${
                           activeSection === section.id
-                            ? 'bg-primary/10 text-foreground font-semibold border border-primary/20'
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            ? 'bg-gray-100 text-gray-900 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
                         } ${
-                          section.highlight ? 'border border-primary/30 bg-primary/5' : ''
+                          section.highlight ? 'border border-red-200 bg-red-50/50' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="font-medium text-base">{section.label}</div>
+                            <div className="font-medium text-sm">{section.label}</div>
                             {section.description && (
-                              <div className="text-sm text-muted-foreground mt-1">{section.description}</div>
+                              <div className="text-xs text-gray-500 mt-0.5">{section.description}</div>
                             )}
                           </div>
                           {section.highlight && (
-                            <div className="w-2.5 h-2.5 bg-primary rounded-full" />
+                            <div className="w-2 h-2 bg-red-500 rounded-full" />
                           )}
                         </div>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -260,29 +251,27 @@ const scrollToSection = (sectionId: string) => {
     );
   }
 
-  // Premium desktop integration for ActionPanel
+  // Desktop: Integrated into ActionPanel (this component would be called from ActionPanel)
   return (
-    <div className="hidden lg:flex items-center gap-3">
-      {/* Elegant desktop navigation dropdown */}
+    <div className="hidden lg:flex items-center gap-2">
+      {/* Desktop Quick Navigation Dropdown */}
       <div className="relative group">
         <Button
           variant="outline"
           size="sm"
-          className="text-foreground border-border/50 hover:bg-muted/50 hover:border-border transition-all duration-300 rounded-xl px-4 py-2"
+          className="text-gray-700 border-gray-300 hover:bg-gray-50"
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="h-4 w-4 mr-1" />
           Sections
-          <ChevronDown className="h-4 w-4 ml-2 group-hover:rotate-180 transition-transform duration-300" />
+          <ChevronDown className="h-3 w-3 ml-1 group-hover:rotate-180 transition-transform" />
         </Button>
         
-        {/* Premium dropdown menu */}
-        <div className="absolute top-full right-0 mt-2 w-72 bg-background/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-border/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-          <div className="p-3">
+        {/* Dropdown Menu */}
+        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div className="p-2">
             {sections.slice(0, 6).map((section) => (
-              <motion.button
+              <button
                 key={section.id}
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   if (section.action) {
                     section.action();
@@ -290,24 +279,24 @@ const scrollToSection = (sectionId: string) => {
                     scrollToSection(section.id);
                   }
                 }}
-                className={`w-full text-left p-3 rounded-xl text-sm transition-all duration-300 ${
+                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
                   activeSection === section.id
-                    ? 'bg-primary/10 text-foreground font-semibold border border-primary/20'
-                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${
-                  section.highlight ? 'bg-primary/5 border border-primary/20' : ''
+                  section.highlight ? 'bg-red-50 border border-red-100' : ''
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{section.label}</span>
+                  <span>{section.label}</span>
                   {section.highlight && (
-                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
                   )}
                 </div>
                 {section.description && (
-                  <div className="text-xs text-muted-foreground mt-1">{section.description}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{section.description}</div>
                 )}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>

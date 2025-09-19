@@ -13,6 +13,7 @@ import { contextualHaptic } from "@/utils/haptic";
 import { createAdaptiveVariants, createAdaptiveMicroAnimations } from "@/utils/adaptive-animations";
 import { usePerformanceConfig } from "@/utils/performance-optimization";
 import { usePerformantIntersection } from "@/hooks/use-performant-intersection";
+import VehicleGradeComparison from "./VehicleGradeComparison";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
@@ -697,12 +698,15 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
       )}
 
       {/* Compare Modal */}
-      <div className="text-center py-16">
-        <h3 className="text-2xl font-bold mb-4">Choose Your Perfect Grade</h3>
-        <p className="text-muted-foreground">
-          Select from our range of trim levels to find the perfect configuration for your needs.
-        </p>
-      </div>
+      <VehicleGradeComparison
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        engineName={selectedEngine}
+        grades={grades}
+        onGradeSelect={(gradeName) => onGradeSelect?.(gradeName)}
+        onCarBuilder={(gradeName) => onCarBuilder?.(gradeName)}
+        onTestDrive={() => onTestDrive?.()}
+      />
     </>
   );
 };

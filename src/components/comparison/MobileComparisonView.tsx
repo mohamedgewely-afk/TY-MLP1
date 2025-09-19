@@ -49,70 +49,68 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-      className="fixed inset-0 z-[9999] overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto"
       style={{
-        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)",
-        backdropFilter: "blur(24px)",
+        background: "linear-gradient(135deg, rgba(55, 65, 81, 0.98) 0%, rgba(31, 41, 55, 1) 100%)",
+        backdropFilter: "blur(20px)",
       }}
     >
-      {/* Elegant background effects */}
+      {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
-        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-muted/20 via-transparent to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-gray-900/15 via-transparent to-transparent" />
         
-        {/* Minimal floating elements */}
+        {/* Floating particles */}
         <div className="absolute inset-0">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-0.5 h-0.5 bg-primary/20 rounded-full"
+              className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -60, 0],
-                opacity: [0, 0.6, 0],
-                scale: [0, 1, 0],
+                y: [0, -80, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.2, 0],
               }}
               transition={{
-                duration: 8 + Math.random() * 4,
+                duration: 6 + Math.random() * 3,
                 repeat: Infinity,
-                delay: Math.random() * 8,
+                delay: Math.random() * 6,
               }}
             />
           ))}
         </div>
         
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--border)/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
-      {/* Premium header */}
-      <div className="sticky top-0 z-20 border-b border-border/50 backdrop-blur-xl">
-        <div className="bg-background/95 p-6">
+      {/* Header */}
+      <div className="sticky top-0 z-20 border-b border-blue-500/20 backdrop-blur-2xl">
+        <div className="bg-gradient-to-r from-gray-700/95 via-gray-800/98 to-gray-700/95 p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                  <Crown className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div className="absolute inset-0 rounded-full bg-primary/20 blur-lg" />
+                <Crown className="h-6 w-6 text-blue-500 animate-pulse" />
+                <div className="absolute inset-0 h-6 w-6 bg-blue-500/20 rounded-full blur-lg animate-pulse" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground">
+                <h2 className="text-lg font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
                   Vehicle Comparison
                 </h2>
-                <p className="text-muted-foreground text-sm">Premium analysis suite</p>
+                <p className="text-gray-400 text-xs">Premium vehicle analysis</p>
               </div>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
+              className="rounded-full p-2 h-8 w-8 bg-gray-700/60 border border-gray-600/40 text-gray-300 hover:bg-blue-600/20 hover:text-white hover:border-blue-500/50 backdrop-blur-xl transition-all duration-500"
               onClick={onClearAll}
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -122,7 +120,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
         {/* Controls */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <Badge className="bg-gradient-to-r from-primary/20 via-primary/25 to-primary/20 text-primary border border-primary/30 backdrop-blur-xl">
+            <Badge className="bg-gradient-to-r from-blue-500/20 via-blue-400/30 to-blue-400/20 text-blue-200 border border-blue-400/30 backdrop-blur-xl">
               <TrendingUp className="h-3 w-3 mr-1" />
               {vehicles.length} Vehicles
             </Badge>
@@ -130,7 +128,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onShowDifferencesChange(!showOnlyDifferences)}
-              className="bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
+              className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
             >
               <Shield className="h-4 w-4 mr-2" />
               {showOnlyDifferences ? "Show All" : "Differences"}
@@ -147,8 +145,8 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                   className={`
                     shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-500
                     ${index === currentVehicleIndex
-                      ? "bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg shadow-primary/30"
-                      : "text-muted-foreground bg-muted/50 border border-border/50 hover:text-foreground hover:bg-muted/70 hover:border-primary/30"}
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
+                      : "text-gray-300 bg-gray-700/50 border border-gray-600/50 hover:text-white hover:bg-gray-600/70 hover:border-blue-500/30"}
                     backdrop-blur-xl
                   `}
                 >
@@ -174,12 +172,12 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                 className="mb-8"
               >
                 {/* Vehicle Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/70 to-muted/80 border border-border/30 shadow-2xl backdrop-blur-2xl">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/80 to-gray-800/90 border border-gray-600/30 shadow-2xl backdrop-blur-2xl">
                   {/* Corner accents */}
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/50 transition-colors duration-500" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/50 transition-colors duration-500" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/50 transition-colors duration-500" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/50 transition-colors duration-500" />
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-blue-500/50 transition-colors duration-500" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-blue-500/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-blue-500/50 transition-colors duration-500" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-blue-500/50 transition-colors duration-500" />
 
                   <div className="relative aspect-video overflow-hidden">
                     <img
@@ -191,7 +189,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     
                     {/* Premium badges */}
                     <div className="absolute top-4 left-4 flex gap-2">
-                      <Badge className="bg-gradient-to-r from-primary/90 to-primary text-white border-0 shadow-xl backdrop-blur-xl">
+                      <Badge className="bg-gradient-to-r from-blue-600/90 to-blue-500/90 text-white border-0 shadow-xl backdrop-blur-xl">
                         <Award className="h-3 w-3 mr-1" />
                         Premium
                       </Badge>
@@ -201,7 +199,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-border/30 text-white hover:bg-primary/20 hover:border-primary/50"
+                      className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-gray-600/30 text-white hover:bg-blue-600/20 hover:border-blue-500/50"
                       onClick={() => onRemove(vehicle.name)}
                     >
                       <X className="h-4 w-4" />
@@ -215,7 +213,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     </h3>
                     
                     {/* Price Display */}
-                    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border border-primary/20 backdrop-blur-xl">
+                    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-600/10 via-blue-500/15 to-blue-400/10 border border-blue-500/20 backdrop-blur-xl">
                       <div className="text-2xl font-black text-white mb-1">
                         AED {vehicle.price.toLocaleString()}
                       </div>
@@ -225,7 +223,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                     {/* Action Buttons */}
                     <div className="grid grid-cols-1 gap-3">
                       <Button
-                        className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg shadow-primary/20 transition-all duration-500"
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all duration-500"
                         asChild
                       >
                         <a href="/enquire">
@@ -237,7 +235,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                       <div className="grid grid-cols-2 gap-3">
                         <Button
                           variant="outline"
-                          className="bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/40 backdrop-blur-xl transition-all duration-500"
+                          className="bg-gray-700/60 border-gray-600/40 text-gray-300 hover:bg-gray-600/80 hover:text-white hover:border-blue-500/40 backdrop-blur-xl transition-all duration-500"
                           asChild
                         >
                           <a href={vehicle.configureUrl}>
@@ -247,7 +245,7 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                         </Button>
                         <Button
                           variant="secondary"
-                          className="bg-gradient-to-r from-primary/20 to-primary/20 border border-primary/30 text-foreground/80 hover:from-primary/30 hover:to-primary/30 hover:text-foreground backdrop-blur-xl transition-all duration-500"
+                          className="bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-200 hover:from-blue-600/30 hover:to-blue-500/30 hover:text-white backdrop-blur-xl transition-all duration-500"
                           asChild
                         >
                           <a href={`/test-drive?model=${encodeURIComponent(vehicle.name)}`}>
@@ -282,12 +280,12 @@ const MobileComparisonView: React.FC<MobileComparisonViewProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: sectionIndex * 0.1 }}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-muted/60 to-muted/80 border border-border/30 shadow-xl backdrop-blur-2xl"
+                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-700/60 to-gray-800/80 border border-gray-600/30 shadow-xl backdrop-blur-2xl"
               >
                 {/* Section Header */}
-                <div className="p-4 border-b border-border/30 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+                <div className="p-4 border-b border-gray-600/30 bg-gradient-to-r from-blue-600/10 via-blue-500/15 to-blue-400/10">
                   <h3 className="text-lg font-bold text-white flex items-center">
-                    <ChevronRight className="h-5 w-5 mr-2 text-primary" />
+                    <ChevronRight className="h-5 w-5 mr-2 text-blue-400" />
                     {section.title}
                   </h3>
                 </div>
