@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { VehicleModel } from "@/types/vehicle";
 import { useIsMobile } from "@/hooks/use-mobile";
-import MobileComparisonView from "../comparison/MobileComparisonView";
-import DesktopComparisonView from "../comparison/DesktopComparisonView";
+import LuxuryComparisonTool from "../comparison/LuxuryComparisonTool";
 import { Persona } from "@/types/persona";
 
 const useFlyInAnimation = () => {
@@ -93,25 +92,50 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     }
   ];
 
-  return isMobile ? (
-    <MobileComparisonView
-      vehicles={vehicles}
-      sections={sections}
-      showOnlyDifferences={showOnlyDifferences}
-      onShowDifferencesChange={setShowOnlyDifferences}
-      onRemove={onRemove}
-      onClearAll={onClearAll}
-      slideInRef={slideInRef}
-    />
-  ) : (
-    <DesktopComparisonView
-      vehicles={vehicles}
-      sections={sections}
-      showOnlyDifferences={showOnlyDifferences}
-      onShowDifferencesChange={setShowOnlyDifferences}
-      onRemove={onRemove}
-      onClearAll={onClearAll}
-      flyInRef={flyInRef}
+  // Convert VehicleModel to Grade format for LuxuryComparisonTool
+  const convertToGrades = (vehicles: VehicleModel[]) => {
+    return vehicles.map(vehicle => ({
+      id: vehicle.name.toLowerCase().replace(/\s+/g, '-'),
+      name: vehicle.name,
+      description: 'Premium Toyota vehicle',
+      price: vehicle.price || 150000,
+      monthlyFrom: Math.round((vehicle.price || 150000) / 60),
+      badge: 'Premium',
+      badgeColor: 'bg-primary',
+      image: vehicle.image,
+      features: vehicle.features || ['Premium Features', 'Advanced Safety', 'Luxury Interior'],
+      specs: {
+        engine: vehicle.specifications?.engine || 'V6 Engine',
+        power: (vehicle.specifications as any)?.power || '300 HP',
+        torque: '400 Nm',
+        transmission: 'Automatic',
+        acceleration: (vehicle.specifications as any)?.acceleration || '7.2s',
+        fuelEconomy: '8.5L/100km'
+      },
+      highlights: vehicle.features?.slice(0, 3) || ['Premium', 'Advanced', 'Luxury']
+    }));
+  };
+
+  // Only render if there are vehicles to compare
+  if (vehicles.length === 0) {
+    return null;
+  }
+
+  const grades = convertToGrades(vehicles);
+
+  return (
+    <LuxuryComparisonTool
+      grades={grades}
+      isOpen={vehicles.length > 0}
+      onClose={() => onClearAll?.()}
+      onTestDrive={(gradeId) => {
+        console.log('Test drive for:', gradeId);
+        // Navigate to test drive page
+      }}
+      onGetQuote={(gradeId) => {
+        console.log('Get quote for:', gradeId);
+        // Navigate to quote page
+      }}
     />
   );
 };
