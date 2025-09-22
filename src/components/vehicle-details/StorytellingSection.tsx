@@ -35,6 +35,7 @@ const StorytellingSection: React.FC<StorytellingProps> = ({
       onConnectivityExplore={onConnectivityExplore}
       onHybridTechExplore={onHybridTechExplore}
       onInteriorExplore={onInteriorExplore}
+      galleryImages={galleryImages}
     />
   );
 };

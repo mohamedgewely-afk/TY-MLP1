@@ -13,7 +13,7 @@ import { contextualHaptic } from "@/utils/haptic";
 import { createAdaptiveVariants, createAdaptiveMicroAnimations } from "@/utils/adaptive-animations";
 import { usePerformanceConfig } from "@/utils/performance-optimization";
 import { usePerformantIntersection } from "@/hooks/use-performant-intersection";
-import VehicleGradeComparison from "./VehicleGradeComparison";
+import LuxuryComparisonTool from "@/components/comparison/LuxuryComparisonTool";
 
 interface VehicleConfigurationProps {
   vehicle: VehicleModel;
@@ -698,14 +698,17 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
       )}
 
       {/* Compare Modal */}
-      <VehicleGradeComparison
+      <LuxuryComparisonTool
         isOpen={isCompareOpen}
         onClose={() => setIsCompareOpen(false)}
-        engineName={selectedEngine}
-        grades={grades}
-        onGradeSelect={(gradeName) => onGradeSelect?.(gradeName)}
-        onCarBuilder={(gradeName) => onCarBuilder?.(gradeName)}
+        grades={grades.map((g, i) => ({
+          id: `${g.name}-${i}`,
+          highlights: Array.isArray(g.features) ? g.features.slice(0, 3) : [],
+          badgeColor: (g as any).badgeColor ?? 'bg-primary',
+          ...g,
+        }))}
         onTestDrive={() => onTestDrive?.()}
+        onGetQuote={(gradeId) => onCarBuilder?.(gradeId)}
       />
     </>
   );

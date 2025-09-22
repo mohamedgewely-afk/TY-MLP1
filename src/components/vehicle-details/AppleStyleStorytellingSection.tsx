@@ -34,6 +34,7 @@ interface AppleStyleStorytellingProps {
   onConnectivityExplore: () => void;
   onHybridTechExplore: () => void;
   onInteriorExplore: () => void;
+  galleryImages?: string[];
 }
 
 const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
@@ -44,7 +45,8 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
   onSafetyExplore,
   onConnectivityExplore,
   onHybridTechExplore,
-  onInteriorExplore
+  onInteriorExplore,
+  galleryImages
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentScene, setCurrentScene] = useState(0);
@@ -61,7 +63,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
       title: 'Land Cruiser',
       subtitle: 'Legendary Performance',
       description: 'Experience the ultimate combination of luxury, capability, and reliability that has defined adventure for generations.',
-      backgroundImage: enhancedGalleryData[0]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_01_800x447.jpg',
+      backgroundImage: galleryImages?.[0] || enhancedGalleryData[0]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_01_800x447.jpg',
       cta: {
         label: 'Explore Features',
         action: () => setCurrentScene(1),
@@ -78,7 +80,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
       title: 'Bold Design',
       subtitle: 'Commanding Presence',
       description: 'Every line, every curve speaks to the Land Cruiser\'s heritage of strength and sophistication.',
-      backgroundImage: enhancedGalleryData[0]?.media.gallery[1]?.url || 'https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_02_800x447.jpg',
+      backgroundImage: galleryImages?.[1] || enhancedGalleryData[0]?.media.gallery[1]?.url || 'https://global.toyota/pages/models/images/gallery/new_camry_23/design/design_02_800x447.jpg',
       cta: {
         label: 'View Gallery',
         action: () => navigate('/vehicle/land-cruiser/gallery'),
@@ -96,7 +98,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
       title: 'Luxury Redefined',
       subtitle: 'Premium Comfort',
       description: 'Step into a world of refined elegance where every detail is crafted for the ultimate driving experience.',
-      backgroundImage: enhancedGalleryData[1]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/interior/interior_01_800x447.jpg',
+      backgroundImage: galleryImages?.[2] || enhancedGalleryData[1]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/interior/interior_01_800x447.jpg',
       cta: {
         label: 'Explore Interior',
         action: onInteriorExplore,
@@ -114,7 +116,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
       title: 'Your Journey Begins',
       subtitle: `From AED ${monthlyEMI}/month`,
       description: 'Experience the Land Cruiser difference. Book your test drive today and discover what makes this SUV legendary.',
-      backgroundImage: enhancedGalleryData[2]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/performance/performance_01_800x447.jpg',
+      backgroundImage: galleryImages?.[3] || enhancedGalleryData[2]?.media.hero || 'https://global.toyota/pages/models/images/gallery/new_camry_23/performance/performance_01_800x447.jpg',
       cta: {
         label: 'Book Test Drive',
         action: () => setIsBookingOpen(true),
@@ -130,6 +132,9 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
 
   const totalScenes = storyScenes.length;
   
+  // Lock only until the last scene; then allow natural scroll
+  const shouldLock = isScrollLocked && currentScene < totalScenes - 1;
+  
   // Transform values for animations
   const backgroundScale = useTransform(smoothProgress, [0, 1], [1, 1.2]);
   const contentOpacity = useTransform(smoothProgress, [0, 0.2, 0.8, 1], [1, 0.8, 0.8, 1]);
@@ -137,6 +142,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
   
   // Handle scroll with throttling
   const handleScroll = useCallback((event: WheelEvent) => {
+    if (!shouldLock) return; // allow natural scroll when not locking
     event.preventDefault();
     
     const now = Date.now();
@@ -156,7 +162,7 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
         setCurrentScene(prev => Math.max(prev - 1, 0));
       }
     }
-  }, [currentScene, totalScenes, lastScrollTime]);
+  }, [currentScene, totalScenes, lastScrollTime, shouldLock]);
 
   // Touch handling for mobile
   const [touchStart, setTouchStart] = useState<number>(0);
@@ -200,8 +206,8 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
     
     observer.observe(container);
 
-    // Add event listeners when scroll is locked
-    if (isScrollLocked) {
+    // Add event listeners only when we should lock
+    if (shouldLock) {
       document.body.style.overflow = 'hidden';
       container.addEventListener('wheel', handleScroll, { passive: false });
       container.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -214,12 +220,12 @@ const AppleStyleStorytellingSection: React.FC<AppleStyleStorytellingProps> = ({
     return () => {
       document.body.style.overflow = 'auto';
       observer.disconnect();
-      container.removeEventListener('wheel', handleScroll);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('wheel', handleScroll as any);
+      container.removeEventListener('touchstart', handleTouchStart as any);
+      container.removeEventListener('touchmove', handleTouchMove as any);
+      container.removeEventListener('touchend', handleTouchEnd as any);
     };
-  }, [isScrollLocked, handleScroll, handleTouchStart, handleTouchMove, handleTouchEnd]);
+  }, [shouldLock, handleScroll, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   // Update scroll progress
   useEffect(() => {
