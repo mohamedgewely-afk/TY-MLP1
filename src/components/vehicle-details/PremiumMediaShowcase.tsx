@@ -425,7 +425,7 @@ const PremiumMediaShowcase: React.FC<Props> = ({
   items,
   onBookTestDrive,
 }) => {
-  const data = items?.length ? items : DATA; // ✅ FIXED
+  const data = items?.length ? items : [];
   const [active, setActive] = useState<MediaItem | null>(null);
   const [step, setStep] = useState(0);
   const total = data.length;
