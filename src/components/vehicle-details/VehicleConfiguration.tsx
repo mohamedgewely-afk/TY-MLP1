@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VehicleModel } from "@/types/vehicle";
 import { Check, Zap, Fuel, Settings, ArrowUpDown, Star, X } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useOptimizedDeviceInfo } from "@/hooks/use-optimized-device-info";
+import { useDeviceInfo } from "@/hooks/use-device-info";
 import { contextualHaptic } from "@/utils/haptic";
 import { createAdaptiveVariants, createAdaptiveMicroAnimations } from "@/utils/adaptive-animations";
 import { usePerformanceConfig } from "@/utils/performance-optimization";
@@ -297,8 +296,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const [animationKey, setAnimationKey] = useState(0);
   const [compareSet, setCompareSet] = useState<number[]>([]);
 
-  const isMobile = useIsMobile();
-  const { isMobile: deviceIsMobile } = useOptimizedDeviceInfo();
+  const { isMobile } = useDeviceInfo();
   const prefersReducedMotion = useReducedMotion();
   const performanceConfig = usePerformanceConfig();
   const { targetRef, isIntersecting } = usePerformantIntersection({ threshold: 0.1 });
@@ -306,21 +304,21 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
   const adaptiveVariants = useMemo(
     () =>
       createAdaptiveVariants({
-        isMobile: deviceIsMobile,
+        isMobile,
         isSlowScroll: false,
         prefersReducedMotion: prefersReducedMotion || false,
       }),
-    [deviceIsMobile, prefersReducedMotion]
+    [isMobile, prefersReducedMotion]
   );
 
   const microAnimations = useMemo(
     () =>
       createAdaptiveMicroAnimations({
-        isMobile: deviceIsMobile,
+        isMobile,
         isSlowScroll: false,
         prefersReducedMotion: prefersReducedMotion || false,
       }),
-    [deviceIsMobile, prefersReducedMotion]
+    [isMobile, prefersReducedMotion]
   );
 
   const engines = useMemo(
@@ -606,7 +604,7 @@ const VehicleConfiguration: React.FC<VehicleConfigurationProps> = ({
             </div>
 
             {/* Mobile tiles */}
-            {useIsMobile() ? (
+            {isMobile ? (
               <div className="grid grid-cols-2 gap-2 px-4 max-w-4xl mx-auto">
                 {engines.map((engine) => {
                   const selected = engine.selected;
