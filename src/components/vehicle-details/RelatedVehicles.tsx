@@ -1,316 +1,170 @@
-"use client"
-import React, { useEffect, useRef, useState, createContext, useContext } from "react"
-import { IconArrowNarrowLeft, IconArrowNarrowRight, IconX } from "@tabler/icons-react"
-import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "framer-motion"
-import { useOutsideClick } from "@/hooks/use-outside-click"
+import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { VehicleModel } from "@/types/vehicle";
+import { vehicles } from "@/data/vehicles";
+import { Link } from "react-router-dom";
+import { useSwipeable } from "@/hooks/use-swipeable";
+import { cn } from "@/lib/utils";
 
-interface CarouselProps {
-  items: React.JSX.Element[]
-  initialScroll?: number
+interface RelatedVehiclesProps {
+  currentVehicle: VehicleModel;
+  className?: string;
+  title?: string;
 }
 
-type VehicleCard = {
-  id: string
-  name: string
-  category: string
-  price: number
-  image: string
-  content?: React.ReactNode
-}
+const AED = new Intl.NumberFormat("en-AE", { maximumFractionDigits: 0 });
 
-export const CarouselContext = createContext<{
-  onCardClose: (index: number) => void
-  currentIndex: number
-}>({
-  onCardClose: () => {},
-  currentIndex: 0,
-})
+// fallback DAM images for models missing one
+const FALLBACKS = [
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/e6cd7f93-d348-444b-9525-42b7ea441e99/items/da1e230a-67ae-4564-813e-fc2e7413879e/renditions/181a04c5-0892-4dff-aff2-82a3a4395f79?binary=true&mformat=true",
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/d4d16181-611d-43ed-9af4-fa2469645028/items/2c0d9643-2b2e-4b69-b7d5-322fa0f537a7/renditions/f48ef8f7-1be3-4d17-8267-f3a5896617ea?binary=true&mformat=true",
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/d4d16181-611d-43ed-9af4-fa2469645028/items/57c0be94-a250-45cf-b4cb-6e91c2911ad7/renditions/8eea1c4d-54ec-4d07-80cc-cf35dcaff8d5?binary=true&mformat=true",
+  "https://dam.alfuttaim.com/dx/api/dam/v1/collections/d4d16181-611d-43ed-9af4-fa2469645028/items/180b2e84-1d38-470a-b760-955a158aad11/renditions/77a92a10-8a19-4158-b983-d312e81983c6?binary=true&mformat=true",
+];
 
-export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
-  const carouselRef = React.useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = React.useState(false)
-  const [canScrollRight, setCanScrollRight] = React.useState(true)
-  const [currentIndex, setCurrentIndex] = useState(0)
+const RelatedVehicles: React.FC<RelatedVehiclesProps> = ({
+  currentVehicle,
+  className,
+  title = "You Might Also Like",
+}) => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollLeft = initialScroll
-      checkScrollability()
+  // ✅ show all cars in the same category, no price rule, no slice limit
+  const relatedVehicles = React.useMemo(
+    () =>
+      vehicles.filter(
+        (v) =>
+          v.id !== currentVehicle.id &&
+          v.category === currentVehicle.category
+      ),
+    [currentVehicle]
+  );
+
+  // ensure every car has an image
+  const enhancedVehicles = React.useMemo(
+    () =>
+      relatedVehicles.map((v, i) => ({
+        ...v,
+        image: v.image && v.image.trim() ? v.image : FALLBACKS[i % FALLBACKS.length],
+      })),
+    [relatedVehicles]
+  );
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const amount = dir === "left" ? -600 : 600;
+    el.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
+  const swipeableRef = useSwipeable({
+    onSwipeLeft: () => scroll("right"),
+    onSwipeRight: () => scroll("left"),
+    threshold: 40,
+    preventDefaultTouchmoveEvent: false,
+  });
+
+  const bindScrollable = (el: HTMLDivElement | null) => {
+    scrollContainerRef.current = el || null;
+    if (swipeableRef && "current" in swipeableRef) {
+      (swipeableRef as any).current = el;
     }
-  }, [initialScroll])
+  };
 
-  const checkScrollability = () => {
-    if (carouselRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
-      setCanScrollLeft(scrollLeft > 0)
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth)
-    }
-  }
-
-  const scrollLeft = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -280, behavior: "smooth" })
-    }
-  }
-
-  const scrollRight = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 280, behavior: "smooth" })
-    }
-  }
-
-  const handleCardClose = (index: number) => {
-    if (carouselRef.current) {
-      const cardWidth = isMobile() ? 280 : 320
-      const gap = isMobile() ? 4 : 8
-      const scrollPosition = (cardWidth + gap) * (index + 1)
-      carouselRef.current.scrollTo({
-        left: scrollPosition,
-        behavior: "smooth",
-      })
-      setCurrentIndex(index)
-    }
-  }
-
-  const isMobile = () => {
-    return window && window.innerWidth < 768
-  }
+  if (!enhancedVehicles.length) return null;
 
   return (
-    <CarouselContext.Provider value={{ onCardClose: handleCardClose, currentIndex }}>
-      <div className="relative w-full">
-        <div
-          className="flex w-full overflow-x-scroll overscroll-x-auto scroll-smooth py-6 [scrollbar-width:none] md:py-10"
-          ref={carouselRef}
-          onScroll={checkScrollability}
-        >
-          <div className={cn("absolute right-0 z-[1000] h-auto w-[5%] overflow-hidden bg-gradient-to-l")}></div>
-
-          <div className={cn("flex flex-row justify-start gap-4 pl-4", "mx-auto max-w-7xl")}>
-            {items.map((item, index) => (
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 20,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    duration: 0.5,
-                    delay: 0.1 * index,
-                    ease: "easeOut",
-                    once: true,
-                  },
-                }}
-                key={"card" + index}
-                className="rounded-2xl last:pr-[5%] md:last:pr-[33%]"
-              >
-                {item}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-        <div className="mr-10 flex justify-end gap-2">
-          <button
-            className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 disabled:opacity-50 hover:bg-gray-200 transition-colors"
-            onClick={scrollLeft}
-            disabled={!canScrollLeft}
+    <section className={cn("py-12", className)}>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {title}
+        </h2>
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            className="rounded-full bg-black text-white hover:bg-black/90"
+            onClick={() => scroll("left")}
           >
-            <IconArrowNarrowLeft className="h-6 w-6 text-gray-500" />
-          </button>
-          <button
-            className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 disabled:opacity-50 hover:bg-gray-200 transition-colors"
-            onClick={scrollRight}
-            disabled={!canScrollRight}
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button
+            size="icon"
+            className="rounded-full bg-black text-white hover:bg-black/90"
+            onClick={() => scroll("right")}
           >
-            <IconArrowNarrowRight className="h-6 w-6 text-gray-500" />
-          </button>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </div>
-    </CarouselContext.Provider>
-  )
-}
 
-export const VehicleCard = ({
-  card,
-  index,
-  layout = false,
-}: {
-  card: VehicleCard
-  index: number
-  layout?: boolean
-}) => {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { onCardClose, currentIndex } = useContext(CarouselContext)
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent z-10 rounded-l-2xl" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent z-10 rounded-r-2xl" />
 
-  const AED = new Intl.NumberFormat("en-AE", { maximumFractionDigits: 0 })
+        <div
+          ref={bindScrollable}
+          className="flex gap-7 overflow-x-auto pb-5 pr-3 pl-3 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+          role="listbox"
+        >
+          {enhancedVehicles.map((vehicle) => {
+            const slug = vehicle.id;
+            const href = `/vehicle/${slug}`;
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        handleClose()
-      }
-    }
-
-    if (open) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "auto"
-    }
-
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [open])
-
-  useOutsideClick(containerRef, () => handleClose())
-
-  const handleOpen = () => {
-    setOpen(true)
-  }
-
-  const handleClose = () => {
-    setOpen(false)
-    onCardClose(index)
-  }
-
-  return (
-    <>
-      <AnimatePresence>
-        {open && (
-          <div className="fixed inset-0 z-50 h-screen overflow-auto">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 h-full w-full bg-black/80 backdrop-blur-lg"
-            />
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              ref={containerRef}
-              layoutId={layout ? `card-${card.name}` : undefined}
-              className="relative z-[60] mx-auto my-10 h-fit max-w-4xl rounded-3xl bg-white p-4 font-sans md:p-10 dark:bg-neutral-900"
-            >
-              <button
-                className="sticky top-4 right-0 ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white"
-                onClick={handleClose}
+            return (
+              <article
+                key={vehicle.id}
+                className="group relative flex-shrink-0 w-[92vw] max-w-[620px] md:w-[500px] lg:w-[560px] xl:w-[600px] snap-start rounded-2xl"
               >
-                <IconX className="h-6 w-6 text-neutral-100 dark:text-neutral-900" />
-              </button>
-              <motion.p
-                layoutId={layout ? `category-${card.name}` : undefined}
-                className="text-base font-medium text-black dark:text-white"
-              >
-                {card.category}
-              </motion.p>
-              <motion.p
-                layoutId={layout ? `title-${card.name}` : undefined}
-                className="mt-4 text-2xl font-semibold text-neutral-700 md:text-4xl dark:text-white"
-              >
-                {card.name}
-              </motion.p>
-              <div className="mt-4 text-xl font-bold text-red-600">AED {AED.format(card.price)}</div>
-              <div className="py-6">
-                {card.content || (
-                  <div className="bg-gray-50 dark:bg-neutral-800 p-6 rounded-2xl">
-                    <p className="text-neutral-600 dark:text-neutral-400 text-base">
-                      Discover the perfect blend of performance, style, and innovation with the {card.name}. Experience
-                      luxury driving at its finest.
-                    </p>
-                    <div className="mt-6 flex gap-4">
-                      <button className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
-                        View Details
-                      </button>
-                      <button className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        Schedule Test Drive
-                      </button>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300">
+                  <Link to={href}>
+                    <div className="relative w-full aspect-[16/9] bg-gray-50 dark:bg-gray-900">
+                      <img
+                        src={vehicle.image}
+                        alt={vehicle.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                      />
+                      <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-40px_60px_-40px_rgb(0_0_0_/0.28)] rounded-b-2xl" />
+                    </div>
+                  </Link>
+
+                  <div className="p-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-xl text-gray-900 dark:text-white truncate">
+                          {vehicle.name}
+                        </h3>
+                        {vehicle.category && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {vehicle.category}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
+                        <p className="font-semibold text-toyota-red">
+                          AED {AED.format(vehicle.price)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex items-center gap-3">
+                      <Button asChild className="w-full bg-black text-white hover:bg-black/90">
+                        <Link to={href}>View model</Link>
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-      <motion.button
-        layoutId={layout ? `card-${card.name}` : undefined}
-        onClick={handleOpen}
-        className="group relative z-10 flex h-64 w-72 flex-col items-start justify-end overflow-hidden rounded-2xl bg-gray-100 md:h-80 md:w-80 dark:bg-neutral-900 hover:shadow-xl transition-all duration-300"
-      >
-        <div className="pointer-events-none absolute inset-0 z-30 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <div className="relative z-40 p-4 w-full">
-          <motion.p
-            layoutId={layout ? `category-${card.category}` : undefined}
-            className="text-left font-sans text-xs font-medium text-white/80 md:text-sm uppercase tracking-wide"
-          >
-            {card.category}
-          </motion.p>
-          <motion.p
-            layoutId={layout ? `title-${card.name}` : undefined}
-            className="mt-1 text-left font-sans text-lg font-bold text-white md:text-xl leading-tight"
-          >
-            {card.name}
-          </motion.p>
-          <div className="mt-2 text-left">
-            <span className="text-xs text-white/60">From</span>
-            <div className="text-sm font-semibold text-white md:text-base">AED {AED.format(card.price)}</div>
-          </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
-        <BlurImage
-          src={card.image}
-          alt={card.name}
-          fill
-          className="absolute inset-0 z-10 object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-      </motion.button>
-    </>
-  )
-}
-
-export const BlurImage = ({
-  height,
-  width,
-  src,
-  className,
-  alt,
-  fill,
-  ...rest
-}: {
-  height?: number
-  width?: number
-  src: string
-  className?: string
-  alt?: string
-  fill?: boolean
-  [key: string]: any
-}) => {
-  const [isLoading, setLoading] = useState(true)
-  return (
-    <img
-      className={cn(
-        "transition duration-300",
-        isLoading ? "blur-sm" : "blur-0",
-        fill ? "h-full w-full object-cover" : "",
-        className,
-      )}
-      onLoad={() => setLoading(false)}
-      src={src || "/placeholder.svg"}
-      width={width}
-      height={height}
-      loading="lazy"
-      decoding="async"
-      alt={alt || "Vehicle image"}
-      {...rest}
-    />
-  )
-}
-
-const RelatedVehicles = () => {
-  return <div>Related Vehicles Component</div>;
+      </div>
+    </section>
+  );
 };
 
 export default RelatedVehicles;
