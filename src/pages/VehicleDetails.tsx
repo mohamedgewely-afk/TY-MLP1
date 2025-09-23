@@ -370,7 +370,7 @@ const VehicleDetails = () => {
             <Suspense fallback={<ComponentLoading />}>
               <section id="related" className="py-8 lg:py-16 bg-muted/30" aria-labelledby="related-vehicles-heading">
                 <h2 id="related-vehicles-heading" className="sr-only">Related Vehicles</h2>
-                <RelatedVehicles currentVehicle={vehicle} />
+                <RelatedVehicles />
               </section>
 
               <section id="preowned-similar">

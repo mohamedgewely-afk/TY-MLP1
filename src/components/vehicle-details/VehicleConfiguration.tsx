@@ -39,7 +39,7 @@ const Card3D: React.FC<{
   transform: string;
   cardW: number;
   cardH: number;
-  onClick?: () => void;
+  onClick?: (e?: any) => void;
   children: React.ReactNode;
 }> = ({ transform, cardW, cardH, onClick, children }) => (
   <div

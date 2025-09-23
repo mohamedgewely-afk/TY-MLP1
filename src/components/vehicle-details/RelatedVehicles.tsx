@@ -2,11 +2,11 @@
 import React, { useEffect, useRef, useState, createContext, useContext } from "react"
 import { IconArrowNarrowLeft, IconArrowNarrowRight, IconX } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "motion/react" // Fixed import
+import { AnimatePresence, motion } from "framer-motion"
 import { useOutsideClick } from "@/hooks/use-outside-click"
 
 interface CarouselProps {
-  items: React.JSX.Element[] // Fixed JSX type declaration
+  items: React.JSX.Element[]
   initialScroll?: number
 }
 
@@ -308,3 +308,9 @@ export const BlurImage = ({
     />
   )
 }
+
+const RelatedVehicles = () => {
+  return <div>Related Vehicles Component</div>;
+};
+
+export default RelatedVehicles;
