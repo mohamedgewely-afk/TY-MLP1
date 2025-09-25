@@ -44,6 +44,12 @@ export interface Feature {
   badge?: string;
 }
 
+/**
+ * demoVehicle, demoGrades and demoFeatures are intentionally small, well-formed
+ * fixtures that other modules can safely import. All string literals are closed
+ * and there are no placeholder fragments like "[...]" which can break parsers.
+ */
+
 export const demoVehicle: VehicleData = {
   hero: {
     imageUrl: 'https://dam.alfuttaim.com/example/hero-image.jpg?binary=true',
@@ -91,7 +97,7 @@ export const demoVehicle: VehicleData = {
         caption: 'Innovation at your fingertips'
       },
       bullets: [
-        '12.3" digital display',
+        '12.3\" digital display',
         'Wireless connectivity',
         'Premium audio system',
         'Advanced driver assistance'
@@ -109,7 +115,7 @@ export const demoGrades: Grade[] = [
     badge: 'Popular Choice',
     badgeColor: 'bg-blue-600',
     image: 'https://dam.alfuttaim.com/example/grade-le.jpg?binary=true',
-    features: ['Toyota Safety Sense 2.0', 'LED Headlights', 'Apple CarPlay', '17" Alloy Wheels'],
+    features: ['Toyota Safety Sense 2.0', 'LED Headlights', 'Apple CarPlay', '17\" Alloy Wheels'],
     specs: {
       engine: '2.5L 4-Cylinder',
       power: '203 HP',
@@ -127,7 +133,7 @@ export const demoGrades: Grade[] = [
     badge: 'Best Value',
     badgeColor: 'bg-green-600',
     image: 'https://dam.alfuttaim.com/example/grade-xle.jpg?binary=true',
-    features: ['Moonroof', 'Heated Seats', 'Wireless Charging', '18" Alloy Wheels'],
+    features: ['Moonroof', 'Heated Seats', 'Wireless Charging', '18\" Alloy Wheels'],
     specs: {
       engine: '2.5L 4-Cylinder',
       power: '203 HP',
@@ -145,7 +151,7 @@ export const demoGrades: Grade[] = [
     badge: 'Premium',
     badgeColor: 'bg-purple-600',
     image: 'https://dam.alfuttaim.com/example/grade-limited.jpg?binary=true',
-    features: ['Leather Interior', 'JBL Audio', 'Advanced Climate', '19" Alloy Wheels'],
+    features: ['Leather Interior', 'JBL Audio', 'Advanced Climate', '19\" Alloy Wheels'],
     specs: {
       engine: '2.5L 4-Cylinder',
       power: '203 HP',
@@ -215,7 +221,7 @@ export const demoFeatures: Feature[] = [
       caption: 'Technology that adapts to you'
     },
     stats: [
-      { label: 'Display', value: '12.3"' },
+      { label: 'Display', value: '12.3\"' },
       { label: 'Connectivity', value: '5G Ready' },
       { label: 'AI Features', value: '25+' }
     ],
@@ -238,16 +244,23 @@ export const demoFeatures: Feature[] = [
   }
 ];
 
-// New named export required by imports elsewhere in the codebase:
+/**
+ * Backwards-compatible exports many parts of the codebase expect:
+ * - vehicles: an array of VehicleModel-like objects
+ * - preOwnedVehicles: subset of vehicles flagged as pre-owned
+ * - heroSlides: array used by the homepage hero carousel
+ *
+ * Keep these small and safe to avoid parser/transformer errors.
+ */
 export const vehicles = [
-  // Map demoVehicle into a VehicleModel-like shape for backwards compatibility
   {
     id: 'demo-vehicle-1',
     name: 'Demo Vehicle',
     price: 149900,
     category: 'SUV',
+    preOwned: false,
     image: demoVehicle.hero.imageUrl || '',
-    features: demoFeatures.map(f => f.title),
+    features: demoFeatures.map((f) => f.title),
     specifications: {
       engine: demoGrades[0].specs.engine,
       power: demoGrades[0].specs.power,
@@ -255,3 +268,7 @@ export const vehicles = [
     }
   }
 ];
+
+export const preOwnedVehicles = vehicles.filter((v) => Boolean((v as any).preOwned));
+
+export const heroSlides = demoVehicle.carousel;
