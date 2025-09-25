@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
-import { useReducedMotionSafe, motionSafeVariants } from '@/hooks/useReducedMotionSafe';
-import type { Media } from '@/data/demo-data';
+
+interface Media {
+  imageUrl?: string;
+  videoUrl?: string;
+  poster?: string;
+  caption?: string;
+}
 
 interface PremiumMediaShowcaseProps {
   media: Media;
@@ -31,7 +36,7 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
-  const prefersReducedMotion = useReducedMotionSafe();
+  const prefersReducedMotion = useReducedMotion();
 
   const hasVideo = Boolean(media.videoUrl);
 
@@ -56,6 +61,12 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
     }
   };
 
+  const motionVariants = {
+    initial: prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 60, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    transition: prefersReducedMotion ? { duration: 0.1 } : { duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }
+  };
+
   return (
     <section className={`relative h-screen overflow-hidden bg-black ${className}`}>
       {/* Media Background */}
@@ -72,7 +83,6 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
             preload="metadata"
           >
             <source src={media.videoUrl} type="video/mp4" />
-            {/* Fallback image */}
             <img
               src={media.imageUrl || media.poster}
               alt={media.caption || title}
@@ -96,36 +106,28 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="toyota-container w-full">
+        <div className="container mx-auto px-4 lg:px-8 w-full">
           <div className="max-w-4xl">
             <motion.div
-              custom={prefersReducedMotion}
-              variants={motionSafeVariants}
-              initial="initial"
-              animate="animate"
-              transition={{ duration: 0.8, delay: 0.2 }}
+              {...motionVariants}
               className="space-y-8"
             >
               {/* Title */}
               <div className="space-y-4">
                 <motion.h1 
-                  className="text-5xl md:text-7xl font-light text-white tracking-tight leading-none"
-                  custom={prefersReducedMotion}
-                  variants={motionSafeVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-tight leading-none"
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                 >
                   {title}
                 </motion.h1>
                 
                 <motion.p 
-                  className="text-xl md:text-2xl text-white/80 max-w-2xl font-light tracking-wide"
-                  custom={prefersReducedMotion}
-                  variants={motionSafeVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.8, delay: 0.6 }}
+                  className="text-xl md:text-2xl lg:text-3xl text-white/80 max-w-2xl font-light tracking-wide"
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                 >
                   {subtitle}
                 </motion.p>
@@ -134,11 +136,9 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
               {/* CTAs */}
               <motion.div 
                 className="flex flex-col sm:flex-row gap-4"
-                custom={prefersReducedMotion}
-                variants={motionSafeVariants}
-                initial="initial"
-                animate="animate"
-                transition={{ duration: 0.8, delay: 0.8 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 1, delay: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
                 <Button
                   onClick={ctaPrimary.action}
@@ -201,32 +201,6 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
           />
         </div>
       </motion.div>
-
-      {/* Subtle parallax particles for luxury feel */}
-      {!prefersReducedMotion && (
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-white/10 rounded-full"
-              style={{
-                left: `${20 + i * 30}%`,
-                top: `${30 + i * 20}%`,
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.3, 0.7, 0.3],
-              }}
-              transition={{
-                duration: 4 + i,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.5,
-              }}
-            />
-          ))}
-        </div>
-      )}
     </section>
   );
 };
