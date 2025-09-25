@@ -18,6 +18,11 @@ import PreOwnedSection from "@/components/home/PreOwnedSection";
 import OffersSection from "@/components/home/OffersSection";
 import FavoritesDrawer from "@/components/home/FavoritesDrawer";
 import VehicleRecommendations from "@/components/home/VehicleRecommendations";
+import LuxuryShowcase from "@/components/LuxuryShowcase";
+import CarBuilder from "@/components/builder/CarBuilder";
+import LuxuryComparisonTool from "@/components/comparison/LuxuryComparisonTool";
+import RefinedTechExperience from "@/components/tech/RefinedTechExperience";
+import CustomerJourneyCTAs from "@/components/cta/CustomerJourneyCTAs";
 import { vehicles, preOwnedVehicles, heroSlides } from "@/data/vehicles";
 import { VehicleModel } from "@/types/vehicle";
 import { usePersona } from "@/contexts/PersonaContext";
@@ -43,6 +48,11 @@ const Index = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const initialLoadRef = useRef(false);
   const [animateVehicles, setAnimateVehicles] = useState(false);
+  
+  // Luxury component states
+  const [showCarBuilder, setShowCarBuilder] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [showLuxuryExperience, setShowLuxuryExperience] = useState(false);
 
   // Custom section visibility states based on persona
   const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({
@@ -417,6 +427,49 @@ const Index = () => {
           onRemove={handleRemoveFromCompare}
           onClearAll={handleClearCompare}
           personaData={personaData}
+        />
+      )}
+
+      {/* Luxury Showcase Experience */}
+      {showLuxuryExperience && (
+        <LuxuryShowcase
+          onReserve={() => setShowCarBuilder(true)}
+          onBuild={() => setShowCarBuilder(true)}
+          onTestDrive={() => console.log('Test drive')}
+          onCompare={() => setShowComparison(true)}
+          onShare={() => console.log('Share')}
+          onFeatureLearnMore={(id) => console.log('Learn more:', id)}
+          onCarouselAction={(id) => console.log('Carousel action:', id)}
+        />
+      )}
+
+      {/* Refined Tech Experience */}
+      <RefinedTechExperience />
+
+      {/* Customer Journey CTAs */}
+      <CustomerJourneyCTAs />
+
+      {/* Car Builder Modal */}
+      <CarBuilder
+        isOpen={showCarBuilder}
+        onClose={() => setShowCarBuilder(false)}
+        onReserve={(config) => {
+          console.log('Reserve config:', config);
+          setShowCarBuilder(false);
+        }}
+      />
+
+      {/* Luxury Comparison Tool */}
+      {showComparison && (
+        <LuxuryComparisonTool
+          grades={[
+            { id: 'le', name: 'LE', price: 32500, description: 'Essential features and reliability', monthlyFrom: 450, badge: 'Popular', badgeColor: 'blue', features: ['Toyota Safety Sense 2.0', 'LED Headlights'] },
+            { id: 'xle', name: 'XLE', price: 35500, description: 'Enhanced comfort and convenience', monthlyFrom: 520, badge: 'Best Value', badgeColor: 'green', features: ['Moonroof', 'Heated Seats'] },
+            { id: 'limited', name: 'Limited', price: 39500, description: 'Premium luxury and technology', monthlyFrom: 580, badge: 'Premium', badgeColor: 'gold', features: ['Leather Interior', 'JBL Audio'] }
+          ]}
+          onClose={() => setShowComparison(false)}
+          onTestDrive={(gradeId) => console.log('Test drive grade:', gradeId)}
+          onGetQuote={(gradeId) => console.log('Get quote grade:', gradeId)}
         />
       )}
 
