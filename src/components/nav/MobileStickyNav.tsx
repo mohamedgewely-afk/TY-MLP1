@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -11,7 +11,6 @@ import {
   Zap,
   Settings
 } from 'lucide-react';
-import { useReducedMotionSafe } from '@/hooks/useReducedMotionSafe';
 
 interface MobileStickyNavProps {
   onCompare?: () => void;
@@ -33,7 +32,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [activeAction, setActiveAction] = useState<string | null>(null);
-  const prefersReducedMotion = useReducedMotionSafe();
+  const prefersReducedMotion = useReducedMotion();
 
   // Hide/show on scroll
   useEffect(() => {
@@ -103,8 +102,8 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className={`fixed bottom-0 left-0 right-0 z-[100] lg:hidden ${className}`}
         >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-xl border-t border-white/10" />
+          {/* Glass morphism backdrop */}
+          <div className="absolute inset-0 bg-carbon-matte/90 backdrop-blur-xl border-t border-white/10" />
           
           {/* Content */}
           <div className="relative px-4 py-3 safe-area-inset-bottom">
@@ -154,7 +153,7 @@ const MobileStickyNav: React.FC<MobileStickyNavProps> = ({
                         {item.badge && (
                           <Badge
                             variant="destructive"
-                            className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-red-600 border-none"
+                            className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-accent-byd border-none"
                           >
                             {item.badge}
                           </Badge>

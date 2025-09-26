@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -12,7 +12,6 @@ import {
   ChevronRight,
   X
 } from 'lucide-react';
-import { useReducedMotionSafe } from '@/hooks/useReducedMotionSafe';
 
 interface DesktopActionPanelProps {
   onReserve?: () => void;
@@ -35,7 +34,7 @@ const DesktopActionPanel: React.FC<DesktopActionPanelProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const prefersReducedMotion = useReducedMotionSafe();
+  const prefersReducedMotion = useReducedMotion();
 
   // Show after scrolling down
   useEffect(() => {
@@ -100,7 +99,7 @@ const DesktopActionPanel: React.FC<DesktopActionPanelProps> = ({
             className={`fixed right-8 top-1/2 transform -translate-y-1/2 z-50 ${className}`}
           >
             {/* Glass panel */}
-            <div className="bg-black/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl min-w-[280px]">
+            <div className="bg-carbon-matte/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl min-w-[280px]">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-white font-semibold text-lg">Quick Actions</h3>
@@ -156,7 +155,7 @@ const DesktopActionPanel: React.FC<DesktopActionPanelProps> = ({
                             {action.badge && (
                               <Badge
                                 variant="destructive"
-                                className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
+                                className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-accent-byd"
                               >
                                 {action.badge}
                               </Badge>
@@ -192,7 +191,7 @@ const DesktopActionPanel: React.FC<DesktopActionPanelProps> = ({
               {/* Footer */}
               <div className="mt-6 pt-4 border-t border-white/10">
                 <div className="flex items-center text-white/60 text-xs">
-                  <Phone className="h-3 w-3 mr-2" />
+                  <Phone className="h-3 w-3 mr-1" />
                   <span>Call: +971 800 TOYOTA</span>
                 </div>
               </div>

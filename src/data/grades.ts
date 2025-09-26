@@ -1,4 +1,4 @@
-export interface GradeSpec {
+export interface Grade {
   id: string;
   name: string;
   price: number;
@@ -15,112 +15,103 @@ export interface GradeSpec {
     acceleration: string;
     fuelEconomy: string;
   };
-  highlights: string[];
 }
 
-export const gradeSpecs: GradeSpec[] = [
+export const grades: Grade[] = [
   {
-    id: 'base',
-    name: 'Base',
-    price: 119900,
-    monthlyFrom: 845,
+    id: 'gx',
+    name: 'GX',
+    price: 289900,
+    monthlyFrom: 2899,
     badge: 'Essential',
-    badgeColor: 'bg-gray-600',
-    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true',
+    badgeColor: 'bg-blue-600',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true',
     features: [
-      'Toyota Safety Sense 2.0',
-      '17" Alloy Wheels',
-      '8" Touchscreen Display',
-      'Apple CarPlay/Android Auto',
-      'Adaptive Cruise Control'
+      'Toyota Safety Sense 3.0',
+      'LED Headlights',
+      'Apple CarPlay',
+      '18" Alloy Wheels',
+      'Dual-Zone Climate Control'
     ],
     specs: {
-      engine: '2.5L Dynamic Force 4-Cylinder',
-      power: '203 HP',
-      torque: '184 lb-ft',
-      transmission: '8-Speed Automatic',
-      acceleration: '8.2 seconds',
-      fuelEconomy: '7.2L/100km'
-    },
-    highlights: ['Essential features', 'Great value', 'Reliable performance']
+      engine: '3.5L V6 Twin-Turbo',
+      power: '409 HP',
+      torque: '650 Nm',
+      transmission: '10-Speed Automatic',
+      acceleration: '6.7 seconds',
+      fuelEconomy: '10.0L/100km'
+    }
   },
   {
-    id: 'sport',
-    name: 'Sport',
-    price: 139900,
-    monthlyFrom: 945,
-    badge: 'Performance',
-    badgeColor: 'bg-red-600',
-    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true',
+    id: 'gxr',
+    name: 'GXR',
+    price: 329900,
+    monthlyFrom: 3299,
+    badge: 'Popular',
+    badgeColor: 'bg-green-600',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/cce498b4-5dab-4a8c-9684-ca2a175103b7/renditions/8b82d3c6-0df7-4252-b3cc-7977595ace57?binary=true&mformat=true',
     features: [
-      'Sport-Tuned Suspension',
-      '19" Sport Alloy Wheels',
-      'Leather-Appointed Seats',
-      'Heated Front Seats',
-      'Premium Audio System',
-      'LED Headlights'
+      'Leather Interior',
+      'Sunroof',
+      'Wireless Charging',
+      '20" Alloy Wheels',
+      'Premium Audio System'
     ],
     specs: {
-      engine: '3.5L V6 Dynamic Force',
-      power: '268 HP',
-      torque: '248 lb-ft',
-      transmission: '8-Speed Sport Automatic',
-      acceleration: '6.8 seconds',
-      fuelEconomy: '8.5L/100km'
-    },
-    highlights: ['Enhanced performance', 'Sport styling', 'Premium features']
+      engine: '3.5L V6 Twin-Turbo',
+      power: '409 HP',
+      torque: '650 Nm',
+      transmission: '10-Speed Automatic',
+      acceleration: '6.7 seconds',
+      fuelEconomy: '10.0L/100km'
+    }
   },
   {
-    id: 'luxury',
-    name: 'Luxury',
-    price: 159900,
-    monthlyFrom: 1089,
+    id: 'vxr',
+    name: 'VXR',
+    price: 369900,
+    monthlyFrom: 3699,
     badge: 'Premium',
     badgeColor: 'bg-purple-600',
-    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f9670484-f03f-46ba-aac8-424889e779a0/renditions/ad34680c-160b-43a6-9785-541adba34a45?binary=true&mformat=true',
     features: [
       'Premium Leather Interior',
-      'Panoramic Moonroof',
-      'Heated & Ventilated Seats',
-      'Premium JBL Audio',
-      '12.3" Digital Display',
-      'Wireless Charging',
-      'Power Tailgate'
+      'JBL Premium Audio',
+      'Advanced Climate Control',
+      '20" Premium Wheels',
+      'Head-Up Display'
     ],
     specs: {
-      engine: '3.5L V6 Dynamic Force',
-      power: '268 HP',
-      torque: '248 lb-ft',
-      transmission: '8-Speed Automatic',
-      acceleration: '7.1 seconds',
-      fuelEconomy: '8.8L/100km'
-    },
-    highlights: ['Ultimate luxury', 'Premium materials', 'Advanced technology']
+      engine: '3.5L V6 Twin-Turbo',
+      power: '409 HP',
+      torque: '650 Nm',
+      transmission: '10-Speed Automatic',
+      acceleration: '6.7 seconds',
+      fuelEconomy: '10.0L/100km'
+    }
   },
   {
-    id: 'hybrid',
-    name: 'Hybrid',
-    price: 149900,
-    monthlyFrom: 1045,
-    badge: 'Eco Choice',
-    badgeColor: 'bg-green-600',
-    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/aa9464a6-1f26-4dd0-a3a1-b246f02db11d/renditions/b8ac9e21-da97-4c00-9efc-276d36d797c2?binary=true&mformat=true',
+    id: 'gr-sport',
+    name: 'GR Sport',
+    price: 419900,
+    monthlyFrom: 4199,
+    badge: 'Performance',
+    badgeColor: 'bg-red-600',
+    image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/99361037-8c52-4705-bc51-c2cea61633c6/items/0e241336-53f3-4bd0-8c67-61baf34bfdbd/renditions/cda649a1-788a-481d-a794-15dc2d9f7d64?binary=true&mformat=true',
     features: [
-      'Hybrid Synergy Drive',
-      'EV Mode Capability',
-      'Regenerative Braking',
-      'Eco Dashboard',
-      'Hybrid Battery Warranty',
-      'Predictive Efficiency'
+      'GR-Tuned Suspension',
+      'Sport Exhaust System',
+      'Carbon Fiber Accents',
+      '22" GR Wheels',
+      'Performance Brakes'
     ],
     specs: {
-      engine: '2.5L Hybrid Dynamic Force',
-      power: '243 HP Combined',
-      torque: '221 Nm',
-      transmission: 'ECVT',
-      acceleration: '7.8 seconds',
-      fuelEconomy: '4.5L/100km'
-    },
-    highlights: ['Maximum efficiency', 'Environmental friendly', 'Advanced hybrid tech']
+      engine: '3.5L V6 Twin-Turbo',
+      power: '409 HP',
+      torque: '650 Nm',
+      transmission: '10-Speed Automatic',
+      acceleration: '6.7 seconds',
+      fuelEconomy: '10.0L/100km'
+    }
   }
 ];

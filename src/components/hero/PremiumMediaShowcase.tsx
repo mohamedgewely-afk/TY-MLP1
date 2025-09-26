@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Media {
   imageUrl?: string;
@@ -10,18 +11,17 @@ interface Media {
   caption?: string;
 }
 
+interface CTAAction {
+  label: string;
+  action: () => void;
+}
+
 interface PremiumMediaShowcaseProps {
   media: Media;
   title?: string;
   subtitle?: string;
-  ctaPrimary?: {
-    label: string;
-    action: () => void;
-  };
-  ctaSecondary?: {
-    label: string;
-    action: () => void;
-  };
+  ctaPrimary?: CTAAction;
+  ctaSecondary?: CTAAction;
   className?: string;
 }
 
@@ -36,7 +36,16 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, prefersReducedMotion ? 0 : -100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3]);
 
   const hasVideo = Boolean(media.videoUrl);
 
@@ -61,16 +70,16 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
     }
   };
 
-  const motionVariants = {
-    initial: prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 60, scale: 0.95 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    transition: prefersReducedMotion ? { duration: 0.1 } : { duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }
-  };
-
   return (
-    <section className={`relative h-screen overflow-hidden bg-black ${className}`}>
-      {/* Media Background */}
-      <div className="absolute inset-0 z-0">
+    <section 
+      ref={containerRef}
+      className={cn("relative h-screen overflow-hidden bg-carbon-matte", className)}
+    >
+      {/* Background Media */}
+      <motion.div 
+        className="absolute inset-0 z-0"
+        style={{ y }}
+      >
         {hasVideo ? (
           <video
             ref={setVideoElement}
@@ -91,7 +100,7 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
           </video>
         ) : (
           <img
-            src={media.imageUrl}
+            src={media.imageUrl || 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true'}
             alt={media.caption || title}
             className="w-full h-full object-cover"
             loading="eager"
@@ -102,14 +111,19 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
         {/* Luxury gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20" />
-      </div>
+      </motion.div>
 
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
+      <motion.div 
+        className="relative z-10 h-full flex items-center"
+        style={{ opacity }}
+      >
         <div className="container mx-auto px-4 lg:px-8 w-full">
           <div className="max-w-4xl">
             <motion.div
-              {...motionVariants}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 60, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: prefersReducedMotion ? 0.1 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="space-y-8"
             >
               {/* Title */}
@@ -160,7 +174,7 @@ const PremiumMediaShowcase: React.FC<PremiumMediaShowcaseProps> = ({
             </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Video Controls */}
       {hasVideo && (

@@ -206,6 +206,84 @@
   color: hsl(var(--persona-primary));
 }
 
+/* Luxury automotive classes */
+.bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+
+.text-brand-primary {
+  color: var(--brand-primary);
+}
+
+.bg-accent-byd {
+  background-color: var(--accent-byd);
+}
+
+.text-accent-byd {
+  color: var(--accent-byd);
+}
+
+.bg-carbon-matte {
+  background-color: var(--carbon-matte);
+  background-image: 
+    linear-gradient(45deg, #0B0B0C 25%, transparent 25%), 
+    linear-gradient(-45deg, #0B0B0C 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #0B0B0C 75%), 
+    linear-gradient(-45deg, transparent 75%, #0B0B0C 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.glass-light {
+  background: var(--glass-light);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-medium {
+  background: var(--glass-medium);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.glass-dark {
+  background: var(--glass-dark);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Perspective utilities for 3D effects */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Scrollbar hiding */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .border-persona-primary {
   border-color: hsl(var(--persona-primary));
 }

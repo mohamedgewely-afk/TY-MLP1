@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { useReducedMotionSafe } from '@/hooks/useReducedMotionSafe';
 
 interface TechFeature {
   id: string;
@@ -22,6 +20,7 @@ interface RefinedTechExperienceProps {
   features?: TechFeature[];
   title?: string;
   subtitle?: string;
+  className?: string;
 }
 
 const defaultFeatures: TechFeature[] = [
@@ -30,8 +29,8 @@ const defaultFeatures: TechFeature[] = [
     title: 'Toyota Safety Sense 3.0',
     subtitle: 'Advanced Driver Assistance',
     description: 'Our most comprehensive safety suite uses advanced cameras, radar, and lidar to help prevent accidents before they happen. Experience peace of mind with intelligent protection that never sleeps.',
-    mediaType: 'video',
-    mediaSrc: '/api/placeholder/800/450',
+    mediaType: 'image',
+    mediaSrc: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/fbb87eaa-f92c-4a11-9f7d-1a20a5ad2370/items/27becc9e-3b15-436e-a603-df509955cba9/renditions/e6cec4c7-f5aa-4560-b91f-49ed9ab26956?binary=true&mformat=true',
     highlights: ['Pre-Collision System', 'Lane Departure Alert', 'Dynamic Radar Cruise Control', 'Road Sign Assist'],
     specs: [
       { label: 'Detection Range', value: '120m' },
@@ -45,7 +44,7 @@ const defaultFeatures: TechFeature[] = [
     subtitle: 'Connected Intelligence',
     description: 'The 14-inch HD touchscreen puts everything at your fingertips. Wireless connectivity, cloud-based navigation, and AI-powered voice recognition create an intuitive digital experience.',
     mediaType: 'image',
-    mediaSrc: '/api/placeholder/800/450',
+    mediaSrc: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/84fd5061-3729-44b7-998c-ef02847d7bed/renditions/806b28e7-dffa-47c1-812b-2e7595defb58?binary=true&mformat=true',
     highlights: ['14" HD Touchscreen', 'Wireless Apple CarPlay', 'Cloud Navigation', 'OTA Updates'],
     specs: [
       { label: 'Screen Size', value: '14 inches' },
@@ -58,8 +57,8 @@ const defaultFeatures: TechFeature[] = [
     title: 'Hybrid Electric Power',
     subtitle: 'Efficiency Redefined',
     description: 'Our fourth-generation hybrid system combines a high-efficiency engine with advanced electric motors for exceptional fuel economy and responsive performance. Silent electric driving meets powerful acceleration.',
-    mediaType: 'video',
-    mediaSrc: '/api/placeholder/800/450',
+    mediaType: 'image',
+    mediaSrc: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/c4e12e8a-9dec-46b0-bf28-79b0ce12d68a/renditions/46932519-51bd-485e-bf16-cf1204d3226a?binary=true&mformat=true',
     highlights: ['Electric Motor Drive', 'Regenerative Braking', 'EV Mode', 'Intelligent Power Management'],
     specs: [
       { label: 'System Power', value: '219 hp' },
@@ -73,7 +72,7 @@ const defaultFeatures: TechFeature[] = [
     subtitle: 'Luxury Craftsmanship',
     description: 'Hand-selected materials, precision stitching, and ambient lighting create an atmosphere of refined luxury. Every surface reflects our commitment to exceptional quality and comfort.',
     mediaType: 'image',
-    mediaSrc: '/api/placeholder/800/450',
+    mediaSrc: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true',
     highlights: ['Premium Leather', 'Heated & Ventilated Seats', '64-Color Ambient Lighting', 'Panoramic Roof'],
     specs: [
       { label: 'Seating', value: 'Semi-aniline leather' },
@@ -177,12 +176,12 @@ const FeatureSection: React.FC<{
 }> = ({ feature, index, isLast }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-  const reduceMotion = useReducedMotionSafe();
+  const prefersReducedMotion = useReducedMotion();
   
   const isEven = index % 2 === 0;
 
   return (
-    <section ref={ref} className={cn("min-h-screen relative", !isLast && "border-b border-white/10")}>
+    <section ref={ref} className={cn("min-h-screen relative", !isLast && "border-b border-neutral-200")}>
       <div className="container mx-auto px-4 py-20">
         <div className={cn(
           "grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]",
@@ -190,36 +189,36 @@ const FeatureSection: React.FC<{
         )}>
           {/* Content */}
           <motion.div
-            initial={reduceMotion ? {} : { opacity: 0, y: 60 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 60 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
             className={cn("space-y-8", !isEven && "lg:order-2")}
           >
             <div className="space-y-4">
-              <Badge variant="outline" className="border-white/20 text-white/70 bg-white/5">
+              <Badge variant="outline" className="border-brand-primary/20 text-brand-primary bg-brand-primary/5">
                 {feature.subtitle}
               </Badge>
               
-              <h2 className="text-4xl lg:text-6xl font-light tracking-tight text-white leading-tight">
+              <h2 className="text-4xl lg:text-6xl font-light tracking-tight text-foreground leading-tight">
                 {feature.title}
               </h2>
               
-              <p className="text-lg lg:text-xl text-white/70 leading-relaxed max-w-[65ch]">
+              <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-[65ch]">
                 {feature.description}
               </p>
             </div>
 
             {/* Highlights */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white/90">Key Features</h3>
+              <h3 className="text-lg font-medium text-foreground/90">Key Features</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {feature.highlights.map((highlight, idx) => (
                   <motion.div
                     key={highlight}
-                    initial={reduceMotion ? {} : { opacity: 0, x: -20 }}
+                    initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
                     animate={isInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.5, delay: 0.4 + (idx * 0.1) }}
-                    className="flex items-center text-white/80"
+                    className="flex items-center text-foreground/80"
                   >
                     <div className="w-1.5 h-1.5 bg-brand-primary rounded-full mr-3 flex-shrink-0" />
                     <span className="text-sm">{highlight}</span>
@@ -231,17 +230,17 @@ const FeatureSection: React.FC<{
             {/* Specs */}
             {feature.specs && (
               <motion.div
-                initial={reduceMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="space-y-4"
               >
-                <h3 className="text-lg font-medium text-white/90">Specifications</h3>
+                <h3 className="text-lg font-medium text-foreground/90">Specifications</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {feature.specs.map((spec, idx) => (
-                    <div key={spec.label} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                      <div className="text-2xl font-bold text-white">{spec.value}</div>
-                      <div className="text-sm text-white/60">{spec.label}</div>
+                  {feature.specs.map((spec) => (
+                    <div key={spec.label} className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-4">
+                      <div className="text-2xl font-light text-foreground">{spec.value}</div>
+                      <div className="text-sm text-muted-foreground">{spec.label}</div>
                     </div>
                   ))}
                 </div>
@@ -251,7 +250,7 @@ const FeatureSection: React.FC<{
 
           {/* Media */}
           <motion.div
-            initial={reduceMotion ? {} : { opacity: 0, scale: 0.9 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.1 }}
             className={cn("relative", isEven ? "lg:order-2" : "lg:order-1")}
@@ -261,7 +260,7 @@ const FeatureSection: React.FC<{
               
               {/* Floating accent */}
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-brand-primary/20 rounded-full blur-xl" />
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-blue-500/10 rounded-full blur-xl" />
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-accent-byd/10 rounded-full blur-xl" />
             </div>
           </motion.div>
         </div>
@@ -270,7 +269,7 @@ const FeatureSection: React.FC<{
       {/* Subtle divider */}
       {!isLast && (
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
-          <div className="w-px h-20 bg-gradient-to-b from-white/20 to-transparent" />
+          <div className="w-px h-20 bg-gradient-to-b from-neutral-300 to-transparent" />
         </div>
       )}
     </section>
@@ -280,30 +279,31 @@ const FeatureSection: React.FC<{
 const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({
   features = defaultFeatures,
   title = "Technology Redefined",
-  subtitle = "Experience the future of automotive innovation"
+  subtitle = "Experience the future of automotive innovation",
+  className = ""
 }) => {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true });
-  const reduceMotion = useReducedMotionSafe();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="bg-black text-white relative overflow-hidden">
+    <div className={cn("bg-white text-foreground relative overflow-hidden", className)}>
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-byd/5 rounded-full blur-3xl" />
       </div>
 
       {/* Header */}
       <section ref={headerRef} className="relative z-10 py-20 lg:py-32">
         <div className="container mx-auto px-4 text-center">
           <motion.div
-            initial={reduceMotion ? {} : { opacity: 0, y: 40 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 40 }}
             animate={isHeaderInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
             className="space-y-6"
           >
-            <Badge variant="outline" className="border-white/20 text-white/70 bg-white/5 mb-4">
+            <Badge variant="outline" className="border-brand-primary/20 text-brand-primary bg-brand-primary/5 mb-4">
               Innovation
             </Badge>
             
@@ -311,7 +311,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({
               {title}
             </h1>
             
-            <p className="text-xl lg:text-2xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl lg:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               {subtitle}
             </p>
           </motion.div>
@@ -331,20 +331,20 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({
       </div>
 
       {/* Bottom CTA */}
-      <section className="relative z-10 py-20 border-t border-white/10">
+      <section className="relative z-10 py-20 border-t border-neutral-200">
         <div className="container mx-auto px-4 text-center">
           <motion.div
-            initial={reduceMotion ? {} : { opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+            whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
             className="space-y-8"
           >
-            <h2 className="text-3xl lg:text-5xl font-light tracking-tight text-white">
+            <h2 className="text-3xl lg:text-5xl font-light tracking-tight text-foreground">
               Experience Technology in Motion
             </h2>
             
-            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Schedule a test drive to experience these advanced technologies firsthand and discover how innovation enhances every journey.
             </p>
             
@@ -352,7 +352,7 @@ const RefinedTechExperience: React.FC<RefinedTechExperienceProps> = ({
               <Button size="lg" className="bg-brand-primary hover:bg-brand-primary/90 text-white px-8">
                 Schedule Test Drive
               </Button>
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8">
+              <Button size="lg" variant="outline" className="border-brand-primary/20 text-brand-primary hover:bg-brand-primary/10 px-8">
                 Explore Features
               </Button>
             </div>

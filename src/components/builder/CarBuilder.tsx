@@ -40,17 +40,11 @@ interface BuilderStep {
 }
 
 // Step Components
-const GradeStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<BuilderConfig>) => void }> = ({ config, onChange }) => {
-  const grades = [
-    { id: 'le', name: 'LE', price: 32500, features: ['Toyota Safety Sense 2.0', 'LED Headlights', 'Apple CarPlay'], image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/789c17df-5a4f-4c58-8e98-6377f42ab595/renditions/ad3c8ed5-9496-4aef-8db4-1387eb8db05b?binary=true' },
-    { id: 'xle', name: 'XLE', price: 35500, features: ['Moonroof', 'Heated Seats', 'Wireless Charging'], image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/c0db2583-2f04-4dc7-922d-9fc0e7ef1598/items/1ed39525-8aa4-4501-bc27-71b2ef371c94/renditions/a205edda-0b79-444f-bccb-74f1e08d092e?binary=true&mformat=true' },
-    { id: 'limited', name: 'Limited', price: 39500, features: ['Leather Interior', 'JBL Audio', 'Advanced Climate'], image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/ddf77cdd-ab47-4c48-8103-4b2aad8dcd32/items/d2f50a41-fe45-4cb5-9516-d266382d4948/renditions/99b517e5-0f60-443e-95c6-d81065af604b?binary=true' },
-  ];
-
+const GradeStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<BuilderConfig>) => void; grades: Grade[] }> = ({ config, onChange, grades }) => {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {grades.map((grade) => (
         <motion.div
           key={grade.id}
@@ -58,32 +52,34 @@ const GradeStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<Bu
           whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
         >
           <Card className={cn(
-            'cursor-pointer transition-all duration-200 border-2',
-            config.grade?.id === grade.id ? 'border-[#EB0A1E] bg-[#EB0A1E]/5' : 'border-border hover:border-[#EB0A1E]/50'
+            'cursor-pointer transition-all duration-200 border-2 overflow-hidden',
+            config.grade?.id === grade.id ? 'border-brand-primary bg-brand-primary/5' : 'border-border hover:border-brand-primary/50'
           )}
           onClick={() => onChange({ grade })}
           >
-            <CardContent className="p-6">
-              <div className="aspect-video mb-4 rounded-lg overflow-hidden">
+            <CardContent className="p-0">
+              <div className="aspect-video overflow-hidden">
                 <img 
-                  src={grade.image} 
+                  src={grade.image}
                   alt={grade.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   loading="lazy"
                 />
               </div>
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">{grade.name}</h3>
-                <Badge variant="secondary">AED {grade.price.toLocaleString()}</Badge>
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-xl font-bold">{grade.name}</h3>
+                  <Badge variant="secondary">AED {grade.price.toLocaleString()}</Badge>
+                </div>
+                <ul className="space-y-2">
+                  {grade.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 mr-2 text-brand-primary" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2">
-                {grade.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 mr-2 text-[#EB0A1E]" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
             </CardContent>
           </Card>
         </motion.div>
@@ -103,26 +99,33 @@ const ExteriorStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
       {colors.map((color) => (
         <motion.div
           key={color.id}
           whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
           whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
           className={cn(
-            'relative cursor-pointer p-4 rounded-lg border-2 transition-all',
-            config.exteriorColor === color.id ? 'border-[#EB0A1E]' : 'border-border hover:border-[#EB0A1E]/50'
+            'relative cursor-pointer p-6 rounded-2xl border-2 transition-all text-center',
+            config.exteriorColor === color.id ? 'border-brand-primary bg-brand-primary/5' : 'border-border hover:border-brand-primary/50'
           )}
           onClick={() => onChange({ exteriorColor: color.id })}
         >
           <div
-            className="w-16 h-16 rounded-full mx-auto mb-3 shadow-lg"
+            className="w-16 h-16 rounded-full mx-auto mb-3 shadow-lg border-2 border-white"
             style={{ backgroundColor: color.hex }}
           />
-          <div className="text-center">
-            <p className="font-medium text-sm">{color.name}</p>
-            {color.premium && <Badge variant="outline" className="mt-1 text-xs">Premium</Badge>}
+          <div>
+            <p className="font-medium text-sm mb-1">{color.name}</p>
+            {color.premium && <Badge variant="outline" className="text-xs">Premium</Badge>}
           </div>
+          {config.exteriorColor === color.id && (
+            <div className="absolute top-2 right-2">
+              <div className="w-6 h-6 bg-brand-primary rounded-full flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          )}
         </motion.div>
       ))}
     </div>
@@ -131,26 +134,35 @@ const ExteriorStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial
 
 const WheelsStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<BuilderConfig>) => void }> = ({ config, onChange }) => {
   const wheels = [
-    { id: 'standard', name: '17" Alloy', price: 0 },
-    { id: 'sport', name: '19" Sport', price: 1500 },
-    { id: 'premium', name: '20" Premium', price: 2500 },
+    { id: 'standard', name: '18" Alloy', price: 0, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true' },
+    { id: 'sport', name: '20" Sport', price: 1500, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true' },
+    { id: 'premium', name: '22" Premium', price: 2500, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/b3900f39-1b18-4f3e-9048-44efedd76327/items/f6516ca6-e2fd-4869-bfff-20532eda7b71/renditions/63c413af-8759-4581-a01b-905989f7d391?binary=true&mformat=true' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {wheels.map((wheel) => (
         <Card
           key={wheel.id}
           className={cn(
-            'cursor-pointer transition-all border-2',
-            config.wheels === wheel.id ? 'border-[#EB0A1E]' : 'border-border hover:border-[#EB0A1E]/50'
+            'cursor-pointer transition-all border-2 overflow-hidden',
+            config.wheels === wheel.id ? 'border-brand-primary bg-brand-primary/5' : 'border-border hover:border-brand-primary/50'
           )}
           onClick={() => onChange({ wheels: wheel.id })}
         >
-          <CardContent className="p-4 text-center">
-            <div className="w-20 h-20 bg-muted rounded-full mx-auto mb-3" />
-            <h3 className="font-medium">{wheel.name}</h3>
-            {wheel.price > 0 && <p className="text-sm text-muted-foreground">+AED {wheel.price}</p>}
+          <CardContent className="p-0">
+            <div className="aspect-square overflow-hidden">
+              <img
+                src={wheel.image}
+                alt={wheel.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="p-4 text-center">
+              <h3 className="font-medium mb-1">{wheel.name}</h3>
+              {wheel.price > 0 && <p className="text-sm text-muted-foreground">+AED {wheel.price}</p>}
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -160,26 +172,35 @@ const WheelsStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<B
 
 const InteriorStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial<BuilderConfig>) => void }> = ({ config, onChange }) => {
   const interiors = [
-    { id: 'fabric', name: 'SofTex', price: 0 },
-    { id: 'leather', name: 'Leather', price: 1200 },
-    { id: 'premium', name: 'Premium Leather', price: 2400 },
+    { id: 'fabric', name: 'SofTex', price: 0, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true' },
+    { id: 'leather', name: 'Leather', price: 1200, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true' },
+    { id: 'premium', name: 'Premium Leather', price: 2400, image: 'https://dam.alfuttaim.com/dx/api/dam/v1/collections/adc19d33-a26d-4448-8ae6-9ecbce2bb2d8/items/5ae14c90-6ca2-49dd-a596-e3e4b2bf449b/renditions/62240799-f5a0-4728-80b3-c928ff0d6985?binary=true&mformat=true' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {interiors.map((interior) => (
         <Card
           key={interior.id}
           className={cn(
-            'cursor-pointer transition-all border-2',
-            config.interior === interior.id ? 'border-[#EB0A1E]' : 'border-border hover:border-[#EB0A1E]/50'
+            'cursor-pointer transition-all border-2 overflow-hidden',
+            config.interior === interior.id ? 'border-brand-primary bg-brand-primary/5' : 'border-border hover:border-brand-primary/50'
           )}
           onClick={() => onChange({ interior: interior.id })}
         >
-          <CardContent className="p-4 text-center">
-            <div className="w-full h-24 bg-muted rounded mb-3" />
-            <h3 className="font-medium">{interior.name}</h3>
-            {interior.price > 0 && <p className="text-sm text-muted-foreground">+AED {interior.price}</p>}
+          <CardContent className="p-0">
+            <div className="aspect-video overflow-hidden">
+              <img
+                src={interior.image}
+                alt={interior.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="p-4 text-center">
+              <h3 className="font-medium mb-1">{interior.name}</h3>
+              {interior.price > 0 && <p className="text-sm text-muted-foreground">+AED {interior.price}</p>}
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -209,7 +230,7 @@ const PackagesStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial
           key={pkg.id}
           className={cn(
             'cursor-pointer transition-all border-2',
-            config.packages?.includes(pkg.id) ? 'border-[#EB0A1E] bg-[#EB0A1E]/5' : 'border-border hover:border-[#EB0A1E]/50'
+            config.packages?.includes(pkg.id) ? 'border-brand-primary bg-brand-primary/5' : 'border-border hover:border-brand-primary/50'
           )}
           onClick={() => togglePackage(pkg.id)}
         >
@@ -217,11 +238,11 @@ const PackagesStep: React.FC<{ config: BuilderConfig; onChange: (update: Partial
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-semibold">{pkg.name}</h3>
-                <p className="text-[#EB0A1E] font-medium">+AED {pkg.price.toLocaleString()}</p>
+                <p className="text-brand-primary font-medium">+AED {pkg.price.toLocaleString()}</p>
               </div>
               <div className={cn(
                 'w-6 h-6 rounded border-2 flex items-center justify-center',
-                config.packages?.includes(pkg.id) ? 'border-[#EB0A1E] bg-[#EB0A1E]' : 'border-border'
+                config.packages?.includes(pkg.id) ? 'border-brand-primary bg-brand-primary' : 'border-border'
               )}>
                 {config.packages?.includes(pkg.id) && <Check className="w-4 h-4 text-white" />}
               </div>
@@ -324,14 +345,14 @@ const CarBuilder: React.FC<CarBuilderProps> = ({
                     <div key={step.id} className="flex items-center">
                       <div className={cn(
                         'flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors',
-                        index <= currentStep ? 'border-[#EB0A1E] bg-[#EB0A1E] text-white' : 'border-muted'
+                        index <= currentStep ? 'border-brand-primary bg-brand-primary text-white' : 'border-muted'
                       )}>
                         <Icon className="h-5 w-5" />
                       </div>
                       {index < builderSteps.length - 1 && (
                         <div className={cn(
                           'w-16 h-0.5 mx-2 transition-colors',
-                          index < currentStep ? 'bg-[#EB0A1E]' : 'bg-muted'
+                          index < currentStep ? 'bg-brand-primary' : 'bg-muted'
                         )} />
                       )}
                     </div>
@@ -359,7 +380,11 @@ const CarBuilder: React.FC<CarBuilderProps> = ({
                       transition={{ duration: prefersReducedMotion ? 0.1 : 0.3 }}
                     >
                       {CurrentStepComponent && (
-                        <CurrentStepComponent config={config} onChange={updateConfig} />
+                        <CurrentStepComponent 
+                          config={config} 
+                          onChange={updateConfig}
+                          grades={grades}
+                        />
                       )}
                     </motion.div>
                   </AnimatePresence>
@@ -411,7 +436,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({
                       
                       <div className="flex justify-between items-center font-semibold text-lg">
                         <span>Total:</span>
-                        <span className="text-[#EB0A1E]">AED {calculateTotal().toLocaleString()}</span>
+                        <span className="text-brand-primary">AED {calculateTotal().toLocaleString()}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -436,7 +461,7 @@ const CarBuilder: React.FC<CarBuilderProps> = ({
                     <Button
                       onClick={() => onReserve?.(config)}
                       disabled={!canProceed()}
-                      className="bg-[#EB0A1E] hover:bg-[#EB0A1E]/90"
+                      className="bg-brand-primary hover:bg-brand-primary/90"
                     >
                       Reserve Now - AED {calculateTotal().toLocaleString()}
                     </Button>
