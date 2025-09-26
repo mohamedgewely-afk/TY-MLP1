@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { X, ChevronDown, ChevronRight, HelpCircle, Search } from 'lucide-react';
+import { X, ChevronDown, ChevronRight, CircleHelp as HelpCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';

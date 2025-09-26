@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { 
-  Car, 
-  Heart, 
-  Calendar, 
-  ArrowRightLeft, 
-  CreditCard,
-  MapPin,
-  Phone,
-  Mail,
-  CheckCircle,
-  Clock,
-  DollarSign
-} from 'lucide-react';
+import { Car, Heart, Calendar, ArrowRightLeft, CreditCard, MapPin, Phone, Mail, CircleCheck as CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
