@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { heroSlides as defaultSlides } from "@/data/vehicles";
 
 interface HeroSlide {
   id: string;
@@ -27,58 +28,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides: propSlides }) => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
-
-  // Default slides with consistent properties
-  const defaultSlides: HeroSlide[] = [
-    {
-      id: "1",
-      title: "New Camry Hybrid",
-      subtitle: "The Future of Driving",
-      description: "Experience the perfect blend of performance, efficiency, and luxury with our latest hybrid technology.",
-      image: "https://images.unsplash.com/photo-1494976688531-c21fd785c8d0?auto=format&fit=crop&w=1920&q=80",
-      cta: "Explore Camry",
-      ctaText: "Explore Camry",
-      link: "/vehicle/camry-hybrid",
-      ctaLink: "/vehicle/camry-hybrid",
-      badge: "New 2024"
-    },
-    {
-      id: "2",
-      title: "RAV4 Adventure",
-      subtitle: "Built for Every Journey",
-      description: "Conquer any terrain with confidence. The RAV4 combines rugged capability with refined comfort.",
-      image: "https://dam.alfuttaim.com/dx/api/dam/v1/collections/f5b0eec7-2576-4e8a-9aa7-2589d2c985ef/items/500204ce-384d-4ae5-8585-3111b7d7dd16/renditions/51797f22-123a-413b-8817-57b1f0ce0788?binary=true&mformat=true",
-      cta: "Discover RAV4",
-      ctaText: "Discover RAV4",
-      link: "/vehicle/rav4-hybrid",
-      ctaLink: "/vehicle/rav4-hybrid",
-      badge: "Best Seller"
-    },
-    {
-      id: "3",
-      title: "Prius Prime",
-      subtitle: "Electrify Your Drive",
-      description: "Revolutionary plug-in hybrid technology that redefines what's possible in eco-friendly transportation.",
-      image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1920&q=80",
-      cta: "Go Electric",
-      ctaText: "Go Electric",
-      link: "/vehicle/prius-prime",
-      ctaLink: "/vehicle/prius-prime",
-      badge: "Eco Choice"
-    },
-    {
-      id: "4",
-      title: "Land Cruiser",
-      subtitle: "Legendary Performance",
-      description: "Unmatched capability and reliability for those who demand the very best in off-road excellence.",
-      image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1920&q=80",
-      cta: "Experience Legend",
-      ctaText: "Experience Legend",
-      link: "/vehicle/land-cruiser",
-      ctaLink: "/vehicle/land-cruiser",
-      badge: "Icon"
-    }
-  ];
 
   const slides = propSlides || defaultSlides;
 
